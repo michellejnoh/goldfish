@@ -62,6 +62,15 @@ body.night{--ink:#ededed;--dim:#7d7d7d;--soft:#b3b3b3;--track:#4a4a4a}
 body.night #say{color:#e0e0e0}
 @media (min-width:700px){#name{font-size:46px}}
 [hidden]{display:none!important}
+body.editing .ui,body.editing #say{display:none}
+#editBar{position:fixed;left:0;right:0;top:0;z-index:4;display:flex;flex-direction:column;align-items:center;gap:2px;
+  padding-top:calc(env(safe-area-inset-top,0px) + 10px);padding-left:max(18px,env(safe-area-inset-left,0px));padding-right:max(18px,env(safe-area-inset-right,0px));text-shadow:0 0 1.2px rgba(0,0,0,.3)}
+#editBar nav{display:flex;justify-content:space-between;gap:10px;width:100%;max-width:440px}
+#editBar nav button{font-size:20px;color:var(--dim);padding:10px 4px}
+#editBar nav button[aria-pressed="true"]{color:var(--ink);text-decoration:underline;text-decoration-thickness:1.5px;text-underline-offset:6px}
+#editBar nav button.done{color:var(--ink)}
+#editHint{margin:0;font-size:15px;color:var(--soft);text-align:center}
+#touch{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:9}
 .side{display:flex;flex-direction:column;align-items:flex-end;gap:0}
 .sheet{position:fixed;inset:0;z-index:6;background:rgba(255,255,255,.96);display:flex;align-items:center;justify-content:center;
   padding-block:24px;padding-left:max(28px,env(safe-area-inset-left,0px));padding-right:max(28px,env(safe-area-inset-right,0px));text-shadow:0 0 1.2px rgba(0,0,0,.28);color:#111}
@@ -79,12 +88,14 @@ body.night #say{color:#e0e0e0}
 .row2 .link[aria-pressed="true"]{color:#111;text-decoration-thickness:2px}
 .mis .done{color:#a3a3a3;text-decoration:line-through}
 .small{font-size:14px;color:#8a8a8a}
-.shopgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px 14px}
-.item{display:flex;flex-direction:column;gap:3px;min-width:0}
-.item img{width:100%;aspect-ratio:1;background:#dde2e5;border-radius:8px;display:block;max-width:100%}
-.item b{font-weight:500;font-size:17px;color:#111}
-.item em{font-style:normal;color:#8a8a8a;font-size:15px}
-.item button{font:inherit;font-size:15px;color:#111;text-decoration:underline;text-underline-offset:3px;text-align:left;padding:2px 0}
+.shopgrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px 8px}
+#shop .card{max-width:440px}
+@media (max-height:700px){.shopgrid{grid-template-columns:repeat(5,minmax(0,1fr))}}
+.item{display:flex;flex-direction:column;gap:1px;min-width:0;align-items:center;text-align:center}
+.item img{width:100%;max-width:84px;aspect-ratio:1;display:block}
+.item b{font-weight:500;font-size:14px;line-height:1.1;color:#111}
+.item em{font-style:normal;color:#8a8a8a;font-size:13px}
+.item button{font:inherit;font-size:13px;color:#111;text-decoration:underline;text-underline-offset:3px;text-align:center;padding:2px 0}
 .item.locked img{opacity:.55}
 </style>
 </head>
@@ -92,6 +103,8 @@ body.night #say{color:#e0e0e0}
 
 <canvas id="c" aria-label="Goldfish tank. Tap, drag and feed to interact."></canvas>
 <div id="dark"></div>
+<canvas id="touch" aria-hidden="true"></canvas>
+<div id="editBar" hidden><nav aria-label="Edit tools"><button type="button" data-e="add">add pebbles</button><button type="button" data-e="remove">remove pebbles</button><button type="button" data-e="arrange">move decorations</button><button type="button" class="done" id="editDone">done</button></nav><p id="editHint"></p></div>
 <div id="say" aria-live="polite"></div>
 <div class="ui top">
   <div class="who">
@@ -127,8 +140,7 @@ body.night #say{color:#e0e0e0}
     <p class="small">water</p>
     <div class="row2" id="waterRow"><button type="button" class="link" data-w="clear">clear</button><button type="button" class="link" data-w="blue">blue</button><button type="button" class="link" data-w="green">green</button></div>
     <p class="small">pebbles</p>
-    <div class="row2"><button type="button" class="link" data-p="scatter">scatter</button><button type="button" class="link" data-p="stack">stack</button><button type="button" class="link" data-p="collect">collect</button></div>
-    <div class="row2"><button type="button" class="link" id="arrangeBtn">move decorations</button><span></span></div>
+    <div class="row2"><button type="button" class="link" data-p="add">add</button><button type="button" class="link" data-p="remove">remove</button><button type="button" class="link" id="arrangeBtn">move decorations</button></div>
     <div class="row2"><span></span><button type="button" class="go" id="tankClose">close</button></div>
   </div>
 </div>
@@ -179,7 +191,7 @@ const n3=(x,y,z)=>(Math.sin(x*1.7+Math.sin(y*2.3))+Math.sin(y*1.9+Math.sin(z*2.9
 
 /* ================= text ================= */
 const DEF='Kumquat',WORDS=['blub','blub blub','o','o  o','· °'];
-const HINT={hand:'drag to lead · tap to call · tap the fish to say hi',food:'tap to sprinkle flakes',wash:'wipe the glass',toy:'drag the lure',scatter:'tap the floor to scatter pebbles \u00b7 tap hand when done',stack:'tap to stack pebbles \u00b7 tap hand when done',collect:'tap pebbles to pick them up \u00b7 tap hand when done',arrange:'drag your decorations around \u00b7 tap hand when done'};
+const HINT={hand:'drag to lead · tap to call · tap the fish to say hi',food:'tap to sprinkle flakes',wash:'wipe the glass',toy:'drag the lure',add:'tap or drag on the floor to add pebbles \u00b7 they pile up where they touch',remove:'rub over pebbles to pick them up',arrange:'drag your decorations around'};
 const MOOD={food:'{n} is nosing at the surface.',clean:'The glass is getting cloudy.',energy:'{n} is drifting low.',fun:'{n} is pacing the glass.',ok:'{n} is gliding around.'};
 const STATS=[['food','full'],['clean','clean'],['energy','energy'],['fun','fun']];
 const RATE={food:1.3,clean:0.6,energy:0.7,fun:1.0}; // per minute
@@ -346,7 +358,7 @@ function fit(){const w=innerWidth,h=innerHeight;renderer.setPixelRatio(LOWRES);r
   const t=Math.tan(camera.fov*Math.PI/360),d=Math.max(3.8/2/t,3.4/2/(t*camera.aspect));
   camBase.copy(camLook).addScaledVector(DIR,d);camera.position.copy(camBase);camera.lookAt(camLook);camera.updateProjectionMatrix();
   const hh=t*d,hw=hh*camera.aspect,px=2*hh/h;
-  B.hw=hw;B.x=hw-0.3;B.floor=camLook.y-hh+70*px;B.surf=camLook.y+hh-160*px;B.ymin=B.floor+0.32;B.ymax=B.surf-0.15;}
+  B.hw=hw;B.x=hw-0.3;B.floor=camLook.y-hh+150*px;B.surf=camLook.y+hh-160*px;B.ymin=B.floor+0.32;B.ymax=B.surf-0.15;}
 
 const shTex=(()=>{const c=document.createElement('canvas');c.width=c.height=128;const x=c.getContext('2d');const g=x.createRadialGradient(64,64,2,64,64,64);
   g.addColorStop(0,'rgba(0,0,0,0.22)');g.addColorStop(1,'rgba(0,0,0,0)');x.fillStyle=g;x.fillRect(0,0,128,128);return new THREE.CanvasTexture(c);})();
@@ -532,12 +544,14 @@ function hitFish(){return ray.intersectObject(R.g,true).some(x=>{let o=x.object;
 cv.addEventListener('pointerdown',e=>{snd.ac();if(S)S.lastTouch=T;try{cv.setPointerCapture(e.pointerId)}catch(_){}
   ptr.down=true;ptr.x=e.clientX;ptr.y=e.clientY;ptr.t0=performance.now();ptr.moved=0;setNDC(e);ptr.world=worldPoint();ptr.seen=T;ptr.onPet=hitFish();
   if(tool==='toy')startToy();
-  if(tool==='arrange'){dragItem=hitItem();}});
+  if(tool==='arrange'){dragItem=hitItem();}
+  if(tool==='peb')pebbleBrush(true);});
 cv.addEventListener('pointermove',e=>{setNDC(e);ptr.world=worldPoint();ptr.seen=T;if(!ptr.down)return;
   const px=Math.hypot(e.clientX-ptr.x,e.clientY-ptr.y);ptr.x=e.clientX;ptr.y=e.clientY;ptr.moved+=px;
   if(tool==='wash')wipe(px);else if(tool==='toy'&&toy)toy.target=toyTarget(ptr.world)||toy.target;
+  else if(tool==='peb')pebbleBrush(false);
   else if(tool==='arrange'&&dragItem){const fp=floorPoint();if(fp){dragItem.position.x=clamp(fp.x,-B.x,B.x);dragItem.position.z=clamp(fp.z,-1.3,0.7);}}});
-function up(){if(!ptr.down)return;ptr.down=false;
+function up(){if(!ptr.down)return;ptr.down=false;lastPeb=null;if(pebDirty){pebDirty=false;persist();}
   if(dragItem){const it=dragItem.userData.item;it.x=+(dragItem.position.x/B.x).toFixed(3);it.z=+dragItem.position.z.toFixed(2);dragItem=null;persist();}if(ptr.moved<12&&performance.now()-ptr.t0<380)tap();if(tool==='toy')endToy(false);}
 cv.addEventListener('pointerup',up);cv.addEventListener('pointercancel',up);
 cv.addEventListener('pointerleave',e=>{if(e.pointerType==='mouse'&&!ptr.down)ptr.seen=-9;});
@@ -545,8 +559,7 @@ function tap(){
   if(tool==='hand'){
     if(ptr.onPet){if(lightsOff||S.asleep)react('grumpy');else if(T-ptr.lastTapT<0.35&&ptr.lastTapPet)react('trick');else react('hello');ptr.lastTapT=T;ptr.lastTapPet=true;}
     else{ptr.lastTapPet=false;if(lightsOff||!ptr.world)return;const t=new V3(clamp(ptr.world.x,-B.x,B.x),clamp(ptr.world.y,B.ymin,B.ymax),ptr.world.z);ring(t);S.call=t;S.mode='idle';S.react=null;}}
-  else if(tool==='food')dropFood(ptr.world);
-  else if(tool==='peb')pebbleTap();}
+  else if(tool==='food')dropFood(ptr.world);}
 
 /* ================= reactions ================= */
 const RX={hello:[3,1],trick:[1.15,1],grumpy:[1.3,0],refuse:[1.3,1],wake:[1.2,1],caught:[0.8,0]};
@@ -730,7 +743,7 @@ function updateCap(){const el=$('#cap');
   if(!lightsOff&&S.eatCap>0){el.textContent=fill('{n} is eating.');return;}
   if(!lightsOff&&S.seeCap>0){el.textContent=fill('{n} spotted food.');return;}
   if(lightsOff){el.textContent=S.asleep?fill('{n} is asleep. Tap wake to turn the lights on.'):fill('{n} is settling down.');return;}
-  if(performance.now()<hintUntil||tool==='peb'||tool==='arrange'){el.textContent=HINT[tool==='peb'?S.pebMode:tool]||'';return;}
+  if(performance.now()<hintUntil){el.textContent=HINT[tool]||'';return;}
   const s=pet().s;let lk=null,lv=101;for(const [k] of STATS)if(s[k]<lv){lv=s[k];lk=k;}
   el.textContent=fill(lv<40?MOOD[lk]:MOOD.ok);}
 function renderUI(){
@@ -866,7 +879,7 @@ function renderTank(){const t=save.tank;document.querySelectorAll('#waterRow [da
   document.querySelectorAll('[data-p]').forEach(b=>b.setAttribute('aria-pressed',tool==='peb'&&S.pebMode===b.dataset.p));
 }
 let THUMBS=null;
-function makeThumbs(){if(THUMBS)return THUMBS;THUMBS={};const tr=new THREE.WebGLRenderer({antialias:true,alpha:true,preserveDrawingBuffer:true});tr.setPixelRatio(1);tr.setSize(240,240,false);tr.setClearColor(0xdde2e5,1);tr.clippingPlanes=[new THREE.Plane(new V3(0,1,0),0)];
+function makeThumbs(){if(THUMBS)return THUMBS;THUMBS={};const tr=new THREE.WebGLRenderer({antialias:true,alpha:true,preserveDrawingBuffer:true});tr.setPixelRatio(1);tr.setSize(240,240,false);tr.setClearColor(0xffffff,0);tr.clippingPlanes=[new THREE.Plane(new V3(0,1,0),0)];
   const sc=new THREE.Scene(),cam=new THREE.PerspectiveCamera(30,1,0.01,20);
   for(const d of SHOP){const g=d.make();g.rotation.y=-0.5;sc.add(g);const box=new THREE.Box3().setFromObject(g),c=box.getCenter(new V3()),sz=box.getSize(new V3()),r=Math.max(sz.x,sz.y,sz.z);
     cam.position.set(c.x+r*0.55,c.y+r*0.55,c.z+r*2.5);cam.lookAt(c);tr.render(sc,cam);THUMBS[d.id]=tr.domElement.toDataURL('image/png');sc.remove(g);}
@@ -883,8 +896,14 @@ $('#shopClose').onclick=()=>{$('#shop').hidden=true;openTank();};
 function openTank(){renderTank();$('#tank').hidden=false;}
 $('#tankClose').onclick=()=>{$('#tank').hidden=true;};
 $('#waterRow').addEventListener('click',e=>{const w=e.target.dataset&&e.target.dataset.w;if(!w)return;save.tank.water=w;applyWater();persist();renderTank();});
-document.querySelectorAll('[data-p]').forEach(b=>b.onclick=()=>{tool='peb';S.pebMode=b.dataset.p;$('#tank').hidden=true;renderUI();hint();});
-$('#arrangeBtn').onclick=()=>{tool='arrange';$('#tank').hidden=true;renderUI();hint();};
+function setEdit(m){if(toy)endToy(true);if(m==='arrange')tool='arrange';else{tool='peb';S.pebMode=m;}$('#tank').hidden=true;
+  document.body.classList.add('editing');$('#editBar').hidden=false;R.g.visible=false;say('');
+  document.querySelectorAll('[data-e]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.e===m));$('#editHint').textContent=HINT[m]||'';}
+function endEdit(){tool='hand';document.body.classList.remove('editing');$('#editBar').hidden=true;R.g.visible=true;renderUI();}
+document.querySelectorAll('[data-p]').forEach(b=>b.onclick=()=>setEdit(b.dataset.p));
+$('#arrangeBtn').onclick=()=>setEdit('arrange');
+document.querySelectorAll('[data-e]').forEach(b=>b.onclick=()=>setEdit(b.dataset.e));
+$('#editDone').onclick=endEdit;
 function placeItem(id){const it={id,x:+rnd(-0.8,0.8).toFixed(3),z:+rnd(-0.45,0.45).toFixed(2),r:+rnd(-0.6,0.6).toFixed(2)};save.tank.items.push(it);rebuildTank();persist();}
 $('#shopList').addEventListener('click',e=>{const d=e.target.dataset||{};
   if(d.buy){const it=SHOP.find(x=>x.id===d.buy);const lv0=PROG?PROG.level:1;if(!spendXP(it.price))return;save.tank.owned[it.id]=true;placeItem(it.id);toast(it.name+' added to the tank'+(PROG.level<lv0?' \u00b7 now level '+PROG.level:''));}
@@ -893,12 +912,17 @@ $('#shopList').addEventListener('click',e=>{const d=e.target.dataset||{};
   renderShop();});
 const FLOOR=new THREE.Plane(new V3(0,1,0),0);
 function floorPoint(){FLOOR.constant=-B.floor;const p=new V3();return ray.ray.intersectPlane(FLOOR,p)?p:null;}
-function pebbleTap(){const mode=S.pebMode;
-  if(mode==='collect'){const hit=ray.intersectObjects(PEBBLES.map(p=>p.m))[0];if(!hit)return;const pb=PEBBLES.find(p=>p.m===hit.object);ENV.remove(pb.m);PEBBLES.splice(PEBBLES.indexOf(pb),1);snd.pop();persist();return;}
-  const fp=floorPoint();if(!fp)return;const x=clamp(fp.x,-B.x,B.x),z=clamp(fp.z,-1.3,0.7);if(PEBBLES.length>=90){toast('the floor is full of pebbles');return;}
-  const r=rnd(0.05,0.09),flat=rnd(0.5,0.7),shade=[0.62,0.7,0.78,0.85][Math.floor(Math.random()*4)];let y=B.floor+r*flat*0.35;
-  if(mode==='stack'){let top=null;for(const p of PEBBLES){const q=p.state==='fall'&&p.target?p.target:p.m.position;if(Math.hypot(q.x-x,q.z-z)<p.r+r*0.8){const t=q.y+p.r*p.flat*0.7;if(top===null||t>top)top=t;}}if(top!==null)y=top+r*flat*0.55;}
-  addPebble(ENV,x+(mode==='stack'?rnd(-0.01,0.01):rnd(-0.03,0.03)),y,z,r,flat,shade,false,true);snd.pop();persist();}
+let lastPeb=null;
+function pebbleAt(fp){const x=clamp(fp.x,-B.x,B.x),z=clamp(fp.z,-1.3,0.7);if(PEBBLES.length>=120){if(!pebbleAt.full){pebbleAt.full=1;toast('the floor is full of pebbles');}return;}
+  const r=rnd(0.05,0.09),flat=rnd(0.5,0.7),shade=[0.62,0.7,0.78,0.85][Math.floor(Math.random()*4)];let y=B.floor+r*flat*0.35,top=null;
+  for(const p of PEBBLES){const q=p.state==='fall'&&p.target?p.target:p.m.position;if(Math.hypot(q.x-x,q.z-z)<p.r+r*0.8){const t=q.y+p.r*p.flat*0.7;if(top===null||t>top)top=t;}}
+  if(top!==null)y=Math.min(top+r*flat*0.55,B.floor+0.9);
+  addPebble(ENV,x+rnd(-0.01,0.01),y,z,r,flat,shade,false,true);snd.pop();pebDirty=true;}
+let pebDirty=false;
+function pebbleBrush(start){const fp=floorPoint();if(!fp)return;
+  if(S.pebMode==='add'){if(start){pebbleAt.full=0;lastPeb=fp;pebbleAt(fp);return;}if(lastPeb&&fp.distanceTo(lastPeb)>0.13){lastPeb=fp;pebbleAt(fp);}return;}
+  let n=0;for(const pb of PEBBLES.slice()){const q=pb.m.position;if(pb.state==='carried')continue;if(Math.hypot(q.x-fp.x,q.z-fp.z)<0.2+pb.r){ENV.remove(pb.m);PEBBLES.splice(PEBBLES.indexOf(pb),1);n++;}}
+  if(n){snd.pop();pebDirty=true;}}
 let dragItem=null;
 function hitItem(){const hs=ray.intersectObjects(ITEMS_ON,true);if(!hs.length)return null;let o=hs[0].object;while(o&&!o.userData.item)o=o.parent;return o;}
 /* ---- capture just the tank as a picture ---- */
@@ -910,6 +934,23 @@ function captureTank(){const w=innerWidth,h=innerHeight,pr=Math.min(2,(devicePix
     if(navigator.canShare&&navigator.canShare({files:[file]})){navigator.share({files:[file],title:'my goldfish tank'}).catch(()=>showShot(blob));}else showShot(blob);},'image/png');}
 function showShot(blob){const u=URL.createObjectURL(blob);$('#shotImg').src=u;$('#shotDl').href=u;$('#tank').hidden=true;$('#shot').hidden=false;}
 $('#captureBtn').onclick=captureTank;$('#shotClose').onclick=()=>{$('#shot').hidden=true;};
+
+/* ---- grey marks wherever you touch ---- */
+const TC=$('#touch'),tx=TC.getContext('2d'),MARKS=[];let tLast=null;
+function sizeTouch(){const pr=Math.min(2,devicePixelRatio||1);TC.width=innerWidth*pr;TC.height=innerHeight*pr;tx.setTransform(pr,0,0,pr,0,0);}
+sizeTouch();addEventListener('resize',sizeTouch);
+function mark(x,y,dot){MARKS.push({x,y,px:tLast?tLast.x:x,py:tLast?tLast.y:y,a:1,dot});tLast=dot?{x,y}:(tLast?{x,y}:null);if(MARKS.length>240)MARKS.shift();}
+addEventListener('pointerdown',e=>{tLast=null;mark(e.clientX,e.clientY,true);},true);
+addEventListener('pointermove',e=>{if(e.buttons||e.pointerType!=='mouse'){if(tLast)mark(e.clientX,e.clientY,false);}},true);
+addEventListener('pointerup',()=>{tLast=null;},true);addEventListener('pointercancel',()=>{tLast=null;},true);
+function drawMarks(dt){if(!MARKS.length&&!drawMarks.dirty)return;tx.clearRect(0,0,innerWidth,innerHeight);drawMarks.dirty=MARKS.length>0;
+  tx.lineCap='round';
+  for(let i=MARKS.length-1;i>=0;i--){const m=MARKS[i];m.a-=dt*1.1;if(m.a<=0){MARKS.splice(i,1);continue;}
+    const c='rgba(120,120,120,'+(m.a*0.45).toFixed(3)+')';
+    if(m.dot){tx.fillStyle=c;tx.beginPath();tx.arc(m.x,m.y,9+(1-m.a)*12,0,7);tx.fill();}
+    else{tx.strokeStyle=c;tx.lineWidth=10*m.a+2;tx.beginPath();tx.moveTo(m.px,m.py);tx.lineTo(m.x,m.y);tx.stroke();}}}
+let markClock=performance.now();
+(function markLoop(){requestAnimationFrame(markLoop);const n=performance.now(),dt=Math.min(0.1,(n-markClock)/1000);markClock=n;drawMarks(dt);})();
 
 /* ================= loop ================= */
 let uiT=0,saveT=0,algT=0;const clock=new THREE.Clock();
