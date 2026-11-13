@@ -244,8 +244,8 @@ function fishWave(ph,amp,bend,t,spd,lag,lagY,arch,jel,fold){arch=arch||0;jel=jel
       if(!f){const hz=hinge(x,z*(1+0.018*Math.sin(t*2.1)));p.setXYZ(i,hz[0],y+arch*k*k,hz[1]);continue;}
       const q=f[i],q2=q*q;let X=x,Y=y+arch*k*k;
       z+=q*fa*Math.sin(t*2.3+ph*0.3-q*3.4+y*2.5)+q2*0.06*Math.sin(t*4.1-q*5.5+y*5)+q2*0.025*Math.sin(t*7.9-q*9+y*11)+lag*q2*1.4+(kind==='dorsal'?q2*0.07*Math.sin(t*3.2+ph*0.5-q*3+x*4):0);
-      if(kind==='tail'){Y=Y*(1+0.18*q*Math.sin(ph+0.8))+q2*(-0.07*slow+lagY*0.6)+q*0.022*Math.sin(t*3.3-q*4.5+z*6);X+=q2*0.05*(1-slow);z*=1-0.25*(1-slow)*q;}
-      else if(kind==='dorsal'){Y+=q*0.06*Math.sin(ph*0.5+1.1);X-=q2*(0.04+0.08*(1-slow))+q2*0.04*Math.sin(t*1.9+x*5);Y-=q2*0.03*(0.5+0.5*Math.sin(t*1.4+x*3));}
+      if(kind==='tail'){Y+=q2*(-0.07*slow+lagY*0.6)+q*0.022*Math.sin(t*3.3-q*4.5+z*6);X+=q2*0.05*(1-slow);z*=1-0.25*(1-slow)*q;}
+      else if(kind==='dorsal'){X-=q2*(0.04+0.08*(1-slow))+q2*0.04*Math.sin(t*1.9+x*5);Y-=q2*0.03*(0.5+0.5*Math.sin(t*1.4+x*3));}
       else{Y-=q2*0.03*slow;X-=q2*0.03*(1-slow);}
       {const hz=hinge(X,z);p.setXYZ(i,hz[0],Y,hz[1]);}}
     p.needsUpdate=true;}}
