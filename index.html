@@ -65,6 +65,9 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
 .bottom{bottom:0;padding-bottom:calc(env(safe-area-inset-bottom,0px) + 8px);display:flex;flex-direction:column;align-items:center;gap:2px}
 #cap{pointer-events:none;margin:0;font-size:16px;color:var(--soft);text-align:center;min-height:1.3em;max-width:34ch;letter-spacing:.01em}
 .tools{display:flex;justify-content:space-between;width:100%;max-width:440px}
+.tools button.nudge{position:relative}
+.tools button.nudge::after{content:"";position:absolute;top:6px;right:-2px;width:7px;height:7px;border-radius:50%;background:var(--ink);animation:nudge 1.4s ease-in-out infinite}
+@keyframes nudge{0%,100%{transform:scale(.6);opacity:.35}50%{transform:scale(1.1);opacity:1}}
 .tools button{font-size:24px;letter-spacing:.005em;color:var(--dim);padding:12px 6px;min-width:44px}
 .tools button[aria-pressed="true"]{color:var(--ink);text-decoration:underline;text-decoration-thickness:1.5px;text-underline-offset:6px}
 button:focus-visible,#name:focus-visible{outline:1.5px solid var(--ink);outline-offset:3px}
@@ -252,11 +255,13 @@ const KO={
 'hand':'손','food':'먹이','wash':'청소','toy':'장난감','sleep':'재우기','wake':'깨우기',
 'full':'배부름','clean':'청결','energy':'기운','fun':'재미',
 'drag to lead · tap to call · tap the fish to say hi':'끌어서 데려가기 · 탭해서 부르기 · 금붕어를 탭하면 인사해요',
-'tap to sprinkle flakes':'탭해서 먹이 뿌리기','wipe the glass':'유리를 닦아 주세요','drag the lure':'미끼를 끌어 보세요',
+'tap to sprinkle flakes':'탭해서 먹이 뿌리기','drag the lure':'미끼를 끌어 보세요',
 'tap or drag on the floor to add pebbles · they pile up where they touch':'바닥을 누르거나 끌어서 자갈 놓기 · 닿으면 위로 쌓여요',
 'rub over pebbles to pick them up':'자갈 위를 문지르면 주워져요',
 'drag to move · twist with two fingers or tap turn to rotate the last one you touched':'끌어서 옮기기 · 두 손가락으로 비틀거나 돌리기 버튼으로 마지막에 만진 장식을 돌려요',
-'The glass is getting cloudy.':'유리가 뿌예지고 있어요.',
+'The glass is getting dirty. Tap clean and rub it off.':'유리가 더러워지고 있어요. 청소를 누르고 문질러 닦아 주세요.',
+'the glass is getting dirty · tap clean to wipe it':'유리가 더러워지고 있어요 · 청소를 눌러 닦아 주세요',
+'rub the dirty spots on the glass to wipe them off':'유리의 얼룩을 문질러서 닦아 주세요',
 'plain':'단색','fade':'그러데이션','dark fins':'진한 지느러미','patches':'얼룩','calico':'캘리코','spots':'점박이',
 'orange':'주황','tangerine':'귤색','gold':'금색','yellow':'노랑','lemon':'레몬','cream':'크림','peach':'복숭아','coral':'코랄','salmon':'연어색',
 'red':'빨강','crimson':'진홍','rose':'장미','pink':'분홍','lilac':'라일락','violet':'보라','sky':'하늘','blue':'파랑','navy':'남색','teal':'청록',
@@ -323,7 +328,7 @@ function trs(t){if(LANG!=='ko'||!t)return t;const k=t.trim();if(!k||!/[A-Za-z]/.
 const I18N=new WeakMap(),I18A=['aria-label','placeholder','alt','title'];
 function trNode(n){
   if(n.nodeType===3){const p=n.parentNode;if(!p||/^(SCRIPT|STYLE)$/.test(p.nodeName))return;let o=I18N.get(n);if(!o||n.data!==o.tr)o={en:n.data};
-    o.tr=LANG==='ko'?trs(o.en):o.en;I18N.set(n,o);if(n.data!==o.tr)n.data=o.tr;return;}
+    o.tr=LANG==='ko'?(p.dataset&&p.dataset.ko||trs(o.en)):o.en;I18N.set(n,o);if(n.data!==o.tr)n.data=o.tr;return;}
   if(n.nodeType!==1||n.nodeName==='SCRIPT'||n.nodeName==='STYLE')return;
   let A=I18N.get(n);if(!A){A={};I18N.set(n,A);}
   for(const a of I18A){if(!n.hasAttribute(a))continue;const v=n.getAttribute(a);let o=A[a];if(!o||v!==o.tr)o=A[a]={en:v};o.tr=LANG==='ko'?trs(o.en):o.en;if(v!==o.tr)n.setAttribute(a,o.tr);}
@@ -350,8 +355,8 @@ const n3=(x,y,z)=>(Math.sin(x*1.7+Math.sin(y*2.3))+Math.sin(y*1.9+Math.sin(z*2.9
 
 /* ================= text ================= */
 const DEF='Kumquat',WORDS=['blub','blub blub','o','o  o','· °'];
-const HINT={hand:'drag to lead · tap to call · tap the fish to say hi',food:'tap to sprinkle flakes',wash:'wipe the glass',toy:'drag the lure',add:'tap or drag on the floor to add pebbles \u00b7 they pile up where they touch',remove:'rub over pebbles to pick them up',arrange:'drag to move \u00b7 twist with two fingers or tap turn to rotate the last one you touched'};
-const MOOD={food:'{n} is nosing at the surface.',clean:'The glass is getting cloudy.',energy:'{n} is drifting low.',fun:'{n} is pacing the glass.',ok:'{n} is gliding around.'};
+const HINT={hand:'drag to lead · tap to call · tap the fish to say hi',food:'tap to sprinkle flakes',wash:'rub the dirty spots on the glass to wipe them off',toy:'drag the lure',add:'tap or drag on the floor to add pebbles \u00b7 they pile up where they touch',remove:'rub over pebbles to pick them up',arrange:'drag to move \u00b7 twist with two fingers or tap turn to rotate the last one you touched'};
+const MOOD={food:'{n} is nosing at the surface.',clean:'The glass is getting dirty. Tap clean and rub it off.',energy:'{n} is drifting low.',fun:'{n} is pacing the glass.',ok:'{n} is gliding around.'};
 const STATS=[['food','full'],['clean','clean'],['energy','energy'],['fun','fun']];
 const RATE={food:1.3,clean:0.6,energy:0.7,fun:1.0}; // per minute
 
@@ -770,10 +775,24 @@ function buildEnv(){
   return e;
 }
 function drawAlgae(){const A=ALG,x=A.cvs.getContext('2d'),cw=A.cvs.width,ch=A.cvs.height;x.clearRect(0,0,cw,ch);
-  for(const s of A.sm){const cx=s.u*cw,cy=(1-s.v)*ch,r=s.r/A.Wg*cw;x.fillStyle='rgba(160,166,156,'+(0.5*s.a)+')';
-    x.beginPath();for(let k=0;k<=24;k++){const t=k/24*Math.PI*2,rr=r*(0.75+0.18*Math.sin(t*3+s.seed)+0.08*Math.sin(t*7+s.seed*2));const px=cx+Math.cos(t)*rr,py=cy+Math.sin(t)*rr*0.8;k?x.lineTo(px,py):x.moveTo(px,py);}x.fill();}
+  // the whole pane goes faintly green-grey as it gets dirtier, thicker toward the bottom like a real tank
+  const amt=Math.min(1,A.sm.length/10);if(amt>0){const g=x.createLinearGradient(0,0,0,ch);g.addColorStop(0,'rgba(130,148,118,0)');g.addColorStop(0.15,'rgba(130,148,118,'+(0.05*amt)+')');g.addColorStop(1,'rgba(120,140,108,'+(0.16*amt)+')');x.fillStyle=g;x.fillRect(0,0,cw,ch);}
+  for(const s of A.sm){const cx=s.u*cw,cy=(1-s.v)*ch,r=s.r/A.Wg*cw*1.25,a=s.a;let q=Math.floor(s.seed*1e4)+7;const rr=()=>(q=(q*9301+49297)%233280)/233280;
+    // a soft hazy patch with a ragged edge
+    const pts=[];for(let k=0;k<=32;k++){const t=k/32*Math.PI*2,R=r*(0.78+0.14*Math.sin(t*3+s.seed)+0.09*Math.sin(t*7+s.seed*2)+0.05*Math.sin(t*13+s.seed));pts.push([cx+Math.cos(t)*R,cy+Math.sin(t)*R*0.72]);}
+    x.fillStyle='rgba(126,144,112,'+(0.16*a)+')';x.beginPath();pts.forEach((p,k)=>k?x.lineTo(p[0],p[1]):x.moveTo(p[0],p[1]));x.fill();
+    x.fillStyle='rgba(120,138,106,'+(0.12*a)+')';x.beginPath();pts.forEach((p,k)=>{const px=cx+(p[0]-cx)*0.6,py=cy+(p[1]-cy)*0.6;k?x.lineTo(px,py):x.moveTo(px,py);});x.fill();
+    // tiny algae specks scattered evenly through the haze
+    for(let k=0;k<55;k++){const t=rr()*Math.PI*2,d=Math.sqrt(rr())*r*0.85,sz=0.6+rr()*1.6;
+      x.fillStyle='rgba('+(90+rr()*30|0)+','+(110+rr()*25|0)+','+(80+rr()*20|0)+','+((0.3+rr()*0.35)*a)+')';x.beginPath();x.arc(cx+Math.cos(t)*d,cy+Math.sin(t)*d*0.72,sz,0,7);x.fill();}
+    // a faint dried water line along the bottom edge, and sometimes one thin run
+    x.strokeStyle='rgba(118,132,112,'+(0.3*a)+')';x.lineWidth=1.2;x.beginPath();
+    for(let k=4;k<=12;k++){const p=pts[k];k===4?x.moveTo(p[0],p[1]):x.lineTo(p[0],p[1]);}x.stroke();
+    if(rr()<0.5){const p=pts[6+Math.floor(rr()*4)],len=r*(0.3+rr()*0.4);x.lineWidth=1.1;x.beginPath();x.moveTo(p[0],p[1]);x.lineTo(p[0]+(rr()-0.5)*3,p[1]+len);x.stroke();}}
   A.tex.needsUpdate=true;A.dirty=false;}
-function syncAlgae(){const N=Math.round((100-pet().s.clean)/8);
+function needCleanNudge(){return !!(ALG&&ALG.sm.length>=2&&tool!=='wash'&&!(save.tut&&save.tut.clean>=3)&&!lightsOff);}
+function syncAlgae(){const nb=$('#t-wash'),nn=needCleanNudge();if(nb)nb.classList.toggle('nudge',nn);
+  if(nn&&!(save.tut&&save.tut.told)){save.tut=save.tut||{};save.tut.told=1;toast('the glass is getting dirty · tap clean to wipe it',5);}const N=Math.round((100-pet().s.clean)/8);
   while(ALG.sm.length<N){ALG.sm.push({u:rnd(0.1,0.9),v:rnd(0.12,0.88),r:rnd(0.18,0.32),a:1,seed:rnd(0,9)});ALG.dirty=true;}
   while(ALG.sm.length>N+1){ALG.sm.shift();ALG.dirty=true;}
   if(ALG.dirty)drawAlgae();}
@@ -856,7 +875,7 @@ function updateToy(dt){if(!toy)return;
 /* ================= wiping the glass ================= */
 function wipe(px){if(lightsOff)return;const h=ray.intersectObject(ALG.mesh)[0];if(!h)return;let hit=false;
   for(const sm of ALG.sm.slice()){const dx=(h.uv.x-sm.u)*ALG.Wg,dy=(h.uv.y-sm.v)*ALG.Hg;if(Math.hypot(dx,dy)<sm.r+0.12){sm.a-=px*0.012;hit=true;
-    if(sm.a<=0){ALG.sm.splice(ALG.sm.indexOf(sm),1);add('clean',8);track('smudge');}}}
+    if(sm.a<=0){ALG.sm.splice(ALG.sm.indexOf(sm),1);add('clean',8);track('smudge');save.tut=save.tut||{};save.tut.clean=(save.tut.clean||0)+1;}}}
   if(hit){drawAlgae();if(Math.random()<0.15)snd.wipe();}add('clean',px*0.003);}
 
 /* ================= pointer ================= */
@@ -1090,7 +1109,7 @@ function renderUI(){
   $('#stats').innerHTML=STATS.map(([k,l])=>'<span>'+l+'</span><b><i id="b-'+k+'"></i></b>').join('')+'<span id="lvl">lv 1</span><b><i id="b-xp"></i></b>';
   $('#who').textContent=USER?'@'+USER:'sign in';
   const tl=$('#tools');tl.innerHTML='';
-  TOOLS.forEach(t=>{const b=document.createElement('button');b.id='t-'+t;b.textContent=t==='sleep'&&lightsOff?'wake':t;b.setAttribute('aria-pressed',t==='sleep'?lightsOff:t==='tank'?(tool==='peb'||tool==='arrange'):t===tool);
+  TOOLS.forEach(t=>{const b=document.createElement('button');b.id='t-'+t;b.textContent=t==='sleep'&&lightsOff?'wake':t==='wash'?'clean':t;if(t==='wash'){b.dataset.ko='청소';b.classList.toggle('nudge',needCleanNudge());}b.setAttribute('aria-pressed',t==='sleep'?lightsOff:t==='tank'?(tool==='peb'||tool==='arrange'):t===tool);
     b.onclick=()=>{snd.ac();if(t==='sleep'){toggleLights();return;}if(t==='tank'){openTank();return;}tool=t;if(toy&&t!=='toy')endToy(true);renderUI();hint();};tl.appendChild(b);});
   $('#snd').textContent=save.sound?'sound on':'sound off';updateStats();updateCap();}
 function updateStats(){const s=pet().s;for(const [k] of STATS){const b=$('#b-'+k);if(b)b.style.width=Math.round(s[k])+'%';}
