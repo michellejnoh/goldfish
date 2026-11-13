@@ -450,11 +450,12 @@ function lookColor(x,y,z,fin,lk,v,q){const main=_lm.set(LOOK_COLORS[lk.c]||LOOK_
   switch(lk.p){
     case 'fade':{// lighter belly that follows the body's curve, soft and slightly uneven, rising a little toward the head
       if(fin){c.lerp(lightTone,0.15+0.45*q);break;}const a=ss(0.6,0.08,v+wob-0.08*ss(0.1,0.6,x));c.lerp(lightTone,a*0.95);break;}
-    case 'dark fins':{// fins deepen toward their tips (pale tips on a dark fish), with a slightly deeper back
-      if(fin){c.lerp(deep,0.85*ss(0.2,0.95,q));break;}c.lerp(deep,0.14*ss(0.55,1,v+wob));break;}
+    case 'dark fins':{// the colour deepens smoothly from mid-body back toward the tail and runs on out to the fin tips, so body and fins read as one
+      const sh=_hsl.l>0.86||_hsl.s<0.1?_dk.setHSL(_hsl.h,_hsl.s,_hsl.l*0.68):_hsl.l<0.3?_dk.setHSL(_hsl.h,_hsl.s*0.7,0.6):_dk.setHSL(_hsl.h,_hsl.s*0.85,_hsl.l*0.66);
+      const along=ss(0.3,-0.8,x),t=fin?clamp(along*0.5+0.55*q):along*0.55+0.12*ss(0.6,1,v+wob);c.lerp(sh,t);break;}
     case 'patches':if(lookNoise(x,y,z,sd,4.2)<0.05)c.copy(_cr);if(fin&&q>0.5&&lookNoise(x,y,z,sd+9,3)<-0.2)c.copy(_cr);break;
-    case 'calico':if(lookNoise(x,y,z,sd,4)<0)c.copy(_cr);if(inSpot(x,y,z,sd+37,0.8))c.copy(deep);break;
-    case 'spots':if(inSpot(x,y,z,sd+11,1))c.copy(deep);break;}
+    case 'calico':if(lookNoise(x,y,z,sd,4)<0)c.copy(_cr);if(lookNoise(x,y,z,sd+37,11)>0.5)c.copy(deep);break;
+    case 'spots':if(lookNoise(x,y,z,sd+11,10)>0.55)c.copy(deep);break;}
   if(fin&&lk.p!=='dark fins')c.lerp(_cr,0.16);return c;}
 function bodyProfile(F){if(F.prof)return F.prof;let bg=null;F.inner.traverse(o=>{if(o.isMesh&&o.material===MAT_FISH&&o.userData.part==='body'&&!bg)bg=o.geometry;});
   const r=bg.userData.rest,N=60;let x0=1e9,x1=-1e9;for(let i=0;i<r.length;i+=3){x0=Math.min(x0,r[i]);x1=Math.max(x1,r[i]);}
