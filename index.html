@@ -1090,6 +1090,17 @@ function animate(dt){CUR.mouth=damp(CUR.mouth,0,8,dt);CUR.burst=damp(CUR.burst,0
     const ft=0.7+0.3*S.grow;for(const m of R.tails){m.scale.set(ft,0.8+0.2*S.grow,1);m.position.x=-0.66*(1-ft);}
     for(const p of R.fins)p.scale.setScalar(0.82+0.18*S.grow);
     for(const o of R.eyes){if(!o.bs)o.bs=o.e.scale.clone();o.e.scale.copy(o.bs).multiplyScalar(1+0.3*y);}}
+  // smiling eyes: when happy the lower lid rises and cuts off the bottom 30% of each eye in an arch; babies smile more often
+  {const n=pet().s,happy=!S.asleep&&!lightsOff&&n.food>55&&n.clean>55&&n.energy>45&&n.fun>50;let want=0;
+    if(S.react&&(S.react.type==='hello'||S.react.type==='trick'))want=1;
+    if(happy){S.smileWait=(S.smileWait===undefined?rnd(1,4):S.smileWait)-dt;if(S.smileWait<=0&&!(S.smileT>0)){S.smileT=rnd(1.6,3);S.smileWait=lerp(3,13,S.grow||0)*rnd(0.6,1.4);}}
+    if(S.smileT>0){S.smileT-=dt;want=1;}
+    S.sm=damp(S.sm||0,want,want?9:6,dt);const sm=S.sm<0.01?0:S.sm;
+    if(Math.abs(sm-(R.smDone||0))>0.002){R.smDone=sm;for(const o of R.eyes){const pm=o.pup.children[0],p=pm.geometry.attributes.position;if(!pm.userData.b)pm.userData.b=p.array.slice();
+      if(!o.up){const q=o.e.quaternion.clone().invert(),u3=new V3(0,1,0).applyQuaternion(q);o.up=new THREE.Vector2(u3.x,u3.y).normalize();o.sd=new THREE.Vector2(o.up.y,-o.up.x);}
+      // cut along the fish's own up/down, whatever way the eye disc happens to be turned
+      const b=pm.userData.b,ER0=0.052,U=o.up,D=o.sd;for(let i=0;i<p.count;i++){const x=b[i*3],y=b[i*3+1];const a=x*D.x+y*D.y;let v=x*U.x+y*U.y;const u=a/ER0,vc=-ER0+sm*0.6*ER0*Math.max(0,1-u*u);if(v<vc)v=vc;
+        p.setXY(i,a*D.x+v*U.x,a*D.y+v*U.y);}p.needsUpdate=true;}}}
   R.eyes.forEach(o=>{let tx=S.eyeDX||0,ty=S.eyeDY||0;const tgt=S.look||(toy&&toy.pos)||null;
     if(tgt){const l=o.e.worldToLocal(tgt.clone());const n=Math.hypot(l.x,l.y)||1;tx=l.x/n*(l.z>0?1:0.5);ty=l.y/n*(l.z>0?1:0.5);}
     o.pup.position.x=damp(o.pup.position.x,tx*0.008,9,dt);o.pup.position.y=damp(o.pup.position.y,ty*0.006,9,dt);});
