@@ -440,6 +440,17 @@ function spotList(sd){if(SPOTS[sd])return SPOTS[sd];let a=(sd*7919+104729)%23328
   return SPOTS[sd]=L;}
 function inSpot(x,y,z,sd,dens){const L=spotList(sd),n=Math.round(L.length*dens);for(let i=0;i<n;i++){const s=L[i];if(s[3]&&Math.abs(z)>0.035&&Math.sign(z)!==s[3])continue;
     const dx=x-s[0],dy=(y-s[1])*1.1;if(dx*dx+dy*dy<s[2]*s[2])return true;}return false;}
+/* organic speckles: non-repeating value noise, so markings come as irregular blotches of mixed size and strength,
+   gathered in loose clusters and thicker along the back than the belly, like real goldfish pigment */
+function vhash(i,j,k,sd){const h=Math.sin(i*127.1+j*311.7+k*74.7+sd*13.37)*43758.5453;return h-Math.floor(h);}
+function vnoise(x,y,z,sd){const i=Math.floor(x),j=Math.floor(y),k=Math.floor(z),fx=x-i,fy=y-j,fz=z-k,u=fx*fx*(3-2*fx),w=fy*fy*(3-2*fy),t=fz*fz*(3-2*fz);
+  const L=(a,b,e)=>a+(b-a)*e;
+  return L(L(L(vhash(i,j,k,sd),vhash(i+1,j,k,sd),u),L(vhash(i,j+1,k,sd),vhash(i+1,j+1,k,sd),u),w),
+           L(L(vhash(i,j,k+1,sd),vhash(i+1,j,k+1,sd),u),L(vhash(i,j+1,k+1,sd),vhash(i+1,j+1,k+1,sd),u),w),t);}
+function speckle(x,y,z,sd,v,bias){
+  const n=0.58*vnoise(x*7.5,y*7.5,z*7.5,sd)+0.28*vnoise(x*15+3.1,y*15+1.7,z*15,sd+1)+0.14*vnoise(x*30,y*30,z*30,sd+2);
+  const cluster=vnoise(x*2.2+5,y*2.2,z*2.2,sd+3),th=0.7-0.12*cluster-0.05*(v||0.5)+bias;
+  const k=ss(th,th+0.07,n);if(!k)return 0;return k*(0.5+0.5*vnoise(x*4,y*4,z*4,sd+4));}
 const _hsl={h:0,s:0,l:0},_lt=new THREE.Color(),_dk=new THREE.Color(),_cr=new THREE.Color('#f7efe2');
 /* v = how high the point sits on the body at that spot (0 belly .. 1 back), q = how far out along a fin (0 root .. 1 tip) */
 function lookColor(x,y,z,fin,lk,v,q){const main=_lm.set(LOOK_COLORS[lk.c]||LOOK_COLORS.orange),sd=lk.seed||0;main.getHSL(_hsl);
@@ -454,8 +465,8 @@ function lookColor(x,y,z,fin,lk,v,q){const main=_lm.set(LOOK_COLORS[lk.c]||LOOK_
       const sh=_hsl.l>0.86||_hsl.s<0.1?_dk.setHSL(_hsl.h,_hsl.s,_hsl.l*0.68):_hsl.l<0.3?_dk.setHSL(_hsl.h,_hsl.s*0.7,0.6):_dk.setHSL(_hsl.h,_hsl.s*0.85,_hsl.l*0.66);
       const along=ss(0.3,-0.8,x),t=fin?clamp(along*0.5+0.55*q):along*0.55+0.12*ss(0.6,1,v+wob);c.lerp(sh,t);break;}
     case 'patches':if(lookNoise(x,y,z,sd,4.2)<0.05)c.copy(_cr);if(fin&&q>0.5&&lookNoise(x,y,z,sd+9,3)<-0.2)c.copy(_cr);break;
-    case 'calico':if(lookNoise(x,y,z,sd,4)<0)c.copy(_cr);if(lookNoise(x,y,z,sd+37,11)>0.5)c.copy(deep);break;
-    case 'spots':if(lookNoise(x,y,z,sd+11,10)>0.55)c.copy(deep);break;}
+    case 'calico':if(lookNoise(x,y,z,sd,4)<0)c.copy(_cr);c.lerp(deep,speckle(x,y,z,sd+37,v,0.02));break;
+    case 'spots':c.lerp(deep,speckle(x,y,z,sd+11,v,0));break;}
   if(fin&&lk.p!=='dark fins')c.lerp(_cr,0.16);return c;}
 function bodyProfile(F){if(F.prof)return F.prof;let bg=null;F.inner.traverse(o=>{if(o.isMesh&&o.material===MAT_FISH&&o.userData.part==='body'&&!bg)bg=o.geometry;});
   const r=bg.userData.rest,N=60;let x0=1e9,x1=-1e9;for(let i=0;i<r.length;i+=3){x0=Math.min(x0,r[i]);x1=Math.max(x1,r[i]);}
