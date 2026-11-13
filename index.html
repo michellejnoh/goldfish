@@ -1085,7 +1085,7 @@ function animate(dt){CUR.mouth=damp(CUR.mouth,0,8,dt);CUR.burst=damp(CUR.burst,0
   // eyes: tiny darting movements and a glance toward what the fish is watching
   S.eyeT=(S.eyeT||0)-dt;if(S.eyeT<=0){S.eyeT=rnd(1.4,4);S.eyeDX=rnd(-0.8,0.8);S.eyeDY=rnd(-0.4,0.4);}
   {const st=growStage()/10;S.grow=S.grow===undefined?st:damp(S.grow,st,1.2,dt);const y=1-S.grow;
-    R.g.scale.setScalar(0.6+0.4*S.grow);
+    R.g.scale.setScalar(0.3+0.7*S.grow);
     if(!R.tails){R.tails=[];R.inner.traverse(o=>{if(o.isMesh&&o.geometry.userData.kind==='tail')R.tails.push(o);});}
     const ft=0.7+0.3*S.grow;for(const m of R.tails){m.scale.set(ft,0.8+0.2*S.grow,1);m.position.x=-0.66*(1-ft);}
     for(const p of R.fins)p.scale.setScalar(0.82+0.18*S.grow);
