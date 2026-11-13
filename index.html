@@ -341,15 +341,18 @@ function fishWave(ph,amp,bend,t,spd,lag,lagY,arch,jel,fold,st,foldY){arch=arch||
     if(foldY){const a=foldY*w,c=Math.cos(a),s=Math.sin(a),n=dx*c-Y*s;Y=dx*s+Y*c;dx=n;}
     if(fold){const a=fold*w,c=Math.cos(a),s=Math.sin(a),n=dx*c-z*s;z=dx*s+z*c;dx=n;}
     return [XH+dx,Y,z];};const fa=0.08+amp*1.0,slow=1-clamp(spd/0.9);
+  // the tail swings from a joint at the base of the tail (caudal peduncle) instead of the whole back half of the body waving
+  const XP=-0.64,envP=0.9*Math.pow(clamp((0.3-XP)/2.2),1.3)*0.4,zP=amp*envP*Math.sin(ph+XP*3.6),ta=clamp(amp*2.4,0,0.55)*Math.sin(ph+XP*3.6-0.9);
+  const tailJoint=(X,z)=>{const w=ss(XP+0.07,XP-0.05,X);if(!w)return [X,z];const a=ta*w,c=Math.cos(a),s=Math.sin(a),dx=X-XP,dz=z-zP;return [XP+dx*c-dz*s,zP+dx*s+dz*c];};
   for(const g of R.wave){const p=g.attributes.position,b=g.userData.base0,f=g.userData.flex,kind=g.userData.kind;
-    for(let i=0;i<p.count;i++){const x=b[i*3],y0=b[i*3+1],k=clamp((0.3-x)/2.2),y=y0*(1+jel*Math.sin(x*4.5+t*9)*clamp((0.25-x)/0.6)),env=0.9*Math.pow(k,1.3);let z=b[i*3+2]+amp*env*Math.sin(ph+x*3.6)+bend*k*k*2;
-      if(!f){const hz=hinge(sx(x),y+arch*k*k,z*(1+0.018*Math.sin(t*2.1)));p.setXYZ(i,hz[0],hz[1],hz[2]);continue;}
+    for(let i=0;i<p.count;i++){const x=b[i*3],y0=b[i*3+1],k=clamp((0.3-x)/2.2),y=y0*(1+jel*Math.sin(x*4.5+t*9)*clamp((0.25-x)/0.6)),env=0.9*Math.pow(k,1.3)*0.4;let z=b[i*3+2]+amp*env*Math.sin(ph+x*3.6)+bend*k*k*2;
+      if(!f){const tj=tailJoint(x,z*(1+0.018*Math.sin(t*2.1)));const hz=hinge(sx(tj[0]),y+arch*k*k,tj[1]);p.setXYZ(i,hz[0],hz[1],hz[2]);continue;}
       const q=f[i],q2=q*q;let X=x,Y=y+arch*k*k;
       z+=q*fa*Math.sin(t*2.3+ph*0.3-q*3.4+y*2.5)+q2*0.06*Math.sin(t*4.1-q*5.5+y*5)+q2*0.025*Math.sin(t*7.9-q*9+y*11)+lag*q2*1.4+(kind==='dorsal'?q2*0.07*Math.sin(t*3.2+ph*0.5-q*3+x*4):0);
       if(kind==='tail'){Y+=q2*(-0.07*slow+lagY*0.6)+q*0.022*Math.sin(t*3.3-q*4.5+z*6);X+=q2*0.05*(1-slow);z*=1-0.25*(1-slow)*q;}
       else if(kind==='dorsal'){X-=q2*(0.04+0.08*(1-slow))+q2*0.04*Math.sin(t*1.9+x*5);Y-=q2*0.03*(0.5+0.5*Math.sin(t*1.4+x*3));}
       else{Y-=q2*0.03*slow;X-=q2*0.03*(1-slow);}
-      {const hz=hinge(kind==='tail'?X+(-0.66-XS)*st:sx(X),Y,z);p.setXYZ(i,hz[0],hz[1],hz[2]);}}
+      {const tj=tailJoint(X,z);X=tj[0];z=tj[1];const hz=hinge(kind==='tail'?X+(-0.66-XS)*st:sx(X),Y,z);p.setXYZ(i,hz[0],hz[1],hz[2]);}}
     p.needsUpdate=true;}}
 
 /* ================= the tank (monotone) ================= */
