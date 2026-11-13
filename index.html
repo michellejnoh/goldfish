@@ -531,7 +531,7 @@ function animate(dt){CUR.mouth=damp(CUR.mouth,0,8,dt);CUR.burst=damp(CUR.burst,0
   {const g=CUR.gulp,yy=(1+(S.sqY||0))*(1+0.12*g),zz=(1+(S.sqZ||0))*(1+0.12*g),f=Math.sqrt(Math.max(0.2,yy*zz));const bx=1/Math.sqrt(1+(S.sqX||0)*0.6);R.inner.scale.set(1,yy/f*bx,zz/f*bx);}
   const sp=S.vel.length(),hs=Math.hypot(S.vel.x,S.vel.z);
   R.g.position.copy(S.pos);
-  {const op=S.pitch;S.pitch=damp(S.pitch,S.faceT?clamp(Math.atan2(S.faceT.y-S.pos.y,Math.hypot(S.faceT.x-S.pos.x,S.faceT.z-S.pos.z)+0.08),-1.0,1.1):clamp(Math.atan2(S.vel.y,hs+0.06),-1.15,1.15),4.5,dt);S.pitchV=damp(S.pitchV||0,(S.pitch-op)/Math.max(dt,1e-4),10,dt);}S.rollC=damp(S.rollC,clamp(S.turnRate*0.1,-0.45,0.45),5,dt);
+  {const op=S.pitch;S.pitch=damp(S.pitch,S.faceT?Math.atan2(S.faceT.y-S.pos.y,Math.hypot(S.faceT.x-S.pos.x,S.faceT.z-S.pos.z)+0.01):(S.vel.length()<0.08?0:Math.atan2(S.vel.y,hs+0.01)),4.5,dt);S.pitchV=damp(S.pitchV||0,(S.pitch-op)/Math.max(dt,1e-4),10,dt);}S.rollC=damp(S.rollC,clamp(S.turnRate*0.1,-0.45,0.45),5,dt);
   {const A=S.amp||0.06,Fl=S.flick||0;R.g.rotation.set(S.rollC+S.roll+A*0.15*Math.sin(S.swimPh+0.6),S.heading-A*0.22*Math.sin(S.swimPh+0.3)+(S.fold||0)*0.15,S.pitch+0.02*Math.sin(T*0.9));}
   S.swimPh+=dt*(4.5+sp*10+CUR.burst*8)*(S.asleep?0.5:1);
   {const tb=clamp(-S.turnRate*0.05,-0.12,0.12);S.finLagV=(S.finLagV||0)+((tb-(S.finLag||0))*60-(S.finLagV||0)*10)*dt;S.finLag=(S.finLag||0)+S.finLagV*dt;
