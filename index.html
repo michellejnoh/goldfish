@@ -80,17 +80,19 @@ body.editing .ui,body.editing #say{display:none}
 .card p{margin:0;font-size:16px;color:#6b6b6b;line-height:1.4}
 .card input{font:500 24px var(--font);border:0;border-bottom:1px solid #111;border-radius:0;padding:6px 0;background:transparent;color:#111;-webkit-user-select:text;user-select:text;width:100%}
 .card input:focus{outline:none}
-.swatches{display:flex;flex-wrap:wrap;gap:8px;margin:2px 0 6px}
-.swatches button{width:26px;height:26px;border-radius:50%;padding:0;border:1px solid rgba(0,0,0,.12);cursor:pointer}
-.swatches button[aria-pressed="true"]{box-shadow:0 0 0 2px #fff,0 0 0 3.5px var(--ink)}
-.pats{display:flex;flex-wrap:wrap;gap:4px 16px;margin-bottom:6px}
+.lookgrid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:4px 6px;margin:4px 0 8px}
+.lookgrid.pat{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px 10px}
+.lookgrid button{display:flex;flex-direction:column;align-items:center;gap:0;padding:2px 0 4px;border-radius:10px;font-size:13px;color:#7a7a7a;cursor:pointer}
+.lookgrid.pat button{font-size:15px}
+.lookgrid img{width:100%;aspect-ratio:7/5;display:block}
+.lookgrid button[aria-pressed="true"]{background:#f1f1f1;color:#111}
 .row2{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
 .go{font-size:24px;color:#111;padding:6px 0}
 .link{font-size:16px;color:#6b6b6b;text-decoration:underline;text-underline-offset:4px;padding:6px 0}
 .mis{display:grid;grid-template-columns:1fr auto;gap:4px 12px;align-items:baseline;font-size:17px}
 .mis span{color:#111}.mis em{font-style:normal;color:#6b6b6b;font-size:15px;font-variant-numeric:tabular-nums;text-align:right}
 .mis button{font:inherit;font-size:15px;color:#111;text-decoration:underline;text-underline-offset:3px;padding:0;text-align:right}
-.row2 .link[aria-pressed="true"],.pats .link[aria-pressed="true"]{color:#111;text-decoration-thickness:2px}
+.row2 .link[aria-pressed="true"]{color:#111;text-decoration-thickness:2px}
 .mis .done{color:#a3a3a3;text-decoration:line-through}
 .small{font-size:14px;color:#8a8a8a}
 .shopgrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px 8px}
@@ -141,16 +143,27 @@ body.editing .ui,body.editing #say{display:none}
 </div>
 <div class="sheet" id="tank" hidden>
   <div class="card">
-    <div class="row2"><h2>edit your tank</h2><span style="display:flex"><button type="button" class="icon" id="shopBtn" aria-label="Shop"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 8h14l-1.2 12H6.2L5 8z"/><path d="M9 8V6.5a3 3 0 0 1 6 0V8"/></svg></button></span></div>
-    <p class="small">fish colour</p>
-    <div class="swatches" id="lookColors"></div>
-    <p class="small">pattern · tap again to reshuffle</p>
-    <div class="pats" id="lookPats"></div>
+    <div class="row2"><h2>edit your tank</h2><span style="display:flex"><button type="button" class="icon" id="colorBtn" aria-label="Fish colour"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.5c3.2 3.8 6 7.4 6 10.6a6 6 0 0 1-12 0c0-3.2 2.8-6.8 6-10.6z"/><path d="M9 14.5a3 3 0 0 0 2.5 2.8"/></svg></button><button type="button" class="icon" id="patBtn" aria-label="Fish pattern"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8"/><circle cx="9.5" cy="9.5" r="1.4" fill="currentColor"/><circle cx="14.8" cy="11" r="1.1" fill="currentColor"/><circle cx="10.5" cy="15" r="1.2" fill="currentColor"/><circle cx="15" cy="15.6" r=".8" fill="currentColor"/></svg></button><button type="button" class="icon" id="shopBtn" aria-label="Shop"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 8h14l-1.2 12H6.2L5 8z"/><path d="M9 8V6.5a3 3 0 0 1 6 0V8"/></svg></button></span></div>
     <p class="small">water</p>
     <div class="row2" id="waterRow"><button type="button" class="link" data-w="clear">clear</button><button type="button" class="link" data-w="blue">blue</button><button type="button" class="link" data-w="green">green</button></div>
     <p class="small">pebbles</p>
     <div class="row2"><button type="button" class="link" data-p="add">add</button><button type="button" class="link" data-p="remove">remove</button><button type="button" class="link" id="arrangeBtn">move decorations</button></div>
     <div class="row2"><span></span><button type="button" class="go" id="tankClose">close</button></div>
+  </div>
+</div>
+<div class="sheet" id="colors" hidden>
+  <div class="card">
+    <h2>fish colour</h2>
+    <div class="lookgrid" id="colorList"></div>
+    <div class="row2"><span></span><button type="button" class="go" id="colorsClose">done</button></div>
+  </div>
+</div>
+<div class="sheet" id="patterns" hidden>
+  <div class="card">
+    <h2>pattern</h2>
+    <p class="small">tap a pattern again to reshuffle it</p>
+    <div class="lookgrid pat" id="patList"></div>
+    <div class="row2"><span></span><button type="button" class="go" id="patternsClose">done</button></div>
   </div>
 </div>
 <div class="sheet" id="shop" hidden>
@@ -272,7 +285,10 @@ function finGeo(nu,nv,pf,cf,axis){const pos=[],col=[],flex=[],idx=[],uvs=[];
   g.setIndex(idx);g.computeVertexNormals();g.userData.flex=new Float32Array(flex);return g;}
 
 /* ================= the fish's look: colour + pattern ================= */
-const LOOK_COLORS={orange:'#ff7a3c',gold:'#f9a62b',yellow:'#ffcf4a',red:'#e5412d',peach:'#f6a585',white:'#f3ede2',black:'#33302e',blue:'#3554a8',chocolate:'#8b4a2b'};
+const LOOK_COLORS={orange:'#ff7a3c',tangerine:'#ff9a3d',gold:'#f9a62b',yellow:'#ffcf4a',lemon:'#f2e070',cream:'#f6e2bf',
+  peach:'#f6a585',coral:'#ff6f61',salmon:'#ef8a72',red:'#e5412d',crimson:'#c4243a',rose:'#e5728d',pink:'#f3a7c1',lilac:'#bba5da',
+  violet:'#8a78cf',sky:'#82b9e6',blue:'#3554a8',navy:'#26325c',teal:'#2b9a93',mint:'#8fd3b6',olive:'#9b9a4b',chocolate:'#8b4a2b',
+  silver:'#b9bdc2',white:'#f3ede2',black:'#33302e'};
 const LOOK_PATTERNS=['plain','fade','red cap','patches','calico','spots'];
 const lookOf=()=>{const p=pet();if(!p.look)p.look={c:'orange',p:'plain',seed:Math.floor(Math.random()*1000)};return p.look;};
 function lookNoise(x,y,z,sd,f){const a=sd*0.37,b=sd*0.71,c=sd*1.13;
@@ -287,14 +303,22 @@ function lookColor(x,y,z,fin,lk){const main=_lm.set(LOOK_COLORS[lk.c]||LOOK_COLO
     case 'calico':if(lookNoise(x,y,z,sd,4)<0)c.copy(_lw);if(lookNoise(x,y,z,sd+37,11)>0.5)c.copy(dark?_lw:_lk);break;
     case 'spots':if(lookNoise(x,y,z,sd+11,10)>0.55)c.copy(dark?_lw:_lk);break;}
   if(fin)c.lerp(_lw,0.16);return c;}
-function applyLook(){if(!R)return;const lk=lookOf();R.inner.updateMatrixWorld(true);const inv=new THREE.Matrix4().copy(R.inner.matrixWorld).invert(),m=new THREE.Matrix4(),v=new V3();
-  R.inner.traverse(o=>{if(!o.isMesh||(o.material!==MAT_FISH&&o.material!==MAT_FIN))return;const g=o.geometry,fin=o.material===MAT_FIN;
+function applyLook(F,lk){F=F||R;if(!F)return;lk=lk||lookOf();F.inner.updateMatrixWorld(true);const inv=new THREE.Matrix4().copy(F.inner.matrixWorld).invert(),m=new THREE.Matrix4(),v=new V3();
+  F.inner.traverse(o=>{if(!o.isMesh||(o.material!==MAT_FISH&&o.material!==MAT_FIN))return;const g=o.geometry,fin=o.material===MAT_FIN;
     if(!g.userData.rest){const src=g.userData.base0||g.attributes.position.array,rest=new Float32Array(src.length);m.multiplyMatrices(inv,o.matrixWorld);
       for(let i=0;i<src.length;i+=3){v.set(src[i],src[i+1],src[i+2]).applyMatrix4(m);rest[i]=v.x;rest[i+1]=v.y;rest[i+2]=v.z;}g.userData.rest=rest;}
     const r=g.userData.rest,col=new Float32Array(r.length);
     for(let i=0;i<r.length;i+=3){const c=lookColor(r[i],r[i+1],r[i+2],fin,lk);col[i]=c.r;col[i+1]=c.g;col[i+2]=c.b;}
     g.setAttribute('color',new THREE.Float32BufferAttribute(col,3));});
   for(const M of [MAT_FISH,MAT_FIN]){M.vertexColors=true;M.color.set(0xffffff);M.needsUpdate=true;}}
+
+/* small pictures of the fish in a given look, for the colour and pattern menus */
+let FT=null;
+function fishThumb(lk){if(!FT){const r=new THREE.WebGLRenderer({antialias:true,alpha:true,preserveDrawingBuffer:true});r.setPixelRatio(1);r.setSize(168,120,false);r.setClearColor(0xffffff,0);
+    const sc=new THREE.Scene(),f=buildFish();sc.add(f.g);f.g.rotation.set(0,-0.42,0.04);f.g.updateMatrixWorld(true);
+    const bb=new THREE.Box3().setFromObject(f.g),c=bb.getCenter(new V3()),sz=bb.getSize(new V3()),cam=new THREE.PerspectiveCamera(24,168/120,0.05,50);
+    const d=Math.max(sz.x/(2*Math.tan(Math.PI*12/180)*(168/120)),sz.y/(2*Math.tan(Math.PI*12/180)))*1.12;cam.position.set(c.x,c.y+d*0.08,c.z+d);cam.lookAt(c);FT={r,sc,f,cam};}
+  applyLook(FT.f,lk);FT.r.render(FT.sc,FT.cam);return FT.r.domElement.toDataURL();}
 
 /* ================= the goldfish ================= */
 let R;
@@ -813,6 +837,8 @@ function animate(dt){CUR.mouth=damp(CUR.mouth,0,8,dt);CUR.burst=damp(CUR.burst,0
   const sp=S.vel.length(),hs=Math.hypot(S.vel.x,S.vel.z);
   R.g.position.copy(S.pos);R.g.position.y-=(S.flatDrop||0)+0.022*(S.peckDip||0);if(S.mode!=='nibble')S.peckDip=damp(S.peckDip||0,0,8,dt);
   {const op=S.pitch;S.pitch=damp(S.pitch,((S.react&&S.react.type==='trick')?0.22*Math.sin(Math.PI*clamp(S.react.t/S.react.dur)):S.faceT?Math.max(S.mode==='nibble'?-0.35:-9,Math.atan2(S.faceT.y-S.pos.y,Math.hypot(S.faceT.x-S.pos.x,S.faceT.z-S.pos.z)+0.01)):(S.vel.length()<0.08?0:Math.atan2(S.vel.y,hs+0.01)))*(1-0.8*(S.ground||0)*(S.mode==='nibble'?0:1)),4.5,dt);S.pitchV=damp(S.pitchV||0,(S.pitch-op)/Math.max(dt,1e-4),10,dt);}S.rollC=damp(S.rollC,clamp(S.turnRate*0.1,-0.45,0.45),5,dt);
+  if(!(S.react&&S.react.type==='trick')){if(!isFinite(S.roll))S.roll=0;if(S.roll){const tg=Math.round(S.roll/(Math.PI*2))*Math.PI*2;S.roll=damp(S.roll,tg,6,dt);if(Math.abs(S.roll-tg)<0.01)S.roll=0;}}
+  if(!isFinite(S.pitch))S.pitch=0;if(!isFinite(S.rollC))S.rollC=0;
   {const A=S.amp||0.06,Fl=S.flick||0;R.g.rotation.set(S.rollC+S.roll+A*0.15*Math.sin(S.swimPh+0.6),S.heading-A*0.22*Math.sin(S.swimPh+0.3)+(S.fold||0)*0.15,S.pitch-0.22*(S.peckDip||0)+0.02*Math.sin(T*0.9));}
   S.swimPh+=dt*(4.5+sp*10+CUR.burst*8)*(S.asleep?0.5:1);
   {const tb=clamp(-S.turnRate*0.05,-0.12,0.12);S.finLagV=(S.finLagV||0)+((tb-(S.finLag||0))*60-(S.finLagV||0)*10)*dt;S.finLag=(S.finLag||0)+S.finLagV*dt;
@@ -1020,14 +1046,17 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden)pull();});
 /* ================= tank sheet ================= */
 const wallet=()=>{if(!PROG)return 0;let w=PROG.exp;for(let L=1;L<PROG.level;L++)w+=need(L);return w;};
 function spendXP(n){if(!PROG||wallet()<n)return false;PROG.exp-=n;while(PROG.exp<0&&PROG.level>1){PROG.level--;PROG.exp+=need(PROG.level);}PROG.exp=Math.max(0,PROG.exp);updateStats();return true;}
-function renderLook(){const lk=lookOf(),cs=$('#lookColors'),ps=$('#lookPats');
-  if(!cs.childElementCount){for(const [k,h] of Object.entries(LOOK_COLORS)){const b=document.createElement('button');b.type='button';b.dataset.c=k;b.style.background=h;b.setAttribute('aria-label',k);
-      b.onclick=()=>{lookOf().c=k;applyLook();renderLook();persist();};cs.appendChild(b);}
-    for(const p of LOOK_PATTERNS){const b=document.createElement('button');b.type='button';b.className='link';b.dataset.pat=p;b.textContent=p;
-      b.onclick=()=>{const l=lookOf();if(l.p===p&&p!=='plain'&&p!=='fade'&&p!=='red cap')l.seed=Math.floor(Math.random()*1000);l.p=p;applyLook();renderLook();persist();};ps.appendChild(b);}}
-  cs.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.c===lk.c));
-  ps.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.pat===lk.p));}
-function renderTank(){renderLook();const t=save.tank;document.querySelectorAll('#waterRow [data-w]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.w===t.water));
+function lookPick(list,key,label,onPick){const el=$(list);el.textContent='';const lk=lookOf();
+  for(const k of key){const b=document.createElement('button');b.type='button';const im=document.createElement('img');im.alt='';im.src=fishThumb(label(k));
+    const t=document.createElement('span');t.textContent=k;b.append(im,t);b.setAttribute('aria-pressed',k===(list==='#colorList'?lk.c:lk.p));b.onclick=()=>onPick(k);el.appendChild(b);}}
+function openColors(){$('#tank').hidden=true;$('#colors').hidden=false;
+  lookPick('#colorList',Object.keys(LOOK_COLORS),k=>Object.assign({},lookOf(),{c:k}),k=>{lookOf().c=k;applyLook();persist();openColors();});}
+function openPatterns(){$('#tank').hidden=true;$('#patterns').hidden=false;
+  lookPick('#patList',LOOK_PATTERNS,k=>Object.assign({},lookOf(),{p:k}),k=>{const l=lookOf();if(l.p===k&&(k==='patches'||k==='calico'||k==='spots'))l.seed=Math.floor(Math.random()*1000);l.p=k;applyLook();persist();openPatterns();});}
+$('#colorBtn').onclick=openColors;$('#patBtn').onclick=openPatterns;
+$('#colorsClose').onclick=()=>{$('#colors').hidden=true;$('#tank').hidden=false;};
+$('#patternsClose').onclick=()=>{$('#patterns').hidden=true;$('#tank').hidden=false;};
+function renderTank(){const t=save.tank;document.querySelectorAll('#waterRow [data-w]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.w===t.water));
   document.querySelectorAll('[data-p]').forEach(b=>b.setAttribute('aria-pressed',tool==='peb'&&S.pebMode===b.dataset.p));
 }
 let THUMBS=null;
