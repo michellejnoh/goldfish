@@ -782,9 +782,6 @@ function drawAlgae(){const A=ALG,x=A.cvs.getContext('2d'),cw=A.cvs.width,ch=A.cv
     const pts=[];for(let k=0;k<=32;k++){const t=k/32*Math.PI*2,R=r*(0.78+0.14*Math.sin(t*3+s.seed)+0.09*Math.sin(t*7+s.seed*2)+0.05*Math.sin(t*13+s.seed));pts.push([cx+Math.cos(t)*R,cy+Math.sin(t)*R*0.72]);}
     x.fillStyle='rgba(126,144,112,'+(0.16*a)+')';x.beginPath();pts.forEach((p,k)=>k?x.lineTo(p[0],p[1]):x.moveTo(p[0],p[1]));x.fill();
     x.fillStyle='rgba(120,138,106,'+(0.12*a)+')';x.beginPath();pts.forEach((p,k)=>{const px=cx+(p[0]-cx)*0.6,py=cy+(p[1]-cy)*0.6;k?x.lineTo(px,py):x.moveTo(px,py);});x.fill();
-    // tiny algae specks scattered evenly through the haze
-    for(let k=0;k<55;k++){const t=rr()*Math.PI*2,d=Math.sqrt(rr())*r*0.85,sz=0.6+rr()*1.6;
-      x.fillStyle='rgba('+(90+rr()*30|0)+','+(110+rr()*25|0)+','+(80+rr()*20|0)+','+((0.3+rr()*0.35)*a)+')';x.beginPath();x.arc(cx+Math.cos(t)*d,cy+Math.sin(t)*d*0.72,sz,0,7);x.fill();}
     // a faint dried water line along the bottom edge, and sometimes one thin run
     x.strokeStyle='rgba(118,132,112,'+(0.3*a)+')';x.lineWidth=1.2;x.beginPath();
     for(let k=4;k<=12;k++){const p=pts[k];k===4?x.moveTo(p[0],p[1]):x.lineTo(p[0],p[1]);}x.stroke();
