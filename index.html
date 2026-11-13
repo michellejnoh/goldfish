@@ -30,6 +30,13 @@
 }
 /* Korean mode: one handwriting font for everything, so numbers and letters match the Hangul */
 html[lang="ko"]{--font:"Nanum Pen Script","Caveat",cursive}
+/* the Korean font sits taller, so give stacked lines more room */
+html[lang="ko"] .mt{gap:3px}
+html[lang="ko"] .mt b{line-height:1.3}
+html[lang="ko"] .mt small{line-height:1.35}
+html[lang="ko"] .mrow{padding:11px 0}
+html[lang="ko"] .small,html[lang="ko"] p{line-height:1.45}
+html[lang="ko"] .item b,html[lang="ko"] .lookgrid span{line-height:1.3}
 html,body{height:100%;margin:0;overflow:hidden;overscroll-behavior:none}
 body{background:var(--bg);color:var(--ink);font-family:var(--font);-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
 #c{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none;z-index:0}
@@ -280,7 +287,7 @@ const KO={
 'achievements':'업적','add pebbles':'자갈 놓기','remove pebbles':'자갈 치우기','back':'뒤로','close':'닫기','done':'완료','download':'다운로드',
 'buy winter decorations with xp':'경험치로 겨울 장식 사기','clear, blue or green':'투명, 파랑, 초록','colour':'색','colour & pattern':'색과 무늬',
 'decorations':'장식','drag them, twist to rotate':'끌어서 옮기고 비틀어 돌리기','edit':'편집','fish colour':'금붕어 색','keep it':'이 이름으로 할게요',
-'keeper':'키퍼','move & turn':'옮기기·돌리기','move decorations':'장식 옮기기','pattern':'무늬','pick another':'다른 이름 고르기',
+'keeper':'키퍼','move & turn':'옮기기 · 돌리기','move decorations':'장식 옮기기','pattern':'무늬','pick another':'다른 이름 고르기',
 'rub over them to pick up':'문질러서 줍기','save':'저장','shop':'상점','shop, move & pebbles':'상점, 옮기기, 자갈','spots, patches & more':'점박이, 얼룩 등',
 'start':'시작','sync now':'지금 동기화','tap a pattern again to reshuffle it':'같은 무늬를 한 번 더 누르면 모양이 바뀌어요',
 'tap or drag on the floor':'바닥을 누르거나 끌기','today':'오늘','turn left':'왼쪽으로','turn right':'오른쪽으로','water':'물',
