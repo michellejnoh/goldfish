@@ -39,11 +39,11 @@ body.night #dark{opacity:.55}
   text-shadow:0 0 1.2px rgba(0,0,0,.3)}
 .ui > *{pointer-events:auto}
 .top{top:0;padding-top:calc(env(safe-area-inset-top,0px) + 14px);display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
-.who{display:flex;flex-direction:column;gap:9px;min-width:0}
-#name{cursor:pointer;font:500 40px/1 var(--font);letter-spacing:-.01em;color:var(--ink);background:transparent;border:0;padding:0;margin:0;width:8ch;
+.who{display:flex;flex-direction:column;gap:9px;min-width:0;flex:1;max-width:560px}
+#name{cursor:pointer;font:500 40px/1 var(--font);letter-spacing:-.01em;color:var(--ink);background:transparent;border:0;padding:0;margin:0;width:100%;white-space:nowrap;
   -webkit-user-select:text;user-select:text;text-shadow:inherit}
 #name:focus{outline:none;border-bottom:1px solid var(--ink)}
-.stats{display:grid;grid-template-columns:auto 84px;column-gap:12px;row-gap:5px;align-items:center}
+.stats{display:grid;justify-content:start;grid-template-columns:auto 84px;column-gap:12px;row-gap:5px;align-items:center}
 .stats span{font-size:14px;color:var(--soft);letter-spacing:.02em}
 .stats b{display:block;height:2px;background:var(--track);position:relative;overflow:hidden}
 .stats b i{position:absolute;inset:0 auto 0 0;background:var(--ink);transition:width .5s ease}
@@ -747,7 +747,7 @@ function updateCap(){const el=$('#cap');
   const s=pet().s;let lk=null,lv=101;for(const [k] of STATS)if(s[k]<lv){lv=s[k];lk=k;}
   el.textContent=fill(lv<40?MOOD[lk]:MOOD.ok);}
 function renderUI(){
-  const nm=$('#name');if(document.activeElement!==nm)nm.value=pet().name;
+  const nm=$('#name');if(document.activeElement!==nm)nm.value=pet().name;fitName();
   $('#stats').innerHTML=STATS.map(([k,l])=>'<span>'+l+'</span><b><i id="b-'+k+'"></i></b>').join('')+'<span id="lvl">lv 1</span><b><i id="b-xp"></i></b>';
   $('#who').textContent=USER?'@'+USER:'sign in';
   const tl=$('#tools');tl.innerHTML='';
@@ -761,6 +761,12 @@ function toggleLights(){lightsOff=!lightsOff;save.night=lightsOff;if(lightsOff)S
 $('#snd').onclick=()=>{save.sound=!save.sound;snd.ac();persist();renderUI();};
 function openNaming(){const f=$('#fishName');f.value=pet().name;$('#naming').hidden=false;setTimeout(()=>{try{f.focus();f.select();}catch(e){}},250);}
 $('#name').addEventListener('click',openNaming);
+/* shrink the name's font so a long name always fits on one line */
+let nameCtx=null;
+function fitName(){nameCtx=nameCtx||document.createElement('canvas').getContext('2d');const el=$('#name'),base=innerWidth>=700?46:40,cs=getComputedStyle(el);el.style.fontSize=base+'px';
+  nameCtx.font='500 '+base+'px '+cs.fontFamily;const w=nameCtx.measureText(el.value||'').width*1.02,avail=el.clientWidth;
+  if(avail>0&&w>avail)el.style.fontSize=Math.max(16,Math.floor(base*avail/w))+'px';}
+addEventListener('resize',fitName);if(document.fonts)document.fonts.ready.then(fitName);
 $('#namingForm').addEventListener('submit',e=>{e.preventDefault();const v=$('#fishName').value.replace(/[\u0000-\u001f<>]/g,'').trim().slice(0,14);
   if(v){pet().name=v;persist();renderUI();toast('hello, '+v+'.',2.4);}$('#naming').hidden=true;});
 $('#namingSkip').onclick=()=>{$('#naming').hidden=true;};
