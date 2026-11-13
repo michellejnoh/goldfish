@@ -257,7 +257,7 @@ const KO={
 'rub over pebbles to pick them up':'자갈 위를 문지르면 주워져요',
 'drag to move · twist with two fingers or tap turn to rotate the last one you touched':'끌어서 옮기기 · 두 손가락으로 비틀거나 돌리기 버튼으로 마지막에 만진 장식을 돌려요',
 'The glass is getting cloudy.':'유리가 뿌예지고 있어요.',
-'plain':'단색','fade':'그러데이션','red cap':'빨간 모자','patches':'얼룩','calico':'캘리코','spots':'점박이',
+'plain':'단색','fade':'그러데이션','dark fins':'진한 지느러미','patches':'얼룩','calico':'캘리코','spots':'점박이',
 'orange':'주황','tangerine':'귤색','gold':'금색','yellow':'노랑','lemon':'레몬','cream':'크림','peach':'복숭아','coral':'코랄','salmon':'연어색',
 'red':'빨강','crimson':'진홍','rose':'장미','pink':'분홍','lilac':'라일락','violet':'보라','sky':'하늘','blue':'파랑','navy':'남색','teal':'청록',
 'mint':'민트','olive':'올리브','chocolate':'초콜릿','silver':'은색','white':'하양','black':'검정',
@@ -426,27 +426,52 @@ const LOOK_COLORS={orange:'#ff7a3c',tangerine:'#ff9a3d',gold:'#f9a62b',yellow:'#
   peach:'#f6a585',coral:'#ff6f61',salmon:'#ef8a72',red:'#e5412d',crimson:'#c4243a',rose:'#e5728d',pink:'#f3a7c1',lilac:'#bba5da',
   violet:'#8a78cf',sky:'#82b9e6',blue:'#3554a8',navy:'#26325c',teal:'#2b9a93',mint:'#8fd3b6',olive:'#9b9a4b',chocolate:'#8b4a2b',
   silver:'#b9bdc2',white:'#f3ede2',black:'#33302e'};
-const LOOK_PATTERNS=['plain','fade','red cap','patches','calico','spots'];
-const lookOf=()=>{const p=pet();if(!p.look)p.look={c:'orange',p:'plain',seed:Math.floor(Math.random()*1000)};return p.look;};
+const LOOK_PATTERNS=['plain','fade','dark fins','patches','calico','spots'];
+const lookOf=()=>{const p=pet();if(!p.look)p.look={c:'orange',p:'plain',seed:Math.floor(Math.random()*1000)};if(!LOOK_PATTERNS.includes(p.look.p))p.look.p='plain';if(!LOOK_COLORS[p.look.c])p.look.c='orange';return p.look;};
 function lookNoise(x,y,z,sd,f){const a=sd*0.37,b=sd*0.71,c=sd*1.13;
   return 0.5*Math.sin(x*f*1.0+y*f*0.6+z*f*0.8+a)+0.35*Math.sin(x*f*1.7-y*f*1.3+z*f*0.5+b)+0.3*Math.sin(y*f*2.1+z*f*1.4-x*f*0.9+c);}
 const _lc=new THREE.Color(),_lw=new THREE.Color('#f6f1e8'),_lk=new THREE.Color('#2a2827'),_lm=new THREE.Color();
-function lookColor(x,y,z,fin,lk){const main=_lm.set(LOOK_COLORS[lk.c]||LOOK_COLORS.orange),dark=main.r*0.3+main.g*0.59+main.b*0.11<0.35,sd=lk.seed||0;
-  let c=_lc.copy(main);
+/* round spots: random discs scattered over the side view, each on one side of the fish (fins, being thin, show both) */
+const SPOTS={};
+function spotList(sd){if(SPOTS[sd])return SPOTS[sd];let a=(sd*7919+104729)%233280;const rr=()=>(a=(a*9301+49297)%233280)/233280,L=[],P=R&&R.inner?bodyProfile(R):null;
+  // most spots sit on the body (placed between its belly and back line), a few on the tail and fins
+  for(let i=0;i<30;i++){if(i%3!==2&&P){const x=-0.62+rr()*1.2,k=Math.round(clamp((x-P.x0)/(P.x1-P.x0))*P.N),y=P.lo[k]+(P.hi[k]-P.lo[k])*(0.12+rr()*0.8);
+      L.push([x,y,0.03+rr()*0.04,rr()<0.5?-1:1]);}else L.push([-1.5+rr()*0.85,-0.45+rr()*1.0,0.03+rr()*0.035,0]);}
+  return SPOTS[sd]=L;}
+function inSpot(x,y,z,sd,dens){const L=spotList(sd),n=Math.round(L.length*dens);for(let i=0;i<n;i++){const s=L[i];if(s[3]&&Math.abs(z)>0.035&&Math.sign(z)!==s[3])continue;
+    const dx=x-s[0],dy=(y-s[1])*1.1;if(dx*dx+dy*dy<s[2]*s[2])return true;}return false;}
+const _hsl={h:0,s:0,l:0},_lt=new THREE.Color(),_dk=new THREE.Color(),_cr=new THREE.Color('#f7efe2');
+/* v = how high the point sits on the body at that spot (0 belly .. 1 back), q = how far out along a fin (0 root .. 1 tip) */
+function lookColor(x,y,z,fin,lk,v,q){const main=_lm.set(LOOK_COLORS[lk.c]||LOOK_COLORS.orange),sd=lk.seed||0;main.getHSL(_hsl);
+  const lightTone=_lt.setHSL(_hsl.h,_hsl.s*0.8,_hsl.l+(1-_hsl.l)*0.62);
+  // spots are a deeper shade of the fish's own colour; very pale fish get a soft warm charcoal, very dark fish get pale flecks
+  const deep=_hsl.l<0.3?_dk.setHSL(_hsl.h,_hsl.s*0.6,0.74):_hsl.l>0.82||_hsl.s<0.12?_dk.set('#4d4441'):_dk.setHSL(_hsl.h,Math.min(1,_hsl.s*1.05),_hsl.l*0.4);
+  let c=_lc.copy(main);const wob=lookNoise(x,y,z,sd+3,6)*0.07;
   switch(lk.p){
-    case 'fade':c.lerp(_lw,0.55*ss(0.02,-0.2,y));break;
-    case 'red cap':{const d=Math.pow((x-0.5)/0.3,2)+Math.pow((y-0.2)/0.2,2);c=d<1&&!fin?_lc.copy(main):_lc.copy(_lw);break;}
-    case 'patches':if(lookNoise(x,y,z,sd,4.2)<0.05)c.copy(_lw);break;
-    case 'calico':if(lookNoise(x,y,z,sd,4)<0)c.copy(_lw);if(lookNoise(x,y,z,sd+37,11)>0.5)c.copy(dark?_lw:_lk);break;
-    case 'spots':if(lookNoise(x,y,z,sd+11,10)>0.55)c.copy(dark?_lw:_lk);break;}
-  if(fin)c.lerp(_lw,0.16);return c;}
+    case 'fade':{// lighter belly that follows the body's curve, soft and slightly uneven, rising a little toward the head
+      if(fin){c.lerp(lightTone,0.15+0.45*q);break;}const a=ss(0.6,0.08,v+wob-0.08*ss(0.1,0.6,x));c.lerp(lightTone,a*0.95);break;}
+    case 'dark fins':{// fins deepen toward their tips (pale tips on a dark fish), with a slightly deeper back
+      if(fin){c.lerp(deep,0.85*ss(0.2,0.95,q));break;}c.lerp(deep,0.14*ss(0.55,1,v+wob));break;}
+    case 'patches':if(lookNoise(x,y,z,sd,4.2)<0.05)c.copy(_cr);if(fin&&q>0.5&&lookNoise(x,y,z,sd+9,3)<-0.2)c.copy(_cr);break;
+    case 'calico':if(lookNoise(x,y,z,sd,4)<0)c.copy(_cr);if(inSpot(x,y,z,sd+37,0.8))c.copy(deep);break;
+    case 'spots':if(inSpot(x,y,z,sd+11,1))c.copy(deep);break;}
+  if(fin&&lk.p!=='dark fins')c.lerp(_cr,0.16);return c;}
+function bodyProfile(F){if(F.prof)return F.prof;let bg=null;F.inner.traverse(o=>{if(o.isMesh&&o.material===MAT_FISH&&o.userData.part==='body'&&!bg)bg=o.geometry;});
+  const r=bg.userData.rest,N=60;let x0=1e9,x1=-1e9;for(let i=0;i<r.length;i+=3){x0=Math.min(x0,r[i]);x1=Math.max(x1,r[i]);}
+  const lo=new Float32Array(N+1).fill(1e9),hi=new Float32Array(N+1).fill(-1e9);
+  for(let i=0;i<r.length;i+=3){const k=Math.round((r[i]-x0)/(x1-x0)*N);lo[k]=Math.min(lo[k],r[i+1]);hi[k]=Math.max(hi[k],r[i+1]);}
+  for(let k=0;k<=N;k++)if(lo[k]>hi[k]){lo[k]=lo[k-1]||0;hi[k]=hi[k-1]||0;}
+  return F.prof={x0,x1,N,lo,hi};}
+function vOf(P,x,y){const k=Math.round(clamp((x-P.x0)/(P.x1-P.x0))*P.N),a=P.lo[k],b=P.hi[k];return clamp((y-a)/Math.max(1e-3,b-a));}
 function applyLook(F,lk){F=F||R;if(!F)return;lk=lk||lookOf();F.inner.updateMatrixWorld(true);const inv=new THREE.Matrix4().copy(F.inner.matrixWorld).invert(),m=new THREE.Matrix4(),v=new V3();
-  F.inner.traverse(o=>{if(!o.isMesh||(o.material!==MAT_FISH&&o.material!==MAT_FIN))return;const g=o.geometry,fin=o.material===MAT_FIN;
+  const geos=[];F.inner.traverse(o=>{if(!o.isMesh||(o.material!==MAT_FISH&&o.material!==MAT_FIN))return;const g=o.geometry;
     if(!g.userData.rest){const src=g.userData.base0||g.attributes.position.array,rest=new Float32Array(src.length);m.multiplyMatrices(inv,o.matrixWorld);
       for(let i=0;i<src.length;i+=3){v.set(src[i],src[i+1],src[i+2]).applyMatrix4(m);rest[i]=v.x;rest[i+1]=v.y;rest[i+2]=v.z;}g.userData.rest=rest;}
-    const r=g.userData.rest,col=new Float32Array(r.length);
-    for(let i=0;i<r.length;i+=3){const c=lookColor(r[i],r[i+1],r[i+2],fin,lk);col[i]=c.r;col[i+1]=c.g;col[i+2]=c.b;}
-    g.setAttribute('color',new THREE.Float32BufferAttribute(col,3));});
+    geos.push([g,o.material===MAT_FIN]);});
+  const P=bodyProfile(F);
+  for(const [g,fin] of geos){const r=g.userData.rest,fl=g.userData.flex,col=new Float32Array(r.length);
+    for(let i=0,n=0;i<r.length;i+=3,n++){const c=lookColor(r[i],r[i+1],r[i+2],fin,lk,vOf(P,r[i],r[i+1]),fl?fl[n]:(fin?0.6:0));col[i]=c.r;col[i+1]=c.g;col[i+2]=c.b;}
+    g.setAttribute('color',new THREE.Float32BufferAttribute(col,3));}
   for(const M of [MAT_FISH,MAT_FIN]){M.vertexColors=true;M.color.set(0xffffff);M.needsUpdate=true;}}
 
 /* small pictures of the fish in a given look, for the colour and pattern menus */
