@@ -945,7 +945,7 @@ $('#captureBtn').onclick=captureTank;$('#shotClose').onclick=()=>{$('#shot').hid
 const TC=$('#touch'),tx=TC.getContext('2d'),LY=document.createElement('canvas'),lx=LY.getContext('2d'),MARKS=new Map(),FADING=[];
 function sizeTouch(){const pr=Math.min(2,devicePixelRatio||1);for(const c of [TC,LY]){c.width=innerWidth*pr;c.height=innerHeight*pr;}lx.setTransform(pr,0,0,pr,0,0);}
 sizeTouch();addEventListener('resize',sizeTouch);
-const MR=24,TAIL_T=0.3,TAIL_L=MR*5;
+const MR=17,TAIL_T=0.3,TAIL_L=MR*5;
 addEventListener('pointerdown',e=>{MARKS.set(e.pointerId,{pts:[{x:e.clientX,y:e.clientY,t:performance.now()}],a:1});},true);
 addEventListener('pointermove',e=>{const m=MARKS.get(e.pointerId);if(!m)return;const l=m.pts[m.pts.length-1];if(Math.hypot(e.clientX-l.x,e.clientY-l.y)>2)m.pts.push({x:e.clientX,y:e.clientY,t:performance.now()});},true);
 function liftMark(e){const m=MARKS.get(e.pointerId);if(!m)return;MARKS.delete(e.pointerId);FADING.push(m);}
@@ -967,7 +967,7 @@ function drawMarks(){const all=[...MARKS.values(),...FADING];if(!all.length&&!dr
   tx.clearRect(0,0,TC.width,TC.height);if(!all.length)return;
   for(let k=FADING.length-1;k>=0;k--){FADING[k].a-=dt*2.4;if(FADING[k].a<=0)FADING.splice(k,1);}
   for(const m of all){if(m.a<=0)continue;lx.clearRect(0,0,innerWidth,innerHeight);lx.fillStyle='#8f8f8f';markShape(m,now);
-    tx.globalAlpha=0.75*Math.min(1,m.a);tx.drawImage(LY,0,0);}
+    tx.globalAlpha=0.38*Math.min(1,m.a);tx.drawImage(LY,0,0);}
   tx.globalAlpha=1;}
 (function markLoop(){requestAnimationFrame(markLoop);drawMarks();})();
 
