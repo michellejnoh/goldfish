@@ -9,10 +9,10 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Goldfish">
 <title>Goldfish</title>
-<link rel="icon" href="favicon.svg?v=5" type="image/svg+xml">
-<link rel="icon" href="favicon-32.png?v=5" sizes="32x32" type="image/png">
-<link rel="apple-touch-icon" href="apple-touch-icon.png?v=3">
-<link rel="manifest" href="manifest.webmanifest?v=3">
+<link rel="icon" href="favicon-64.png?v=7" sizes="64x64" type="image/png">
+<link rel="icon" href="favicon-32.png?v=7" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png?v=7">
+<link rel="manifest" href="manifest.webmanifest?v=7">
 <style>
 @font-face{font-family:"Archivo Narrow";font-weight:400;font-display:swap;src:url(fonts/archivo-narrow-latin-400-normal.woff2) format("woff2")}
 @font-face{font-family:"Archivo Narrow";font-weight:500;font-display:swap;src:url(fonts/archivo-narrow-latin-500-normal.woff2) format("woff2")}
@@ -187,7 +187,7 @@ function buildFish(){
   const topY=x=>{const u=x/L;return Rp(u)*hTop(u)+shift(u);};
   const botY=x=>{const u=x/L;return Rp(u)*hBot(u)-shift(u);};
   const bg=blob(80,48,(u,y,z)=>{const r=Math.hypot(y,z)||1e-6,dy=y/r,dz=z/r,k=Rp(u);
-    return [u*L,dy*k*(dy>0?hTop(u):hBot(u))+shift(u),dz*k*Wd*tW(u)];});
+    return [u*L,dy*k*(dy>0?hTop(u):hBot(u))+shift(u),dz*k*Wd*tW(u)*(1-0.32*dy)];});
   const Wt=C('#FFF3E2');
   tint(bg,(x,y,z)=>{let c=mix(Or,Dp,ss(0.04,0.3,y));c=mix(c,Gd,ss(0.02,-0.12,y)*0.8);c=mix(c,Wt,ss(-0.06,-0.26,y)*0.85);
     const gill=Math.exp(-Math.pow((x-0.32)/0.06,2))*ss(0.25,-0.1,y)*0.06;c=c.multiplyScalar(1-gill);
@@ -237,18 +237,21 @@ function buildFish(){
     g.userData.kind=mnx<-1.1?'tail':mxy>0.5?'dorsal':'fin';});
   return R;
 }
-function fishWave(ph,amp,bend,t,spd,lag,lagY,arch,jel,fold,st){arch=arch||0;jel=jel||0;fold=fold||0;st=st||0;const XH=0.02,XS=0.45;
+function fishWave(ph,amp,bend,t,spd,lag,lagY,arch,jel,fold,st,foldY){arch=arch||0;jel=jel||0;fold=fold||0;st=st||0;foldY=foldY||0;const XH=0.02,XS=0.45;
   const sx=X=>X<XS?XS+(X-XS)*(1+st):X;
-  const hinge=(X,z)=>{const a=fold*ss(0.14,-0.22,X);if(!a)return [X,z];const c=Math.cos(a),s=Math.sin(a),dx=X-XH;return [XH+dx*c-z*s,dx*s+z*c];};const fa=0.08+amp*1.0,slow=1-clamp(spd/0.9);
+  const hinge=(X,Y,z)=>{const w=ss(0.14,-0.22,X);if(!w)return [X,Y,z];let dx=X-XH;
+    if(foldY){const a=foldY*w,c=Math.cos(a),s=Math.sin(a),n=dx*c-Y*s;Y=dx*s+Y*c;dx=n;}
+    if(fold){const a=fold*w,c=Math.cos(a),s=Math.sin(a),n=dx*c-z*s;z=dx*s+z*c;dx=n;}
+    return [XH+dx,Y,z];};const fa=0.08+amp*1.0,slow=1-clamp(spd/0.9);
   for(const g of R.wave){const p=g.attributes.position,b=g.userData.base0,f=g.userData.flex,kind=g.userData.kind;
     for(let i=0;i<p.count;i++){const x=b[i*3],y0=b[i*3+1],k=clamp((0.3-x)/2.2),y=y0*(1+jel*Math.sin(x*4.5+t*9)*clamp((0.25-x)/0.6)),env=0.9*Math.pow(k,1.3);let z=b[i*3+2]+amp*env*Math.sin(ph+x*3.6)+bend*k*k*2;
-      if(!f){const hz=hinge(sx(x),z*(1+0.018*Math.sin(t*2.1)));p.setXYZ(i,hz[0],y+arch*k*k,hz[1]);continue;}
+      if(!f){const hz=hinge(sx(x),y+arch*k*k,z*(1+0.018*Math.sin(t*2.1)));p.setXYZ(i,hz[0],hz[1],hz[2]);continue;}
       const q=f[i],q2=q*q;let X=x,Y=y+arch*k*k;
       z+=q*fa*Math.sin(t*2.3+ph*0.3-q*3.4+y*2.5)+q2*0.06*Math.sin(t*4.1-q*5.5+y*5)+q2*0.025*Math.sin(t*7.9-q*9+y*11)+lag*q2*1.4+(kind==='dorsal'?q2*0.07*Math.sin(t*3.2+ph*0.5-q*3+x*4):0);
       if(kind==='tail'){Y+=q2*(-0.07*slow+lagY*0.6)+q*0.022*Math.sin(t*3.3-q*4.5+z*6);X+=q2*0.05*(1-slow);z*=1-0.25*(1-slow)*q;}
       else if(kind==='dorsal'){X-=q2*(0.04+0.08*(1-slow))+q2*0.04*Math.sin(t*1.9+x*5);Y-=q2*0.03*(0.5+0.5*Math.sin(t*1.4+x*3));}
       else{Y-=q2*0.03*slow;X-=q2*0.03*(1-slow);}
-      {const hz=hinge(kind==='tail'?X+(-0.66-XS)*st:sx(X),z);p.setXYZ(i,hz[0],Y,hz[1]);}}
+      {const hz=hinge(kind==='tail'?X+(-0.66-XS)*st:sx(X),Y,z);p.setXYZ(i,hz[0],hz[1],hz[2]);}}
     p.needsUpdate=true;}}
 
 /* ================= the tank (monotone) ================= */
@@ -262,7 +265,7 @@ function fit(){const w=innerWidth,h=innerHeight;renderer.setPixelRatio(LOWRES);r
 
 const shTex=(()=>{const c=document.createElement('canvas');c.width=c.height=128;const x=c.getContext('2d');const g=x.createRadialGradient(64,64,2,64,64,64);
   g.addColorStop(0,'rgba(0,0,0,0.22)');g.addColorStop(1,'rgba(0,0,0,0)');x.fillStyle=g;x.fillRect(0,0,128,128);return new THREE.CanvasTexture(c);})();
-let shadow,ENV,ALG=null,STONE=null;
+let shadow,ENV,ALG=null,STONE=null,PEBBLES=[],PILE=null,BALL=null;
 const ribbons=[],ferns=[];
 function stoneGeo(r,seed,rough,flat){const g=new THREE.IcosahedronGeometry(1,rough?1:3),p=g.attributes.position;
   for(let i=0;i<p.count;i++){const x=p.getX(i),y=p.getY(i),z=p.getZ(i),k=1+0.2*n3(x*2+seed,y*2+seed*1.3,z*2-seed);p.setXYZ(i,x*r*k,y*r*flat*k,z*r*k);}
@@ -270,7 +273,7 @@ function stoneGeo(r,seed,rough,flat){const g=new THREE.IcosahedronGeometry(1,rou
   const base=rnd(0.5,0.76);const c=new THREE.Color();
   const v=[0.62,0.7,0.78,0.85][Math.floor(Math.random()*4)];return tint(g,()=>c.setRGB(v,v,v));}
 function buildEnv(){
-  const e=new THREE.Group();ribbons.length=0;ferns.length=0;
+  const e=new THREE.Group();PEBBLES=[];ribbons.length=0;ferns.length=0;
   const F=B.floor,span=B.hw+1.6;
   // sand bed with ripples and grain
   const sg=new THREE.PlaneGeometry(span*2,3.4,90,36);sg.rotateX(-Math.PI/2);const sp=sg.attributes.position;
@@ -280,12 +283,15 @@ function buildEnv(){
   const sand=new THREE.Mesh(sg,MAT);sand.position.set(0,F,-0.3);e.add(sand);
   // stones: smooth river pebbles, rough chips and a few large rocks
   for(let i=0;i<85;i++){const rough=Math.random()<0.3,r=rough?rnd(0.04,0.08):rnd(0.05,0.13),flat=rnd(0.45,0.7);
-    const s=new THREE.Mesh(stoneGeo(r,rnd(0,9),rough,flat),MAT);s.position.set(rnd(-span,span),F+r*flat*0.35,rnd(-1.5,0.9));s.rotation.y=rnd(0,6);e.add(s);}
+    const s=new THREE.Mesh(stoneGeo(r,rnd(0,9),rough,flat),MAT);s.position.set(rnd(-span,span),F+r*flat*0.35,rnd(-1.5,0.9));s.rotation.y=rnd(0,6);e.add(s);
+    if(!rough&&r<0.1&&Math.abs(s.position.x)<B.x*0.95&&s.position.z>-1.3&&s.position.z<0.6)PEBBLES.push({m:s,rest:F+r*flat*0.35,inPile:false,state:'floor',vy:0});}
+  PILE=new V3((Math.random()<0.5?-1:1)*B.x*0.78,F,-0.95);PILE.n=0;
+  {const bg=stoneGeo(0.1,7,false,1);const cc2=new THREE.Color();tint(bg,()=>cc2.setRGB(0.5,0.5,0.5));const bm=new THREE.Mesh(bg,MAT);bm.position.set(B.x*0.25,F+0.1,-0.1);e.add(bm);BALL={m:bm,pos:bm.position,vel:new V3(),r:0.1,floor:F+0.1};}
   [[-B.x*0.75,-1.0,0.42],[B.x*0.6,-1.2,0.55],[B.x*0.95,-0.7,0.26]].forEach(([x,z,r])=>{const s=new THREE.Mesh(stoneGeo(r,rnd(0,9),false,0.72),MAT);s.position.set(x,F+r*0.3,z);s.rotation.y=rnd(0,6);e.add(s);});
   // ribbon grass (vallisneria) in clusters
   const hmax=Math.min(2.6,B.surf-F-0.3);
   [[-B.x*0.85,-0.8,7],[-B.x*0.45,-1.15,5],[B.x*0.35,-1.05,6],[B.x*0.9,-0.95,8]].forEach(([cx,cz,n])=>{for(let i=0;i<n;i++){
-    const H=rnd(0.55,1)*hmax,w=rnd(0.035,0.06),tw=rnd(-1.5,1.5),lean=rnd(-0.35,0.35),seg=18;
+    const H=rnd(0.55,1)*hmax,w=rnd(0.035,0.06),tw=rnd(-1.5,1.5),lean=rnd(-0.35,0.35),seg=36;
     const g=finGeo(seg,1,(u,v)=>{const a=tw*u,ww=w*(1-0.75*u)*(v*2-1);return [Math.cos(a)*ww+lean*u*u*H*0.3,u*H,Math.sin(a)*ww,u];},()=>[1,1,1,1]);
     g.deleteAttribute('color');const cols=new Float32Array(g.attributes.position.count*3);for(let k=0;k<cols.length/3;k++){const u=g.userData.flex[k],c=lerp(0.58,0.8,u);cols[k*3]=cols[k*3+1]=cols[k*3+2]=c;}
     g.setAttribute('color',new THREE.BufferAttribute(cols,3));g.userData.base0=g.attributes.position.array.slice();
@@ -394,7 +400,7 @@ const ptr={down:false,x:0,y:0,t0:0,moved:0,world:null,seen:-9,onPet:false,lastTa
 function setNDC(e){const r=cv.getBoundingClientRect();ndc.set((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1);ray.setFromCamera(ndc,camera);}
 function worldPoint(){VPLANE.constant=-Math.min(0.4,S.pos.z);const p=new V3();return ray.ray.intersectPlane(VPLANE,p)?p:null;}
 function hitFish(){return ray.intersectObject(R.g,true).some(x=>{let o=x.object;while(o&&!o.userData.part)o=o.parent;return !!o;});}
-cv.addEventListener('pointerdown',e=>{snd.ac();try{cv.setPointerCapture(e.pointerId)}catch(_){}
+cv.addEventListener('pointerdown',e=>{snd.ac();if(S)S.lastTouch=T;try{cv.setPointerCapture(e.pointerId)}catch(_){}
   ptr.down=true;ptr.x=e.clientX;ptr.y=e.clientY;ptr.t0=performance.now();ptr.moved=0;setNDC(e);ptr.world=worldPoint();ptr.seen=T;ptr.onPet=hitFish();
   if(tool==='toy')startToy();});
 cv.addEventListener('pointermove',e=>{setNDC(e);ptr.world=worldPoint();ptr.seen=T;if(!ptr.down)return;
@@ -411,7 +417,7 @@ function tap(){
 
 /* ================= reactions ================= */
 const RX={hello:[3,1],trick:[1.15,1],grumpy:[1.3,0],refuse:[1.3,1],wake:[1.2,1],caught:[0.8,0]};
-function squish(v){S.sqYV=(S.sqYV||0)-v*0.85;S.sqZV=(S.sqZV||0)-v*0.6;}
+function squish(v){S.foldYV=(S.foldYV||0)+v*0.7;S.sqYV=(S.sqYV||0)-v*0.85;S.sqZV=(S.sqZV||0)-v*0.6;}
 function react(type){const d=RX[type];S.react={type,t:0,dur:d[0],lock:!!d[1]};squish({hello:-4.5,trick:5,grumpy:-3,refuse:-2,wake:3,caught:-4}[type]||0);
   if(type==='hello'){say('blub');snd.blub();add('fun',3);}
   else if(type==='trick'){add('fun',4);talk();S.vel.y=1.4;for(let i=0;i<6;i++)bubble(mouthWorld().add(new V3(rnd(-0.15,0.15),0,0)));}
@@ -462,13 +468,33 @@ function chase(dt){S.catchCD-=dt;S.playCap=0.6;if(!toy.active){brake(dt);return;
   add('fun',dt*0.3);add('energy',-dt*0.05);}
 // too tired to play: watch the lure, blub, and say so
 function tired(dt){brake(dt);S.tiredCap=0.6;if(toy.active)faceToward(toy.pos);if(Math.random()<dt*0.4&&S.sayCD<=0){S.sayCD=1.5;say('…',1.2);}}
+function tidy(dt){
+  if(!S.peb){let best=null,bd=1e9;for(const p of PEBBLES){if(p.inPile||p.state!=='floor')continue;const d=p.m.position.distanceTo(S.pos)+Math.abs(p.m.position.x-PILE.x)*0.3;if(d<bd){bd=d;best=p;}}
+    if(!best||S.tidyLeft<=0||S.modeT<0){S.mode='idle';S.think=rnd(2,4);return;}S.peb=best;}
+  const pb=S.peb;
+  if(pb.state!=='carried'){const pp=pb.m.position,t=mouthTarget(pp);const d=move(t.x,t.y,t.z,0.9,dt,B.floor+0.06,B.surf);if(d<0.6)S.faceT=pp;
+    if(mouthWorld().distanceTo(pp)<0.14){pb.state='carried';squish(-1.5);snd.pop();}
+    if(S.modeT<0){S.peb=null;S.mode='idle';}return;}
+  const top=new V3(PILE.x,B.floor+0.35,PILE.z),t=mouthTarget(top);const d=move(t.x,t.y,t.z,0.8,dt,B.floor+0.06,B.surf);if(d<0.6)S.faceT=top;
+  if(mouthWorld().distanceTo(top)<0.22){const n=PILE.n++,mr=0.05+0.035*Math.sqrt(n),a=rnd(0,Math.PI*2),rad=mr*Math.sqrt(Math.random()),h=0.03*Math.sqrt(n);
+    pb.target=new V3(PILE.x+Math.cos(a)*rad,pb.rest+h*(1-rad/mr),PILE.z+Math.sin(a)*rad*0.7);pb.state='fall';pb.vy=0;pb.inPile=true;S.peb=null;S.tidyLeft--;squish(-1.5);snd.blub();
+    if(Math.random()<0.4)say(pick(['mm','o']),1);}}
+function juggle(dt){const b=BALL;if(!b){S.mode='idle';return;}S.bumpCD-=dt;const bp=b.pos;S.faceT=bp;
+  const under=new V3(bp.x,Math.max(B.floor+0.08,bp.y-b.r-0.02),bp.z),t=mouthTarget(under);move(t.x,t.y,t.z,1.5,dt,B.floor+0.06,B.surf);
+  if(S.bumpCD<=0&&mouthWorld().distanceTo(bp)<b.r+0.09&&b.vel.y<=0.2){S.bumpCD=0.6;S.bumps++;
+    b.vel.y=rnd(1.0,1.45);S.foldYV=(S.foldYV||0)-4;b.vel.x+=(bp.x-S.pos.x)*0.25+rnd(-0.12,0.12);b.vel.z+=rnd(-0.1,0.1);squish(-2.5);snd.blub();add('fun',3);
+    if(S.bumps>=S.bumpGoal){S.mode='idle';S.think=rnd(2,4);if(S.sayCD<=0)say('o',1);}}
+  if(S.modeT<0){S.mode='idle';S.think=rnd(2,4);}}
 function auto(dt){const s=pet().s;S.think-=dt;S.modeT-=dt;
+  if(S.mode==='tidy'){tidy(dt);return;}
+  if(S.mode==='juggle'){juggle(dt);return;}
   if(S.mode==='gaze'){brake(dt);S.faceT=S.gazeP;if(Math.random()<dt*0.6&&S.gazeTurns>0){S.gazeTurns--;S.gazeP=gazePoint();}if(S.modeT<0)S.mode='idle';return;}
   if(S.mode==='nibble'){const p=mouthTarget(S.target);const dn=move(p.x,p.y,p.z,0.7,dt,B.floor+0.1,B.surf);if(dn<0.45)faceToward(S.target);if(dn<0.15){CUR.mouth=0.4*Math.max(0,Math.sin(T*9));if(Math.random()<dt)bubble(mouthWorld());}
     if(S.modeT<0){S.mode='idle';S.target=null;}return;}
   if(!S.target)S.target=randPoint();
   if(move(S.target.x,S.target.y,S.target.z,s.energy<15?0.25:0.45,dt)<0.25)S.target=randPoint();
   if(S.think<=0){S.think=rnd(4,8);const r=Math.random();
+    if(T-(S.lastTouch||-99)>12&&s.energy>15&&Math.random()<0.5){if(Math.random()<0.5&&PEBBLES.some(p=>!p.inPile)){S.mode='tidy';S.modeT=45;S.tidyLeft=3+Math.floor(rnd(0,4));S.peb=null;}else{S.mode='juggle';S.modeT=15;S.bumps=0;S.bumpGoal=4+Math.floor(rnd(0,4));S.bumpCD=0;}return;}
     if(r>=0.22&&r<0.42){S.mode='gaze';S.modeT=rnd(2.5,4.5);S.gazeTurns=2;S.gazeP=gazePoint();}
     else if(r<0.22){S.mode='nibble';S.modeT=6;S.target=new V3(rnd(-B.x,B.x),B.floor+0.12,rnd(-0.5,0.4));}
     else if(s.food<40&&r<0.45)S.target=new V3(rnd(-1,1),B.ymax,0);
@@ -485,7 +511,7 @@ function animate(dt){CUR.mouth=damp(CUR.mouth,0,8,dt);CUR.burst=damp(CUR.burst,0
   {const g=CUR.gulp,yy=(1+(S.sqY||0))*(1+0.12*g),zz=(1+(S.sqZ||0))*(1+0.12*g),f=Math.sqrt(Math.max(0.2,yy*zz));const bx=1/Math.sqrt(1+(S.sqX||0)*0.6);R.inner.scale.set(1,yy/f*bx,zz/f*bx);}
   const sp=S.vel.length(),hs=Math.hypot(S.vel.x,S.vel.z);
   R.g.position.copy(S.pos);
-  S.pitch=damp(S.pitch,S.faceT?clamp(Math.atan2(S.faceT.y-S.pos.y,Math.hypot(S.faceT.x-S.pos.x,S.faceT.z-S.pos.z)+0.2)*0.7,-0.45,0.45):clamp(Math.atan2(S.vel.y,hs+0.15)*0.8,-0.5,0.5),5,dt);S.rollC=damp(S.rollC,clamp(S.turnRate*0.1,-0.45,0.45),5,dt);
+  {const op=S.pitch;S.pitch=damp(S.pitch,S.faceT?clamp(Math.atan2(S.faceT.y-S.pos.y,Math.hypot(S.faceT.x-S.pos.x,S.faceT.z-S.pos.z)+0.2)*0.7,-0.45,0.45):clamp(Math.atan2(S.vel.y,hs+0.15)*0.8,-0.5,0.5),5,dt);S.pitchV=damp(S.pitchV||0,(S.pitch-op)/Math.max(dt,1e-4),10,dt);}S.rollC=damp(S.rollC,clamp(S.turnRate*0.1,-0.45,0.45),5,dt);
   {const A=S.amp||0.06,Fl=S.flick||0;R.g.rotation.set(S.rollC+S.roll+A*0.15*Math.sin(S.swimPh+0.6),S.heading-A*0.22*Math.sin(S.swimPh+0.3)+(S.fold||0)*0.15,S.pitch+0.02*Math.sin(T*0.9));}
   S.swimPh+=dt*(4.5+sp*10+CUR.burst*8)*(S.asleep?0.5:1);
   {const tb=clamp(-S.turnRate*0.05,-0.12,0.12);S.finLagV=(S.finLagV||0)+((tb-(S.finLag||0))*60-(S.finLagV||0)*10)*dt;S.finLag=(S.finLag||0)+S.finLagV*dt;
@@ -500,6 +526,7 @@ function animate(dt){CUR.mouth=damp(CUR.mouth,0,8,dt);CUR.burst=damp(CUR.burst,0
   S.amp=damp(S.amp||0.08,(0.08+Math.min(0.14,sp*0.1)+CUR.burst*0.1)*pulse*(S.asleep?0.5:1),5,dt);
   // squash & stretch: a jelly spring that stretches with speed and squishes on stops, turns and pokes
   {const ft=clamp(S.turnRate*0.55,-1.25,1.25)+curl*2.2;S.foldV=(S.foldV||0)+((ft-(S.fold||0))*60-(S.foldV||0)*7)*dt;S.fold=clamp((S.fold||0)+S.foldV*dt,-1.3,1.3);
+   const fyt=clamp(-(S.pitchV||0)*0.9-clamp(S.vel.y*0.35,-0.25,0.25)*((S.flick||0)>0.2?1:0.3),-0.95,0.95);S.foldYV=(S.foldYV||0)+((fyt-(S.foldY||0))*55-(S.foldYV||0)*6.5)*dt;S.foldY=clamp((S.foldY||0)+S.foldYV*dt,-1.05,1.05);
    const af=Math.abs(S.fold),spr=(v,vv,tg,k,c)=>{vv+=((tg-v)*k-vv*c)*dt;return [clamp(v+vv*dt,-0.45,0.6),vv];};
    {const ac=(sp-(S.prevSp===undefined?sp:S.prevSp))/Math.max(dt,1e-4);S.prevSp=sp;S.dec=damp(S.dec||0,Math.max(0,-ac),12,dt);const tg=-clamp((S.dec-0.6)*0.08,0,0.22);
    S.sqXV=(S.sqXV||0)+((tg-(S.sqX||0))*90-(S.sqXV||0)*7)*dt;S.sqX=clamp((S.sqX||0)+S.sqXV*dt,-0.25,0);if(S.sqX>=0&&S.sqXV>0)S.sqXV=0;}let r;
@@ -507,7 +534,7 @@ function animate(dt){CUR.mouth=damp(CUR.mouth,0,8,dt);CUR.burst=damp(CUR.burst,0
    r=spr(S.sqZ||0,S.sqZV||0,af*0.16-clamp((sp-1.1)*0.12,0,0.12),80,5.5);S.sqZ=r[0];S.sqZV=r[1];}
   const sway=0.025*Math.sin(T*0.55)+0.015*Math.sin(T*1.3+1);
   S.arch=damp(S.arch||0,clamp(S.vel.y*0.12,-0.08,0.08),4,dt);
-  fishWave(S.swimPh,S.amp,clamp(-S.turnRate*0.02,-0.06,0.06)+sway,T,sp,S.finLag*0.5,S.finLagY,S.arch,clamp((S.sqYV||0)*0.03,-0.2,0.2),S.fold||0,S.sqX||0);
+  fishWave(S.swimPh,S.amp,clamp(-S.turnRate*0.02,-0.06,0.06)+sway,T,sp,S.finLag*0.5,S.finLagY,S.arch,clamp((S.sqYV||0)*0.03,-0.2,0.2),S.fold||0,S.sqX||0,S.foldY||0);
   {const w=sp<0.3?7.5:3.6;R.fins.forEach((f,i)=>{const s=f.userData.s,ph=T*w+i*1.3,bx=f.userData.bx;f.position.x=bx<0.45?0.45+(bx-0.45)*(1+(S.sqX||0)):bx;const main=i<2;
     f.rotation.y=s*((main?0.36:0.22)+(main?0.3:0.16)*Math.sin(ph)+0.06*Math.sin(ph*2.3+1))*(1+0.25*(1-clamp(sp/0.9)));
     f.rotation.z=(main?0:-0.35)+0.14*Math.sin(ph+1.2)+S.finLag*0.25;});}
@@ -522,17 +549,28 @@ function animate(dt){CUR.mouth=damp(CUR.mouth,0,8,dt);CUR.burst=damp(CUR.burst,0
     const tgt=Math.sign(dx||1)*0.32*near*(0.35+Math.min(1,S.vel.length()));o.pv+=((tgt-o.p)*9-o.pv*2.4)*dt;o.p+=o.pv*dt;return o.p;};
   ribbons.forEach(r=>{const p=r.g.attributes.position,b=r.g.userData.base0,f=r.g.userData.flex,ry=r.m.rotation.y,cr=Math.cos(ry),sr=Math.sin(ry);
     const push=plantPush(r,r.m.position.x,r.H),cur=0.07*Math.sin(T*0.31+r.m.position.x*0.6)+0.04*Math.sin(T*0.17+1.3);
-    for(let i=0;i<p.count;i++){const u=f[i],w=Math.pow(u,1.5);
-      const ox=w*(0.12*Math.sin(T*1.15-u*3.2+r.ph)+0.045*Math.sin(T*2.3-u*5.5+r.ph*1.7)+cur+push),oz=w*(0.07*Math.sin(T*0.85-u*2.6+r.ph*1.3)+0.03*Math.sin(T*1.9-u*4.4+r.ph));
+    for(let i=0;i<p.count;i++){const u=f[i],w=Math.pow(u,1.2);
+      const ox=w*(0.11*Math.sin(T*1.15-u*3.2+r.ph)+0.05*Math.sin(T*2.6-u*7+r.ph*1.7)+0.03*Math.sin(T*4.1-u*13+r.ph*2.3)+cur+push),oz=w*(0.07*Math.sin(T*0.85-u*2.6+r.ph*1.3)+0.04*Math.sin(T*2.9-u*9+r.ph)+0.02*Math.sin(T*4.6-u*15+r.ph*0.7));
       p.setX(i,b[i*3]+ox*cr-oz*sr);p.setZ(i,b[i*3+2]+ox*sr+oz*cr);p.setY(i,b[i*3+1]-w*Math.abs(ox)*0.12*r.H);}
     p.needsUpdate=true;});
   ferns.forEach(f=>{const p=f.g.attributes.position,b=f.g.userData.base0,push=plantPush(f,f.grp.position.x,f.Hm),cur=0.05*Math.sin(T*0.31+f.grp.position.x*0.6);
     for(let i=0;i<p.count;i++){const u=clamp(b[i*3+1]/f.Hm),w=Math.pow(u,1.6);
-      p.setX(i,b[i*3]+w*(0.09*Math.sin(T*1.05-u*2.8+f.ph)+0.03*Math.sin(T*2.6-u*6+f.ph)+cur+push));p.setZ(i,b[i*3+2]+w*0.05*Math.sin(T*0.8-u*2.2+f.ph*1.4));}
+      p.setX(i,b[i*3]+w*(0.09*Math.sin(T*1.05-u*2.8+f.ph)+0.04*Math.sin(T*2.8-u*8+f.ph)+0.02*Math.sin(T*4.4-u*14+f.ph*1.6)+cur+push));p.setZ(i,b[i*3+2]+w*0.05*Math.sin(T*0.8-u*2.2+f.ph*1.4));}
     p.needsUpdate=true;});
   if(STONE&&Math.random()<dt*3)bubble(STONE.clone().add(new V3(rnd(-0.03,0.03),0.08,0)),rnd(0.018,0.04),rnd(0.7,1.1));}
 
 /* ================= needs & UI ================= */
+function updateRocks(dt){
+  if(BALL){const b=BALL,p=b.pos,v=b.vel;v.y-=0.9*dt;v.multiplyScalar(Math.exp(-0.7*dt));p.addScaledVector(v,dt);
+    if(p.y<b.floor){p.y=b.floor;v.y=Math.abs(v.y)>0.25?-v.y*0.3:0;v.x*=0.92;v.z*=0.92;}
+    if(p.y>B.surf-b.r){p.y=B.surf-b.r;v.y=-Math.abs(v.y)*0.3;}
+    if(Math.abs(p.x)>B.x){p.x=Math.sign(p.x)*B.x;v.x*=-0.5;}if(p.z<-1.35||p.z>0.65){p.z=clamp(p.z,-1.35,0.65);v.z*=-0.5;}
+    b.m.rotation.z-=v.x*dt/b.r;b.m.rotation.x+=v.z*dt/b.r;}
+  for(const pb of PEBBLES){
+    if(pb.state==='carried'){if(S.mode!=='tidy'||lightsOff){pb.state='fall';pb.vy=0;pb.target=null;}else{pb.m.position.copy(mouthWorld());continue;}}
+    if(pb.state==='fall'){pb.vy-=2.5*dt;pb.m.position.y+=pb.vy*dt;const ty=pb.target?pb.target.y:pb.rest;
+      if(pb.target){pb.m.position.x=damp(pb.m.position.x,pb.target.x,6,dt);pb.m.position.z=damp(pb.m.position.z,pb.target.z,6,dt);}
+      if(pb.m.position.y<=ty){pb.m.position.y=ty;pb.state=pb.target?'pile':'floor';}}}}
 function needs(dt){const p=pet();for(const s in RATE)p.s[s]=clamp(p.s[s]-RATE[s]*dt/60,0,100);p.last=Date.now();}
 const TOOLS=['hand','food','wash','toy','sleep'];let hintUntil=0;
 function hint(){hintUntil=performance.now()+3800;updateCap();}
@@ -563,7 +601,7 @@ let rsz=0;window.addEventListener('resize',()=>{clearTimeout(rsz);rsz=setTimeout
 /* ================= loop ================= */
 let uiT=0,saveT=0,algT=0;const clock=new THREE.Clock();
 function frame(){const dt=Math.min(clock.getDelta(),0.05);T+=dt;
-  needs(dt);behave(dt);physics(dt);animate(dt);updateFoods(dt);updateToy(dt);updateFX(dt);updateSay(dt);
+  needs(dt);behave(dt);physics(dt);animate(dt);updateFoods(dt);updateToy(dt);updateRocks(dt);updateFX(dt);updateSay(dt);
   const lt=lightsOff?0.35:1;hemi.intensity=damp(hemi.intensity,0.85*lt,2,dt);keyL.intensity=damp(keyL.intensity,0.7*lt,2,dt);
   const d=camera.position.distanceTo(camLook);scene.fog.far=damp(scene.fog.far,d+lerp(3,40,pet().s.clean/100),2,dt);
   camera.position.x=camBase.x+Math.sin(T*0.17)*0.05;camera.position.y=camBase.y+Math.sin(T*0.23)*0.03;camera.lookAt(camLook);
