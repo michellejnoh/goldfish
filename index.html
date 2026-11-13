@@ -474,7 +474,7 @@ function avoidObst(){const m=0.09;for(const o of OBST){const rx=o.h.x+m,ry=o.h.y
 function keepAboveFloor(){if(!R.g.visible)return;world.updateMatrixWorld(true);_wInv.copy(world.matrixWorld).invert();let lo=1e9;
   R.g.traverse(c=>{if(!c.isMesh||!c.visible||c.userData.proxy)return;_m4.multiplyMatrices(_wInv,c.matrixWorld);const p=c.geometry.attributes.position,st=p.count>600?3:1;
     for(let i=0;i<p.count;i+=st){_v.fromBufferAttribute(p,i).applyMatrix4(_m4);if(_v.y<lo)lo=_v.y;}});
-  const allow=B.floor-0.02-0.045*(S.peckDip||0);if(lo<allow){const d=allow-lo;S.pos.y+=d;R.g.position.y+=d;if(S.vel.y<0)S.vel.y=0;}
+  const allow=B.floor-0.02-0.022*(S.peckDip||0);if(lo<allow){const d=allow-lo;S.pos.y+=d;R.g.position.y+=d;if(S.vel.y<0)S.vel.y=0;}
   S.lowGap=lo-allow;
   // contact with hysteresis so it doesn't flicker on and off (which made the body bounce); a soft squash only on a real landing
   S.gapS=S.gapS===undefined?S.lowGap:S.gapS+(S.lowGap-S.gapS)*0.08;
@@ -576,15 +576,15 @@ const BUBM=flatMat({color:0xd9d9d9});
 function spawn(o){world.add(o.mesh);o.age=0;o.mesh.scale.setScalar(0.001);FX.push(o);return o;}
 function bubble(p,s,vy){spawn({mesh:new THREE.Mesh(BUB,BUBM),vel:new V3(rnd(-0.05,0.05),vy||rnd(0.5,0.9),0),life:rnd(2,3.4),s0:s||rnd(0.02,0.045),wob:true,top:true}).mesh.position.copy(p);}
 /* nosing in the gravel: a quick dip every so often, the nose pushes into the sand and kicks up a little puff */
-function peck(dt){const cyc=0.95,ph0=((S.peckT||0)%cyc)/cyc;S.peckT=(S.peckT||0)+dt;const ph=(S.peckT%cyc)/cyc;
-  S.peckDip=ph<0.38?Math.sin(ph/0.38*Math.PI):0;
-  if(ph0<0.2&&ph>=0.2)sandPuff();}
+function peck(dt){const cyc=1.7,ph0=((S.peckT||0)%cyc)/cyc;S.peckT=(S.peckT||0)+dt;const ph=(S.peckT%cyc)/cyc;
+  S.peckDip=ph<0.55?Math.pow(Math.sin(ph/0.55*Math.PI),2):0;
+  if(ph0<0.27&&ph>=0.27)sandPuff();}
 const SANDM=flatMat({color:0xbdbdbd});
 function sandPuff(){const m=mouthWorld();world.worldToLocal(m);m.y=B.floor+0.01;SANDM.color.setHex(0xbdbdbd).multiply(WTINT);
-  for(let i=0;i<12;i++){const a=rnd(0,Math.PI*2),sp=rnd(0.12,0.32);
-    spawn({mesh:new THREE.Mesh(BUB,SANDM),vel:new V3(Math.cos(a)*sp,rnd(0.2,0.5),Math.sin(a)*sp*0.6),life:rnd(0.9,1.5),s0:rnd(0.01,0.022),grav:1.1,drag:2.2}).mesh.position.copy(m);}
+  for(let i=0;i<7;i++){const a=rnd(0,Math.PI*2),sp=rnd(0.05,0.14);
+    spawn({mesh:new THREE.Mesh(BUB,SANDM),vel:new V3(Math.cos(a)*sp,rnd(0.08,0.2),Math.sin(a)*sp*0.6),life:rnd(1.2,1.9),s0:rnd(0.008,0.018),grav:0.35,drag:2.2}).mesh.position.copy(m);}
   // nudge the little stones nearby so the gravel looks stirred up
-  for(const p of PEBBLES){if(p.state!=='floor')continue;const q=p.m.position,d=Math.hypot(q.x-m.x,q.z-m.z);if(d<0.16){const k=(0.16-d)/0.16*0.02;q.x+=(q.x-m.x)/(d||1)*k+rnd(-0.004,0.004);q.z+=(q.z-m.z)/(d||1)*k;p.m.rotation.y+=rnd(-0.3,0.3);}}}
+  for(const p of PEBBLES){if(p.state!=='floor')continue;const q=p.m.position,d=Math.hypot(q.x-m.x,q.z-m.z);if(d<0.16){const k=(0.16-d)/0.16*0.008;q.x+=(q.x-m.x)/(d||1)*k+rnd(-0.004,0.004);q.z+=(q.z-m.z)/(d||1)*k;p.m.rotation.y+=rnd(-0.12,0.12);}}}
 function ring(p){const m=new THREE.Mesh(new THREE.RingGeometry(0.14,0.16,48),new THREE.MeshBasicMaterial({color:0x9a9a9a,transparent:true,opacity:0.7,depthWrite:false,side:THREE.DoubleSide}));
   spawn({mesh:m,life:0.9,s0:1,grow:true,fade:true,bill:true}).mesh.position.copy(p);}
 function updateFX(dt){for(let i=FX.length-1;i>=0;i--){const o=FX[i];o.age+=dt;const k=o.age/o.life;
@@ -756,7 +756,7 @@ function auto(dt){const s=pet().s;S.think-=dt;S.modeT-=dt;
   if(S.mode==='tidy'){tidy(dt);return;}
   if(S.mode==='juggle'){juggle(dt);return;}
   if(S.mode==='gaze'){brake(dt);S.faceT=S.gazeP;if(Math.random()<dt*0.6&&S.gazeTurns>0){S.gazeTurns--;S.gazeP=gazePoint();}if(S.modeT<0)S.mode='idle';return;}
-  if(S.mode==='nibble'){const p=mouthTarget(S.target);const dn=move(p.x,p.y,p.z,0.7,dt,B.floor+0.03,B.surf);if(dn<0.45)faceToward(S.target);if(dn<0.15){CUR.mouth=0.4*Math.max(0,Math.sin(T*9));peck(dt);if(Math.random()<dt*0.5)bubble(mouthWorld());}
+  if(S.mode==='nibble'){const p=mouthTarget(S.target);const dn=move(p.x,p.y,p.z,0.45,dt,B.floor+0.03,B.surf);if(dn<0.45)faceToward(S.target);if(dn<0.15){CUR.mouth=0.4*Math.max(0,Math.sin(T*9));peck(dt);if(Math.random()<dt*0.5)bubble(mouthWorld());}
     if(S.modeT<0){S.mode='idle';S.target=null;}return;}
   if(!S.target)S.target=randPoint();
   if(move(S.target.x,S.target.y,S.target.z,s.energy<15?0.25:0.45,dt)<0.25)S.target=randPoint();
@@ -778,9 +778,9 @@ function physics(dt){S.vyPre=S.vel.y;if(S.vel.y<0&&S.lowGap!==undefined){const c
 function animate(dt){CUR.mouth=damp(CUR.mouth,0,8,dt);CUR.burst=damp(CUR.burst,0,4,dt);CUR.gulp=damp(CUR.gulp,0,6,dt);S.eatCap-=dt;S.seeCap-=dt;S.tiredCap=(S.tiredCap||0)-dt;S.playCap=(S.playCap||0)-dt;
   {const g=CUR.gulp,yy=(1+(S.sqY||0))*(1+0.12*g),zz=(1+(S.sqZ||0))*(1+0.12*g),f=Math.sqrt(Math.max(0.2,yy*zz));const bx=1/Math.sqrt(1+(S.sqX||0)*0.6);R.inner.scale.set(1,yy/f*bx,zz/f*bx);S.flatDrop=0.09*Math.max(0,1-yy/f*bx)*(S.ground||0);}
   const sp=S.vel.length(),hs=Math.hypot(S.vel.x,S.vel.z);
-  R.g.position.copy(S.pos);R.g.position.y-=(S.flatDrop||0)+0.05*(S.peckDip||0);if(S.mode!=='nibble')S.peckDip=damp(S.peckDip||0,0,8,dt);
+  R.g.position.copy(S.pos);R.g.position.y-=(S.flatDrop||0)+0.022*(S.peckDip||0);if(S.mode!=='nibble')S.peckDip=damp(S.peckDip||0,0,8,dt);
   {const op=S.pitch;S.pitch=damp(S.pitch,((S.react&&S.react.type==='trick')?0.22*Math.sin(Math.PI*clamp(S.react.t/S.react.dur)):S.faceT?Math.max(S.mode==='nibble'?-0.35:-9,Math.atan2(S.faceT.y-S.pos.y,Math.hypot(S.faceT.x-S.pos.x,S.faceT.z-S.pos.z)+0.01)):(S.vel.length()<0.08?0:Math.atan2(S.vel.y,hs+0.01)))*(1-0.8*(S.ground||0)*(S.mode==='nibble'?0:1)),4.5,dt);S.pitchV=damp(S.pitchV||0,(S.pitch-op)/Math.max(dt,1e-4),10,dt);}S.rollC=damp(S.rollC,clamp(S.turnRate*0.1,-0.45,0.45),5,dt);
-  {const A=S.amp||0.06,Fl=S.flick||0;R.g.rotation.set(S.rollC+S.roll+A*0.15*Math.sin(S.swimPh+0.6),S.heading-A*0.22*Math.sin(S.swimPh+0.3)+(S.fold||0)*0.15,S.pitch-0.55*(S.peckDip||0)+0.02*Math.sin(T*0.9));}
+  {const A=S.amp||0.06,Fl=S.flick||0;R.g.rotation.set(S.rollC+S.roll+A*0.15*Math.sin(S.swimPh+0.6),S.heading-A*0.22*Math.sin(S.swimPh+0.3)+(S.fold||0)*0.15,S.pitch-0.22*(S.peckDip||0)+0.02*Math.sin(T*0.9));}
   S.swimPh+=dt*(4.5+sp*10+CUR.burst*8)*(S.asleep?0.5:1);
   {const tb=clamp(-S.turnRate*0.05,-0.12,0.12);S.finLagV=(S.finLagV||0)+((tb-(S.finLag||0))*60-(S.finLagV||0)*10)*dt;S.finLag=(S.finLag||0)+S.finLagV*dt;
    S.finLagYV=(S.finLagYV||0)+((clamp(-S.vel.y*0.08,-0.08,0.08)-(S.finLagY||0))*22-(S.finLagYV||0)*4.5)*dt;S.finLagY=(S.finLagY||0)+S.finLagYV*dt;}
