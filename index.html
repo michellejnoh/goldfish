@@ -80,13 +80,17 @@ body.editing .ui,body.editing #say{display:none}
 .card p{margin:0;font-size:16px;color:#6b6b6b;line-height:1.4}
 .card input{font:500 24px var(--font);border:0;border-bottom:1px solid #111;border-radius:0;padding:6px 0;background:transparent;color:#111;-webkit-user-select:text;user-select:text;width:100%}
 .card input:focus{outline:none}
+.swatches{display:flex;flex-wrap:wrap;gap:8px;margin:2px 0 6px}
+.swatches button{width:26px;height:26px;border-radius:50%;padding:0;border:1px solid rgba(0,0,0,.12);cursor:pointer}
+.swatches button[aria-pressed="true"]{box-shadow:0 0 0 2px #fff,0 0 0 3.5px var(--ink)}
+.pats{display:flex;flex-wrap:wrap;gap:4px 16px;margin-bottom:6px}
 .row2{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
 .go{font-size:24px;color:#111;padding:6px 0}
 .link{font-size:16px;color:#6b6b6b;text-decoration:underline;text-underline-offset:4px;padding:6px 0}
 .mis{display:grid;grid-template-columns:1fr auto;gap:4px 12px;align-items:baseline;font-size:17px}
 .mis span{color:#111}.mis em{font-style:normal;color:#6b6b6b;font-size:15px;font-variant-numeric:tabular-nums;text-align:right}
 .mis button{font:inherit;font-size:15px;color:#111;text-decoration:underline;text-underline-offset:3px;padding:0;text-align:right}
-.row2 .link[aria-pressed="true"]{color:#111;text-decoration-thickness:2px}
+.row2 .link[aria-pressed="true"],.pats .link[aria-pressed="true"]{color:#111;text-decoration-thickness:2px}
 .mis .done{color:#a3a3a3;text-decoration:line-through}
 .small{font-size:14px;color:#8a8a8a}
 .shopgrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px 8px}
@@ -138,6 +142,10 @@ body.editing .ui,body.editing #say{display:none}
 <div class="sheet" id="tank" hidden>
   <div class="card">
     <div class="row2"><h2>edit your tank</h2><span style="display:flex"><button type="button" class="icon" id="shopBtn" aria-label="Shop"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 8h14l-1.2 12H6.2L5 8z"/><path d="M9 8V6.5a3 3 0 0 1 6 0V8"/></svg></button></span></div>
+    <p class="small">fish colour</p>
+    <div class="swatches" id="lookColors"></div>
+    <p class="small">pattern · tap again to reshuffle</p>
+    <div class="pats" id="lookPats"></div>
     <p class="small">water</p>
     <div class="row2" id="waterRow"><button type="button" class="link" data-w="clear">clear</button><button type="button" class="link" data-w="blue">blue</button><button type="button" class="link" data-w="green">green</button></div>
     <p class="small">pebbles</p>
@@ -262,6 +270,31 @@ function finGeo(nu,nv,pf,cf,axis){const pos=[],col=[],flex=[],idx=[],uvs=[];
   for(let i=0;i<nu;i++)for(let j=0;j<nv;j++){const a=i*(nv+1)+j,b=a+nv+1;idx.push(a,b,a+1,b,b+1,a+1);}
   const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));g.setAttribute('color',new THREE.Float32BufferAttribute(col,4));g.setAttribute('uv',new THREE.Float32BufferAttribute(uvs,2));
   g.setIndex(idx);g.computeVertexNormals();g.userData.flex=new Float32Array(flex);return g;}
+
+/* ================= the fish's look: colour + pattern ================= */
+const LOOK_COLORS={orange:'#ff7a3c',gold:'#f9a62b',yellow:'#ffcf4a',red:'#e5412d',peach:'#f6a585',white:'#f3ede2',black:'#33302e',blue:'#3554a8',chocolate:'#8b4a2b'};
+const LOOK_PATTERNS=['plain','fade','red cap','patches','calico','spots'];
+const lookOf=()=>{const p=pet();if(!p.look)p.look={c:'orange',p:'plain',seed:Math.floor(Math.random()*1000)};return p.look;};
+function lookNoise(x,y,z,sd,f){const a=sd*0.37,b=sd*0.71,c=sd*1.13;
+  return 0.5*Math.sin(x*f*1.0+y*f*0.6+z*f*0.8+a)+0.35*Math.sin(x*f*1.7-y*f*1.3+z*f*0.5+b)+0.3*Math.sin(y*f*2.1+z*f*1.4-x*f*0.9+c);}
+const _lc=new THREE.Color(),_lw=new THREE.Color('#f6f1e8'),_lk=new THREE.Color('#2a2827'),_lm=new THREE.Color();
+function lookColor(x,y,z,fin,lk){const main=_lm.set(LOOK_COLORS[lk.c]||LOOK_COLORS.orange),dark=main.r*0.3+main.g*0.59+main.b*0.11<0.35,sd=lk.seed||0;
+  let c=_lc.copy(main);
+  switch(lk.p){
+    case 'fade':c.lerp(_lw,0.55*ss(0.02,-0.2,y));break;
+    case 'red cap':{const d=Math.pow((x-0.5)/0.3,2)+Math.pow((y-0.2)/0.2,2);c=d<1&&!fin?_lc.copy(main):_lc.copy(_lw);break;}
+    case 'patches':if(lookNoise(x,y,z,sd,4.2)<0.05)c.copy(_lw);break;
+    case 'calico':if(lookNoise(x,y,z,sd,4)<0)c.copy(_lw);if(lookNoise(x,y,z,sd+37,11)>0.5)c.copy(dark?_lw:_lk);break;
+    case 'spots':if(lookNoise(x,y,z,sd+11,10)>0.55)c.copy(dark?_lw:_lk);break;}
+  if(fin)c.lerp(_lw,0.16);return c;}
+function applyLook(){if(!R)return;const lk=lookOf();R.inner.updateMatrixWorld(true);const inv=new THREE.Matrix4().copy(R.inner.matrixWorld).invert(),m=new THREE.Matrix4(),v=new V3();
+  R.inner.traverse(o=>{if(!o.isMesh||(o.material!==MAT_FISH&&o.material!==MAT_FIN))return;const g=o.geometry,fin=o.material===MAT_FIN;
+    if(!g.userData.rest){const src=g.userData.base0||g.attributes.position.array,rest=new Float32Array(src.length);m.multiplyMatrices(inv,o.matrixWorld);
+      for(let i=0;i<src.length;i+=3){v.set(src[i],src[i+1],src[i+2]).applyMatrix4(m);rest[i]=v.x;rest[i+1]=v.y;rest[i+2]=v.z;}g.userData.rest=rest;}
+    const r=g.userData.rest,col=new Float32Array(r.length);
+    for(let i=0;i<r.length;i+=3){const c=lookColor(r[i],r[i+1],r[i+2],fin,lk);col[i]=c.r;col[i+1]=c.g;col[i+2]=c.b;}
+    g.setAttribute('color',new THREE.Float32BufferAttribute(col,3));});
+  for(const M of [MAT_FISH,MAT_FIN]){M.vertexColors=true;M.color.set(0xffffff);M.needsUpdate=true;}}
 
 /* ================= the goldfish ================= */
 let R;
@@ -459,7 +492,7 @@ const WTINT=new THREE.Color(1,1,1);
 function applyWater(){const c=WATER[(save.tank&&save.tank.water)||'clear']||WATER.clear;document.body.style.background=c;if(scene.fog)scene.fog.color.set(c);
   WTINT.set(c);if(ENV)ENV.traverse(o=>{const ms=o.material?(Array.isArray(o.material)?o.material:[o.material]):[];
     for(const m of ms){if(!m.color)continue;if(!m.userData.base)m.userData.base=m.color.clone();m.color.copy(m.userData.base).multiply(WTINT);}});}
-function rebuildTank(){if(!ENV)return;world.remove(ENV);PEBBLES=[];ENV=buildEnv();world.add(ENV);applyWater();computeObst();}
+function rebuildTank(){if(!ENV)return;world.remove(ENV);PEBBLES=[];ENV=buildEnv();world.add(ENV);applyWater();computeObst();applyLook();}
 /* solid things in the tank (big rocks, decorations) as soft ellipsoids the fish slides around instead of swimming through */
 let BIGROCKS=[],OBST=[];const _bx=new THREE.Box3(),_wInv=new THREE.Matrix4(),_m4=new THREE.Matrix4(),_v=new V3();
 function computeObst(){OBST=[];if(!ENV)return;world.updateMatrixWorld(true);_wInv.copy(world.matrixWorld).invert();
@@ -553,7 +586,7 @@ function resetState(){S={pos:new V3(0,(B.ymin+B.ymax)/2,0),vel:new V3(),heading:
   asleep:false,swimPh:0,roll:0,pitch:0,rollC:0,catchCD:0,look:null,sayCD:0};CUR={mouth:0,burst:0,gulp:0};S.eatCap=0;S.seeCap=0;}
 function setup(){
   scene.remove(world);world=new THREE.Group();scene.add(world);FX=[];foods=[];toy=null;
-  fit();ENV=buildEnv();world.add(ENV);R=buildFish();world.add(R.g);computeObst();
+  fit();ENV=buildEnv();world.add(ENV);R=buildFish();world.add(R.g);applyLook();computeObst();
   if(!S)resetState();else{S.pos.y=clamp(S.pos.y,B.ymin,B.ymax);S.pos.x=clamp(S.pos.x,-B.x,B.x);S.target=null;}
   scene.fog=new THREE.Fog(0xffffff,camera.position.distanceTo(camLook)-1,60);applyWater();
   renderUI();}
@@ -987,7 +1020,14 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden)pull();});
 /* ================= tank sheet ================= */
 const wallet=()=>{if(!PROG)return 0;let w=PROG.exp;for(let L=1;L<PROG.level;L++)w+=need(L);return w;};
 function spendXP(n){if(!PROG||wallet()<n)return false;PROG.exp-=n;while(PROG.exp<0&&PROG.level>1){PROG.level--;PROG.exp+=need(PROG.level);}PROG.exp=Math.max(0,PROG.exp);updateStats();return true;}
-function renderTank(){const t=save.tank;document.querySelectorAll('#waterRow [data-w]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.w===t.water));
+function renderLook(){const lk=lookOf(),cs=$('#lookColors'),ps=$('#lookPats');
+  if(!cs.childElementCount){for(const [k,h] of Object.entries(LOOK_COLORS)){const b=document.createElement('button');b.type='button';b.dataset.c=k;b.style.background=h;b.setAttribute('aria-label',k);
+      b.onclick=()=>{lookOf().c=k;applyLook();renderLook();persist();};cs.appendChild(b);}
+    for(const p of LOOK_PATTERNS){const b=document.createElement('button');b.type='button';b.className='link';b.dataset.pat=p;b.textContent=p;
+      b.onclick=()=>{const l=lookOf();if(l.p===p&&p!=='plain'&&p!=='fade'&&p!=='red cap')l.seed=Math.floor(Math.random()*1000);l.p=p;applyLook();renderLook();persist();};ps.appendChild(b);}}
+  cs.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.c===lk.c));
+  ps.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.pat===lk.p));}
+function renderTank(){renderLook();const t=save.tank;document.querySelectorAll('#waterRow [data-w]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.w===t.water));
   document.querySelectorAll('[data-p]').forEach(b=>b.setAttribute('aria-pressed',tool==='peb'&&S.pebMode===b.dataset.p));
 }
 let THUMBS=null;
