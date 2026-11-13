@@ -234,11 +234,11 @@ function buildFish(){
     g.userData.kind=mnx<-1.1?'tail':mxy>0.5?'dorsal':'fin';});
   return R;
 }
-function fishWave(ph,amp,bend,t,spd,lag,lagY){const fa=0.05+amp*0.7,slow=1-clamp(spd/0.9);
+function fishWave(ph,amp,bend,t,spd,lag,lagY,arch){arch=arch||0;const fa=0.05+amp*0.7,slow=1-clamp(spd/0.9);
   for(const g of R.wave){const p=g.attributes.position,b=g.userData.base0,f=g.userData.flex,kind=g.userData.kind;
-    for(let i=0;i<p.count;i++){const x=b[i*3],y=b[i*3+1],k=clamp((0.32-x)/1.75);let z=b[i*3+2]+amp*Math.pow(k,1.4)*Math.sin(ph+x*4.6)+bend*k*k;
-      if(!f){p.setZ(i,z*(1+0.018*Math.sin(t*2.1)));continue;}
-      const q=f[i],q2=q*q;let X=x,Y=y;
+    for(let i=0;i<p.count;i++){const x=b[i*3],y=b[i*3+1],k=clamp((0.66-x)/2.4),env=0.1+0.9*Math.pow(k,1.5);let z=b[i*3+2]+amp*env*Math.sin(ph+x*3.6)+bend*k*k*1.7;
+      if(!f){p.setXYZ(i,x,y+arch*k*k,z*(1+0.018*Math.sin(t*2.1)));continue;}
+      const q=f[i],q2=q*q;let X=x,Y=y+arch*k*k;
       z+=q*fa*Math.sin(t*2.3+ph*0.3-q*3.4+y*2.5)+q2*0.04*Math.sin(t*4.7-q*6.5+y*6)+q2*0.018*Math.sin(t*8.9-q*10+y*12)+lag*q2*1.4;
       if(kind==='tail'){Y+=q2*(-0.07*slow+lagY*0.6)+q*0.022*Math.sin(t*3.3-q*4.5+z*6);X+=q2*0.05*(1-slow);z*=1-0.25*(1-slow)*q;}
       else if(kind==='dorsal'){X-=q2*(0.04+0.08*(1-slow))+q2*0.02*Math.sin(t*1.9+y*5);}
@@ -473,18 +473,28 @@ function auto(dt){const s=pet().s;S.think-=dt;S.modeT-=dt;
 function physics(dt){S.pos.addScaledVector(S.vel,dt);
   S.pos.x=clamp(S.pos.x,-B.x-0.1,B.x+0.1);S.pos.y=clamp(S.pos.y,B.floor+0.06,B.surf+0.02);S.pos.z=clamp(S.pos.z,-0.85,0.75);
   const hs=Math.hypot(S.vel.x,S.vel.z);if(hs>0.05)S.wantH=Math.atan2(-S.vel.z,S.vel.x);
-  const prev=S.heading;S.heading+=angDiff(S.heading,S.wantH)*(1-Math.exp(-4*dt));
+  const prev=S.heading;S.heading+=angDiff(S.heading,S.wantH)*(1-Math.exp(-((S.flick||0)>0.25?11:4)*dt));
   S.turnRate=damp(S.turnRate,angDiff(prev,S.heading)/Math.max(dt,1e-4),6,dt);S.sayCD-=dt;}
 function animate(dt){CUR.mouth=damp(CUR.mouth,0,8,dt);CUR.burst=damp(CUR.burst,0,4,dt);CUR.gulp=damp(CUR.gulp,0,6,dt);S.eatCap-=dt;S.seeCap-=dt;S.tiredCap=(S.tiredCap||0)-dt;S.playCap=(S.playCap||0)-dt;
   {const g=CUR.gulp;R.inner.scale.set(1-0.04*g,1+0.09*g,1+0.11*g);}
   const sp=S.vel.length(),hs=Math.hypot(S.vel.x,S.vel.z);
   R.g.position.copy(S.pos);
   S.pitch=damp(S.pitch,clamp(Math.atan2(S.vel.y,hs+0.15)*0.8,-0.5,0.5),5,dt);S.rollC=damp(S.rollC,clamp(S.turnRate*0.1,-0.45,0.45),5,dt);
-  R.g.rotation.set(S.rollC+S.roll,S.heading,S.pitch);
+  {const A=S.amp||0.06,Fl=S.flick||0;R.g.rotation.set(S.rollC+S.roll+A*0.35*Math.sin(S.swimPh+0.6),S.heading-A*0.55*Math.sin(S.swimPh+0.3)-(S.flickDir||0)*0.25*Fl,S.pitch+0.02*Math.sin(T*0.9));}
   S.swimPh+=dt*(4.5+sp*10+CUR.burst*8)*(S.asleep?0.5:1);
   {const tb=clamp(-S.turnRate*0.05,-0.12,0.12);S.finLagV=(S.finLagV||0)+((tb-(S.finLag||0))*60-(S.finLagV||0)*10)*dt;S.finLag=(S.finLag||0)+S.finLagV*dt;
    S.finLagYV=(S.finLagYV||0)+((clamp(-S.vel.y*0.08,-0.08,0.08)-(S.finLagY||0))*22-(S.finLagYV||0)*4.5)*dt;S.finLagY=(S.finLagY||0)+S.finLagYV*dt;}
-  fishWave(S.swimPh,0.04+Math.min(0.13,sp*0.09)+CUR.burst*0.06,clamp(-S.turnRate*0.035,-0.09,0.09),T,sp,S.finLag*0.35,S.finLagY);
+  // occasional startle-dart: the body snaps into a C, then the fish shoots off in a new direction
+  S.flickT=(S.flickT===undefined?rnd(5,10):S.flickT)-dt;
+  if(S.flickT<=0){S.flickT=rnd(6,14);if(!lightsOff&&!S.react&&!ptr.down&&!toy&&!foods.length&&!S.asleep){S.flick=1;S.flickDir=Math.random()<0.5?-1:1;
+    const a=S.heading+S.flickDir*rnd(0.8,1.5);S.vel.x+=Math.cos(a)*0.9;S.vel.z+=-Math.sin(a)*0.5;S.vel.y+=rnd(-0.2,0.25);CUR.burst=1;}}
+  S.flick=damp(S.flick||0,0,3.2,dt);const curl=(S.flickDir||1)*0.34*Math.sin(Math.PI*clamp(1-S.flick))*S.flick*2.2;
+  // beats come in bursts with short glides when cruising slowly
+  const pulse=sp>0.5||S.asleep?1:0.4+0.6*ss(-0.4,0.5,Math.sin(T*0.85)+0.4*Math.sin(T*2.3));
+  S.amp=damp(S.amp||0.06,(0.055+Math.min(0.17,sp*0.13)+CUR.burst*0.09)*pulse*(S.asleep?0.5:1),5,dt);
+  const sway=0.025*Math.sin(T*0.55)+0.015*Math.sin(T*1.3+1);
+  S.arch=damp(S.arch||0,clamp(S.vel.y*0.12,-0.08,0.08),4,dt);
+  fishWave(S.swimPh,S.amp,clamp(-S.turnRate*0.035,-0.09,0.09)+curl+sway,T,sp,S.finLag*0.35,S.finLagY,S.arch);
   {const w=sp<0.3?7.5:3.6;R.fins.forEach((f,i)=>{const s=f.userData.s,ph=T*w+i*1.3;const main=i<2;
     f.rotation.y=s*((main?0.36:0.22)+(main?0.3:0.16)*Math.sin(ph)+0.06*Math.sin(ph*2.3+1))*(1+0.25*(1-clamp(sp/0.9)));
     f.rotation.z=(main?0:-0.35)+0.14*Math.sin(ph+1.2)+S.finLag*0.25;});}
