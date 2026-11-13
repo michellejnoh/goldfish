@@ -40,7 +40,7 @@ body.night #dark{opacity:.55}
 .ui > *{pointer-events:auto}
 .top{top:0;padding-top:calc(env(safe-area-inset-top,0px) + 14px);display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
 .who{display:flex;flex-direction:column;gap:9px;min-width:0}
-#name{font:500 40px/1 var(--font);letter-spacing:-.01em;color:var(--ink);background:transparent;border:0;padding:0;margin:0;width:8ch;
+#name{cursor:pointer;font:500 40px/1 var(--font);letter-spacing:-.01em;color:var(--ink);background:transparent;border:0;padding:0;margin:0;width:8ch;
   -webkit-user-select:text;user-select:text;text-shadow:inherit}
 #name:focus{outline:none;border-bottom:1px solid var(--ink)}
 .stats{display:grid;grid-template-columns:auto 84px;column-gap:12px;row-gap:5px;align-items:center}
@@ -83,7 +83,7 @@ body.night #say{color:#e0e0e0}
 <div id="say" aria-live="polite"></div>
 <div class="ui top">
   <div class="who">
-    <input id="name" maxlength="14" aria-label="Fish name" spellcheck="false" autocomplete="off">
+    <input id="name" maxlength="14" aria-label="Fish name" spellcheck="false" autocomplete="off" readonly>
     <div class="stats" id="stats"></div>
   </div>
   <div class="side"><button class="mini" id="who">keeper</button><button class="mini" id="misBtn">missions</button><button class="mini" id="snd">sound on</button></div>
@@ -102,6 +102,13 @@ body.night #say{color:#e0e0e0}
     <div class="row2"><button type="button" class="link" id="loginBack" hidden>pick another</button><span></span><button type="submit" class="go" id="loginGo">start</button></div>
   </form>
 </div>
+<div class="sheet" id="naming" hidden>
+  <form class="card" id="namingForm">
+    <h2>what's your fish called?</h2>
+    <input id="fishName" maxlength="14" autocomplete="off" spellcheck="false" aria-label="Fish name" placeholder="Kumquat">
+    <div class="row2"><button type="button" class="link" id="namingSkip">keep it</button><button type="submit" class="go">save</button></div>
+  </form>
+</div>
 <div class="sheet" id="missions" hidden>
   <div class="card">
     <h2 id="misTitle">level 1</h2>
@@ -109,12 +116,13 @@ body.night #say{color:#e0e0e0}
     <p class="small">today</p>
     <div class="mis" id="misList"></div>
     <p class="small" id="misStreak"></p>
+    <p class="small" id="syncInfo"></p>
     <p class="small">achievements</p>
     <div class="mis" id="achList"></div>
     <div class="row2"><span></span><button type="button" class="go" id="misClose">close</button></div>
   </div>
 </div>
-<script src="firebase-config.js"></script>
+<script>window.GOLDFISH_DB={apiKey:"AIzaSyCQNpsLEEAa2q6woKbcn-HrOUpjk2vd-Dg",projectId:"goldfish-tank-f99a7"};</script>
 <script src="vendor/three.min.js"></script>
 <script>
 (function(){
@@ -413,7 +421,7 @@ function removeFood(f){world.remove(f.m);foods.splice(foods.indexOf(f),1);}
 function updateFoods(dt){for(const f of foods.slice()){f.age+=dt;
   if(f.eating){f.t+=dt;const m=mouthWorld(),k=clamp(f.t/0.32);f.pos.lerp(m,1-Math.exp(-14*dt));f.m.scale.setScalar(Math.max(0.01,1-k));f.m.rotation.y+=dt*9;if(k>=1)gulp(f);continue;}
   if(f.pos.y>B.floor+0.12){f.pos.y-=dt*0.17;f.pos.x+=Math.sin(T*1.7+f.age)*0.12*dt;f.m.rotation.z=Math.sin(T*2+f.age)*0.4;}
-  if(f.age>45)removeFood(f);}}
+  if(f.age>28&&!f.eating){f.m.scale.setScalar(Math.max(0.01,1-(f.age-28)/2));if(f.age>30)removeFood(f);}}}
 function nearestFood(){let b=null,bd=1e9;for(const f of foods){const d=f.pos.distanceTo(S.pos);if(d<bd){bd=d;b=f;}}return b;}
 function toyTarget(p){return p?new V3(clamp(p.x,-B.x,B.x),clamp(p.y,B.ymin,B.ymax),0.3):null;}
 function startToy(){if(lightsOff)return;const t=toyTarget(ptr.world);if(!t)return;endToy(true);
@@ -479,7 +487,7 @@ function behave(dt){const s=pet().s;S.faceT=null;
   S.asleep=false;
   if(S.react)doReact(dt);
   if(toy){if(s.energy>4){chase(dt);return;}tired(dt);return;}
-  const f=nearestFood();if(f){if(s.food<97){eat(f,dt);return;}if(!f.refused){f.refused=true;react('refuse');return;}}
+  const f=nearestFood();if(f){if(s.food<99){eat(f,dt);return;}if(!f.refused){f.refused=true;react('refuse');toast(fill('{n} is full right now.'),2.4);return;}}
   if(ptr.down&&tool==='hand'&&ptr.moved>10&&ptr.world){S.faceT=ptr.world;track('lead',dt);const p=standPoint(ptr.world,R.reach);move(p.x,p.y,p.z,1.8,dt);add('fun',dt*0.6);if(Math.random()<dt*1.5)bubble(mouthWorld());return;}
   if(S.call){const d=move(S.call.x,S.call.y,S.call.z,1.6,dt);if(d<0.15){S.call=null;S.think=rnd(2,4);talk();}return;}
   auto(dt);}
@@ -489,12 +497,13 @@ function sleepB(dt){const spot=new V3(-B.x*0.5,B.ymin+0.05,-0.4);
 // where the body must be so the mouth lands on point p, facing it
 function mouthTarget(p){const side=Math.sign(S.pos.x-p.x)||1,mo=R.mouth.x*R.g.scale.x;return new V3(p.x+side*mo,p.y+0.035,p.z);}
 function faceToward(p){S.wantH=Math.atan2(-(p.z-S.pos.z),p.x-S.pos.x);}
-function eat(f,dt){S.seeCap=0.6;
-  if(f.eating){brake(dt);faceToward(f.pos);CUR.mouth=Math.max(CUR.mouth,0.9);return;}
+function eat(f,dt){S.seeCap=0.6;if(S.mode==='tidy'||S.mode==='juggle')S.mode='idle';
+  if(f.eating){brake(dt);S.faceT=f.pos;CUR.mouth=Math.max(CUR.mouth,0.9);return;}
   const m=mouthWorld(),dm=m.distanceTo(f.pos);
-  if(dm<0.2){f.eating=true;f.t=0;CUR.mouth=0.9;snd.pop();return;}
-  const t=mouthTarget(f.pos),d=move(t.x,t.y,t.z,1.5,dt,B.floor+0.1,B.surf);
-  if(d<0.45)faceToward(f.pos);}
+  if(dm<0.24){f.eating=true;f.t=0;CUR.mouth=0.9;snd.pop();return;}
+  if(f.side===undefined)f.side=Math.sign(S.pos.x-f.pos.x)||1;
+  const mo=R.mouth.x*R.g.scale.x,t=new V3(f.pos.x+f.side*mo,f.pos.y+0.035,f.pos.z),d=move(t.x,t.y,t.z,1.6,dt,B.floor+0.1,B.surf);
+  if(d<0.9||dm<0.7)S.faceT=f.pos;}
 function gulp(f){track('eat');squish(-3.5);removeFood(f);add('food',4);S.eatCap=2.2;CUR.gulp=1;CUR.mouth=0.6;snd.blub();
   if(S.sayCD<=0){S.sayCD=0.6;say(pick(['nom','nom nom','munch','mm']),1.1);}
   const m=mouthWorld();for(let i=0;i<4;i++)crumb(m);bubble(m,0.025);}
@@ -650,9 +659,11 @@ function updateStats(){const s=pet().s;for(const [k] of STATS){const b=$('#b-'+k
 function toggleLights(){lightsOff=!lightsOff;save.night=lightsOff;if(lightsOff)S.sleptAt=T;else if(S.sleptAt!==undefined&&T-S.sleptAt>=60)track('sleep');persist();document.body.classList.toggle('night',lightsOff);
   if(lightsOff){S.call=null;endToy(true);}else if(S.asleep){S.asleep=false;react('wake');}renderUI();}
 $('#snd').onclick=()=>{save.sound=!save.sound;snd.ac();persist();renderUI();};
-$('#name').addEventListener('input',e=>{pet().name=e.target.value.trim()||DEF;persist();});
-$('#name').addEventListener('blur',e=>{e.target.value=pet().name;});
-$('#name').addEventListener('keydown',e=>{if(e.key==='Enter')e.target.blur();});
+function openNaming(){const f=$('#fishName');f.value=pet().name;$('#naming').hidden=false;setTimeout(()=>{try{f.focus();f.select();}catch(e){}},250);}
+$('#name').addEventListener('click',openNaming);
+$('#namingForm').addEventListener('submit',e=>{e.preventDefault();const v=$('#fishName').value.replace(/[\u0000-\u001f<>]/g,'').trim().slice(0,14);
+  if(v){pet().name=v;persist();renderUI();toast('hello, '+v+'.',2.4);}$('#naming').hidden=true;});
+$('#namingSkip').onclick=()=>{$('#naming').hidden=true;};
 let rsz=0;window.addEventListener('resize',()=>{clearTimeout(rsz);rsz=setTimeout(setup,150);});
 
 
@@ -677,7 +688,7 @@ const ACH=[
   {id:'heap20',t:'a heap of 20 pebbles',ty:'pebble',g:20,xp:200},{id:'wipe100',t:'100 smudges wiped',ty:'smudge',g:100,xp:250},
   {id:'streak7',t:'7 days in a row',ty:'streak',g:7,xp:200},{id:'streak30',t:'30 days in a row',ty:'streak',g:30,xp:800}];
 const PASSIVE={eat:1,hello:1,trick:2,catch:2,smudge:2,pebble:1};
-let USER=null,PROG=null,cloudT=0,cloudDirty=false;
+let USER=null,PROG=null,cloudT=0,cloudDirty=false,lastChange=0,pushT=0,SYNC={ok:null,msg:'',t:0};
 const dayKey=(d=new Date())=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 function newProg(){return {level:1,exp:0,total:0,daily:null,life:{},ach:{},streak:{last:null,n:0}};}
 function normProg(p){p=Object.assign(newProg(),p||{});p.level=clamp(Math.floor(p.level)||1,1,MAXL);p.life=p.life||{};p.ach=p.ach||{};p.streak=p.streak||{last:null,n:0};return p;}
@@ -702,17 +713,22 @@ function track(ty,n=1){if(!PROG||!USER)return;ensureDaily();
 /* ---- local copy (instant) and online copy (any device) ---- */
 const LKEY=n=>'goldfish-p-'+n;
 function readLocal(n){try{return JSON.parse(localStorage.getItem(LKEY(n)))}catch(e){return null}}
-function persist(){if(!USER)return;const rec={updated:Date.now(),save,prog:PROG};try{localStorage.setItem(LKEY(USER),JSON.stringify(rec));localStorage.setItem('goldfish-user',USER);}catch(e){}cloudDirty=true;}
+function persistLocal(){if(!USER)return;const rec={updated:Date.now(),changed:lastChange,save,prog:PROG};try{localStorage.setItem(LKEY(USER),JSON.stringify(rec));localStorage.setItem('goldfish-user',USER);}catch(e){}}
+function persist(){if(!USER)return;lastChange=Date.now();persistLocal();cloudDirty=true;clearTimeout(pushT);pushT=setTimeout(()=>cloudPut(),4000);}
 const docURL=n=>'https://firestore.googleapis.com/v1/projects/'+DB.projectId+'/databases/(default)/documents/players/'+n+'?key='+DB.apiKey;
-function cloudGet(n){if(!DB)return Promise.resolve(null);return fetch(docURL(n),{cache:'no-store'}).then(r=>r.status===404?null:r.ok?r.json():Promise.reject(r.status))
+function cloudGet(n){if(!DB)return Promise.resolve(null);return fetch(docURL(n),{cache:'no-store'}).then(r=>{if(r.status===404){SYNC.ok=SYNC.ok===false?false:true;return null;}if(!r.ok){SYNC={ok:false,msg:'couldn\u2019t read the online save (error '+r.status+')',t:Date.now()};return Promise.reject(r.status);}return r.json();})
   .then(j=>{if(!j||!j.fields)return null;try{return JSON.parse(j.fields.data.stringValue);}catch(e){return null;}});}
-function cloudPut(keep){if(!DB||!USER||!cloudDirty)return;cloudDirty=false;const rec={updated:Date.now(),save,prog:PROG};
+function cloudPut(keep){if(!DB||!USER||!cloudDirty)return;cloudDirty=false;const rec={updated:lastChange||Date.now(),save,prog:PROG};
   const body={fields:{name:{stringValue:USER},level:{integerValue:String(PROG.level)},data:{stringValue:JSON.stringify(rec)},updated:{timestampValue:new Date().toISOString()}}};
-  fetch(docURL(USER),{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify(body),keepalive:!!keep}).catch(()=>{cloudDirty=true;});}
+  fetch(docURL(USER),{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify(body),keepalive:!!keep})
+    .then(r=>{if(r.ok)SYNC={ok:true,msg:'',t:Date.now()};else{cloudDirty=true;return r.text().then(t=>{SYNC={ok:false,msg:'online save refused (error '+r.status+')'+(r.status===403?': check the Firestore rules':r.status===404?': is the Firestore database created?':''),t:Date.now()};console.warn('Goldfish save:',r.status,t);});}})
+    .catch(()=>{cloudDirty=true;SYNC={ok:false,msg:'offline: will save online when connected',t:Date.now()};});}
+// take the online copy when another device changed things more recently than this one
+function pull(){if(!DB||!USER||cloudDirty)return;cloudGet(USER).then(c=>{if(c&&c.updated>lastChange+500){lastChange=c.updated;adopt(c);persistLocal();}},()=>{});}
 function adopt(rec){save=normalizeSave(rec&&rec.save);PROG=normProg(rec&&rec.prog);ensureDaily();
   if(typeof lightsOff!=='undefined'&&S){lightsOff=!!save.night;document.body.classList.toggle('night',lightsOff);S.asleep=lightsOff;renderUI();}}
-function signIn(n,rec){USER=n;adopt(rec);persist();cloudDirty=true;cloudPut();$('#who').textContent='@'+n;$('#login').hidden=true;
-  toast(PROG.total?fill('welcome back. {n} missed you.'):fill('say hi to {n}.'));}
+function signIn(n,rec){USER=n;adopt(rec);lastChange=(rec&&rec.updated)||Date.now();persist();cloudPut();$('#who').textContent='@'+n;$('#login').hidden=true;
+  if(PROG.total)toast(fill('welcome back. {n} missed you.'));else setTimeout(openNaming,300);}
 /* ---- the username sheet ---- */
 let pending=null;
 function openLogin(){pending=null;const f=$('#loginName');f.value='';$('#loginBack').hidden=true;$('#loginGo').textContent='start';
@@ -737,16 +753,18 @@ function renderMissions(){if(!PROG)return;ensureDaily();const d=PROG.daily;
   $('#misXp').textContent=PROG.level>=MAXL?'Every level reached.':(PROG.exp+' / '+need(PROG.level)+' xp to level '+(PROG.level+1));
   const row=(txt,right,done)=>'<span class="'+(done?'done':'')+'">'+txt+'</span><em>'+right+'</em>';
   $('#misList').innerHTML=d.ids.map(id=>{const m=MISSIONS.find(x=>x.id===id);return row(fill(m.t),d.done[id]?'done':(d.prog[id]||0)+'/'+m.g+' · '+m.xp+' xp',d.done[id]);}).join('')+row('all three',d.bonus?'done':'+50 xp',d.bonus);
+  $('#syncInfo').textContent=!DB?'saved on this device':SYNC.ok===false?SYNC.msg:SYNC.ok?('saved online'+(SYNC.t?' \u00b7 '+new Date(SYNC.t).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}):'')):'connecting to the online save\u2026';
   $('#misStreak').textContent=(PROG.streak.n||1)+' day'+(PROG.streak.n>1?'s':'')+' in a row · new missions at midnight';
   $('#achList').innerHTML=ACH.map(a=>row(a.t,PROG.ach[a.id]?'done':Math.min(a.g,a.ty==='streak'?PROG.streak.n:(PROG.life[a.ty]||0))+'/'+a.g,!!PROG.ach[a.id])).join('');}
 $('#misBtn').onclick=()=>{renderMissions();$('#missions').hidden=false;};
 $('#misClose').onclick=()=>{$('#missions').hidden=true;};
 /* ---- start-up: last keeper on this device loads instantly, then the online copy if it's newer ---- */
 {const last=(()=>{try{return localStorage.getItem('goldfish-user')}catch(e){return null}})();
-  if(last&&NAME_RE.test(last)){USER=last;const local=readLocal(last);save=normalizeSave(local&&local.save);PROG=normProg(local&&local.prog);
-    cloudGet(last).then(c=>{if(c&&(!local||c.updated>local.updated))adopt(c);},()=>{});}
+  if(last&&NAME_RE.test(last)){USER=last;const local=readLocal(last);save=normalizeSave(local&&local.save);PROG=normProg(local&&local.prog);lastChange=(local&&(local.changed||local.updated))||0;
+    cloudGet(last).then(c=>{if(c&&c.updated>lastChange+500){lastChange=c.updated;adopt(c);persistLocal();}else if(!c&&local){cloudDirty=true;cloudPut();}},()=>{});}
   else{PROG=null;}}
-setInterval(()=>{if(cloudDirty)cloudPut();},20000);
+setInterval(()=>{if(cloudDirty)cloudPut();else if(!document.hidden)pull();},30000);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)pull();});
 
 /* ================= loop ================= */
 let uiT=0,saveT=0,algT=0;const clock=new THREE.Clock();
@@ -759,7 +777,7 @@ function frame(){requestAnimationFrame(frame);const nowF=performance.now(),busy=
   if((algT+=dt)>1){algT=0;syncAlgae();}
   if((uiT+=dt)>0.3){uiT=0;updateStats();updateCap();if(PROG){ensureDaily();const n=pet().s;if(n.food>60&&n.clean>60&&n.energy>60&&n.fun>60&&!S.happyOnce){S.happyOnce=true;track('needs');}}}
   if(S.toastT>0)S.toastT-=dt;
-  if((saveT+=dt)>5){saveT=0;persist();}
+  if((saveT+=dt)>5){saveT=0;persistLocal();}
   renderer.render(scene,camera);}
 setup();
 if(lightsOff){document.body.classList.add('night');S.asleep=true;S.pos.set(-B.x*0.5,B.ymin+0.05,-0.4);S.heading=S.wantH=0;hemi.intensity=0.3;keyL.intensity=0.25;renderUI();}else hint();
