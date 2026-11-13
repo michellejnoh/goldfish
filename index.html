@@ -135,20 +135,21 @@ const keyL=new THREE.DirectionalLight(0xffffff,0.7);keyL.position.set(2,5,4);sce
 const rimL=new THREE.DirectionalLight(0xffffff,0.35);rimL.position.set(-2,3,-4);scene.add(rimL);
 let world=new THREE.Group();scene.add(world);
 
-const MAT=new THREE.MeshStandardMaterial({vertexColors:true,roughness:0.92,metalness:0});
-const MAT_FISH=new THREE.MeshStandardMaterial({vertexColors:true,roughness:0.36,metalness:0.14});
-const MAT_FIN=new THREE.MeshStandardMaterial({vertexColors:true,roughness:0.4,metalness:0.12,transparent:true,side:THREE.DoubleSide,depthWrite:false});
-const MAT_PLANT=new THREE.MeshStandardMaterial({vertexColors:true,roughness:0.8,side:THREE.DoubleSide});
+// flat 2D look: unlit, solid fills
+function flatMat(o){o=Object.assign({},o);['roughness','metalness','envMap','envMapIntensity','bumpMap','bumpScale','emissive'].forEach(k=>delete o[k]);return new THREE.MeshBasicMaterial(o);}
+const FISH_COL=0xff7a3c,FIN_COL=0xff8d4f;
+const MAT=flatMat({vertexColors:true});
+const MAT_FISH=flatMat({color:FISH_COL});
+const MAT_FIN=flatMat({color:FIN_COL,side:THREE.DoubleSide});
+const MAT_PLANT=flatMat({color:0xb9b9b9,side:THREE.DoubleSide});
 const BLACK=new THREE.MeshBasicMaterial({color:0x0b0b0b});
 const EYE_IRIS=(()=>{const c=document.createElement('canvas');c.width=c.height=256;const x=c.getContext('2d');
   const g=x.createRadialGradient(128,128,58,128,128,128);g.addColorStop(0,'rgba(120,96,60,1)');g.addColorStop(0.14,'rgba(214,196,160,1)');g.addColorStop(0.45,'rgba(240,230,206,1)');g.addColorStop(0.7,'rgba(228,196,140,1)');g.addColorStop(0.86,'rgba(214,120,44,0.85)');g.addColorStop(1,'rgba(240,128,28,0)');
   x.fillStyle=g;x.beginPath();x.arc(128,128,128,0,7);x.fill();x.globalAlpha=0.18;x.strokeStyle='#5a3a12';x.lineWidth=1.4;
   for(let a=0;a<120;a++){const t=a/120*Math.PI*2+Math.sin(a)*0.02;x.beginPath();x.globalAlpha=0.1;x.moveTo(128+Math.cos(t)*62,128+Math.sin(t)*62);x.lineTo(128+Math.cos(t)*(86+6*Math.sin(a*3.7)),128+Math.sin(t)*(86+6*Math.sin(a*3.7)));x.stroke();}
-  const tex=new THREE.CanvasTexture(c);return new THREE.MeshBasicMaterial({map:tex,transparent:true,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-2});})();
-const EYE_PUPIL=(()=>{const c=document.createElement('canvas');c.width=c.height=128;const x=c.getContext('2d');const g=x.createRadialGradient(64,64,0,64,64,64);
-  g.addColorStop(0,'rgba(4,4,6,1)');g.addColorStop(0.78,'rgba(8,6,6,1)');g.addColorStop(1,'rgba(20,12,6,0)');x.fillStyle=g;x.fillRect(0,0,128,128);
-  return new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(c),transparent:true,depthWrite:false});})();
-const EYE_CORNEA=new THREE.MeshStandardMaterial({color:0xffffff,transparent:true,opacity:0.16,roughness:0.03,metalness:0.1,depthWrite:false});
+  const tex=new THREE.CanvasTexture(c);return new THREE.MeshBasicMaterial({visible:false});})();
+const EYE_PUPIL=new THREE.MeshBasicMaterial({color:0x111111});
+const EYE_CORNEA=flatMat({color:0xffffff,transparent:true,opacity:0.16,roughness:0.03,metalness:0.1,depthWrite:false});
 const PROXY=new THREE.MeshBasicMaterial({visible:false});
 
 function smoothNormals(g){g.computeVertexNormals();const p=g.attributes.position,n=g.attributes.normal,m=new Map();
@@ -204,11 +205,11 @@ function buildFish(){
     const iris=new THREE.Mesh(ig,EYE_IRIS);iris.userData.part='head';iris.renderOrder=1;R.inner.add(iris);
     const e=new THREE.Group();e.position.copy(h.point).addScaledVector(n,0.006);e.lookAt(h.point.clone().add(n));R.inner.add(e);
     const pup=new THREE.Group();pup.position.z=0.012;e.add(pup);
-    const pm=new THREE.Mesh(new THREE.CircleGeometry(0.046,40),EYE_PUPIL);pm.renderOrder=2;pm.userData.part='head';pup.add(pm);
+    const pm=new THREE.Mesh(new THREE.CircleGeometry(0.052,32),EYE_PUPIL);pm.renderOrder=2;pm.userData.part='head';pup.add(pm);
     const cg=new THREE.SphereGeometry(ER*0.86,40,12,0,Math.PI*2,0,Math.PI*0.32);cg.rotateX(Math.PI/2);cg.scale(1,1,0.9);cg.translate(0,0,-ER*0.86*Math.cos(Math.PI*0.32)*0.9);
     R.eyes.push({e,pup,s});}
-  R.mouthObj=new THREE.Group();R.mouthObj.position.set(L-0.014,shift(1)+0.006,0);R.inner.add(R.mouthObj);
-  {const lg=new THREE.TorusGeometry(0.024,0.013,12,28);lg.rotateY(Math.PI/2);lg.scale(1,0.8,1);R.mouthObj.add(new THREE.Mesh(lg,new THREE.MeshStandardMaterial({color:0xf2a060,roughness:0.45})));
+  R.mouthObj=new THREE.Group();R.mouthObj.visible=false;R.mouthObj.position.set(L-0.014,shift(1)+0.006,0);R.inner.add(R.mouthObj);
+  {const lg=new THREE.TorusGeometry(0.024,0.013,12,28);lg.rotateY(Math.PI/2);lg.scale(1,0.8,1);R.mouthObj.add(new THREE.Mesh(lg,flatMat({color:0xf2a060,roughness:0.45})));
    const hole=new THREE.Mesh(new THREE.CircleGeometry(0.019,20),new THREE.MeshBasicMaterial({color:0x5a2010}));hole.rotation.y=Math.PI/2;hole.scale.y=0.8;hole.position.x=0.002;R.mouthObj.add(hole);}
   // fins: big, soft and see-through
   const lerp3=(a,b,t)=>[lerp(a[0],b[0],t),lerp(a[1],b[1],t),lerp(a[2],b[2],t)];
@@ -265,7 +266,7 @@ function stoneGeo(r,seed,rough,flat){const g=new THREE.IcosahedronGeometry(1,rou
   for(let i=0;i<p.count;i++){const x=p.getX(i),y=p.getY(i),z=p.getZ(i),k=1+0.2*n3(x*2+seed,y*2+seed*1.3,z*2-seed);p.setXYZ(i,x*r*k,y*r*flat*k,z*r*k);}
   if(!rough)smoothNormals(g);else g.computeVertexNormals();
   const base=rnd(0.5,0.76);const c=new THREE.Color();
-  return tint(g,(x,y,z)=>{const sp=n3(x*40+seed,y*40,z*40)>0.55?-0.12:0;const v=base+0.05*n3(x*6,y*6,z*6)+sp+ss(-0.3*r,0.6*r,y)*0.05;return c.setRGB(v,v,v*0.99);});}
+  const v=[0.62,0.7,0.78,0.85][Math.floor(Math.random()*4)];return tint(g,()=>c.setRGB(v,v,v));}
 function buildEnv(){
   const e=new THREE.Group();ribbons.length=0;ferns.length=0;
   const F=B.floor,span=B.hw+1.6;
@@ -273,7 +274,7 @@ function buildEnv(){
   const sg=new THREE.PlaneGeometry(span*2,3.4,90,36);sg.rotateX(-Math.PI/2);const sp=sg.attributes.position;
   for(let i=0;i<sp.count;i++){const x=sp.getX(i),z=sp.getZ(i);sp.setY(i,0.025*Math.sin(x*5+Math.sin(z*2.2)*2)+0.03*n3(x*1.5,0,z*1.5));}
   sg.computeVertexNormals();const cc=new THREE.Color();
-  tint(sg,(x,y,z)=>{const v=0.9+y*1.2+(Math.random()-0.5)*0.05-ss(-0.2,-1.6,z)*0.04;return cc.setRGB(v,v,v);});
+  tint(sg,()=>cc.setRGB(0.93,0.93,0.93));
   const sand=new THREE.Mesh(sg,MAT);sand.position.set(0,F,-0.3);e.add(sand);
   // stones: smooth river pebbles, rough chips and a few large rocks
   for(let i=0;i<85;i++){const rough=Math.random()<0.3,r=rough?rnd(0.04,0.08):rnd(0.05,0.13),flat=rnd(0.45,0.7);
@@ -298,7 +299,7 @@ function buildEnv(){
   const st=new THREE.Mesh(stoneGeo(0.08,3,false,0.8),MAT);st.position.set(-B.x*0.55,F+0.05,-0.55);e.add(st);STONE=st.position;
   // water line
   const surf=new THREE.Mesh(new THREE.PlaneGeometry(span*2,4),new THREE.MeshBasicMaterial({color:0xd8d8d8,transparent:true,opacity:0.12,depthWrite:false}));surf.rotation.x=-Math.PI/2;surf.position.set(0,B.surf+0.1,-0.4);e.add(surf);
-  shadow=new THREE.Mesh(new THREE.PlaneGeometry(1,1),new THREE.MeshBasicMaterial({map:shTex,transparent:true,depthWrite:false}));shadow.rotation.x=-Math.PI/2;e.add(shadow);
+  shadow=new THREE.Mesh(new THREE.PlaneGeometry(1,1),new THREE.MeshBasicMaterial({map:shTex,transparent:true,depthWrite:false}));shadow.rotation.x=-Math.PI/2;shadow.visible=false;e.add(shadow);
   // glass with algae smudges you can wipe
   const Wg=B.hw*2+0.6,Hg=B.surf-F+0.6,cw=512,ch=Math.max(64,Math.round(512*Hg/Wg));
   const cvs=document.createElement('canvas');cvs.width=cw;cvs.height=ch;const tex=new THREE.CanvasTexture(cvs);
@@ -307,10 +308,8 @@ function buildEnv(){
   return e;
 }
 function drawAlgae(){const A=ALG,x=A.cvs.getContext('2d'),cw=A.cvs.width,ch=A.cvs.height;x.clearRect(0,0,cw,ch);
-  for(const s of A.sm){const cx=s.u*cw,cy=(1-s.v)*ch,r=s.r/A.Wg*cw;
-    for(let k=0;k<4;k++){const ox=Math.cos(s.seed+k*2.3)*r*0.45,oy=Math.sin(s.seed*1.7+k*1.9)*r*0.35,rr=r*(0.55+0.15*k);
-      const g=x.createRadialGradient(cx+ox,cy+oy,0,cx+ox,cy+oy,rr);g.addColorStop(0,'rgba(112,116,108,'+(0.22*s.a)+')');g.addColorStop(1,'rgba(112,116,108,0)');x.fillStyle=g;x.beginPath();x.arc(cx+ox,cy+oy,rr,0,7);x.fill();}
-    x.fillStyle='rgba(88,92,84,'+(0.4*s.a)+')';for(let k=0;k<14;k++){x.beginPath();x.arc(cx+Math.cos(s.seed*3+k*1.31)*r*0.7*((k%5)/5+0.2),cy+Math.sin(s.seed*2+k*2.07)*r*0.5*((k%3)/3+0.3),Math.max(0.6,r*0.035),0,7);x.fill();}}
+  for(const s of A.sm){const cx=s.u*cw,cy=(1-s.v)*ch,r=s.r/A.Wg*cw;x.fillStyle='rgba(160,166,156,'+(0.5*s.a)+')';
+    x.beginPath();for(let k=0;k<=24;k++){const t=k/24*Math.PI*2,rr=r*(0.75+0.18*Math.sin(t*3+s.seed)+0.08*Math.sin(t*7+s.seed*2));const px=cx+Math.cos(t)*rr,py=cy+Math.sin(t)*rr*0.8;k?x.lineTo(px,py):x.moveTo(px,py);}x.fill();}
   A.tex.needsUpdate=true;A.dirty=false;}
 function syncAlgae(){const N=Math.round((100-pet().s.clean)/8);
   while(ALG.sm.length<N){ALG.sm.push({u:rnd(0.1,0.9),v:rnd(0.12,0.88),r:rnd(0.18,0.32),a:1,seed:rnd(0,9)});ALG.dirty=true;}
@@ -341,7 +340,7 @@ function move(tx,ty,tz,max,dt,lo,hi){tx=clamp(tx,-B.x,B.x);ty=clamp(ty,lo===unde
 
 /* ================= particles & speech ================= */
 const BUB=new THREE.SphereGeometry(1,14,10);
-const BUBM=new THREE.MeshStandardMaterial({color:0xffffff,transparent:true,opacity:0.6,roughness:0.08,metalness:0.1});
+const BUBM=flatMat({color:0xd9d9d9});
 function spawn(o){world.add(o.mesh);o.age=0;o.mesh.scale.setScalar(0.001);FX.push(o);return o;}
 function bubble(p,s,vy){spawn({mesh:new THREE.Mesh(BUB,BUBM),vel:new V3(rnd(-0.05,0.05),vy||rnd(0.5,0.9),0),life:rnd(2,3.4),s0:s||rnd(0.02,0.045),wob:true,top:true}).mesh.position.copy(p);}
 function ring(p){const m=new THREE.Mesh(new THREE.RingGeometry(0.14,0.16,48),new THREE.MeshBasicMaterial({color:0x9a9a9a,transparent:true,opacity:0.7,depthWrite:false,side:THREE.DoubleSide}));
@@ -360,7 +359,7 @@ function talk(){if(S.sayCD>0)return;S.sayCD=0.8;say(pick(WORDS));snd.blub();}
 
 /* ================= food & toy ================= */
 function dropFood(p){if(!p||lightsOff||foods.length>8)return;const g=new THREE.Group(),cols=[0xe0502a,0xf2a33a,0xe8c64a,0xd9472f];
-  for(let i=0;i<3;i++){const k=new THREE.Mesh(new THREE.CylinderGeometry(0.04,0.045,0.006,9),new THREE.MeshStandardMaterial({color:cols[(i+foods.length)%4],roughness:0.9}));
+  for(let i=0;i<3;i++){const k=new THREE.Mesh(new THREE.CylinderGeometry(0.04,0.045,0.006,9),flatMat({color:cols[(i+foods.length)%4],roughness:0.9}));
     k.position.set(rnd(-0.1,0.1),rnd(0,0.04),rnd(-0.07,0.07));k.rotation.set(rnd(-0.4,0.4),0,rnd(-0.4,0.4));g.add(k);}
   g.position.set(clamp(p.x,-B.x,B.x),B.surf-0.05,rnd(-0.2,0.3));world.add(g);foods.push({m:g,pos:g.position,age:0});snd.pop();}
 function removeFood(f){world.remove(f.m);foods.splice(foods.indexOf(f),1);}
@@ -371,8 +370,8 @@ function updateFoods(dt){for(const f of foods.slice()){f.age+=dt;
 function nearestFood(){let b=null,bd=1e9;for(const f of foods){const d=f.pos.distanceTo(S.pos);if(d<bd){bd=d;b=f;}}return b;}
 function toyTarget(p){return p?new V3(clamp(p.x,-B.x,B.x),clamp(p.y,B.ymin,B.ymax),0.3):null;}
 function startToy(){if(lightsOff)return;const t=toyTarget(ptr.world);if(!t)return;endToy(true);
-  const g=new THREE.Group();g.add(new THREE.Mesh(new THREE.SphereGeometry(0.06,20,16),new THREE.MeshStandardMaterial({color:0xe53b3b,roughness:0.22,metalness:0.2})));
-  const tl=new THREE.Mesh(new THREE.SphereGeometry(1,12,10),new THREE.MeshStandardMaterial({color:0xe9c46a,roughness:0.4}));tl.scale.set(0.08,0.012,0.035);tl.position.x=-0.09;g.add(tl);
+  const g=new THREE.Group();g.add(new THREE.Mesh(new THREE.SphereGeometry(0.06,20,16),flatMat({color:0xe53b3b,roughness:0.22,metalness:0.2})));
+  const tl=new THREE.Mesh(new THREE.SphereGeometry(1,12,10),flatMat({color:0xe9c46a,roughness:0.4}));tl.scale.set(0.08,0.012,0.035);tl.position.x=-0.09;g.add(tl);
   toy={active:true,fade:0,pos:t.clone(),target:t,m:g};world.add(g);}
 function endToy(now){if(!toy)return;if(now){world.remove(toy.m);toy=null;}else toy.active=false;}
 function updateToy(dt){if(!toy)return;
@@ -451,7 +450,7 @@ function eat(f,dt){S.seeCap=0.6;
 function gulp(f){removeFood(f);add('food',4);S.eatCap=2.2;CUR.gulp=1;CUR.mouth=0.6;snd.blub();
   if(S.sayCD<=0){S.sayCD=0.6;say(pick(['nom','nom nom','munch','mm']),1.1);}
   const m=mouthWorld();for(let i=0;i<4;i++)crumb(m);bubble(m,0.025);}
-const CRUMBM=[0xe0502a,0xf2a33a,0xe8c64a].map(c=>new THREE.MeshStandardMaterial({color:c,roughness:0.9}));
+const CRUMBM=[0xe0502a,0xf2a33a,0xe8c64a].map(c=>flatMat({color:c,roughness:0.9}));
 function crumb(p){const o=spawn({mesh:new THREE.Mesh(BUB,pick(CRUMBM)),vel:new V3(rnd(-0.25,0.25),rnd(-0.05,0.2),rnd(-0.15,0.15)),life:rnd(0.7,1.1),s0:rnd(0.008,0.014)});o.mesh.position.copy(p);}
 function chase(dt){S.catchCD-=dt;S.playCap=0.6;if(!toy.active){brake(dt);return;}const tp=toy.pos,s=pet().s;
   if(S.catchCD<=0&&mouthWorld().distanceTo(tp)<0.24){S.catchCD=1.2;add('fun',6);react('caught');for(let i=0;i<3;i++)bubble(mouthWorld(),0.025);}
