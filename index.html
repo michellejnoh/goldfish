@@ -334,8 +334,9 @@ function mouthWorld(){R.g.updateMatrixWorld(true);return R.inner.localToWorld(R.
 function headWorld(){R.g.updateMatrixWorld(true);return R.inner.localToWorld(new V3(0.2,0.9,0));}
 function brake(dt){S.vel.x=damp(S.vel.x,0,4,dt);S.vel.z=damp(S.vel.z,0,4,dt);S.vel.y=damp(S.vel.y,0,4,dt);}
 function standPoint(p,dist){const d=p.clone().sub(S.pos),l=d.length();if(l<1e-4)return S.pos.clone();return p.clone().addScaledVector(d,-dist/l);}
-function randPoint(){return new V3(rnd(-B.x,B.x),rnd(B.ymin+0.2,B.ymax-0.2),rnd(-0.6,0.5));}
-function move(tx,ty,tz,max,dt,lo,hi){tx=clamp(tx,-B.x,B.x);ty=clamp(ty,lo===undefined?B.ymin:lo,hi===undefined?B.ymax:hi);tz=clamp(tz,-0.8,0.7);
+function gazePoint(){if(Math.random()<0.45)return new V3(camera.position.x,S.pos.y,camera.position.z);const a=rnd(0,Math.PI*2);return new V3(S.pos.x+Math.cos(a)*2,S.pos.y,S.pos.z-Math.sin(a)*2);}
+function randPoint(){const deep=Math.random()<0.55,z=deep?(S&&S.pos.z>-0.4?rnd(-1.5,-0.9):rnd(0.35,0.8)):rnd(-0.6,0.5);return new V3(rnd(-B.x,B.x)*(deep?0.6:1),rnd(B.ymin+0.2,B.ymax-0.2),z);}
+function move(tx,ty,tz,max,dt,lo,hi){tx=clamp(tx,-B.x,B.x);ty=clamp(ty,lo===undefined?B.ymin:lo,hi===undefined?B.ymax:hi);tz=clamp(tz,-1.6,0.82);
   const dx=tx-S.pos.x,dy=ty-S.pos.y,dz=tz-S.pos.z,d=Math.hypot(dx,dy,dz);
   const sp=d<0.03?0:max*Math.min(1,d/0.8)*(pet().s.energy<15?0.65:1),k=d>1e-5?sp/d:0;
   S.vel.x=damp(S.vel.x,dx*k,3,dt);S.vel.y=damp(S.vel.y,dy*k,3,dt);S.vel.z=damp(S.vel.z,dz*k,3,dt);return d;}
@@ -462,12 +463,14 @@ function chase(dt){S.catchCD-=dt;S.playCap=0.6;if(!toy.active){brake(dt);return;
 // too tired to play: watch the lure, blub, and say so
 function tired(dt){brake(dt);S.tiredCap=0.6;if(toy.active)faceToward(toy.pos);if(Math.random()<dt*0.4&&S.sayCD<=0){S.sayCD=1.5;say('…',1.2);}}
 function auto(dt){const s=pet().s;S.think-=dt;S.modeT-=dt;
+  if(S.mode==='gaze'){brake(dt);S.faceT=S.gazeP;if(Math.random()<dt*0.6&&S.gazeTurns>0){S.gazeTurns--;S.gazeP=gazePoint();}if(S.modeT<0)S.mode='idle';return;}
   if(S.mode==='nibble'){const p=mouthTarget(S.target);const dn=move(p.x,p.y,p.z,0.7,dt,B.floor+0.1,B.surf);if(dn<0.45)faceToward(S.target);if(dn<0.15){CUR.mouth=0.4*Math.max(0,Math.sin(T*9));if(Math.random()<dt)bubble(mouthWorld());}
     if(S.modeT<0){S.mode='idle';S.target=null;}return;}
   if(!S.target)S.target=randPoint();
   if(move(S.target.x,S.target.y,S.target.z,s.energy<15?0.25:0.45,dt)<0.25)S.target=randPoint();
   if(S.think<=0){S.think=rnd(4,8);const r=Math.random();
-    if(r<0.22){S.mode='nibble';S.modeT=6;S.target=new V3(rnd(-B.x,B.x),B.floor+0.12,rnd(-0.5,0.4));}
+    if(r>=0.22&&r<0.42){S.mode='gaze';S.modeT=rnd(2.5,4.5);S.gazeTurns=2;S.gazeP=gazePoint();}
+    else if(r<0.22){S.mode='nibble';S.modeT=6;S.target=new V3(rnd(-B.x,B.x),B.floor+0.12,rnd(-0.5,0.4));}
     else if(s.food<40&&r<0.45)S.target=new V3(rnd(-1,1),B.ymax,0);
     else if(S.look&&r<0.65)S.target=S.look.clone();
     else S.target=randPoint();
@@ -475,12 +478,12 @@ function auto(dt){const s=pet().s;S.think-=dt;S.modeT-=dt;
 
 /* ================= physics & animation ================= */
 function physics(dt){S.pos.addScaledVector(S.vel,dt);
-  S.pos.x=clamp(S.pos.x,-B.x-0.1,B.x+0.1);S.pos.y=clamp(S.pos.y,B.floor+0.06,B.surf+0.02);S.pos.z=clamp(S.pos.z,-0.85,0.75);
+  S.pos.x=clamp(S.pos.x,-B.x-0.1,B.x+0.1);S.pos.y=clamp(S.pos.y,B.floor+0.06,B.surf+0.02);S.pos.z=clamp(S.pos.z,-1.65,0.86);
   const hs=Math.hypot(S.vel.x,S.vel.z);if(S.faceT){const fx=S.faceT.x-S.pos.x,fz=S.faceT.z-S.pos.z;if(Math.hypot(fx,fz)>0.05)S.wantH=Math.atan2(-fz,fx);}else if(hs>0.05)S.wantH=Math.atan2(-S.vel.z,S.vel.x);
   const prev=S.heading;S.heading+=angDiff(S.heading,S.wantH)*(1-Math.exp(-((S.flick||0)>0.25?11:4)*dt));
   S.turnRate=damp(S.turnRate,angDiff(prev,S.heading)/Math.max(dt,1e-4),6,dt);S.sayCD-=dt;}
 function animate(dt){CUR.mouth=damp(CUR.mouth,0,8,dt);CUR.burst=damp(CUR.burst,0,4,dt);CUR.gulp=damp(CUR.gulp,0,6,dt);S.eatCap-=dt;S.seeCap-=dt;S.tiredCap=(S.tiredCap||0)-dt;S.playCap=(S.playCap||0)-dt;
-  {const g=CUR.gulp;R.inner.scale.set((1-0.1*g),(1+(S.sqY||0))*(1+0.2*g),(1+(S.sqZ||0))*(1+0.24*g));}
+  {const g=CUR.gulp,ex=1+(S.sqX||0)*0.6,xx=1-0.08*g,yy=(1+(S.sqY||0))*(1+0.12*g),zz=(1+(S.sqZ||0))*(1+0.12*g),f=Math.cbrt(Math.max(0.2,ex*xx*yy*zz));R.inner.scale.set(xx/f,yy/f,zz/f);}
   const sp=S.vel.length(),hs=Math.hypot(S.vel.x,S.vel.z);
   R.g.position.copy(S.pos);
   S.pitch=damp(S.pitch,S.faceT?clamp(Math.atan2(S.faceT.y-S.pos.y,Math.hypot(S.faceT.x-S.pos.x,S.faceT.z-S.pos.z)+0.2)*0.7,-0.45,0.45):clamp(Math.atan2(S.vel.y,hs+0.15)*0.8,-0.5,0.5),5,dt);S.rollC=damp(S.rollC,clamp(S.turnRate*0.1,-0.45,0.45),5,dt);
@@ -499,9 +502,9 @@ function animate(dt){CUR.mouth=damp(CUR.mouth,0,8,dt);CUR.burst=damp(CUR.burst,0
   // squash & stretch: a jelly spring that stretches with speed and squishes on stops, turns and pokes
   {const ft=clamp(S.turnRate*0.45,-1.1,1.1)+curl*2.2;S.foldV=(S.foldV||0)+((ft-(S.fold||0))*60-(S.foldV||0)*7)*dt;S.fold=clamp((S.fold||0)+S.foldV*dt,-1.3,1.3);
    const af=Math.abs(S.fold),spr=(v,vv,tg,k,c)=>{vv+=((tg-v)*k-vv*c)*dt;return [clamp(v+vv*dt,-0.45,0.6),vv];};
-   let r=spr(S.sqX||0,S.sqXV||0,clamp(sp*0.16,0,0.2)-af*0.16,95,6.5);S.sqX=clamp(r[0],-0.25,0.28);S.sqXV=r[1];
-   r=spr(S.sqY||0,S.sqYV||0,af*0.2+clamp(S.vel.y*0.25,-0.15,0.2),120,6);S.sqY=r[0];S.sqYV=r[1];
-   r=spr(S.sqZ||0,S.sqZV||0,af*0.28-clamp(sp*0.12,0,0.15),80,5.5);S.sqZ=r[0];S.sqZV=r[1];}
+   let r=spr(S.sqX||0,S.sqXV||0,clamp((sp-1.1)*0.2,0,0.18)-af*0.16,95,6.5);S.sqX=clamp(r[0],-0.25,0.28);S.sqXV=r[1];
+   r=spr(S.sqY||0,S.sqYV||0,af*0.12+clamp(S.vel.y*0.25,-0.15,0.2),120,6);S.sqY=r[0];S.sqYV=r[1];
+   r=spr(S.sqZ||0,S.sqZV||0,af*0.16-clamp((sp-1.1)*0.12,0,0.12),80,5.5);S.sqZ=r[0];S.sqZV=r[1];}
   const sway=0.025*Math.sin(T*0.55)+0.015*Math.sin(T*1.3+1);
   S.arch=damp(S.arch||0,clamp(S.vel.y*0.12,-0.08,0.08),4,dt);
   fishWave(S.swimPh,S.amp,clamp(-S.turnRate*0.02,-0.06,0.06)+sway,T,sp,S.finLag*0.5,S.finLagY,S.arch,clamp((S.sqYV||0)*0.03,-0.2,0.2),S.fold||0,S.sqX||0);
