@@ -25,7 +25,6 @@
     </linearGradient>
     <filter id="soft" x="-10%" y="-10%" width="120%" height="120%"><feGaussianBlur stdDeviation="2.2"/></filter>
   </defs>
-  <rect width="512" height="512" fill="#ffffff"/>
   <g transform="translate(13 5)">
   <g filter="url(#soft)">
     <!-- flowing fan tail with a soft centre notch -->
