@@ -80,6 +80,13 @@ body.editing .ui,body.editing #say{display:none}
 .card p{margin:0;font-size:16px;color:#6b6b6b;line-height:1.4}
 .card input{font:500 24px var(--font);border:0;border-bottom:1px solid #111;border-radius:0;padding:6px 0;background:transparent;color:#111;-webkit-user-select:text;user-select:text;width:100%}
 .card input:focus{outline:none}
+.mrow{display:flex;align-items:center;gap:14px;width:100%;text-align:left;padding:9px 0;border-bottom:1px solid #ececec;cursor:pointer}
+.mrow:last-of-type{border-bottom:0}
+.mi{width:40px;height:40px;flex:none;display:flex;align-items:center;justify-content:center;color:var(--ink)}
+.mt{display:flex;flex-direction:column;gap:0;min-width:0}
+.mt b{font-weight:500;font-size:22px;line-height:1.1;color:#111}
+.mt small{font-size:15px;line-height:1.2;color:#8a8a8a}
+.mrow[aria-pressed="true"] b{text-decoration:underline;text-decoration-thickness:1.5px;text-underline-offset:4px}
 .lookgrid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:4px 6px;margin:4px 0 8px}
 .lookgrid.pat{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px 10px}
 .lookgrid button{display:flex;flex-direction:column;align-items:center;gap:0;padding:2px 0 4px;border-radius:10px;font-size:13px;color:#7a7a7a;cursor:pointer}
@@ -118,7 +125,7 @@ body.editing .ui,body.editing #say{display:none}
     <input id="name" maxlength="14" aria-label="Fish name" spellcheck="false" autocomplete="off" readonly>
     <div class="stats" id="stats"></div>
   </div>
-  <div class="side"><button class="mini" id="who">keeper</button><button class="mini" id="misBtn">missions</button><button class="mini" id="snd">sound on</button><button class="icon" id="editBtn" aria-label="Edit your tank"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20l4.2-1 10.4-10.4a2 2 0 0 0 0-2.8l-.4-.4a2 2 0 0 0-2.8 0L5 15.8 4 20z"/><path d="M13.5 6.5l4 4"/></svg></button><button class="icon" id="captureBtn" aria-label="Capture the tank"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8.5h3.2L8.8 6h6.4l1.6 2.5H20v10H4z"/><circle cx="12" cy="13.2" r="3.3"/></svg></button></div>
+  <div class="side"><button class="mini" id="who">keeper</button><button class="icon" id="misBtn" aria-label="Missions"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 21V3.5"/><path d="M6 4.5h11.5l-2.4 4 2.4 4H6"/></svg></button><button class="mini" id="snd">sound on</button><button class="icon" id="editBtn" aria-label="Edit your tank"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20l4.2-1 10.4-10.4a2 2 0 0 0 0-2.8l-.4-.4a2 2 0 0 0-2.8 0L5 15.8 4 20z"/><path d="M13.5 6.5l4 4"/></svg></button><button class="icon" id="captureBtn" aria-label="Capture the tank"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8.5h3.2L8.8 6h6.4l1.6 2.5H20v10H4z"/><circle cx="12" cy="13.2" r="3.3"/></svg></button></div>
 </div>
 <div class="ui bottom">
   <p id="cap" aria-live="polite"></p>
@@ -143,12 +150,40 @@ body.editing .ui,body.editing #say{display:none}
 </div>
 <div class="sheet" id="tank" hidden>
   <div class="card">
-    <div class="row2"><h2>edit your tank</h2><span style="display:flex"><button type="button" class="icon" id="colorBtn" aria-label="Fish colour"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.5c3.2 3.8 6 7.4 6 10.6a6 6 0 0 1-12 0c0-3.2 2.8-6.8 6-10.6z"/><path d="M9 14.5a3 3 0 0 0 2.5 2.8"/></svg></button><button type="button" class="icon" id="patBtn" aria-label="Fish pattern"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8"/><circle cx="9.5" cy="9.5" r="1.4" fill="currentColor"/><circle cx="14.8" cy="11" r="1.1" fill="currentColor"/><circle cx="10.5" cy="15" r="1.2" fill="currentColor"/><circle cx="15" cy="15.6" r=".8" fill="currentColor"/></svg></button><button type="button" class="icon" id="shopBtn" aria-label="Shop"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 8h14l-1.2 12H6.2L5 8z"/><path d="M9 8V6.5a3 3 0 0 1 6 0V8"/></svg></button></span></div>
-    <p class="small">water</p>
-    <div class="row2" id="waterRow"><button type="button" class="link" data-w="clear">clear</button><button type="button" class="link" data-w="blue">blue</button><button type="button" class="link" data-w="green">green</button></div>
-    <p class="small">pebbles</p>
-    <div class="row2"><button type="button" class="link" data-p="add">add</button><button type="button" class="link" data-p="remove">remove</button><button type="button" class="link" id="arrangeBtn">move decorations</button></div>
+    <h2>edit</h2>
+    <button type="button" class="mrow" id="fishMenuBtn"><span class="mi"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.8 12c2.6-4.2 7.4-5.6 11.4-3.4L19.5 5v14l-5.3-3.6C10.2 17.6 5.4 16.2 2.8 12z"/><circle cx="7.6" cy="11.2" r=".9" fill="currentColor"/></svg></span><span class="mt"><b>your fish</b><small>colour &amp; pattern</small></span></button>
+    <button type="button" class="mrow" id="waterMenuBtn"><span class="mi"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.5c3.2 3.8 6 7.4 6 10.6a6 6 0 0 1-12 0c0-3.2 2.8-6.8 6-10.6z"/><path d="M9 14.5a3 3 0 0 0 2.5 2.8"/></svg></span><span class="mt"><b>water</b><small>clear, blue or green</small></span></button>
+    <button type="button" class="mrow" id="decorMenuBtn"><span class="mi"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 20h14"/><path d="M12 20v-7"/><path d="M12 13c0-3.2-2.2-5.4-5.6-5.4 0 3.2 2.2 5.4 5.6 5.4z"/><path d="M12 11c0-3.4 2.3-5.8 5.8-5.8 0 3.4-2.3 5.8-5.8 5.8z"/></svg></span><span class="mt"><b>decorations</b><small>shop, move &amp; pebbles</small></span></button>
     <div class="row2"><span></span><button type="button" class="go" id="tankClose">close</button></div>
+  </div>
+</div>
+<div class="sheet" id="fishMenu" hidden>
+  <div class="card">
+    <h2>your fish</h2>
+    <button type="button" class="mrow" id="colorBtn"><span class="mi"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.2a8.8 8.8 0 1 0 0 17.6c1.3 0 1.9-1 1.4-2-.6-1.2.3-2.3 1.5-2.3h2.3a3.8 3.8 0 0 0 3.8-3.8c0-5.2-4-9.5-9-9.5z"/><circle cx="7.8" cy="11" r="1.1" fill="currentColor"/><circle cx="10.5" cy="7.3" r="1.1" fill="currentColor"/><circle cx="15" cy="7.6" r="1.1" fill="currentColor"/></svg></span><span class="mt"><b>colour</b><small>25 shades to choose from</small></span></button>
+    <button type="button" class="mrow" id="patBtn"><span class="mi"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8"/><circle cx="9.5" cy="9.5" r="1.4" fill="currentColor"/><circle cx="14.8" cy="11" r="1.1" fill="currentColor"/><circle cx="10.5" cy="15" r="1.2" fill="currentColor"/><circle cx="15" cy="15.6" r=".8" fill="currentColor"/></svg></span><span class="mt"><b>pattern</b><small>spots, patches &amp; more</small></span></button>
+    <div class="row2"><span></span><button type="button" class="go" data-back>back</button></div>
+  </div>
+</div>
+<div class="sheet" id="waterMenu" hidden>
+  <div class="card">
+    <h2>water</h2>
+    <div id="waterRow">
+    <button type="button" class="mrow" data-w="clear"><span class="mi"><svg viewBox="0 0 24 24" width="28" height="28" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="#ffffff" stroke="#bbb" stroke-width="1"/></svg></span><span class="mt"><b>clear</b><small>bright and plain</small></span></button>
+    <button type="button" class="mrow" data-w="blue"><span class="mi"><svg viewBox="0 0 24 24" width="28" height="28" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="#e2eaee" stroke="#bbb" stroke-width="1"/></svg></span><span class="mt"><b>blue</b><small>a cool, soft tint</small></span></button>
+    <button type="button" class="mrow" data-w="green"><span class="mi"><svg viewBox="0 0 24 24" width="28" height="28" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="#e5ebe0" stroke="#bbb" stroke-width="1"/></svg></span><span class="mt"><b>green</b><small>a little mossy</small></span></button>
+    </div>
+    <div class="row2"><span></span><button type="button" class="go" data-back>back</button></div>
+  </div>
+</div>
+<div class="sheet" id="decorMenu" hidden>
+  <div class="card">
+    <h2>decorations</h2>
+    <button type="button" class="mrow" id="shopBtn"><span class="mi"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 8h14l-1.2 12H6.2L5 8z"/><path d="M9 10V7a3 3 0 0 1 6 0v3"/></svg></span><span class="mt"><b>shop</b><small>buy winter decorations with xp</small></span></button>
+    <button type="button" class="mrow" id="arrangeBtn"><span class="mi"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v16M4 12h16"/><path d="M9.5 6.5L12 4l2.5 2.5M9.5 17.5L12 20l2.5-2.5M6.5 9.5L4 12l2.5 2.5M17.5 9.5L20 12l-2.5 2.5"/></svg></span><span class="mt"><b>move &amp; turn</b><small>drag them, twist to rotate</small></span></button>
+    <button type="button" class="mrow" data-p="add"><span class="mi"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><ellipse cx="8" cy="16.5" rx="4" ry="2.6"/><ellipse cx="15.5" cy="17.5" rx="3" ry="2"/><path d="M17 4.5v6M14 7.5h6"/></svg></span><span class="mt"><b>add pebbles</b><small>tap or drag on the floor</small></span></button>
+    <button type="button" class="mrow" data-p="remove"><span class="mi"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><ellipse cx="8" cy="16.5" rx="4" ry="2.6"/><ellipse cx="15.5" cy="17.5" rx="3" ry="2"/><path d="M14 7.5h6"/></svg></span><span class="mt"><b>remove pebbles</b><small>rub over them to pick up</small></span></button>
+    <div class="row2"><span></span><button type="button" class="go" data-back>back</button></div>
   </div>
 </div>
 <div class="sheet" id="colors" hidden>
@@ -1049,13 +1084,13 @@ function spendXP(n){if(!PROG||wallet()<n)return false;PROG.exp-=n;while(PROG.exp
 function lookPick(list,key,label,onPick){const el=$(list);el.textContent='';const lk=lookOf();
   for(const k of key){const b=document.createElement('button');b.type='button';const im=document.createElement('img');im.alt='';im.src=fishThumb(label(k));
     const t=document.createElement('span');t.textContent=k;b.append(im,t);b.setAttribute('aria-pressed',k===(list==='#colorList'?lk.c:lk.p));b.onclick=()=>onPick(k);el.appendChild(b);}}
-function openColors(){$('#tank').hidden=true;$('#colors').hidden=false;
+function openColors(){$('#fishMenu').hidden=true;$('#colors').hidden=false;
   lookPick('#colorList',Object.keys(LOOK_COLORS),k=>Object.assign({},lookOf(),{c:k}),k=>{lookOf().c=k;applyLook();persist();openColors();});}
-function openPatterns(){$('#tank').hidden=true;$('#patterns').hidden=false;
+function openPatterns(){$('#fishMenu').hidden=true;$('#patterns').hidden=false;
   lookPick('#patList',LOOK_PATTERNS,k=>Object.assign({},lookOf(),{p:k}),k=>{const l=lookOf();if(l.p===k&&(k==='patches'||k==='calico'||k==='spots'))l.seed=Math.floor(Math.random()*1000);l.p=k;applyLook();persist();openPatterns();});}
 $('#colorBtn').onclick=openColors;$('#patBtn').onclick=openPatterns;
-$('#colorsClose').onclick=()=>{$('#colors').hidden=true;$('#tank').hidden=false;};
-$('#patternsClose').onclick=()=>{$('#patterns').hidden=true;$('#tank').hidden=false;};
+$('#colorsClose').onclick=()=>{$('#colors').hidden=true;$('#fishMenu').hidden=false;};
+$('#patternsClose').onclick=()=>{$('#patterns').hidden=true;$('#fishMenu').hidden=false;};
 function renderTank(){const t=save.tank;document.querySelectorAll('#waterRow [data-w]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.w===t.water));
   document.querySelectorAll('[data-p]').forEach(b=>b.setAttribute('aria-pressed',tool==='peb'&&S.pebMode===b.dataset.p));
 }
@@ -1071,13 +1106,17 @@ function renderShop(){const t=save.tank,th=makeThumbs();
     const after=can?(()=>{let L=PROG.level,e=PROG.exp-d.price;while(e<0&&L>1){L--;e+=need(L);}return L;})():0;
     const act=!own?(can?'<button data-buy="'+d.id+'">buy \u00b7 '+d.price+' xp'+(after<PROG.level?' (to lv '+after+')':'')+'</button>':'<em>'+d.price+' xp</em>'):on?'<button data-off="'+d.id+'">put away</button>':'<button data-on="'+d.id+'">place in tank</button>';
     return '<div class="item'+(!own&&!can?' locked':'')+'"><img src="'+th[d.id]+'" alt="'+d.name+'"><b>'+d.name+'</b>'+act+'</div>';}).join('');}
-$('#shopBtn').onclick=()=>{renderShop();$('#tank').hidden=true;$('#shop').hidden=false;};
+$('#shopBtn').onclick=()=>{renderShop();$('#decorMenu').hidden=true;$('#shop').hidden=false;};
 $('#editBtn').onclick=()=>openTank();
-$('#shopClose').onclick=()=>{$('#shop').hidden=true;openTank();};
+$('#shopClose').onclick=()=>{$('#shop').hidden=true;openSub('decorMenu');};
 function openTank(){renderTank();$('#tank').hidden=false;}
+const SUBS=['fishMenu','waterMenu','decorMenu'];
+function openSub(id){$('#tank').hidden=true;SUBS.forEach(k=>$('#'+k).hidden=k!==id);renderTank();}
+$('#fishMenuBtn').onclick=()=>openSub('fishMenu');$('#waterMenuBtn').onclick=()=>openSub('waterMenu');$('#decorMenuBtn').onclick=()=>openSub('decorMenu');
+document.querySelectorAll('[data-back]').forEach(b=>b.onclick=()=>{SUBS.forEach(k=>$('#'+k).hidden=true);openTank();});
 $('#tankClose').onclick=()=>{$('#tank').hidden=true;};
-$('#waterRow').addEventListener('click',e=>{const w=e.target.dataset&&e.target.dataset.w;if(!w)return;save.tank.water=w;applyWater();persist();renderTank();});
-function setEdit(m){if(toy)endToy(true);if(m==='arrange')tool='arrange';else{tool='peb';S.pebMode=m;}$('#tank').hidden=true;
+$('#waterRow').addEventListener('click',e=>{const b=e.target.closest('[data-w]'),w=b&&b.dataset.w;if(!w)return;save.tank.water=w;applyWater();persist();renderTank();});
+function setEdit(m){if(toy)endToy(true);if(m==='arrange')tool='arrange';else{tool='peb';S.pebMode=m;}$('#tank').hidden=true;$('#decorMenu').hidden=true;
   document.body.classList.add('editing');$('#editBar').hidden=false;R.g.visible=false;say('');
   document.querySelectorAll('[data-e]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.e===m));$('#editHint').textContent=HINT[m]||'';$('#turnRow').hidden=m!=='arrange';}
 function endEdit(){tool='hand';document.body.classList.remove('editing');$('#editBar').hidden=true;R.g.visible=true;renderUI();}
