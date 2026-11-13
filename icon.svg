@@ -18,25 +18,34 @@
       <stop offset="0" stop-color="#E86A1E" stop-opacity="0.95"/>
       <stop offset="1" stop-color="#FFE3C4" stop-opacity="0.35"/>
     </linearGradient>
+    <linearGradient id="tail" gradientUnits="userSpaceOnUse" x1="205" y1="0" x2="55" y2="0">
+      <stop offset="0" stop-color="#F2801C" stop-opacity="0.95"/>
+      <stop offset="0.55" stop-color="#F9A35E" stop-opacity="0.82"/>
+      <stop offset="1" stop-color="#FDD3A8" stop-opacity="0.55"/>
+    </linearGradient>
     <filter id="soft" x="-10%" y="-10%" width="120%" height="120%"><feGaussianBlur stdDeviation="2.2"/></filter>
   </defs>
   <rect width="512" height="512" fill="#ffffff"/>
+  <g transform="translate(13 5)">
   <g filter="url(#soft)">
-    <!-- fan tail, two lobes -->
-    <path d="M200 262 C150 200 95 130 48 118 C70 170 74 220 86 262 C74 300 64 350 44 400 C98 384 152 320 200 268 Z" fill="url(#fin)"/>
-    <path d="M206 256 C168 214 128 172 92 160 C108 200 112 236 118 262 C112 290 104 326 92 360 C130 346 170 304 206 268 Z" fill="#F7A25A" fill-opacity="0.45"/>
-    <!-- dorsal fin -->
-    <path d="M232 160 C250 98 300 72 344 70 C318 104 312 138 318 168 Z" fill="url(#dors)"/>
-    <!-- belly fin -->
-    <path d="M262 352 C254 392 236 420 214 436 C252 432 286 404 302 362 Z" fill="url(#fin)"/>
+    <!-- flowing fan tail with a soft centre notch -->
+    <path d="M200 238 C168 200 120 140 70 128 C58 150 66 172 60 190 C70 212 62 236 92 256 C62 276 70 300 60 322 C66 340 58 362 70 384 C120 372 168 312 200 278 Z" fill="url(#tail)"/>
+    <g stroke="#E0701E" stroke-opacity="0.22" stroke-width="3" stroke-linecap="round" fill="none">
+      <path d="M196 252 C160 210 120 170 82 146"/><path d="M196 254 C160 236 118 216 76 200"/>
+      <path d="M196 258 C164 258 128 257 100 256"/><path d="M196 262 C160 280 118 298 76 312"/>
+      <path d="M196 264 C160 306 120 344 80 368"/>
+    </g>
+    <!-- dorsal fin: a soft sail leaning back -->
+    <path d="M318 150 C312 118 290 92 252 84 C228 82 206 90 194 102 C214 112 228 134 236 168 Z" fill="url(#dors)"/>
+    <!-- pelvic and anal fins -->
+    <path d="M326 356 C324 386 308 410 284 424 C290 400 290 380 288 362 Z" fill="#F59A4E" fill-opacity="0.8"/>
+    <path d="M240 336 C230 364 210 384 186 396 C198 372 202 352 204 330 Z" fill="#F59A4E" fill-opacity="0.75"/>
     <!-- body: a plump dumpling -->
     <ellipse cx="300" cy="258" rx="128" ry="112" fill="url(#body)"/>
     <ellipse cx="300" cy="258" rx="128" ry="112" fill="url(#belly)"/>
     <ellipse cx="282" cy="200" rx="58" ry="30" fill="#ffffff" fill-opacity="0.32" transform="rotate(-14 282 200)"/>
-    <!-- side fin -->
-    <path d="M330 300 C312 330 286 346 258 350 C286 324 300 306 304 290 Z" fill="#FDB57C" fill-opacity="0.75"/>
   </g>
-  <!-- eye and mouth -->
+  <!-- eye -->
   <circle cx="378" cy="236" r="15" fill="#0b0b0b"/>
-  <circle cx="425" cy="274" r="6" fill="none" stroke="#B04617" stroke-width="4"/>
+  </g>
 </svg>
