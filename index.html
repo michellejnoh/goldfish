@@ -1236,6 +1236,11 @@ function renderShop(){const t=save.tank,th=makeThumbs();
     return '<div class="item'+(!own&&!can?' locked':'')+'"><img src="'+th[d.id]+'" alt="'+d.name+'"><b>'+d.name+'</b>'+act+'</div>';}).join('');}
 $('#shopBtn').onclick=()=>{renderShop();$('#decorMenu').hidden=true;$('#shop').hidden=false;};
 $('#editBtn').onclick=()=>openTank();
+/* tapping anywhere outside a menu's box closes the menu */
+document.querySelectorAll('.sheet').forEach(sh=>sh.addEventListener('click',e=>{if(e.target!==sh)return;
+  if(sh.id==='login'){if(!$('#loginClose').hidden)$('#loginClose').click();return;}
+  if(sh.id==='naming')return;
+  sh.hidden=true;}));
 $('#shopClose').onclick=()=>{$('#shop').hidden=true;openSub('decorMenu');};
 function openTank(){renderTank();$('#tank').hidden=false;}
 const SUBS=['fishMenu','waterMenu','decorMenu'];
