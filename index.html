@@ -613,6 +613,11 @@ setup();
 if(lightsOff){document.body.classList.add('night');S.asleep=true;S.pos.set(-B.x*0.5,B.ymin+0.05,-0.4);S.heading=S.wantH=0;hemi.intensity=0.3;keyL.intensity=0.25;renderUI();}else hint();
 requestAnimationFrame(frame);
 window.addEventListener('pagehide',persist);
+// pick up new versions by itself: check the page now and then, and reload (keeping the fish's state) when it changes
+(function(){let base=null;const hash=t=>{let x=0;for(let i=0;i<t.length;i++)x=(x*31+t.charCodeAt(i))|0;return x;};
+  const check=()=>fetch(location.pathname+'?check='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():null).then(t=>{if(!t)return;const v=hash(t);
+    if(base===null){base=v;return;}if(v===base)return;const go=()=>{if(ptr.down){setTimeout(go,1000);return;}persist();location.reload();};go();}).catch(()=>{});
+  check();setInterval(check,60000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)check();});})();
 document.addEventListener('visibilitychange',()=>{if(document.hidden)persist();clock.getDelta();});
 })();
 </script>
