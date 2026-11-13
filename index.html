@@ -77,6 +77,19 @@ body.night #say{color:#e0e0e0}
 [hidden]{display:none!important}
 body.editing .ui,body.editing #say{display:none}
 body.viewing .ui,body.viewing #say{display:none}
+body.photo .ui,body.photo #say{display:none}
+#photoBar .vf{position:fixed;z-index:4;pointer-events:none;top:calc(env(safe-area-inset-top,0px) + 64px);bottom:calc(env(safe-area-inset-bottom,0px) + 128px);left:22px;right:22px}
+#photoBar .vf i{position:absolute;width:26px;height:26px;border:0 solid rgba(17,17,17,.55)}
+#photoBar .vf i:nth-child(1){top:0;left:0;border-top-width:2px;border-left-width:2px}
+#photoBar .vf i:nth-child(2){top:0;right:0;border-top-width:2px;border-right-width:2px}
+#photoBar .vf i:nth-child(3){bottom:0;left:0;border-bottom-width:2px;border-left-width:2px}
+#photoBar .vf i:nth-child(4){bottom:0;right:0;border-bottom-width:2px;border-right-width:2px}
+#photoClose{position:fixed;z-index:4;top:calc(env(safe-area-inset-top,0px) + 12px);right:max(20px,env(safe-area-inset-right,0px))}
+#shutter{position:fixed;z-index:4;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 34px);width:68px;height:68px;border-radius:50%;
+  background:#fff;box-shadow:0 0 0 3px #fff,0 0 0 5px var(--ink);cursor:pointer;padding:0;transition:transform .12s}
+#shutter:active{transform:translateX(-50%) scale(.92)}
+#flash{position:fixed;inset:0;z-index:5;background:#fff;opacity:0;pointer-events:none;transition:opacity .35s}
+#flash.on{opacity:.85;transition:none}
 #viewBar{position:fixed;left:0;right:0;top:0;z-index:4;display:flex;justify-content:space-between;align-items:center;gap:12px;
   padding-top:calc(env(safe-area-inset-top,0px) + 12px);padding-left:max(20px,env(safe-area-inset-left,0px));padding-right:max(20px,env(safe-area-inset-right,0px))}
 #viewHint{margin:0;font-size:17px;color:var(--soft)}
@@ -137,6 +150,8 @@ body.viewing .ui,body.viewing #say{display:none}
 <canvas id="c" aria-label="Goldfish tank. Tap, drag and feed to interact."></canvas>
 <div id="dark"></div>
 <canvas id="touch" aria-hidden="true"></canvas>
+<div id="photoBar" hidden><div class="vf" aria-hidden="true"><i></i><i></i><i></i><i></i></div><div id="flash"></div>
+  <button type="button" class="go" id="photoClose">close</button><button type="button" id="shutter" aria-label="Take picture"></button></div>
 <div id="viewBar" hidden><p id="viewHint">drag to turn the tank</p><button type="button" class="go" id="viewDone">done</button></div>
 <div id="editBar" hidden><nav aria-label="Edit tools"><button type="button" data-e="add">add pebbles</button><button type="button" data-e="remove">remove pebbles</button><button type="button" data-e="arrange">move decorations</button><button type="button" class="done" id="editDone">done</button></nav><p id="editHint"></p><div id="turnRow" hidden><button type="button" data-turn="1">turn left</button><button type="button" data-turn="-1">turn right</button></div></div>
 <div id="say" aria-live="polite"></div>
@@ -304,7 +319,7 @@ const KO={
 'what’s your fish called?':'금붕어 이름이 뭐예요?',"what's your fish called?":'금붕어 이름이 뭐예요?',"who's keeping this fish?":'누가 이 금붕어를 키우나요?',
 'winter shop':'겨울 상점','your fish':'내 금붕어','add':'놓기','remove':'치우기','missions':'미션',
 'Capture the tank':'수조 찍기','Edit tools':'편집 도구','Edit your tank':'수조 편집','Fish name':'금붕어 이름','Missions':'미션',
-'Picture of your tank':'수조 사진','Tools':'도구','Username':'사용자 이름','username':'사용자 이름','Fish colour':'금붕어 색','Fish pattern':'금붕어 무늬','Shop':'상점','Sound on':'소리 켜짐','Sound off':'소리 꺼짐','Tank view':'어항 보기','drag to turn the tank':'끌어서 어항을 돌려 보세요','Goldfish tank. Tap, drag and feed to interact.':'금붕어 수조. 탭하고 끌고 먹이를 주며 놀아 주세요.',
+'Picture of your tank':'수조 사진','Tools':'도구','Username':'사용자 이름','username':'사용자 이름','Fish colour':'금붕어 색','Fish pattern':'금붕어 무늬','Shop':'상점','Take picture':'사진 찍기','Sound on':'소리 켜짐','Sound off':'소리 꺼짐','Tank view':'어항 보기','drag to turn the tank':'끌어서 어항을 돌려 보세요','Goldfish tank. Tap, drag and feed to interact.':'금붕어 수조. 탭하고 끌고 먹이를 주며 놀아 주세요.',
 ': check the Firestore rules':': Firestore 규칙을 확인해 주세요',': is the Firestore database created?':': Firestore 데이터베이스가 만들어졌는지 확인해 주세요'};
 const KO_RX=[
 [/^(.+) is nosing at the surface\.$/,'$1, 수면에서 뻐끔거리고 있어요.'],[/^(.+) is drifting low\.$/,'$1, 바닥 가까이 떠 있어요.'],
@@ -1321,7 +1336,10 @@ function captureTank(){const w=innerWidth,h=innerHeight,pr=Math.min(2,(devicePix
   c.toBlob(blob=>{if(!blob)return;const file=new File([blob],'goldfish-tank.png',{type:'image/png'});
     if(navigator.canShare&&navigator.canShare({files:[file]})){navigator.share({files:[file],title:'my goldfish tank'}).catch(()=>showShot(blob));}else showShot(blob);},'image/png');}
 function showShot(blob){const u=URL.createObjectURL(blob);$('#shotImg').src=u;$('#shotDl').href=u;$('#tank').hidden=true;$('#shot').hidden=false;}
-$('#captureBtn').onclick=captureTank;$('#shotClose').onclick=()=>{$('#shot').hidden=true;};
+/* photo mode: a viewfinder over the live tank; the picture is taken only when the shutter is pressed */
+function setPhoto(on){document.body.classList.toggle('photo',on);$('#photoBar').hidden=!on;if(on){if(toy)endToy(true);say('');}}
+$('#captureBtn').onclick=()=>setPhoto(true);$('#photoClose').onclick=()=>setPhoto(false);
+$('#shutter').onclick=()=>{const f=$('#flash');f.classList.add('on');requestAnimationFrame(()=>requestAnimationFrame(()=>f.classList.remove('on')));snd.ac();captureTank();};$('#shotClose').onclick=()=>{$('#shot').hidden=true;};
 
 /* ---- grey marks wherever you touch: a round blob on tap, a teardrop when you drag ---- */
 const TC=$('#touch'),tx=TC.getContext('2d'),LY=document.createElement('canvas'),lx=LY.getContext('2d'),MARKS=new Map(),FADING=[];
