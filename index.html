@@ -112,6 +112,11 @@ body.photo .ui,body.photo #say{display:none}
 .card input:focus{outline:none}
 .langrow{display:flex;gap:18px;justify-content:flex-end;margin-bottom:-6px}
 .langrow .link[aria-pressed="true"]{color:#111;text-decoration-thickness:2px}
+.growrow{display:flex;align-items:flex-end;justify-content:space-between;gap:2px;margin-top:-4px}
+.growrow span{display:flex;flex-direction:column;align-items:center;gap:2px;font-size:12px;color:#9a9a9a;flex:1}
+.growrow img{display:block;height:auto}
+.growrow span.no img{opacity:.22;filter:grayscale(1)}
+.growrow span.now{color:#111}
 .mrow{display:flex;align-items:center;gap:14px;width:100%;text-align:left;padding:9px 0;border-bottom:1px solid #ececec;cursor:pointer}
 .mrow:last-of-type{border-bottom:0}
 .mi{width:40px;height:40px;flex:none;display:flex;align-items:center;justify-content:center;color:var(--ink)}
@@ -256,6 +261,8 @@ body.photo .ui,body.photo #say{display:none}
   <div class="card">
     <h2 id="misTitle">level 1</h2>
     <p id="misXp"></p>
+    <p class="small">growth</p>
+    <div class="growrow" id="growRow"></div>
     <p class="small">today</p>
     <div class="mis" id="misList"></div>
     <p class="small" id="misStreak"></p>
@@ -319,7 +326,7 @@ const KO={
 'what’s your fish called?':'금붕어 이름이 뭐예요?',"what's your fish called?":'금붕어 이름이 뭐예요?',"who's keeping this fish?":'누가 이 금붕어를 키우나요?',
 'winter shop':'겨울 상점','your fish':'내 금붕어','add':'놓기','remove':'치우기','missions':'미션',
 'Capture the tank':'수조 찍기','Edit tools':'편집 도구','Edit your tank':'수조 편집','Fish name':'금붕어 이름','Missions':'미션',
-'Picture of your tank':'수조 사진','Tools':'도구','Username':'사용자 이름','username':'사용자 이름','Fish colour':'금붕어 색','Fish pattern':'금붕어 무늬','Shop':'상점','Take picture':'사진 찍기','Sound on':'소리 켜짐','Sound off':'소리 꺼짐','Tank view':'어항 보기','drag to turn the tank':'끌어서 어항을 돌려 보세요','Goldfish tank. Tap, drag and feed to interact.':'금붕어 수조. 탭하고 끌고 먹이를 주며 놀아 주세요.',
+'Picture of your tank':'수조 사진','Tools':'도구','Username':'사용자 이름','username':'사용자 이름','Fish colour':'금붕어 색','Fish pattern':'금붕어 무늬','Shop':'상점','growth':'성장','Take picture':'사진 찍기','Sound on':'소리 켜짐','Sound off':'소리 꺼짐','Tank view':'어항 보기','drag to turn the tank':'끌어서 어항을 돌려 보세요','Goldfish tank. Tap, drag and feed to interact.':'금붕어 수조. 탭하고 끌고 먹이를 주며 놀아 주세요.',
 ': check the Firestore rules':': Firestore 규칙을 확인해 주세요',': is the Firestore database created?':': Firestore 데이터베이스가 만들어졌는지 확인해 주세요'};
 const KO_RX=[
 [/^(.+) is nosing at the surface\.$/,'$1, 수면에서 뻐끔거리고 있어요.'],[/^(.+) is drifting low\.$/,'$1, 바닥 가까이 떠 있어요.'],
@@ -328,7 +335,7 @@ const KO_RX=[
 [/^(.+) is eating\.$/,'$1, 먹는 중이에요.'],[/^(.+) spotted food\.$/,'$1, 먹이를 발견했어요.'],
 [/^(.+) is asleep\. Tap wake to turn the lights on\.$/,'$1, 자고 있어요. 깨우기를 누르면 불이 켜져요.'],[/^(.+) is settling down\.$/,'$1, 잠들 준비를 해요.'],
 [/^welcome back\. (.+) missed you\.$/,'다시 왔군요. $1, 많이 보고 싶었대요.'],[/^hello, (.+)\.$/,'안녕, $1.'],
-[/^(.+) reached level (\d+)!$/,'$1, 레벨 $2 달성!'],[/^achievement: (.+) \+(\d+) xp$/,'업적: $1 +$2 xp'],[/^mission done: (.+) \+(\d+) xp$/,'미션 완료: $1 +$2 xp'],
+[/^(.+) reached level (\d+)!$/,'$1, 레벨 $2 달성!'],[/^(.+) grew bigger! growth (\d+)\/10$/,'$1, 더 자랐어요! 성장 $2/10'],[/^achievement: (.+) \+(\d+) xp$/,'업적: $1 +$2 xp'],[/^mission done: (.+) \+(\d+) xp$/,'미션 완료: $1 +$2 xp'],
 [/^feed (.+) (\d+) flakes$/,'먹이 $2개 주기'],[/^wipe (\d+) smudges off the glass$/,'유리 얼룩 $1개 닦기'],[/^let (.+) catch the lure (\d+) times$/,'미끼 $2번 잡게 하기'],
 [/^tap (.+) to say hi (\d+) times$/,'탭해서 인사하기 $2번'],[/^lead (.+) around for (\d+) seconds$/,'$2초 동안 데리고 다니기'],
 [/^double-tap (.+) for a trick, twice$/,'두 번 탭해서 재주 보기 2번'],[/^leave (.+) alone and watch (\d+) stone bumps$/,'혼자 두고 돌 튕기기 $2번 지켜보기'],
@@ -1077,6 +1084,12 @@ function animate(dt){CUR.mouth=damp(CUR.mouth,0,8,dt);CUR.burst=damp(CUR.burst,0
     f.rotation.z=(main?0:-0.35)+0.14*Math.sin(ph+1.2)+S.finLag*0.25;});}
   // eyes: tiny darting movements and a glance toward what the fish is watching
   S.eyeT=(S.eyeT||0)-dt;if(S.eyeT<=0){S.eyeT=rnd(1.4,4);S.eyeDX=rnd(-0.8,0.8);S.eyeDY=rnd(-0.4,0.4);}
+  {const st=growStage()/10;S.grow=S.grow===undefined?st:damp(S.grow,st,1.2,dt);const y=1-S.grow;
+    R.g.scale.setScalar(0.6+0.4*S.grow);
+    if(!R.tails){R.tails=[];R.inner.traverse(o=>{if(o.isMesh&&o.geometry.userData.kind==='tail')R.tails.push(o);});}
+    const ft=0.7+0.3*S.grow;for(const m of R.tails){m.scale.set(ft,0.8+0.2*S.grow,1);m.position.x=-0.66*(1-ft);}
+    for(const p of R.fins)p.scale.setScalar(0.82+0.18*S.grow);
+    for(const o of R.eyes){if(!o.bs)o.bs=o.e.scale.clone();o.e.scale.copy(o.bs).multiplyScalar(1+0.3*y);}}
   R.eyes.forEach(o=>{let tx=S.eyeDX||0,ty=S.eyeDY||0;const tgt=S.look||(toy&&toy.pos)||null;
     if(tgt){const l=o.e.worldToLocal(tgt.clone());const n=Math.hypot(l.x,l.y)||1;tx=l.x/n*(l.z>0?1:0.5);ty=l.y/n*(l.z>0?1:0.5);}
     o.pup.position.x=damp(o.pup.position.x,tx*0.008,9,dt);o.pup.position.y=damp(o.pup.position.y,ty*0.006,9,dt);});
@@ -1183,7 +1196,8 @@ function toast(t,d=3.2){if(S){S.toast=t;S.toastT=d;}updateCap&&updateCap();}
 function addXP(n){if(!PROG||n<=0||PROG.level>=MAXL)return;PROG.exp+=n;PROG.total+=n;
   while(PROG.level<MAXL&&PROG.exp>=need(PROG.level)){PROG.exp-=need(PROG.level);PROG.level++;levelUp();}
   if(PROG.level>=MAXL)PROG.exp=0;updateStats();persist();}
-function levelUp(){toast(fill('{n} reached level ')+PROG.level+'!',3.6);if(S&&R){squish(4);for(let i=0;i<8;i++)bubble(mouthWorld().add(new V3(rnd(-0.15,0.15),rnd(0,0.1),0)),rnd(0.02,0.04));if(S.sayCD<=0)say('!',1.2);snd.blub();}}
+function growStage(){if(!PROG)return 0;const st=Math.min(10,Math.floor(PROG.level/5));if(st>(PROG.grow||0))PROG.grow=st;return PROG.grow||0;}
+function levelUp(){const g0=PROG.grow||0,g1=growStage();if(g1>g0){toast(fill('{n} grew bigger! growth ')+g1+'/10',4.2);if(S&&R)for(let i=0;i<14;i++)bubble(mouthWorld().add(new V3(rnd(-0.25,0.25),rnd(-0.1,0.15),0)),rnd(0.02,0.05));}else toast(fill('{n} reached level ')+PROG.level+'!',3.6);if(S&&R){squish(4);for(let i=0;i<8;i++)bubble(mouthWorld().add(new V3(rnd(-0.15,0.15),rnd(0,0.1),0)),rnd(0.02,0.04));if(S.sayCD<=0)say('!',1.2);snd.blub();}}
 function checkAch(ty,val){for(const a of ACH){if(a.ty!==ty||PROG.ach[a.id])continue;if(val>=a.g){PROG.ach[a.id]=dayKey();addXP(a.xp);toast('achievement: '+a.t+' +'+a.xp+' xp');}}}
 function track(ty,n=1){if(!PROG||!USER)return;ensureDaily();
   PROG.life[ty]=(PROG.life[ty]||0)+n;
@@ -1235,6 +1249,9 @@ $('#loginClose').onclick=()=>{$('#login').hidden=true;};
 $('#who').onclick=()=>{persist();cloudPut();openLogin();};
 /* ---- missions sheet ---- */
 function renderMissions(){if(!PROG)return;ensureDaily();const d=PROG.daily;
+  {const g=growStage(),src=fishThumb(lookOf()),el=$('#growRow');el.textContent='';
+    for(let k=0;k<=10;k++){const sp=document.createElement('span');sp.className=k<=g?(k===g?'now':''):'no';const im=document.createElement('img');im.src=src;im.alt='';
+      im.style.width=Math.round(16+2.2*k)+'px';const t=document.createElement('i');t.style.fontStyle='normal';t.textContent='lv '+k*5;sp.append(im,t);el.appendChild(sp);}}
   $('#misTitle').textContent='level '+PROG.level+(PROG.level>=MAXL?' · max':'');
   $('#misXp').textContent=PROG.level>=MAXL?'Every level reached.':(PROG.exp+' / '+need(PROG.level)+' xp to level '+(PROG.level+1));
   const row=(txt,right,done)=>'<span class="'+(done?'done':'')+'">'+txt+'</span><em>'+right+'</em>';
