@@ -941,22 +941,35 @@ function captureTank(){const w=innerWidth,h=innerHeight,pr=Math.min(2,(devicePix
 function showShot(blob){const u=URL.createObjectURL(blob);$('#shotImg').src=u;$('#shotDl').href=u;$('#tank').hidden=true;$('#shot').hidden=false;}
 $('#captureBtn').onclick=captureTank;$('#shotClose').onclick=()=>{$('#shot').hidden=true;};
 
-/* ---- grey marks wherever you touch ---- */
-const TC=$('#touch'),tx=TC.getContext('2d'),MARKS=[];let tLast=null;
-function sizeTouch(){const pr=Math.min(2,devicePixelRatio||1);TC.width=innerWidth*pr;TC.height=innerHeight*pr;tx.setTransform(pr,0,0,pr,0,0);}
+/* ---- grey marks wherever you touch: a round blob on tap, a teardrop when you drag ---- */
+const TC=$('#touch'),tx=TC.getContext('2d'),LY=document.createElement('canvas'),lx=LY.getContext('2d'),MARKS=new Map(),FADING=[];
+function sizeTouch(){const pr=Math.min(2,devicePixelRatio||1);for(const c of [TC,LY]){c.width=innerWidth*pr;c.height=innerHeight*pr;}lx.setTransform(pr,0,0,pr,0,0);}
 sizeTouch();addEventListener('resize',sizeTouch);
-function mark(x,y,dot){MARKS.push({x,y,px:tLast?tLast.x:x,py:tLast?tLast.y:y,a:1,dot});tLast=dot?{x,y}:(tLast?{x,y}:null);if(MARKS.length>240)MARKS.shift();}
-addEventListener('pointerdown',e=>{tLast=null;mark(e.clientX,e.clientY,true);},true);
-addEventListener('pointermove',e=>{if(e.buttons||e.pointerType!=='mouse'){if(tLast)mark(e.clientX,e.clientY,false);}},true);
-addEventListener('pointerup',()=>{tLast=null;},true);addEventListener('pointercancel',()=>{tLast=null;},true);
-function drawMarks(dt){if(!MARKS.length&&!drawMarks.dirty)return;tx.clearRect(0,0,innerWidth,innerHeight);drawMarks.dirty=MARKS.length>0;
-  tx.lineCap='round';
-  for(let i=MARKS.length-1;i>=0;i--){const m=MARKS[i];m.a-=dt*1.1;if(m.a<=0){MARKS.splice(i,1);continue;}
-    const c='rgba(120,120,120,'+(m.a*0.45).toFixed(3)+')';
-    if(m.dot){tx.fillStyle=c;tx.beginPath();tx.arc(m.x,m.y,9+(1-m.a)*12,0,7);tx.fill();}
-    else{tx.strokeStyle=c;tx.lineWidth=10*m.a+2;tx.beginPath();tx.moveTo(m.px,m.py);tx.lineTo(m.x,m.y);tx.stroke();}}}
-let markClock=performance.now();
-(function markLoop(){requestAnimationFrame(markLoop);const n=performance.now(),dt=Math.min(0.1,(n-markClock)/1000);markClock=n;drawMarks(dt);})();
+const MR=24,TAIL_T=0.3,TAIL_L=MR*5;
+addEventListener('pointerdown',e=>{MARKS.set(e.pointerId,{pts:[{x:e.clientX,y:e.clientY,t:performance.now()}],a:1});},true);
+addEventListener('pointermove',e=>{const m=MARKS.get(e.pointerId);if(!m)return;const l=m.pts[m.pts.length-1];if(Math.hypot(e.clientX-l.x,e.clientY-l.y)>2)m.pts.push({x:e.clientX,y:e.clientY,t:performance.now()});},true);
+function liftMark(e){const m=MARKS.get(e.pointerId);if(!m)return;MARKS.delete(e.pointerId);FADING.push(m);}
+addEventListener('pointerup',liftMark,true);addEventListener('pointercancel',liftMark,true);
+function markShape(m,now){
+  // the tail is the recent path behind the finger; it shrinks back into the blob when the finger rests
+  while(m.pts.length>1&&now-m.pts[0].t>TAIL_T*1000)m.pts.shift();
+  const P=m.pts.slice().reverse(),head=P[0];let S=0;const L=[0];
+  for(let k=1;k<P.length;k++){S+=Math.hypot(P[k].x-P[k-1].x,P[k].y-P[k-1].y);L.push(S);if(S>TAIL_L){P.length=k+1;break;}}
+  lx.beginPath();lx.arc(head.x,head.y,MR,0,Math.PI*2);lx.fill();
+  if(S<MR*0.5)return;
+  // teardrop: sides leave the blob tangentially and run straight-ish to a point
+  const left=[],right=[];
+  for(let k=0;k<P.length;k++){const a=P[Math.max(0,k-1)],b=P[Math.min(P.length-1,k+1)];let dx=b.x-a.x,dy=b.y-a.y;const d=Math.hypot(dx,dy)||1;dx/=d;dy/=d;
+    const u=L[k]/S,w=MR*(1-u)*(1-u*0.15);left.push([P[k].x-dy*w,P[k].y+dx*w]);right.push([P[k].x+dy*w,P[k].y-dx*w]);}
+  lx.beginPath();lx.moveTo(left[0][0],left[0][1]);for(const q of left)lx.lineTo(q[0],q[1]);for(let k=right.length-1;k>=0;k--)lx.lineTo(right[k][0],right[k][1]);lx.closePath();lx.fill();}
+function drawMarks(){const all=[...MARKS.values(),...FADING];if(!all.length&&!drawMarks.dirty)return;drawMarks.dirty=all.length>0;
+  const now=performance.now(),dt=Math.min(0.1,(now-(drawMarks.t||now))/1000);drawMarks.t=now;
+  tx.clearRect(0,0,TC.width,TC.height);if(!all.length)return;
+  for(let k=FADING.length-1;k>=0;k--){FADING[k].a-=dt*2.4;if(FADING[k].a<=0)FADING.splice(k,1);}
+  for(const m of all){if(m.a<=0)continue;lx.clearRect(0,0,innerWidth,innerHeight);lx.fillStyle='#8f8f8f';markShape(m,now);
+    tx.globalAlpha=0.75*Math.min(1,m.a);tx.drawImage(LY,0,0);}
+  tx.globalAlpha=1;}
+(function markLoop(){requestAnimationFrame(markLoop);drawMarks();})();
 
 /* ================= loop ================= */
 let uiT=0,saveT=0,algT=0;const clock=new THREE.Clock();
