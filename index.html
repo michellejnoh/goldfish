@@ -11,8 +11,13 @@
 <title>Goldfish</title>
 <link rel="icon" href="favicon-64.png?v=7" sizes="64x64" type="image/png">
 <link rel="icon" href="favicon-32.png?v=7" sizes="32x32" type="image/png">
-<link rel="apple-touch-icon" href="apple-touch-icon.png?v=7">
-<link rel="manifest" href="manifest.webmanifest?v=7">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+<link rel="apple-touch-icon" sizes="167x167" href="apple-touch-icon-167.png">
+<link rel="apple-touch-icon" sizes="152x152" href="apple-touch-icon-152.png">
+<link rel="apple-touch-icon" sizes="120x120" href="apple-touch-icon-120.png">
+<link rel="apple-touch-icon-precomposed" href="apple-touch-icon.png">
+<link rel="manifest" href="manifest.webmanifest?v=8">
 <style>
 @font-face{font-family:"Archivo Narrow";font-weight:400;font-display:swap;src:url(fonts/archivo-narrow-latin-400-normal.woff2) format("woff2")}
 @font-face{font-family:"Archivo Narrow";font-weight:500;font-display:swap;src:url(fonts/archivo-narrow-latin-500-normal.woff2) format("woff2")}
@@ -186,7 +191,7 @@ function buildFish(){
   const shift=u=>0.035*Math.pow(Math.max(0,u),2)+0.02*Math.pow(Math.max(0,-u),2);
   const topY=x=>{const u=x/L;return Rp(u)*hTop(u)+shift(u);};
   const botY=x=>{const u=x/L;return Rp(u)*hBot(u)-shift(u);};
-  const bg=blob(80,48,(u,y,z)=>{const r=Math.hypot(y,z)||1e-6,dy=y/r,dz=z/r,k=Rp(u);
+  const bg=blob(56,36,(u,y,z)=>{const r=Math.hypot(y,z)||1e-6,dy=y/r,dz=z/r,k=Rp(u);
     return [u*L,dy*k*(dy>0?hTop(u):hBot(u))+shift(u),dz*k*Wd*tW(u)*(1-0.32*dy)];});
   const Wt=C('#FFF3E2');
   tint(bg,(x,y,z)=>{let c=mix(Or,Dp,ss(0.04,0.3,y));c=mix(c,Gd,ss(0.02,-0.12,y)*0.8);c=mix(c,Wt,ss(-0.06,-0.26,y)*0.85);
@@ -220,7 +225,7 @@ function buildFish(){
   const OD=[0.89,0.37,0.11];
   const addFin=(g,wave)=>{const m=new THREE.Mesh(g,MAT_FIN);m.userData.part='tail';m.renderOrder=2;R.inner.add(m);if(wave){g.userData.base0=g.attributes.position.array.slice();R.wave.push(g);}return m;};
   for(const s of [-1,1])// large double fantail
-    addFin(finGeo(30,44,(u,v)=>{const t=v*2-1,at=Math.abs(t),Lv=1.45*(1-0.26*Math.pow(1-at,2))*(1-0.22*Math.pow(at,6))+0.045*Math.sin(t*11+s)+0.02*Math.sin(t*27+s*2);
+    addFin(finGeo(22,30,(u,v)=>{const t=v*2-1,at=Math.abs(t),Lv=1.45*(1-0.26*Math.pow(1-at,2))*(1-0.22*Math.pow(at,6))+0.045*Math.sin(t*11+s)+0.02*Math.sin(t*27+s*2);
       return [-0.66-u*Lv,t*(0.12+0.47*Math.pow(u,0.85))*(1-0.16*Math.pow(u,6))-0.17*u*u+0.03,s*(0.03+0.4*Math.pow(u,1.2))+0.03*u*Math.sin(t*8)];},(u,v)=>finCol(u,v*2-1,0.95,0.6)),true);
   addFin(finGeo(18,14,(u,v)=>{const x0=0.2-u*0.72,b=topY(x0)-0.05,h=0.72*Math.pow(Math.sin(Math.PI*Math.min(1,u*0.9+0.07)),0.75)*(1-0.32*u)+0.012*Math.sin(u*17);
     return [x0-v*h*0.62*(0.55+0.45*v),b+v*h*(1-0.12*v),0,v];},(u,v)=>finCol(v,u*2-1,0.95,0.55,OD),'u'),true);
@@ -285,13 +290,13 @@ function buildEnv(){
   for(let i=0;i<85;i++){const rough=Math.random()<0.3,r=rough?rnd(0.04,0.08):rnd(0.05,0.13),flat=rnd(0.45,0.7);
     const s=new THREE.Mesh(stoneGeo(r,rnd(0,9),rough,flat),MAT);s.position.set(rnd(-span,span),F+r*flat*0.35,rnd(-1.5,0.9));s.rotation.y=rnd(0,6);e.add(s);
     if(!rough&&r<0.1&&Math.abs(s.position.x)<B.x*0.95&&s.position.z>-1.3&&s.position.z<0.6)PEBBLES.push({m:s,rest:F+r*flat*0.35,inPile:false,state:'floor',vy:0});}
-  PILE=new V3((Math.random()<0.5?-1:1)*B.x*0.78,F,-0.95);PILE.n=0;
+  PILE=new V3((Math.random()<0.5?-1:1)*B.x*0.7,F,0.35);PILE.n=0;
   {const bg=stoneGeo(0.1,7,false,1);const cc2=new THREE.Color();tint(bg,()=>cc2.setRGB(0.5,0.5,0.5));const bm=new THREE.Mesh(bg,MAT);bm.position.set(B.x*0.25,F+0.1,-0.1);e.add(bm);BALL={m:bm,pos:bm.position,vel:new V3(),r:0.1,floor:F+0.1};}
   [[-B.x*0.75,-1.0,0.42],[B.x*0.6,-1.2,0.55],[B.x*0.95,-0.7,0.26]].forEach(([x,z,r])=>{const s=new THREE.Mesh(stoneGeo(r,rnd(0,9),false,0.72),MAT);s.position.set(x,F+r*0.3,z);s.rotation.y=rnd(0,6);e.add(s);});
   // ribbon grass (vallisneria) in clusters
   const hmax=Math.min(2.6,B.surf-F-0.3);
   [[-B.x*0.85,-0.8,7],[-B.x*0.45,-1.15,5],[B.x*0.35,-1.05,6],[B.x*0.9,-0.95,8]].forEach(([cx,cz,n])=>{for(let i=0;i<n;i++){
-    const H=rnd(0.55,1)*hmax,w=rnd(0.035,0.06),tw=rnd(-1.5,1.5),lean=rnd(-0.35,0.35),seg=36;
+    const H=rnd(0.55,1)*hmax,w=rnd(0.035,0.06),tw=rnd(-1.5,1.5),lean=rnd(-0.35,0.35),seg=24;
     const g=finGeo(seg,1,(u,v)=>{const a=tw*u,ww=w*(1-0.75*u)*(v*2-1);return [Math.cos(a)*ww+lean*u*u*H*0.3,u*H,Math.sin(a)*ww,u];},()=>[1,1,1,1]);
     g.deleteAttribute('color');const cols=new Float32Array(g.attributes.position.count*3);for(let k=0;k<cols.length/3;k++){const u=g.userData.flex[k],c=lerp(0.58,0.8,u);cols[k*3]=cols[k*3+1]=cols[k*3+2]=c;}
     g.setAttribute('color',new THREE.BufferAttribute(cols,3));g.userData.base0=g.attributes.position.array.slice();
@@ -479,10 +484,24 @@ function tidy(dt){
   if(mouthWorld().distanceTo(top)<0.22){const n=PILE.n++,mr=0.05+0.035*Math.sqrt(n),a=rnd(0,Math.PI*2),rad=mr*Math.sqrt(Math.random()),h=0.03*Math.sqrt(n);
     pb.target=new V3(PILE.x+Math.cos(a)*rad,pb.rest+h*(1-rad/mr),PILE.z+Math.sin(a)*rad*0.7);pb.state='fall';pb.vy=0;pb.inPile=true;S.peb=null;S.tidyLeft--;squish(-1.5);snd.blub();
     if(Math.random()<0.4)say(pick(['mm','o']),1);}}
-function juggle(dt){const b=BALL;if(!b){S.mode='idle';return;}S.bumpCD-=dt;const bp=b.pos;S.faceT=bp;
-  const under=new V3(bp.x,Math.max(B.floor+0.08,bp.y-b.r-0.02),bp.z),t=mouthTarget(under);move(t.x,t.y,t.z,1.5,dt,B.floor+0.06,B.surf);
-  if(S.bumpCD<=0&&mouthWorld().distanceTo(bp)<b.r+0.09&&b.vel.y<=0.2){S.bumpCD=0.6;S.bumps++;
-    b.vel.y=rnd(1.0,1.45);S.foldYV=(S.foldYV||0)-4;b.vel.x+=(bp.x-S.pos.x)*0.25+rnd(-0.12,0.12);b.vel.z+=rnd(-0.1,0.1);squish(-2.5);snd.blub();add('fun',3);
+function juggle(dt){const b=BALL;if(!b){S.mode='idle';return;}S.bumpCD-=dt;const bp=b.pos,m=mouthWorld();S.faceT=bp;
+  const toward=p=>{const t=S.pos.clone().add(p.clone().sub(m));return move(t.x,t.y,t.z,2.6,dt,B.floor+0.03,B.surf);};
+  if(S.jPhase==='balance'){// the stone rests on its nose for a moment, wobbling, then gets tossed
+    b.held=true;S.balT-=dt;b.pos.copy(m).add(new V3(Math.sin(T*5)*0.012,b.r*0.92,0));b.vel.set(0,0,0);b.m.rotation.z+=dt*1.5;
+    S.faceT=new V3(S.pos.x+Math.cos(S.heading)*0.25,S.pos.y+2,S.pos.z-Math.sin(S.heading)*0.25);brake(dt);
+    if(S.balT<=0){b.held=false;b.vel.set(rnd(-0.2,0.2),1.4,rnd(-0.1,0.1));S.foldYV=(S.foldYV||0)-5;squish(-3);snd.blub();S.jPhase='bounce';S.bumpCD=0.8;}
+    if(S.modeT<0){b.held=false;S.mode='idle';}return;}
+  if(S.jPhase==='push'){// nudge it along the floor with the nose
+    const dir=S.pushDir,side=new V3(bp.x-dir*(b.r+0.005),bp.y-0.01,bp.z);toward(side);S.faceT=new V3(bp.x+dir,bp.y,bp.z);
+    if(S.bumpCD<=0&&m.distanceTo(side)<0.045){S.bumpCD=0.7;S.pushes++;b.vel.x+=dir*rnd(0.7,1.0);b.vel.y+=0.12;squish(-1.8);snd.pop();
+      if(Math.abs(bp.x)>B.x*0.75)S.pushDir=-dir;if(S.pushes>=3)S.jPhase='bounce';}
+    if(S.modeT<0){S.mode='idle';S.think=rnd(2,4);}return;}
+  // bounce: nose right under the stone (or scooping it off the floor), tap it up only on contact
+  const resting=bp.y<=b.floor+0.01,sg=Math.sign(S.pos.x-bp.x)||1;
+  const contact=resting?new V3(bp.x+sg*b.r*0.95,bp.y-b.r*0.2,bp.z):new V3(bp.x,bp.y-b.r,bp.z);toward(contact);
+  if(S.bumpCD<=0&&m.distanceTo(contact)<0.065&&b.vel.y<=0.25){S.bumpCD=0.55;S.bumps++;
+    if(S.bumps>=2&&!S.didBalance&&Math.random()<0.5&&bp.y>B.floor+0.4){S.jPhase='balance';S.balT=rnd(2,3.2);S.didBalance=true;return;}
+    b.vel.y=rnd(0.85,1.15);b.vel.x+=resting?-sg*0.25:rnd(-0.15,0.15);b.vel.z+=rnd(-0.08,0.08);S.foldYV=(S.foldYV||0)-4;squish(-2.5);snd.blub();add('fun',3);
     if(S.bumps>=S.bumpGoal){S.mode='idle';S.think=rnd(2,4);if(S.sayCD<=0)say('o',1);}}
   if(S.modeT<0){S.mode='idle';S.think=rnd(2,4);}}
 function auto(dt){const s=pet().s;S.think-=dt;S.modeT-=dt;
@@ -494,7 +513,8 @@ function auto(dt){const s=pet().s;S.think-=dt;S.modeT-=dt;
   if(!S.target)S.target=randPoint();
   if(move(S.target.x,S.target.y,S.target.z,s.energy<15?0.25:0.45,dt)<0.25)S.target=randPoint();
   if(S.think<=0){S.think=rnd(4,8);const r=Math.random();
-    if(T-(S.lastTouch||-99)>12&&s.energy>15&&Math.random()<0.5){if(Math.random()<0.5&&PEBBLES.some(p=>!p.inPile)){S.mode='tidy';S.modeT=45;S.tidyLeft=3+Math.floor(rnd(0,4));S.peb=null;}else{S.mode='juggle';S.modeT=15;S.bumps=0;S.bumpGoal=4+Math.floor(rnd(0,4));S.bumpCD=0;}return;}
+    {const al=T-(S.lastTouch||0);if(al>12&&s.energy>15&&Math.random()<0.5){if(al>60&&Math.random()<0.6&&PEBBLES.some(p=>!p.inPile)){S.mode='tidy';S.modeT=45;S.tidyLeft=3+Math.floor(rnd(0,4));S.peb=null;}
+      else{S.mode='juggle';S.modeT=18;S.bumps=0;S.bumpGoal=4+Math.floor(rnd(0,4));S.bumpCD=0;S.jPhase=Math.random()<0.4?'push':'bounce';S.pushes=0;S.pushDir=Math.sign(-BALL.pos.x)||1;S.didBalance=false;}return;}}
     if(r>=0.22&&r<0.42){S.mode='gaze';S.modeT=rnd(2.5,4.5);S.gazeTurns=2;S.gazeP=gazePoint();}
     else if(r<0.22){S.mode='nibble';S.modeT=6;S.target=new V3(rnd(-B.x,B.x),B.floor+0.12,rnd(-0.5,0.4));}
     else if(s.food<40&&r<0.45)S.target=new V3(rnd(-1,1),B.ymax,0);
@@ -511,7 +531,7 @@ function animate(dt){CUR.mouth=damp(CUR.mouth,0,8,dt);CUR.burst=damp(CUR.burst,0
   {const g=CUR.gulp,yy=(1+(S.sqY||0))*(1+0.12*g),zz=(1+(S.sqZ||0))*(1+0.12*g),f=Math.sqrt(Math.max(0.2,yy*zz));const bx=1/Math.sqrt(1+(S.sqX||0)*0.6);R.inner.scale.set(1,yy/f*bx,zz/f*bx);}
   const sp=S.vel.length(),hs=Math.hypot(S.vel.x,S.vel.z);
   R.g.position.copy(S.pos);
-  {const op=S.pitch;S.pitch=damp(S.pitch,S.faceT?clamp(Math.atan2(S.faceT.y-S.pos.y,Math.hypot(S.faceT.x-S.pos.x,S.faceT.z-S.pos.z)+0.2)*0.7,-0.45,0.45):clamp(Math.atan2(S.vel.y,hs+0.15)*0.8,-0.5,0.5),5,dt);S.pitchV=damp(S.pitchV||0,(S.pitch-op)/Math.max(dt,1e-4),10,dt);}S.rollC=damp(S.rollC,clamp(S.turnRate*0.1,-0.45,0.45),5,dt);
+  {const op=S.pitch;S.pitch=damp(S.pitch,S.faceT?clamp(Math.atan2(S.faceT.y-S.pos.y,Math.hypot(S.faceT.x-S.pos.x,S.faceT.z-S.pos.z)+0.08),-1.0,1.1):clamp(Math.atan2(S.vel.y,hs+0.06),-1.15,1.15),4.5,dt);S.pitchV=damp(S.pitchV||0,(S.pitch-op)/Math.max(dt,1e-4),10,dt);}S.rollC=damp(S.rollC,clamp(S.turnRate*0.1,-0.45,0.45),5,dt);
   {const A=S.amp||0.06,Fl=S.flick||0;R.g.rotation.set(S.rollC+S.roll+A*0.15*Math.sin(S.swimPh+0.6),S.heading-A*0.22*Math.sin(S.swimPh+0.3)+(S.fold||0)*0.15,S.pitch+0.02*Math.sin(T*0.9));}
   S.swimPh+=dt*(4.5+sp*10+CUR.burst*8)*(S.asleep?0.5:1);
   {const tb=clamp(-S.turnRate*0.05,-0.12,0.12);S.finLagV=(S.finLagV||0)+((tb-(S.finLag||0))*60-(S.finLagV||0)*10)*dt;S.finLag=(S.finLag||0)+S.finLagV*dt;
@@ -561,7 +581,8 @@ function animate(dt){CUR.mouth=damp(CUR.mouth,0,8,dt);CUR.burst=damp(CUR.burst,0
 
 /* ================= needs & UI ================= */
 function updateRocks(dt){
-  if(BALL){const b=BALL,p=b.pos,v=b.vel;v.y-=0.9*dt;v.multiplyScalar(Math.exp(-0.7*dt));p.addScaledVector(v,dt);
+  if(BALL&&BALL.held&&S.mode!=='juggle')BALL.held=false;
+  if(BALL&&!BALL.held){const b=BALL,p=b.pos,v=b.vel;v.y-=0.6*dt;v.multiplyScalar(Math.exp(-0.7*dt));p.addScaledVector(v,dt);
     if(p.y<b.floor){p.y=b.floor;v.y=Math.abs(v.y)>0.25?-v.y*0.3:0;v.x*=0.92;v.z*=0.92;}
     if(p.y>B.surf-b.r){p.y=B.surf-b.r;v.y=-Math.abs(v.y)*0.3;}
     if(Math.abs(p.x)>B.x){p.x=Math.sign(p.x)*B.x;v.x*=-0.5;}if(p.z<-1.35||p.z>0.65){p.z=clamp(p.z,-1.35,0.65);v.z*=-0.5;}
@@ -600,7 +621,8 @@ let rsz=0;window.addEventListener('resize',()=>{clearTimeout(rsz);rsz=setTimeout
 
 /* ================= loop ================= */
 let uiT=0,saveT=0,algT=0;const clock=new THREE.Clock();
-function frame(){const dt=Math.min(clock.getDelta(),0.05);T+=dt;
+function frame(){requestAnimationFrame(frame);const nowF=performance.now(),busy=ptr.down||toy||foods.length||T-(S.lastTouch||-9)<4,minF=busy?0:(lightsOff&&S.asleep?62:30);
+  if(nowF-(frame.last||0)<minF)return;frame.last=nowF;const dt=Math.min(clock.getDelta(),0.07);T+=dt;
   needs(dt);behave(dt);physics(dt);animate(dt);updateFoods(dt);updateToy(dt);updateRocks(dt);updateFX(dt);updateSay(dt);
   const lt=lightsOff?0.35:1;hemi.intensity=damp(hemi.intensity,0.85*lt,2,dt);keyL.intensity=damp(keyL.intensity,0.7*lt,2,dt);
   const d=camera.position.distanceTo(camLook);scene.fog.far=damp(scene.fog.far,d+lerp(3,40,pet().s.clean/100),2,dt);
@@ -608,16 +630,16 @@ function frame(){const dt=Math.min(clock.getDelta(),0.05);T+=dt;
   if((algT+=dt)>1){algT=0;syncAlgae();}
   if((uiT+=dt)>0.3){uiT=0;updateStats();updateCap();}
   if((saveT+=dt)>5){saveT=0;persist();}
-  renderer.render(scene,camera);requestAnimationFrame(frame);}
+  renderer.render(scene,camera);}
 setup();
 if(lightsOff){document.body.classList.add('night');S.asleep=true;S.pos.set(-B.x*0.5,B.ymin+0.05,-0.4);S.heading=S.wantH=0;hemi.intensity=0.3;keyL.intensity=0.25;renderUI();}else hint();
 requestAnimationFrame(frame);
 window.addEventListener('pagehide',persist);
 // pick up new versions by itself: check the page now and then, and reload (keeping the fish's state) when it changes
-(function(){let base=null;const hash=t=>{let x=0;for(let i=0;i<t.length;i++)x=(x*31+t.charCodeAt(i))|0;return x;};
-  const check=()=>fetch(location.pathname+'?check='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():null).then(t=>{if(!t)return;const v=hash(t);
+(function(){let base=null;
+  const check=()=>fetch(location.pathname+'?check='+Date.now(),{method:'HEAD',cache:'no-store'}).then(r=>{if(!r.ok)return;const v=r.headers.get('etag')||r.headers.get('last-modified');if(!v)return;
     if(base===null){base=v;return;}if(v===base)return;const go=()=>{if(ptr.down){setTimeout(go,1000);return;}persist();location.reload();};go();}).catch(()=>{});
-  check();setInterval(check,60000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)check();});})();
+  check();setInterval(check,300000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)check();});})();
 document.addEventListener('visibilitychange',()=>{if(document.hidden)persist();clock.getDelta();});
 })();
 </script>
