@@ -221,7 +221,7 @@ function buildFish(){
   const addFin=(g,wave)=>{const m=new THREE.Mesh(g,MAT_FIN);m.userData.part='tail';m.renderOrder=2;R.inner.add(m);if(wave){g.userData.base0=g.attributes.position.array.slice();R.wave.push(g);}return m;};
   for(const s of [-1,1])// large double fantail
     addFin(finGeo(30,44,(u,v)=>{const t=v*2-1,at=Math.abs(t),Lv=1.45*(1-0.26*Math.pow(1-at,2))*(1-0.22*Math.pow(at,6))+0.045*Math.sin(t*11+s)+0.02*Math.sin(t*27+s*2);
-      return [-0.66-u*Lv,t*(0.13+0.72*Math.pow(u,0.85))*(1-0.16*Math.pow(u,6))-0.26*u*u+0.03,s*(0.03+0.4*Math.pow(u,1.2))+0.03*u*Math.sin(t*8)];},(u,v)=>finCol(u,v*2-1,0.95,0.6)),true);
+      return [-0.66-u*Lv,t*(0.12+0.47*Math.pow(u,0.85))*(1-0.16*Math.pow(u,6))-0.17*u*u+0.03,s*(0.03+0.4*Math.pow(u,1.2))+0.03*u*Math.sin(t*8)];},(u,v)=>finCol(u,v*2-1,0.95,0.6)),true);
   addFin(finGeo(18,14,(u,v)=>{const x0=0.2-u*0.72,b=topY(x0)-0.05,h=0.72*Math.pow(Math.sin(Math.PI*Math.min(1,u*0.9+0.07)),0.75)*(1-0.32*u)+0.012*Math.sin(u*17);
     return [x0-v*h*0.62*(0.55+0.45*v),b+v*h*(1-0.12*v),0,v];},(u,v)=>finCol(v,u*2-1,0.95,0.55,OD),'u'),true);
   for(const s of [-1,1])addFin(finGeo(10,10,(u,v)=>{const x0=-0.34-u*0.26,b=-botY(x0)+0.05,h=0.44*Math.pow(Math.sin(Math.PI*Math.min(1,u*0.88+0.08)),0.7)*(1-0.25*u);
@@ -237,16 +237,17 @@ function buildFish(){
     g.userData.kind=mnx<-1.1?'tail':mxy>0.5?'dorsal':'fin';});
   return R;
 }
-function fishWave(ph,amp,bend,t,spd,lag,lagY,arch,jel){arch=arch||0;jel=jel||0;const fa=0.08+amp*1.0,slow=1-clamp(spd/0.9);
+function fishWave(ph,amp,bend,t,spd,lag,lagY,arch,jel,fold){arch=arch||0;jel=jel||0;fold=fold||0;const XH=0.02;
+  const hinge=(X,z)=>{const a=fold*ss(0.14,-0.22,X);if(!a)return [X,z];const c=Math.cos(a),s=Math.sin(a),dx=X-XH;return [XH+dx*c-z*s,dx*s+z*c];};const fa=0.08+amp*1.0,slow=1-clamp(spd/0.9);
   for(const g of R.wave){const p=g.attributes.position,b=g.userData.base0,f=g.userData.flex,kind=g.userData.kind;
     for(let i=0;i<p.count;i++){const x=b[i*3],y0=b[i*3+1],k=clamp((0.3-x)/2.2),y=y0*(1+jel*Math.sin(x*4.5+t*9)*clamp((0.25-x)/0.6)),env=0.9*Math.pow(k,1.3);let z=b[i*3+2]+amp*env*Math.sin(ph+x*3.6)+bend*k*k*2;
-      if(!f){p.setXYZ(i,x,y+arch*k*k,z*(1+0.018*Math.sin(t*2.1)));continue;}
+      if(!f){const hz=hinge(x,z*(1+0.018*Math.sin(t*2.1)));p.setXYZ(i,hz[0],y+arch*k*k,hz[1]);continue;}
       const q=f[i],q2=q*q;let X=x,Y=y+arch*k*k;
       z+=q*fa*Math.sin(t*2.3+ph*0.3-q*3.4+y*2.5)+q2*0.06*Math.sin(t*4.1-q*5.5+y*5)+q2*0.025*Math.sin(t*7.9-q*9+y*11)+lag*q2*1.4+(kind==='dorsal'?q2*0.07*Math.sin(t*3.2+ph*0.5-q*3+x*4):0);
-      if(kind==='tail'){Y=Y*(1+0.26*q*Math.sin(ph+0.8))+q2*(-0.07*slow+lagY*0.6)+q*0.022*Math.sin(t*3.3-q*4.5+z*6);X+=q2*0.05*(1-slow);z*=1-0.25*(1-slow)*q;}
+      if(kind==='tail'){Y=Y*(1+0.18*q*Math.sin(ph+0.8))+q2*(-0.07*slow+lagY*0.6)+q*0.022*Math.sin(t*3.3-q*4.5+z*6);X+=q2*0.05*(1-slow);z*=1-0.25*(1-slow)*q;}
       else if(kind==='dorsal'){Y+=q*0.06*Math.sin(ph*0.5+1.1);X-=q2*(0.04+0.08*(1-slow))+q2*0.04*Math.sin(t*1.9+x*5);Y-=q2*0.03*(0.5+0.5*Math.sin(t*1.4+x*3));}
       else{Y-=q2*0.03*slow;X-=q2*0.03*(1-slow);}
-      p.setXYZ(i,X,Y,z);}
+      {const hz=hinge(X,z);p.setXYZ(i,hz[0],Y,hz[1]);}}
     p.needsUpdate=true;}}
 
 /* ================= the tank (monotone) ================= */
@@ -408,7 +409,7 @@ function tap(){
 
 /* ================= reactions ================= */
 const RX={hello:[2.4,1],trick:[1.15,1],grumpy:[1.3,0],refuse:[1.3,1],wake:[1.2,1],caught:[0.8,0]};
-function squish(v){S.sqV=(S.sqV||0)+v;}
+function squish(v){S.sqXV=(S.sqXV||0)+v;S.sqYV=(S.sqYV||0)-v*0.85;S.sqZV=(S.sqZV||0)-v*0.6;}
 function react(type){const d=RX[type];S.react={type,t:0,dur:d[0],lock:!!d[1]};squish({hello:-4.5,trick:5,grumpy:-3,refuse:-2,wake:3,caught:-4}[type]||0);
   if(type==='hello'){say('blub');snd.blub();add('fun',3);}
   else if(type==='trick'){add('fun',4);talk();S.vel.y=1.4;for(let i=0;i<6;i++)bubble(mouthWorld().add(new V3(rnd(-0.15,0.15),0,0)));}
@@ -425,7 +426,7 @@ function doReact(dt){const r=S.react;r.t+=dt;const u=clamp(r.t/r.dur);
   if(r.t>=r.dur){if(r.type==='trick')S.roll=0;S.react=null;}}
 
 /* ================= behaviour ================= */
-function behave(dt){const s=pet().s;
+function behave(dt){const s=pet().s;S.faceT=null;
   S.look=(T-ptr.seen<2.5&&ptr.world)?ptr.world:null;
   if(S.react&&S.react.lock){doReact(dt);return;}
   if(lightsOff){sleepB(dt);if(S.react)doReact(dt);return;}
@@ -433,7 +434,7 @@ function behave(dt){const s=pet().s;
   if(S.react)doReact(dt);
   if(toy){if(s.energy>4){chase(dt);return;}tired(dt);return;}
   const f=nearestFood();if(f){if(s.food<97){eat(f,dt);return;}if(!f.refused){f.refused=true;react('refuse');return;}}
-  if(ptr.down&&tool==='hand'&&ptr.moved>10&&ptr.world){const p=standPoint(ptr.world,R.reach);move(p.x,p.y,p.z,1.8,dt);add('fun',dt*0.6);if(Math.random()<dt*1.5)bubble(mouthWorld());return;}
+  if(ptr.down&&tool==='hand'&&ptr.moved>10&&ptr.world){S.faceT=ptr.world;const p=standPoint(ptr.world,R.reach);move(p.x,p.y,p.z,1.8,dt);add('fun',dt*0.6);if(Math.random()<dt*1.5)bubble(mouthWorld());return;}
   if(S.call){const d=move(S.call.x,S.call.y,S.call.z,1.6,dt);if(d<0.15){S.call=null;S.think=rnd(2,4);talk();}return;}
   auto(dt);}
 function sleepB(dt){const spot=new V3(-B.x*0.5,B.ymin+0.05,-0.4);
@@ -455,7 +456,7 @@ const CRUMBM=[0xe0502a,0xf2a33a,0xe8c64a].map(c=>flatMat({color:c,roughness:0.9}
 function crumb(p){const o=spawn({mesh:new THREE.Mesh(BUB,pick(CRUMBM)),vel:new V3(rnd(-0.25,0.25),rnd(-0.05,0.2),rnd(-0.15,0.15)),life:rnd(0.7,1.1),s0:rnd(0.008,0.014)});o.mesh.position.copy(p);}
 function chase(dt){S.catchCD-=dt;S.playCap=0.6;if(!toy.active){brake(dt);return;}const tp=toy.pos,s=pet().s;
   if(S.catchCD<=0&&mouthWorld().distanceTo(tp)<0.24){S.catchCD=1.2;add('fun',6);react('caught');for(let i=0;i<3;i++)bubble(mouthWorld(),0.025);}
-  const t=mouthTarget(tp),sp=s.energy<15?1.1:2.4,d=move(t.x,t.y,t.z,sp,dt);if(d<0.5)faceToward(tp);
+  const t=mouthTarget(tp),sp=s.energy<15?1.1:2.4,d=move(t.x,t.y,t.z,sp,dt);if(tp.distanceTo(S.pos)<1.2)S.faceT=tp;else if(d<0.5)faceToward(tp);
   add('fun',dt*0.3);add('energy',-dt*0.05);}
 // too tired to play: watch the lure, blub, and say so
 function tired(dt){brake(dt);S.tiredCap=0.6;if(toy.active)faceToward(toy.pos);if(Math.random()<dt*0.4&&S.sayCD<=0){S.sayCD=1.5;say('…',1.2);}}
@@ -474,15 +475,15 @@ function auto(dt){const s=pet().s;S.think-=dt;S.modeT-=dt;
 /* ================= physics & animation ================= */
 function physics(dt){S.pos.addScaledVector(S.vel,dt);
   S.pos.x=clamp(S.pos.x,-B.x-0.1,B.x+0.1);S.pos.y=clamp(S.pos.y,B.floor+0.06,B.surf+0.02);S.pos.z=clamp(S.pos.z,-0.85,0.75);
-  const hs=Math.hypot(S.vel.x,S.vel.z);if(hs>0.05)S.wantH=Math.atan2(-S.vel.z,S.vel.x);
+  const hs=Math.hypot(S.vel.x,S.vel.z);if(S.faceT){const fx=S.faceT.x-S.pos.x,fz=S.faceT.z-S.pos.z;if(Math.hypot(fx,fz)>0.05)S.wantH=Math.atan2(-fz,fx);}else if(hs>0.05)S.wantH=Math.atan2(-S.vel.z,S.vel.x);
   const prev=S.heading;S.heading+=angDiff(S.heading,S.wantH)*(1-Math.exp(-((S.flick||0)>0.25?11:4)*dt));
   S.turnRate=damp(S.turnRate,angDiff(prev,S.heading)/Math.max(dt,1e-4),6,dt);S.sayCD-=dt;}
 function animate(dt){CUR.mouth=damp(CUR.mouth,0,8,dt);CUR.burst=damp(CUR.burst,0,4,dt);CUR.gulp=damp(CUR.gulp,0,6,dt);S.eatCap-=dt;S.seeCap-=dt;S.tiredCap=(S.tiredCap||0)-dt;S.playCap=(S.playCap||0)-dt;
-  {const g=CUR.gulp,q=S.sq||0,inv=1/Math.sqrt(1+q),w=0.06*Math.sin(T*11)*Math.min(1,Math.abs(S.sqV||0)*0.3);R.inner.scale.set((1+q)*(1-0.1*g),inv*(1+0.2*g)*(1+w),inv*(1+0.24*g)*(1-w));}
+  {const g=CUR.gulp;R.inner.scale.set((1+(S.sqX||0))*(1-0.1*g),(1+(S.sqY||0))*(1+0.2*g),(1+(S.sqZ||0))*(1+0.24*g));}
   const sp=S.vel.length(),hs=Math.hypot(S.vel.x,S.vel.z);
   R.g.position.copy(S.pos);
-  S.pitch=damp(S.pitch,clamp(Math.atan2(S.vel.y,hs+0.15)*0.8,-0.5,0.5),5,dt);S.rollC=damp(S.rollC,clamp(S.turnRate*0.1,-0.45,0.45),5,dt);
-  {const A=S.amp||0.06,Fl=S.flick||0;R.g.rotation.set(S.rollC+S.roll+A*0.15*Math.sin(S.swimPh+0.6),S.heading-A*0.22*Math.sin(S.swimPh+0.3)-(S.flickDir||0)*0.25*Fl,S.pitch+0.02*Math.sin(T*0.9));}
+  S.pitch=damp(S.pitch,S.faceT?clamp(Math.atan2(S.faceT.y-S.pos.y,Math.hypot(S.faceT.x-S.pos.x,S.faceT.z-S.pos.z)+0.2)*0.7,-0.45,0.45):clamp(Math.atan2(S.vel.y,hs+0.15)*0.8,-0.5,0.5),5,dt);S.rollC=damp(S.rollC,clamp(S.turnRate*0.1,-0.45,0.45),5,dt);
+  {const A=S.amp||0.06,Fl=S.flick||0;R.g.rotation.set(S.rollC+S.roll+A*0.15*Math.sin(S.swimPh+0.6),S.heading-A*0.22*Math.sin(S.swimPh+0.3)+(S.fold||0)*0.15,S.pitch+0.02*Math.sin(T*0.9));}
   S.swimPh+=dt*(4.5+sp*10+CUR.burst*8)*(S.asleep?0.5:1);
   {const tb=clamp(-S.turnRate*0.05,-0.12,0.12);S.finLagV=(S.finLagV||0)+((tb-(S.finLag||0))*60-(S.finLagV||0)*10)*dt;S.finLag=(S.finLag||0)+S.finLagV*dt;
    S.finLagYV=(S.finLagYV||0)+((clamp(-S.vel.y*0.08,-0.08,0.08)-(S.finLagY||0))*22-(S.finLagYV||0)*4.5)*dt;S.finLagY=(S.finLagY||0)+S.finLagYV*dt;}
@@ -495,10 +496,14 @@ function animate(dt){CUR.mouth=damp(CUR.mouth,0,8,dt);CUR.burst=damp(CUR.burst,0
   const pulse=sp>0.5||S.asleep?1:0.4+0.6*ss(-0.4,0.5,Math.sin(T*0.85)+0.4*Math.sin(T*2.3));
   S.amp=damp(S.amp||0.08,(0.08+Math.min(0.14,sp*0.1)+CUR.burst*0.1)*pulse*(S.asleep?0.5:1),5,dt);
   // squash & stretch: a jelly spring that stretches with speed and squishes on stops, turns and pokes
-  {const tgt=clamp(sp*0.28,0,0.36)-clamp(Math.abs(S.turnRate)*0.05,0,0.2);S.sqV=(S.sqV||0)+((tgt-(S.sq||0))*95-(S.sqV||0)*6.5)*dt;S.sq=clamp((S.sq||0)+S.sqV*dt,-0.42,0.6);}
+  {const ft=clamp(S.turnRate*0.45,-1.1,1.1)+curl*2.2;S.foldV=(S.foldV||0)+((ft-(S.fold||0))*60-(S.foldV||0)*7)*dt;S.fold=clamp((S.fold||0)+S.foldV*dt,-1.3,1.3);
+   const af=Math.abs(S.fold),spr=(v,vv,tg,k,c)=>{vv+=((tg-v)*k-vv*c)*dt;return [clamp(v+vv*dt,-0.45,0.6),vv];};
+   let r=spr(S.sqX||0,S.sqXV||0,clamp(sp*0.3,0,0.38)-af*0.3,95,6.5);S.sqX=r[0];S.sqXV=r[1];
+   r=spr(S.sqY||0,S.sqYV||0,af*0.2+clamp(S.vel.y*0.25,-0.15,0.2),120,6);S.sqY=r[0];S.sqYV=r[1];
+   r=spr(S.sqZ||0,S.sqZV||0,af*0.28-clamp(sp*0.12,0,0.15),80,5.5);S.sqZ=r[0];S.sqZV=r[1];}
   const sway=0.025*Math.sin(T*0.55)+0.015*Math.sin(T*1.3+1);
   S.arch=damp(S.arch||0,clamp(S.vel.y*0.12,-0.08,0.08),4,dt);
-  fishWave(S.swimPh,S.amp,clamp(-S.turnRate*0.05,-0.14,0.14)+curl*1.4+sway,T,sp,S.finLag*0.5,S.finLagY,S.arch,clamp((S.sqV||0)*0.035,-0.22,0.22));
+  fishWave(S.swimPh,S.amp,clamp(-S.turnRate*0.02,-0.06,0.06)+sway,T,sp,S.finLag*0.5,S.finLagY,S.arch,clamp((S.sqYV||0)*0.03,-0.2,0.2),S.fold||0);
   {const w=sp<0.3?7.5:3.6;R.fins.forEach((f,i)=>{const s=f.userData.s,ph=T*w+i*1.3;const main=i<2;
     f.rotation.y=s*((main?0.36:0.22)+(main?0.3:0.16)*Math.sin(ph)+0.06*Math.sin(ph*2.3+1))*(1+0.25*(1-clamp(sp/0.9)));
     f.rotation.z=(main?0:-0.35)+0.14*Math.sin(ph+1.2)+S.finLag*0.25;});}
