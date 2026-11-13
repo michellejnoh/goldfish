@@ -112,7 +112,7 @@ body.editing .ui,body.editing #say{display:none}
     <input id="name" maxlength="14" aria-label="Fish name" spellcheck="false" autocomplete="off" readonly>
     <div class="stats" id="stats"></div>
   </div>
-  <div class="side"><button class="mini" id="who">keeper</button><button class="mini" id="misBtn">missions</button><button class="mini" id="snd">sound on</button><button class="icon" id="editBtn" aria-label="Edit your tank"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20l4.2-1 10.4-10.4a2 2 0 0 0 0-2.8l-.4-.4a2 2 0 0 0-2.8 0L5 15.8 4 20z"/><path d="M13.5 6.5l4 4"/></svg></button></div>
+  <div class="side"><button class="mini" id="who">keeper</button><button class="mini" id="misBtn">missions</button><button class="mini" id="snd">sound on</button><button class="icon" id="editBtn" aria-label="Edit your tank"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20l4.2-1 10.4-10.4a2 2 0 0 0 0-2.8l-.4-.4a2 2 0 0 0-2.8 0L5 15.8 4 20z"/><path d="M13.5 6.5l4 4"/></svg></button><button class="icon" id="captureBtn" aria-label="Capture the tank"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8.5h3.2L8.8 6h6.4l1.6 2.5H20v10H4z"/><circle cx="12" cy="13.2" r="3.3"/></svg></button></div>
 </div>
 <div class="ui bottom">
   <p id="cap" aria-live="polite"></p>
@@ -137,7 +137,7 @@ body.editing .ui,body.editing #say{display:none}
 </div>
 <div class="sheet" id="tank" hidden>
   <div class="card">
-    <div class="row2"><h2>edit your tank</h2><span style="display:flex"><button type="button" class="icon" id="captureBtn" aria-label="Capture the tank"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8.5h3.2L8.8 6h6.4l1.6 2.5H20v10H4z"/><circle cx="12" cy="13.2" r="3.3"/></svg></button><button type="button" class="icon" id="shopBtn" aria-label="Shop"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 8h14l-1.2 12H6.2L5 8z"/><path d="M9 8V6.5a3 3 0 0 1 6 0V8"/></svg></button></span></div>
+    <div class="row2"><h2>edit your tank</h2><span style="display:flex"><button type="button" class="icon" id="shopBtn" aria-label="Shop"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 8h14l-1.2 12H6.2L5 8z"/><path d="M9 8V6.5a3 3 0 0 1 6 0V8"/></svg></button></span></div>
     <p class="small">water</p>
     <div class="row2" id="waterRow"><button type="button" class="link" data-w="clear">clear</button><button type="button" class="link" data-w="blue">blue</button><button type="button" class="link" data-w="green">green</button></div>
     <p class="small">pebbles</p>
