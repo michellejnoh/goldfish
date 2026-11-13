@@ -59,6 +59,21 @@ body.night{--ink:#ededed;--dim:#7d7d7d;--soft:#b3b3b3;--track:#4a4a4a}
 body.night #say{color:#e0e0e0}
 @media (min-width:700px){#name{font-size:46px}}
 [hidden]{display:none!important}
+.side{display:flex;flex-direction:column;align-items:flex-end;gap:0}
+.sheet{position:fixed;inset:0;z-index:6;background:rgba(255,255,255,.96);display:flex;align-items:center;justify-content:center;
+  padding-block:24px;padding-left:max(28px,env(safe-area-inset-left,0px));padding-right:max(28px,env(safe-area-inset-right,0px));text-shadow:0 0 1.2px rgba(0,0,0,.28);color:#111}
+.card{max-width:340px;width:100%;display:flex;flex-direction:column;gap:14px;max-height:100%;overflow-y:auto}
+.card h2{font:500 32px/1.05 var(--font);margin:0;letter-spacing:-.01em}
+.card p{margin:0;font-size:16px;color:#6b6b6b;line-height:1.4}
+.card input{font:500 24px var(--font);border:0;border-bottom:1px solid #111;border-radius:0;padding:6px 0;background:transparent;color:#111;-webkit-user-select:text;user-select:text;width:100%}
+.card input:focus{outline:none}
+.row2{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.go{font-size:24px;color:#111;padding:6px 0}
+.link{font-size:16px;color:#6b6b6b;text-decoration:underline;text-underline-offset:4px;padding:6px 0}
+.mis{display:grid;grid-template-columns:1fr auto;gap:4px 12px;align-items:baseline;font-size:17px}
+.mis span{color:#111}.mis em{font-style:normal;color:#6b6b6b;font-size:15px;font-variant-numeric:tabular-nums;text-align:right}
+.mis .done{color:#a3a3a3;text-decoration:line-through}
+.small{font-size:14px;color:#8a8a8a}
 </style>
 </head>
 <body>
@@ -71,13 +86,35 @@ body.night #say{color:#e0e0e0}
     <input id="name" maxlength="14" aria-label="Fish name" spellcheck="false" autocomplete="off">
     <div class="stats" id="stats"></div>
   </div>
-  <button class="mini" id="snd">sound on</button>
+  <div class="side"><button class="mini" id="who">keeper</button><button class="mini" id="misBtn">missions</button><button class="mini" id="snd">sound on</button></div>
 </div>
 <div class="ui bottom">
   <p id="cap" aria-live="polite"></p>
   <nav class="tools" id="tools" aria-label="Tools"></nav>
 </div>
 
+<div class="sheet" id="login" hidden>
+  <form class="card" id="loginForm">
+    <h2>who's keeping this fish?</h2>
+    <p id="loginNote">Pick a username. Your fish, its level and missions are saved under it.</p>
+    <input id="loginName" maxlength="16" autocomplete="off" autocapitalize="none" spellcheck="false" aria-label="Username" placeholder="username">
+    <p class="small" id="loginMsg">letters, numbers and _ · 2 to 16 characters</p>
+    <div class="row2"><button type="button" class="link" id="loginBack" hidden>pick another</button><span></span><button type="submit" class="go" id="loginGo">start</button></div>
+  </form>
+</div>
+<div class="sheet" id="missions" hidden>
+  <div class="card">
+    <h2 id="misTitle">level 1</h2>
+    <p id="misXp"></p>
+    <p class="small">today</p>
+    <div class="mis" id="misList"></div>
+    <p class="small" id="misStreak"></p>
+    <p class="small">achievements</p>
+    <div class="mis" id="achList"></div>
+    <div class="row2"><span></span><button type="button" class="go" id="misClose">close</button></div>
+  </div>
+</div>
+<script src="firebase-config.js"></script>
 <script src="vendor/three.min.js"></script>
 <script>
 (function(){
@@ -102,16 +139,12 @@ const STATS=[['food','full'],['clean','clean'],['energy','energy'],['fun','fun']
 const RATE={food:1.3,clean:0.6,energy:0.7,fun:1.0}; // per minute
 
 /* ================= save ================= */
-const KEY='polygon-pets-v1';
-let save=null;try{save=JSON.parse(localStorage.getItem(KEY))}catch(e){}
-if(!save||!save.pets)save={pets:{}};
-for(const k in save.pets)if(k!=='fish')delete save.pets[k];
-if(!save.pets.fish)save.pets.fish={name:DEF,s:{food:70,clean:80,energy:75,fun:60},born:Date.now(),last:Date.now()};
-{const p=save.pets.fish,away=Math.min((Date.now()-p.last)/1000,48*3600);for(const s in RATE)p.s[s]=clamp(p.s[s]-RATE[s]*away/60,0,100);
-  if(save.night)p.s.energy=clamp(p.s.energy+RATE.energy*away/60+away*1.2,0,100);}
-save.cur='fish';if(save.sound===undefined)save.sound=true;
-function persist(){try{localStorage.setItem(KEY,JSON.stringify(save))}catch(e){}}
-persist();
+function normalizeSave(sv){if(!sv||!sv.pets)sv={pets:{}};for(const k in sv.pets)if(k!=='fish')delete sv.pets[k];
+  if(!sv.pets.fish)sv.pets.fish={name:DEF,s:{food:70,clean:80,energy:75,fun:60},born:Date.now(),last:Date.now()};
+  const p=sv.pets.fish,away=Math.min((Date.now()-p.last)/1000,48*3600);for(const s in RATE)p.s[s]=clamp(p.s[s]-RATE[s]*away/60,0,100);
+  if(sv.night)p.s.energy=clamp(p.s.energy+RATE.energy*away/60+away*1.2,0,100);p.last=Date.now();
+  sv.cur='fish';if(sv.sound===undefined)sv.sound=true;return sv;}
+let save=normalizeSave(null);
 const pet=()=>save.pets.fish;
 const fill=t=>t.replace(/\{n\}/g,pet().name);
 const add=(k,v)=>{const s=pet().s;s[k]=clamp(s[k]+v,0,100);};
@@ -396,7 +429,7 @@ function updateToy(dt){if(!toy)return;
 /* ================= wiping the glass ================= */
 function wipe(px){if(lightsOff)return;const h=ray.intersectObject(ALG.mesh)[0];if(!h)return;let hit=false;
   for(const sm of ALG.sm.slice()){const dx=(h.uv.x-sm.u)*ALG.Wg,dy=(h.uv.y-sm.v)*ALG.Hg;if(Math.hypot(dx,dy)<sm.r+0.12){sm.a-=px*0.012;hit=true;
-    if(sm.a<=0){ALG.sm.splice(ALG.sm.indexOf(sm),1);add('clean',8);}}}
+    if(sm.a<=0){ALG.sm.splice(ALG.sm.indexOf(sm),1);add('clean',8);track('smudge');}}}
   if(hit){drawAlgae();if(Math.random()<0.15)snd.wipe();}add('clean',px*0.003);}
 
 /* ================= pointer ================= */
@@ -424,12 +457,12 @@ function tap(){
 const RX={hello:[3,1],trick:[1.15,1],grumpy:[1.3,0],refuse:[1.3,1],wake:[1.2,1],caught:[0.8,0]};
 function squish(v){S.foldYV=(S.foldYV||0)+v*0.7;S.sqYV=(S.sqYV||0)-v*0.85;S.sqZV=(S.sqZV||0)-v*0.6;}
 function react(type){const d=RX[type];S.react={type,t:0,dur:d[0],lock:!!d[1]};squish({hello:-4.5,trick:5,grumpy:-3,refuse:-2,wake:3,caught:-4}[type]||0);
-  if(type==='hello'){say('blub');snd.blub();add('fun',3);}
-  else if(type==='trick'){add('fun',4);talk();S.vel.y=1.4;for(let i=0;i<6;i++)bubble(mouthWorld().add(new V3(rnd(-0.15,0.15),0,0)));}
+  if(type==='hello'){track('hello');say('blub');snd.blub();add('fun',3);}
+  else if(type==='trick'){track('trick');add('fun',4);talk();S.vel.y=1.4;for(let i=0;i<6;i++)bubble(mouthWorld().add(new V3(rnd(-0.15,0.15),0,0)));}
   else if(type==='grumpy'){say('blub');add('fun',-2);}
   else if(type==='refuse')say('full');
   else if(type==='wake')say('…');
-  else if(type==='caught')talk();}
+  else if(type==='caught'){track('catch');talk();}}
 function doReact(dt){const r=S.react;r.t+=dt;const u=clamp(r.t/r.dur);
   if(r.type==='hello'){S.faceT=camera.position;const d=move(clamp(S.pos.x,-1,1),clamp(S.pos.y,B.ymin+0.4,B.ymax-0.4),0.6,1.1,dt);
     if(d<0.25){CUR.mouth=0.35*Math.max(0,Math.sin(r.t*8));if(Math.random()<dt*3)bubble(mouthWorld());}}
@@ -447,7 +480,7 @@ function behave(dt){const s=pet().s;S.faceT=null;
   if(S.react)doReact(dt);
   if(toy){if(s.energy>4){chase(dt);return;}tired(dt);return;}
   const f=nearestFood();if(f){if(s.food<97){eat(f,dt);return;}if(!f.refused){f.refused=true;react('refuse');return;}}
-  if(ptr.down&&tool==='hand'&&ptr.moved>10&&ptr.world){S.faceT=ptr.world;const p=standPoint(ptr.world,R.reach);move(p.x,p.y,p.z,1.8,dt);add('fun',dt*0.6);if(Math.random()<dt*1.5)bubble(mouthWorld());return;}
+  if(ptr.down&&tool==='hand'&&ptr.moved>10&&ptr.world){S.faceT=ptr.world;track('lead',dt);const p=standPoint(ptr.world,R.reach);move(p.x,p.y,p.z,1.8,dt);add('fun',dt*0.6);if(Math.random()<dt*1.5)bubble(mouthWorld());return;}
   if(S.call){const d=move(S.call.x,S.call.y,S.call.z,1.6,dt);if(d<0.15){S.call=null;S.think=rnd(2,4);talk();}return;}
   auto(dt);}
 function sleepB(dt){const spot=new V3(-B.x*0.5,B.ymin+0.05,-0.4);
@@ -462,7 +495,7 @@ function eat(f,dt){S.seeCap=0.6;
   if(dm<0.2){f.eating=true;f.t=0;CUR.mouth=0.9;snd.pop();return;}
   const t=mouthTarget(f.pos),d=move(t.x,t.y,t.z,1.5,dt,B.floor+0.1,B.surf);
   if(d<0.45)faceToward(f.pos);}
-function gulp(f){squish(-3.5);removeFood(f);add('food',4);S.eatCap=2.2;CUR.gulp=1;CUR.mouth=0.6;snd.blub();
+function gulp(f){track('eat');squish(-3.5);removeFood(f);add('food',4);S.eatCap=2.2;CUR.gulp=1;CUR.mouth=0.6;snd.blub();
   if(S.sayCD<=0){S.sayCD=0.6;say(pick(['nom','nom nom','munch','mm']),1.1);}
   const m=mouthWorld();for(let i=0;i<4;i++)crumb(m);bubble(m,0.025);}
 const CRUMBM=[0xe0502a,0xf2a33a,0xe8c64a].map(c=>flatMat({color:c,roughness:0.9}));
@@ -482,7 +515,7 @@ function tidy(dt){
     if(S.modeT<0){S.peb=null;S.mode='idle';}return;}
   const top=new V3(PILE.x,B.floor+0.35,PILE.z),t=mouthTarget(top);const d=move(t.x,t.y,t.z,0.8,dt,B.floor+0.06,B.surf);if(d<0.6)S.faceT=top;
   if(mouthWorld().distanceTo(top)<0.22){const n=PILE.n++,mr=0.05+0.035*Math.sqrt(n),a=rnd(0,Math.PI*2),rad=mr*Math.sqrt(Math.random()),h=0.03*Math.sqrt(n);
-    pb.target=new V3(PILE.x+Math.cos(a)*rad,pb.rest+h*(1-rad/mr),PILE.z+Math.sin(a)*rad*0.7);pb.state='fall';pb.vy=0;pb.inPile=true;S.peb=null;S.tidyLeft--;squish(-1.5);snd.blub();
+    pb.target=new V3(PILE.x+Math.cos(a)*rad,pb.rest+h*(1-rad/mr),PILE.z+Math.sin(a)*rad*0.7);pb.state='fall';pb.vy=0;pb.inPile=true;S.peb=null;S.tidyLeft--;if(!document.hidden)track('pebble');squish(-1.5);snd.blub();
     if(Math.random()<0.4)say(pick(['mm','o']),1);}}
 function juggle(dt){const b=BALL;if(!b){S.mode='idle';return;}S.bumpCD-=dt;const bp=b.pos,m=mouthWorld();S.faceT=bp;
   const toward=p=>{const t=S.pos.clone().add(p.clone().sub(m));return move(t.x,t.y,t.z,2.6,dt,B.floor+0.03,B.surf);};
@@ -499,7 +532,7 @@ function juggle(dt){const b=BALL;if(!b){S.mode='idle';return;}S.bumpCD-=dt;const
   // bounce: nose right under the stone (or scooping it off the floor), tap it up only on contact
   const resting=bp.y<=b.floor+0.01,sg=Math.sign(S.pos.x-bp.x)||1;
   const contact=resting?new V3(bp.x+sg*b.r*0.95,bp.y-b.r*0.2,bp.z):new V3(bp.x,bp.y-b.r,bp.z);toward(contact);
-  if(S.bumpCD<=0&&m.distanceTo(contact)<0.065&&b.vel.y<=0.25){S.bumpCD=0.55;S.bumps++;
+  if(S.bumpCD<=0&&m.distanceTo(contact)<0.065&&b.vel.y<=0.25){S.bumpCD=0.55;S.bumps++;if(!document.hidden)track('bump');
     if(S.bumps>=2&&!S.didBalance&&Math.random()<0.5&&bp.y>B.floor+0.4){S.jPhase='balance';S.balT=rnd(2,3.2);S.didBalance=true;return;}
     b.vel.y=rnd(0.85,1.15);b.vel.x+=resting?-sg*0.25:rnd(-0.15,0.15);b.vel.z+=rnd(-0.08,0.08);S.foldYV=(S.foldYV||0)-4;squish(-2.5);snd.blub();add('fun',3);
     if(S.bumps>=S.bumpGoal){S.mode='idle';S.think=rnd(2,4);if(S.sayCD<=0)say('o',1);}}
@@ -524,7 +557,7 @@ function auto(dt){const s=pet().s;S.think-=dt;S.modeT-=dt;
 
 /* ================= physics & animation ================= */
 function physics(dt){S.pos.addScaledVector(S.vel,dt);
-  S.pos.x=clamp(S.pos.x,-B.x-0.1,B.x+0.1);S.pos.y=clamp(S.pos.y,B.floor+0.06,B.surf+0.02);S.pos.z=clamp(S.pos.z,-1.65,0.86);
+  S.pos.x=clamp(S.pos.x,-B.x-0.1,B.x+0.1);{const lo=B.floor+Math.max(0.15,0.34*Math.max(0,-Math.sin(S.pitch)))-0.03;if(S.pos.y<lo){S.pos.y=lo;if(S.vel.y<0)S.vel.y=0;}S.pos.y=Math.min(S.pos.y,B.surf+0.02);}S.pos.z=clamp(S.pos.z,-1.65,0.86);
   const hs=Math.hypot(S.vel.x,S.vel.z);if(S.faceT){const fx=S.faceT.x-S.pos.x,fz=S.faceT.z-S.pos.z;if(Math.hypot(fx,fz)>0.05)S.wantH=Math.atan2(-fz,fx);}else if(hs>0.12)S.wantH=Math.atan2(-S.vel.z,S.vel.x);
   {const kf=lerp(24,85,clamp((S.flick||0)*1.4)),cf=2*Math.sqrt(kf)*0.95;S.hv=(S.hv||0)+(angDiff(S.heading,S.wantH)*kf-(S.hv||0)*cf)*dt;S.hv=clamp(S.hv,-9,9);S.heading+=S.hv*dt;S.turnRate=S.hv;}S.sayCD-=dt;}
 function animate(dt){CUR.mouth=damp(CUR.mouth,0,8,dt);CUR.burst=damp(CUR.burst,0,4,dt);CUR.gulp=damp(CUR.gulp,0,6,dt);S.eatCap-=dt;S.seeCap-=dt;S.tiredCap=(S.tiredCap||0)-dt;S.playCap=(S.playCap||0)-dt;
@@ -596,6 +629,7 @@ function needs(dt){const p=pet();for(const s in RATE)p.s[s]=clamp(p.s[s]-RATE[s]
 const TOOLS=['hand','food','wash','toy','sleep'];let hintUntil=0;
 function hint(){hintUntil=performance.now()+3800;updateCap();}
 function updateCap(){const el=$('#cap');
+  if(S&&S.toastT>0){el.textContent=S.toast;return;}
   if(!lightsOff&&S.tiredCap>0){el.textContent=fill('{n} is too tired to play. Try sleep.');return;}
   if(!lightsOff&&S.eatCap>0){el.textContent=fill('{n} is eating.');return;}
   if(!lightsOff&&S.seeCap>0){el.textContent=fill('{n} spotted food.');return;}
@@ -605,19 +639,114 @@ function updateCap(){const el=$('#cap');
   el.textContent=fill(lv<40?MOOD[lk]:MOOD.ok);}
 function renderUI(){
   const nm=$('#name');if(document.activeElement!==nm)nm.value=pet().name;
-  $('#stats').innerHTML=STATS.map(([k,l])=>'<span>'+l+'</span><b><i id="b-'+k+'"></i></b>').join('');
+  $('#stats').innerHTML=STATS.map(([k,l])=>'<span>'+l+'</span><b><i id="b-'+k+'"></i></b>').join('')+'<span id="lvl">lv 1</span><b><i id="b-xp"></i></b>';
+  $('#who').textContent=USER?'@'+USER:'sign in';
   const tl=$('#tools');tl.innerHTML='';
   TOOLS.forEach(t=>{const b=document.createElement('button');b.id='t-'+t;b.textContent=t==='sleep'&&lightsOff?'wake':t;b.setAttribute('aria-pressed',t==='sleep'?lightsOff:t===tool);
     b.onclick=()=>{snd.ac();if(t==='sleep'){toggleLights();return;}tool=t;if(toy&&t!=='toy')endToy(true);renderUI();hint();};tl.appendChild(b);});
   $('#snd').textContent=save.sound?'sound on':'sound off';updateStats();updateCap();}
-function updateStats(){const s=pet().s;for(const [k] of STATS){const b=$('#b-'+k);if(b)b.style.width=Math.round(s[k])+'%';}}
-function toggleLights(){lightsOff=!lightsOff;save.night=lightsOff;persist();document.body.classList.toggle('night',lightsOff);
+function updateStats(){const s=pet().s;for(const [k] of STATS){const b=$('#b-'+k);if(b)b.style.width=Math.round(s[k])+'%';}
+  const lv=$('#lvl'),bx=$('#b-xp');if(lv&&PROG){lv.textContent='lv '+PROG.level;bx.style.width=(PROG.level>=MAXL?100:Math.round(PROG.exp/need(PROG.level)*100))+'%';}}
+function toggleLights(){lightsOff=!lightsOff;save.night=lightsOff;if(lightsOff)S.sleptAt=T;else if(S.sleptAt!==undefined&&T-S.sleptAt>=60)track('sleep');persist();document.body.classList.toggle('night',lightsOff);
   if(lightsOff){S.call=null;endToy(true);}else if(S.asleep){S.asleep=false;react('wake');}renderUI();}
 $('#snd').onclick=()=>{save.sound=!save.sound;snd.ac();persist();renderUI();};
 $('#name').addEventListener('input',e=>{pet().name=e.target.value.trim()||DEF;persist();});
 $('#name').addEventListener('blur',e=>{e.target.value=pet().name;});
 $('#name').addEventListener('keydown',e=>{if(e.key==='Enter')e.target.blur();});
 let rsz=0;window.addEventListener('resize',()=>{clearTimeout(rsz);rsz=setTimeout(setup,150);});
+
+
+/* ================= keepers, levels and missions ================= */
+const DB=(window.GOLDFISH_DB&&window.GOLDFISH_DB.projectId&&String(window.GOLDFISH_DB.projectId).indexOf('PASTE')<0)?window.GOLDFISH_DB:null;
+const NAME_RE=/^[a-z0-9_]{2,16}$/,MAXL=200;
+const need=L=>Math.round(12+3*L+0.025*L*L);
+const MISSIONS=[
+  {id:'feed',t:'feed {n} 6 flakes',ty:'eat',g:6,xp:40},
+  {id:'wipe',t:'wipe 3 smudges off the glass',ty:'smudge',g:3,xp:40},
+  {id:'lure',t:'let {n} catch the lure 5 times',ty:'catch',g:5,xp:60},
+  {id:'hi',t:'tap {n} to say hi 3 times',ty:'hello',g:3,xp:30},
+  {id:'lead',t:'lead {n} around for 20 seconds',ty:'lead',g:20,xp:40},
+  {id:'trick',t:'double-tap {n} for a trick, twice',ty:'trick',g:2,xp:50},
+  {id:'ball',t:'leave {n} alone and watch 6 stone bumps',ty:'bump',g:6,xp:50},
+  {id:'heap',t:'let {n} add 3 pebbles to its heap',ty:'pebble',g:3,xp:60},
+  {id:'happy',t:'get every need above 60 at once',ty:'needs',g:1,xp:50},
+  {id:'nap',t:'let {n} sleep for at least a minute',ty:'sleep',g:1,xp:40}];
+const ACH=[
+  {id:'first',t:'first meal',ty:'eat',g:1,xp:20},{id:'eat100',t:'100 flakes eaten',ty:'eat',g:100,xp:150},
+  {id:'catch100',t:'caught the lure 100 times',ty:'catch',g:100,xp:300},{id:'trick50',t:'50 tricks',ty:'trick',g:50,xp:200},
+  {id:'heap20',t:'a heap of 20 pebbles',ty:'pebble',g:20,xp:200},{id:'wipe100',t:'100 smudges wiped',ty:'smudge',g:100,xp:250},
+  {id:'streak7',t:'7 days in a row',ty:'streak',g:7,xp:200},{id:'streak30',t:'30 days in a row',ty:'streak',g:30,xp:800}];
+const PASSIVE={eat:1,hello:1,trick:2,catch:2,smudge:2,pebble:1};
+let USER=null,PROG=null,cloudT=0,cloudDirty=false;
+const dayKey=(d=new Date())=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+function newProg(){return {level:1,exp:0,total:0,daily:null,life:{},ach:{},streak:{last:null,n:0}};}
+function normProg(p){p=Object.assign(newProg(),p||{});p.level=clamp(Math.floor(p.level)||1,1,MAXL);p.life=p.life||{};p.ach=p.ach||{};p.streak=p.streak||{last:null,n:0};return p;}
+function seeded(str){let h=2166136261;for(let i=0;i<str.length;i++){h^=str.charCodeAt(i);h=Math.imul(h,16777619);}return ()=>{h^=h<<13;h^=h>>>17;h^=h<<5;return ((h>>>0)%100000)/100000;};}
+function ensureDaily(){if(!PROG)return;const today=dayKey();if(PROG.daily&&PROG.daily.day===today)return;
+  const y=new Date();y.setDate(y.getDate()-1);PROG.streak.n=PROG.streak.last===dayKey(y)?PROG.streak.n+1:1;PROG.streak.last=today;
+  const r=seeded(today+'|'+(USER||'')),pool=MISSIONS.slice(),ids=[];while(ids.length<3){ids.push(pool.splice(Math.floor(r()*pool.length),1)[0].id);}
+  PROG.daily={day:today,ids,prog:{},done:{},bonus:false};checkAch('streak',PROG.streak.n);persist();}
+function toast(t,d=3.2){if(S){S.toast=t;S.toastT=d;}updateCap&&updateCap();}
+function addXP(n){if(!PROG||n<=0||PROG.level>=MAXL)return;PROG.exp+=n;PROG.total+=n;
+  while(PROG.level<MAXL&&PROG.exp>=need(PROG.level)){PROG.exp-=need(PROG.level);PROG.level++;levelUp();}
+  if(PROG.level>=MAXL)PROG.exp=0;updateStats();persist();}
+function levelUp(){toast(fill('{n} reached level ')+PROG.level+'!',3.6);if(S&&R){squish(4);for(let i=0;i<8;i++)bubble(mouthWorld().add(new V3(rnd(-0.15,0.15),rnd(0,0.1),0)),rnd(0.02,0.04));if(S.sayCD<=0)say('!',1.2);snd.blub();}}
+function checkAch(ty,val){for(const a of ACH){if(a.ty!==ty||PROG.ach[a.id])continue;if(val>=a.g){PROG.ach[a.id]=dayKey();addXP(a.xp);toast('achievement: '+a.t+' +'+a.xp+' xp');}}}
+function track(ty,n=1){if(!PROG||!USER)return;ensureDaily();
+  PROG.life[ty]=(PROG.life[ty]||0)+n;
+  if(ty==='lead'){S.leadAcc=(S.leadAcc||0)+n;if(S.leadAcc>=10){S.leadAcc-=10;addXP(1);}}else if(PASSIVE[ty])addXP(PASSIVE[ty]);
+  const d=PROG.daily;for(const id of d.ids){const m=MISSIONS.find(x=>x.id===id);if(!m||m.ty!==ty||d.done[id])continue;
+    d.prog[id]=Math.min(m.g,(d.prog[id]||0)+n);if(d.prog[id]>=m.g){d.done[id]=true;addXP(m.xp);toast('mission done: '+fill(m.t)+' +'+m.xp+' xp');}}
+  if(!d.bonus&&d.ids.every(id=>d.done[id])){d.bonus=true;addXP(50);toast('all of today’s missions done +50 xp',3.6);}
+  checkAch(ty,PROG.life[ty]);if(!$('#missions').hidden)renderMissions();}
+/* ---- local copy (instant) and online copy (any device) ---- */
+const LKEY=n=>'goldfish-p-'+n;
+function readLocal(n){try{return JSON.parse(localStorage.getItem(LKEY(n)))}catch(e){return null}}
+function persist(){if(!USER)return;const rec={updated:Date.now(),save,prog:PROG};try{localStorage.setItem(LKEY(USER),JSON.stringify(rec));localStorage.setItem('goldfish-user',USER);}catch(e){}cloudDirty=true;}
+const docURL=n=>'https://firestore.googleapis.com/v1/projects/'+DB.projectId+'/databases/(default)/documents/players/'+n+'?key='+DB.apiKey;
+function cloudGet(n){if(!DB)return Promise.resolve(null);return fetch(docURL(n),{cache:'no-store'}).then(r=>r.status===404?null:r.ok?r.json():Promise.reject(r.status))
+  .then(j=>{if(!j||!j.fields)return null;try{return JSON.parse(j.fields.data.stringValue);}catch(e){return null;}});}
+function cloudPut(keep){if(!DB||!USER||!cloudDirty)return;cloudDirty=false;const rec={updated:Date.now(),save,prog:PROG};
+  const body={fields:{name:{stringValue:USER},level:{integerValue:String(PROG.level)},data:{stringValue:JSON.stringify(rec)},updated:{timestampValue:new Date().toISOString()}}};
+  fetch(docURL(USER),{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify(body),keepalive:!!keep}).catch(()=>{cloudDirty=true;});}
+function adopt(rec){save=normalizeSave(rec&&rec.save);PROG=normProg(rec&&rec.prog);ensureDaily();
+  if(typeof lightsOff!=='undefined'&&S){lightsOff=!!save.night;document.body.classList.toggle('night',lightsOff);S.asleep=lightsOff;renderUI();}}
+function signIn(n,rec){USER=n;adopt(rec);persist();cloudDirty=true;cloudPut();$('#who').textContent='@'+n;$('#login').hidden=true;
+  toast(PROG.total?fill('welcome back. {n} missed you.'):fill('say hi to {n}.'));}
+/* ---- the username sheet ---- */
+let pending=null;
+function openLogin(){pending=null;const f=$('#loginName');f.value='';$('#loginBack').hidden=true;$('#loginGo').textContent='start';
+  $('#loginNote').textContent=DB?'Pick a username. Your fish, its level and missions are saved under it, so you can carry on from any device.':'Pick a username. Your fish, its level and missions are saved under it on this device.';
+  $('#loginMsg').textContent='letters, numbers and _ · 2 to 16 characters'+(DB?' · anyone who types the same username opens the same fish':'');
+  $('#login').hidden=false;setTimeout(()=>{try{f.focus()}catch(e){}},250);}
+$('#loginForm').addEventListener('submit',e=>{e.preventDefault();const n=$('#loginName').value.trim().toLowerCase();
+  if(pending){signIn(pending.n,pending.rec);return;}
+  if(!NAME_RE.test(n)){$('#loginMsg').textContent='use 2 to 16 letters, numbers or _';return;}
+  $('#loginGo').textContent='…';
+  const local=readLocal(n);
+  cloudGet(n).then(c=>c,()=>null).then(c=>{const rec=c&&local?(c.updated>local.updated?c:local):(c||local);
+    if(rec&&rec.prog&&n!==USER){pending={n,rec};const p=normProg(rec.prog),fn=(rec.save&&rec.save.pets&&rec.save.pets.fish&&rec.save.pets.fish.name)||DEF;
+      $('#loginMsg').textContent='“'+n+'” already keeps a fish: '+fn+', level '+p.level+'.';$('#loginGo').textContent='that’s me';$('#loginBack').hidden=false;return;}
+    let start=rec;if(!start){let old=null;try{old=JSON.parse(localStorage.getItem('polygon-pets-v1'))}catch(e){}if(old&&!localStorage.getItem('goldfish-migrated')){start={save:old,prog:null};try{localStorage.setItem('goldfish-migrated','1')}catch(e){}}}
+    signIn(n,start);});});
+$('#loginBack').onclick=()=>openLogin();
+$('#who').onclick=()=>{persist();cloudPut();openLogin();};
+/* ---- missions sheet ---- */
+function renderMissions(){if(!PROG)return;ensureDaily();const d=PROG.daily;
+  $('#misTitle').textContent='level '+PROG.level+(PROG.level>=MAXL?' · max':'');
+  $('#misXp').textContent=PROG.level>=MAXL?'Every level reached.':(PROG.exp+' / '+need(PROG.level)+' xp to level '+(PROG.level+1));
+  const row=(txt,right,done)=>'<span class="'+(done?'done':'')+'">'+txt+'</span><em>'+right+'</em>';
+  $('#misList').innerHTML=d.ids.map(id=>{const m=MISSIONS.find(x=>x.id===id);return row(fill(m.t),d.done[id]?'done':(d.prog[id]||0)+'/'+m.g+' · '+m.xp+' xp',d.done[id]);}).join('')+row('all three',d.bonus?'done':'+50 xp',d.bonus);
+  $('#misStreak').textContent=(PROG.streak.n||1)+' day'+(PROG.streak.n>1?'s':'')+' in a row · new missions at midnight';
+  $('#achList').innerHTML=ACH.map(a=>row(a.t,PROG.ach[a.id]?'done':Math.min(a.g,a.ty==='streak'?PROG.streak.n:(PROG.life[a.ty]||0))+'/'+a.g,!!PROG.ach[a.id])).join('');}
+$('#misBtn').onclick=()=>{renderMissions();$('#missions').hidden=false;};
+$('#misClose').onclick=()=>{$('#missions').hidden=true;};
+/* ---- start-up: last keeper on this device loads instantly, then the online copy if it's newer ---- */
+{const last=(()=>{try{return localStorage.getItem('goldfish-user')}catch(e){return null}})();
+  if(last&&NAME_RE.test(last)){USER=last;const local=readLocal(last);save=normalizeSave(local&&local.save);PROG=normProg(local&&local.prog);
+    cloudGet(last).then(c=>{if(c&&(!local||c.updated>local.updated))adopt(c);},()=>{});}
+  else{PROG=null;}}
+setInterval(()=>{if(cloudDirty)cloudPut();},20000);
 
 /* ================= loop ================= */
 let uiT=0,saveT=0,algT=0;const clock=new THREE.Clock();
@@ -628,19 +757,21 @@ function frame(){requestAnimationFrame(frame);const nowF=performance.now(),busy=
   const d=camera.position.distanceTo(camLook);scene.fog.far=damp(scene.fog.far,d+lerp(3,40,pet().s.clean/100),2,dt);
   camera.position.x=camBase.x+Math.sin(T*0.17)*0.05;camera.position.y=camBase.y+Math.sin(T*0.23)*0.03;camera.lookAt(camLook);
   if((algT+=dt)>1){algT=0;syncAlgae();}
-  if((uiT+=dt)>0.3){uiT=0;updateStats();updateCap();}
+  if((uiT+=dt)>0.3){uiT=0;updateStats();updateCap();if(PROG){ensureDaily();const n=pet().s;if(n.food>60&&n.clean>60&&n.energy>60&&n.fun>60&&!S.happyOnce){S.happyOnce=true;track('needs');}}}
+  if(S.toastT>0)S.toastT-=dt;
   if((saveT+=dt)>5){saveT=0;persist();}
   renderer.render(scene,camera);}
 setup();
 if(lightsOff){document.body.classList.add('night');S.asleep=true;S.pos.set(-B.x*0.5,B.ymin+0.05,-0.4);S.heading=S.wantH=0;hemi.intensity=0.3;keyL.intensity=0.25;renderUI();}else hint();
 requestAnimationFrame(frame);
-window.addEventListener('pagehide',persist);
+window.addEventListener('pagehide',()=>{persist();cloudPut(true);});
+if(!USER)setTimeout(openLogin,600);else{ensureDaily();$('#who').textContent='@'+USER;}
 // pick up new versions by itself: check the page now and then, and reload (keeping the fish's state) when it changes
 (function(){let base=null;
   const check=()=>fetch(location.pathname+'?check='+Date.now(),{method:'HEAD',cache:'no-store'}).then(r=>{if(!r.ok)return;const v=r.headers.get('etag')||r.headers.get('last-modified');if(!v)return;
     if(base===null){base=v;return;}if(v===base)return;const go=()=>{if(ptr.down){setTimeout(go,1000);return;}persist();location.reload();};go();}).catch(()=>{});
   check();setInterval(check,300000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)check();});})();
-document.addEventListener('visibilitychange',()=>{if(document.hidden)persist();clock.getDelta();});
+document.addEventListener('visibilitychange',()=>{if(document.hidden){persist();cloudPut(true);}clock.getDelta();});
 })();
 </script>
 </body>
