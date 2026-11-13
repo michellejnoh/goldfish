@@ -411,7 +411,7 @@ function tap(){
 
 /* ================= reactions ================= */
 const RX={hello:[3,1],trick:[1.15,1],grumpy:[1.3,0],refuse:[1.3,1],wake:[1.2,1],caught:[0.8,0]};
-function squish(v){S.sqXV=(S.sqXV||0)+v*0.5;S.sqYV=(S.sqYV||0)-v*0.85;S.sqZV=(S.sqZV||0)-v*0.6;}
+function squish(v){S.sqYV=(S.sqYV||0)-v*0.85;S.sqZV=(S.sqZV||0)-v*0.6;}
 function react(type){const d=RX[type];S.react={type,t:0,dur:d[0],lock:!!d[1]};squish({hello:-4.5,trick:5,grumpy:-3,refuse:-2,wake:3,caught:-4}[type]||0);
   if(type==='hello'){say('blub');snd.blub();add('fun',3);}
   else if(type==='trick'){add('fun',4);talk();S.vel.y=1.4;for(let i=0;i<6;i++)bubble(mouthWorld().add(new V3(rnd(-0.15,0.15),0,0)));}
@@ -482,7 +482,7 @@ function physics(dt){S.pos.addScaledVector(S.vel,dt);
   const hs=Math.hypot(S.vel.x,S.vel.z);if(S.faceT){const fx=S.faceT.x-S.pos.x,fz=S.faceT.z-S.pos.z;if(Math.hypot(fx,fz)>0.05)S.wantH=Math.atan2(-fz,fx);}else if(hs>0.12)S.wantH=Math.atan2(-S.vel.z,S.vel.x);
   {const kf=lerp(24,85,clamp((S.flick||0)*1.4)),cf=2*Math.sqrt(kf)*0.95;S.hv=(S.hv||0)+(angDiff(S.heading,S.wantH)*kf-(S.hv||0)*cf)*dt;S.hv=clamp(S.hv,-9,9);S.heading+=S.hv*dt;S.turnRate=S.hv;}S.sayCD-=dt;}
 function animate(dt){CUR.mouth=damp(CUR.mouth,0,8,dt);CUR.burst=damp(CUR.burst,0,4,dt);CUR.gulp=damp(CUR.gulp,0,6,dt);S.eatCap-=dt;S.seeCap-=dt;S.tiredCap=(S.tiredCap||0)-dt;S.playCap=(S.playCap||0)-dt;
-  {const g=CUR.gulp,ex=1+(S.sqX||0)*0.6,xx=1-0.08*g,yy=(1+(S.sqY||0))*(1+0.12*g),zz=(1+(S.sqZ||0))*(1+0.12*g),f=Math.cbrt(Math.max(0.2,ex*xx*yy*zz));R.inner.scale.set(xx/f,yy/f,zz/f);}
+  {const g=CUR.gulp,yy=(1+(S.sqY||0))*(1+0.12*g),zz=(1+(S.sqZ||0))*(1+0.12*g),f=Math.sqrt(Math.max(0.2,yy*zz));R.inner.scale.set(1,yy/f,zz/f);}
   const sp=S.vel.length(),hs=Math.hypot(S.vel.x,S.vel.z);
   R.g.position.copy(S.pos);
   S.pitch=damp(S.pitch,S.faceT?clamp(Math.atan2(S.faceT.y-S.pos.y,Math.hypot(S.faceT.x-S.pos.x,S.faceT.z-S.pos.z)+0.2)*0.7,-0.45,0.45):clamp(Math.atan2(S.vel.y,hs+0.15)*0.8,-0.5,0.5),5,dt);S.rollC=damp(S.rollC,clamp(S.turnRate*0.1,-0.45,0.45),5,dt);
@@ -501,7 +501,7 @@ function animate(dt){CUR.mouth=damp(CUR.mouth,0,8,dt);CUR.burst=damp(CUR.burst,0
   // squash & stretch: a jelly spring that stretches with speed and squishes on stops, turns and pokes
   {const ft=clamp(S.turnRate*0.55,-1.25,1.25)+curl*2.2;S.foldV=(S.foldV||0)+((ft-(S.fold||0))*60-(S.foldV||0)*7)*dt;S.fold=clamp((S.fold||0)+S.foldV*dt,-1.3,1.3);
    const af=Math.abs(S.fold),spr=(v,vv,tg,k,c)=>{vv+=((tg-v)*k-vv*c)*dt;return [clamp(v+vv*dt,-0.45,0.6),vv];};
-   let r=spr(S.sqX||0,S.sqXV||0,clamp((sp-1.1)*0.2,0,0.18)-af*0.16,95,6.5);S.sqX=clamp(r[0],-0.25,0.28);S.sqXV=r[1];
+   S.sqX=0;S.sqXV=0;let r;
    r=spr(S.sqY||0,S.sqYV||0,af*0.12+clamp(S.vel.y*0.25,-0.15,0.2),120,6);S.sqY=r[0];S.sqYV=r[1];
    r=spr(S.sqZ||0,S.sqZV||0,af*0.16-clamp((sp-1.1)*0.12,0,0.12),80,5.5);S.sqZ=r[0];S.sqZV=r[1];}
   const sway=0.025*Math.sin(T*0.55)+0.015*Math.sin(T*1.3+1);
