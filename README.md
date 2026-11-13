@@ -17,4 +17,4 @@ Its needs (full, clean, energy, fun) drop in real time, even while the page is c
 ## Built with
 
 - [three.js](https://threejs.org) r128 (MIT), bundled in `vendor/`
-- [Archivo Narrow](https://fonts.google.com/specimen/Archivo+Narrow) (SIL Open Font License), bundled in `fonts/`
+- [Caveat](https://fonts.google.com/specimen/Caveat) (SIL Open Font License), bundled in `fonts/`

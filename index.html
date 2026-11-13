@@ -19,12 +19,12 @@
 <link rel="apple-touch-icon-precomposed" href="apple-touch-icon.png">
 <link rel="manifest" href="manifest.webmanifest?v=8">
 <style>
-@font-face{font-family:"Archivo Narrow";font-weight:400;font-display:swap;src:url(fonts/archivo-narrow-latin-400-normal.woff2) format("woff2")}
-@font-face{font-family:"Archivo Narrow";font-weight:500;font-display:swap;src:url(fonts/archivo-narrow-latin-500-normal.woff2) format("woff2")}
+@font-face{font-family:"Caveat";font-weight:400;font-display:swap;src:url(fonts/caveat-latin-400-normal.woff2) format("woff2")}
+@font-face{font-family:"Caveat";font-weight:500;font-display:swap;src:url(fonts/caveat-latin-500-normal.woff2) format("woff2")}
 /* Layout: a full-screen white tank; name + needs float top-left, sound top-right, tools along the bottom. Monotone UI; only the fish and its things carry color. */
 :root{
   --ink:#111111; --dim:#a3a3a3; --soft:#6b6b6b; --track:#dedede; --bg:#ffffff;
-  --font:"Archivo Narrow","Arial Narrow","Helvetica Neue",Helvetica,Arial,sans-serif;
+  --font:"Caveat","Bradley Hand","Segoe Print",cursive;
   color-scheme:light;
 }
 html,body{height:100%;margin:0;overflow:hidden;overscroll-behavior:none}
@@ -74,7 +74,7 @@ body.editing .ui,body.editing #say{display:none}
 .side{display:flex;flex-direction:column;align-items:flex-end;gap:0}
 .sheet{position:fixed;inset:0;z-index:6;background:rgba(255,255,255,.96);display:flex;align-items:center;justify-content:center;
   padding-block:24px;padding-left:max(28px,env(safe-area-inset-left,0px));padding-right:max(28px,env(safe-area-inset-right,0px));text-shadow:0 0 1.2px rgba(0,0,0,.28);color:#111}
-.card{max-width:340px;width:100%;display:flex;flex-direction:column;gap:14px;max-height:100%;overflow-y:auto}
+.card{max-width:340px;width:100%;padding-right:8px;box-sizing:border-box;display:flex;flex-direction:column;gap:14px;max-height:100%;overflow-y:auto}
 .card h2{font:500 32px/1.05 var(--font);margin:0;letter-spacing:-.01em}
 .card p{margin:0;font-size:16px;color:#6b6b6b;line-height:1.4}
 .card input{font:500 24px var(--font);border:0;border-bottom:1px solid #111;border-radius:0;padding:6px 0;background:transparent;color:#111;-webkit-user-select:text;user-select:text;width:100%}
