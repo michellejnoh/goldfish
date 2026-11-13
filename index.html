@@ -500,6 +500,9 @@ function lookColor(x,y,z,fin,lk,v,q){const main=_lm.set(LOOK_COLORS[lk.c]||LOOK_
     case 'calico':if(lookNoise(x,y,z,sd,4)<0)c.copy(_cr);c.lerp(deep,speckle(x,y,z,sd+37,v,0.02));break;
     case 'spots':c.lerp(deep,speckle(x,y,z,sd+11,v,0));break;}
   if(fin&&lk.p!=='dark fins')c.lerp(_cr,0.16);return c;}
+const _fry=new THREE.Color('#d9d1c0'),_frySpot=new THREE.Color('#4a4034');
+function youthColor(c,x,y,z,fin,v,Y){if(Y.pale>0)c.lerp(_fry,0.85*Y.pale*(fin?1:0.6+0.4*v));
+  if(Y.speck>0&&!fin&&v>0.25&&vnoise(x*26,y*26,z*26,71)>0.74)c.lerp(_frySpot,0.75*Y.speck);return c;}
 function bodyProfile(F){if(F.prof)return F.prof;let bg=null;F.inner.traverse(o=>{if(o.isMesh&&o.material===MAT_FISH&&o.userData.part==='body'&&!bg)bg=o.geometry;});
   const r=bg.userData.rest,N=60;let x0=1e9,x1=-1e9;for(let i=0;i<r.length;i+=3){x0=Math.min(x0,r[i]);x1=Math.max(x1,r[i]);}
   const lo=new Float32Array(N+1).fill(1e9),hi=new Float32Array(N+1).fill(-1e9);
@@ -507,24 +510,35 @@ function bodyProfile(F){if(F.prof)return F.prof;let bg=null;F.inner.traverse(o=>
   for(let k=0;k<=N;k++)if(lo[k]>hi[k]){lo[k]=lo[k-1]||0;hi[k]=hi[k-1]||0;}
   return F.prof={x0,x1,N,lo,hi};}
 function vOf(P,x,y){const k=Math.round(clamp((x-P.x0)/(P.x1-P.x0))*P.N),a=P.lo[k],b=P.hi[k];return clamp((y-a)/Math.max(1e-3,b-a));}
-function applyLook(F,lk){F=F||R;if(!F)return;lk=lk||lookOf();F.inner.updateMatrixWorld(true);const inv=new THREE.Matrix4().copy(F.inner.matrixWorld).invert(),m=new THREE.Matrix4(),v=new V3();
+function applyLook(F,lk,st){F=F||R;if(!F)return;lk=lk||lookOf();if(st===undefined)st=F===R?growStage():10;const Yc=youth(st);F.inner.updateMatrixWorld(true);const inv=new THREE.Matrix4().copy(F.inner.matrixWorld).invert(),m=new THREE.Matrix4(),v=new V3();
   const geos=[];F.inner.traverse(o=>{if(!o.isMesh||(o.material!==MAT_FISH&&o.material!==MAT_FIN))return;const g=o.geometry;
     if(!g.userData.rest){const src=g.userData.base0||g.attributes.position.array,rest=new Float32Array(src.length);m.multiplyMatrices(inv,o.matrixWorld);
       for(let i=0;i<src.length;i+=3){v.set(src[i],src[i+1],src[i+2]).applyMatrix4(m);rest[i]=v.x;rest[i+1]=v.y;rest[i+2]=v.z;}g.userData.rest=rest;}
     geos.push([g,o.material===MAT_FIN]);});
   const P=bodyProfile(F);
   for(const [g,fin] of geos){const r=g.userData.rest,fl=g.userData.flex,col=new Float32Array(r.length);
-    for(let i=0,n=0;i<r.length;i+=3,n++){const c=lookColor(r[i],r[i+1],r[i+2],fin,lk,vOf(P,r[i],r[i+1]),fl?fl[n]:(fin?0.6:0));col[i]=c.r;col[i+1]=c.g;col[i+2]=c.b;}
+    for(let i=0,n=0;i<r.length;i+=3,n++){const vv=vOf(P,r[i],r[i+1]),c=youthColor(lookColor(r[i],r[i+1],r[i+2],fin,lk,vv,fl?fl[n]:(fin?0.6:0)),r[i],r[i+1],r[i+2],fin,vv,Yc);col[i]=c.r;col[i+1]=c.g;col[i+2]=c.b;}
     g.setAttribute('color',new THREE.Float32BufferAttribute(col,3));}
   for(const M of [MAT_FISH,MAT_FIN]){M.vertexColors=true;M.color.set(0xffffff);M.needsUpdate=true;}}
 
+/* growing up, like a real goldfish: a slender, pale, big-eyed fry (lv 0-4), then a rounder speckled juvenile,
+   colouring in and growing long fins toward the adult (lv 50). s = growth stage 0..10 (may be fractional) */
+function youth(s){const slim=clamp(1-s/3),pale=clamp(1-(s-1)/5),speck=clamp(Math.min(s-0.3,6.5-s)/1.5);
+  return {size:0.17+0.83*Math.pow(s/10,1.1),lx:1+0.38*slim,ly:1-0.45*slim,lz:1-0.38*slim,eye:1+0.75*clamp(1-s/6),tail:0.42+0.58*clamp(s/8),fin:0.55+0.45*clamp(s/6),pale,speck};}
+function poseYouth(F,s,innerToo){const Y=youth(s);
+  if(!F.tails){F.tails=[];F.inner.traverse(o=>{if(o.isMesh&&o.geometry.userData.kind==='tail')F.tails.push(o);});}
+  for(const m of F.tails){m.scale.set(Y.tail,0.6+0.4*Y.tail,1);m.position.x=-0.66*(1-Y.tail);}
+  for(const p of F.fins)p.scale.setScalar(Y.fin);
+  for(const o of F.eyes){if(!o.bs)o.bs=o.e.scale.clone();o.e.scale.copy(o.bs).multiplyScalar(Y.eye);}
+  if(innerToo)F.inner.scale.set(Y.lx,Y.ly,Y.lz);return Y;}
+
 /* small pictures of the fish in a given look, for the colour and pattern menus */
 let FT=null;
-function fishThumb(lk){if(!FT){const r=new THREE.WebGLRenderer({antialias:true,alpha:true,preserveDrawingBuffer:true});r.setPixelRatio(1);r.setSize(168,120,false);r.setClearColor(0xffffff,0);
+function fishThumb(lk,st){if(!FT){const r=new THREE.WebGLRenderer({antialias:true,alpha:true,preserveDrawingBuffer:true});r.setPixelRatio(1);r.setSize(168,120,false);r.setClearColor(0xffffff,0);
     const sc=new THREE.Scene(),f=buildFish();sc.add(f.g);f.g.rotation.set(0,-0.42,0.04);f.g.updateMatrixWorld(true);
     const bb=new THREE.Box3().setFromObject(f.g),c=bb.getCenter(new V3()),sz=bb.getSize(new V3()),cam=new THREE.PerspectiveCamera(24,168/120,0.05,50);
-    const d=Math.max(sz.x/(2*Math.tan(Math.PI*12/180)*(168/120)),sz.y/(2*Math.tan(Math.PI*12/180)))*1.12;cam.position.set(c.x,c.y+d*0.08,c.z+d);cam.lookAt(c);FT={r,sc,f,cam};}
-  applyLook(FT.f,lk);FT.r.render(FT.sc,FT.cam);return FT.r.domElement.toDataURL();}
+    const d=Math.max(sz.x/(2*Math.tan(Math.PI*12/180)*(168/120)),sz.y/(2*Math.tan(Math.PI*12/180)))*1.12;cam.position.set(c.x,c.y+d*0.08,c.z+d);cam.lookAt(c);FT={r,sc,f,cam};applyLook(f,lk,10);}
+  st=st===undefined?10:st;poseYouth(FT.f,st,true);applyLook(FT.f,lk,st);FT.f.g.scale.setScalar(0.434*youth(st).size/youth(10).size);FT.r.render(FT.sc,FT.cam);return FT.r.domElement.toDataURL();}
 
 /* ================= the goldfish ================= */
 let R;
@@ -1050,7 +1064,7 @@ function physics(dt){S.vyPre=S.vel.y;if(S.vel.y<0&&S.lowGap!==undefined){const c
   const hs=Math.hypot(S.vel.x,S.vel.z);if(S.faceT){const fx=S.faceT.x-S.pos.x,fz=S.faceT.z-S.pos.z;if(Math.hypot(fx,fz)>0.05)S.wantH=Math.atan2(-fz,fx);}else if(hs>0.12)S.wantH=Math.atan2(-S.vel.z,S.vel.x);
   {const kf=lerp(24,85,clamp((S.flick||0)*1.4)),cf=2*Math.sqrt(kf)*0.95;S.hv=(S.hv||0)+(angDiff(S.heading,S.wantH)*kf-(S.hv||0)*cf)*dt;S.hv=clamp(S.hv,-9,9);S.heading+=S.hv*dt;S.turnRate=S.hv;}S.sayCD-=dt;}
 function animate(dt){CUR.mouth=damp(CUR.mouth,0,8,dt);CUR.burst=damp(CUR.burst,0,4,dt);CUR.gulp=damp(CUR.gulp,0,6,dt);S.eatCap-=dt;S.seeCap-=dt;S.tiredCap=(S.tiredCap||0)-dt;S.playCap=(S.playCap||0)-dt;
-  {const g=CUR.gulp,yy=(1+(S.sqY||0))*(1+0.12*g),zz=(1+(S.sqZ||0))*(1+0.12*g),f=Math.sqrt(Math.max(0.2,yy*zz));const bx=1/Math.sqrt(1+(S.sqX||0)*0.6);R.inner.scale.set(1,yy/f*bx,zz/f*bx);S.flatDrop=0.09*Math.max(0,1-yy/f*bx)*(S.ground||0);}
+  {const g=CUR.gulp,yy=(1+(S.sqY||0))*(1+0.12*g),zz=(1+(S.sqZ||0))*(1+0.12*g),f=Math.sqrt(Math.max(0.2,yy*zz));const bx=1/Math.sqrt(1+(S.sqX||0)*0.6);{const Y=S.yShape;R.inner.scale.set(Y?Y.lx:1,yy/f*bx*(Y?Y.ly:1),zz/f*bx*(Y?Y.lz:1));}S.flatDrop=0.09*Math.max(0,1-yy/f*bx)*(S.ground||0);}
   const sp=S.vel.length(),hs=Math.hypot(S.vel.x,S.vel.z);
   R.g.position.copy(S.pos);R.g.position.y-=(S.flatDrop||0)+0.022*(S.peckDip||0);if(S.mode!=='nibble')S.peckDip=damp(S.peckDip||0,0,8,dt);
   {const op=S.pitch;S.pitch=damp(S.pitch,((S.react&&S.react.type==='trick')?0.22*Math.sin(Math.PI*clamp(S.react.t/S.react.dur)):S.faceT?Math.max(S.mode==='nibble'?-0.35:-9,Math.atan2(S.faceT.y-S.pos.y,Math.hypot(S.faceT.x-S.pos.x,S.faceT.z-S.pos.z)+0.01)):(S.vel.length()<0.08?0:Math.atan2(S.vel.y,hs+0.01)))*(1-0.8*(S.ground||0)*(S.mode==='nibble'?0:1)),4.5,dt);S.pitchV=damp(S.pitchV||0,(S.pitch-op)/Math.max(dt,1e-4),10,dt);}S.rollC=damp(S.rollC,clamp(S.turnRate*0.1,-0.45,0.45),5,dt);
@@ -1085,26 +1099,19 @@ function animate(dt){CUR.mouth=damp(CUR.mouth,0,8,dt);CUR.burst=damp(CUR.burst,0
   // eyes: tiny darting movements and a glance toward what the fish is watching
   S.eyeT=(S.eyeT||0)-dt;if(S.eyeT<=0){S.eyeT=rnd(1.4,4);S.eyeDX=rnd(-0.8,0.8);S.eyeDY=rnd(-0.4,0.4);}
   {const st=growStage()/10;S.grow=S.grow===undefined?st:damp(S.grow,st,1.2,dt);const y=1-S.grow;
-    R.g.scale.setScalar(0.3+0.7*S.grow);
-    if(!R.tails){R.tails=[];R.inner.traverse(o=>{if(o.isMesh&&o.geometry.userData.kind==='tail')R.tails.push(o);});}
-    const ft=0.7+0.3*S.grow;for(const m of R.tails){m.scale.set(ft,0.8+0.2*S.grow,1);m.position.x=-0.66*(1-ft);}
-    for(const p of R.fins)p.scale.setScalar(0.82+0.18*S.grow);
-    for(const o of R.eyes){if(!o.bs)o.bs=o.e.scale.clone();o.e.scale.copy(o.bs).multiplyScalar(1+0.3*y);}}
-  // smiling eyes: when happy the round eyes turn into happy "^" arcs; babies smile more often
+    const Y=poseYouth(R,S.grow*10,false);R.g.scale.setScalar(0.434*Y.size);S.yShape=Y;
+    if(R.lookStage!==growStage()){R.lookStage=growStage();applyLook();}}
+  // smiling eyes: when happy the bottom half of each eye is cut off with a straight line; babies smile more often
   {const n=pet().s,happy=!S.asleep&&!lightsOff&&n.food>55&&n.clean>55&&n.energy>45&&n.fun>50;let want=0;
     if(S.react&&(S.react.type==='hello'||S.react.type==='trick'))want=1;
     if(happy){S.smileWait=(S.smileWait===undefined?rnd(1,4):S.smileWait)-dt;if(S.smileWait<=0&&!(S.smileT>0)){S.smileT=rnd(1.6,3);S.smileWait=lerp(3,13,S.grow||0)*rnd(0.6,1.4);}}
     if(S.smileT>0){S.smileT-=dt;want=1;}
     S.sm=damp(S.sm||0,want,want?9:6,dt);const sm=S.sm<0.01?0:S.sm;
-    if(Math.abs(sm-(R.smDone||0))>0.002){R.smDone=sm;for(const o of R.eyes){const pm=o.pup.children[0];
-      if(!o.arc){// a happy "^" eye: a thick upward arc with round ends, turned to the fish's own up
-        const q=o.e.quaternion.clone().invert(),u3=new V3(0,1,0).applyQuaternion(q),g=new THREE.Group(),r=0.046,w=0.026,t0=0.1*Math.PI,t1=0.9*Math.PI;
-        g.add(new THREE.Mesh(new THREE.RingGeometry(r-w/2,r+w/2,28,1,t0,t1-t0),EYE_PUPIL));
-        for(const t of [t0,t1]){const c=new THREE.Mesh(new THREE.CircleGeometry(w/2,14),EYE_PUPIL);c.position.set(Math.cos(t)*r,Math.sin(t)*r,0);g.add(c);}
-        g.position.y=0;g.rotation.z=Math.atan2(u3.y,u3.x)-Math.PI/2;g.children.forEach(m=>{m.renderOrder=2;m.userData.part='head';});g.visible=false;o.pup.add(g);o.arc=g;}
-      // the round eye squeezes shut and the arc pops in, so the change is easy to see
-      if(sm<0.5){pm.visible=true;pm.scale.setScalar(1-sm*1.3);o.arc.visible=false;}
-      else{pm.visible=false;o.arc.visible=true;o.arc.scale.setScalar(0.55+0.9*(sm-0.5));}}}}
+    if(Math.abs(sm-(R.smDone||0))>0.002){R.smDone=sm;for(const o of R.eyes){const pm=o.pup.children[0],p=pm.geometry.attributes.position;if(!pm.userData.b)pm.userData.b=p.array.slice();
+      if(!o.up){const q=o.e.quaternion.clone().invert(),u3=new V3(0,1,0).applyQuaternion(q);o.up=new THREE.Vector2(u3.x,u3.y).normalize();o.sd=new THREE.Vector2(o.up.y,-o.up.x);}
+      // cut straight across along the fish's own up/down, up to half the eye
+      const b=pm.userData.b,ER0=0.052,U=o.up,D=o.sd;for(let i=0;i<p.count;i++){const x=b[i*3],y=b[i*3+1];const a=x*D.x+y*D.y;let v=x*U.x+y*U.y;const vc=-ER0+sm*ER0;if(v<vc)v=vc;
+        p.setXY(i,a*D.x+v*U.x,a*D.y+v*U.y);}p.needsUpdate=true;}}}
   R.eyes.forEach(o=>{let tx=S.eyeDX||0,ty=S.eyeDY||0;const tgt=S.look||(toy&&toy.pos)||null;
     if(tgt){const l=o.e.worldToLocal(tgt.clone());const n=Math.hypot(l.x,l.y)||1;tx=l.x/n*(l.z>0?1:0.5);ty=l.y/n*(l.z>0?1:0.5);}
     o.pup.position.x=damp(o.pup.position.x,tx*0.008,9,dt);o.pup.position.y=damp(o.pup.position.y,ty*0.006,9,dt);});
@@ -1264,9 +1271,9 @@ $('#loginClose').onclick=()=>{$('#login').hidden=true;};
 $('#who').onclick=()=>{persist();cloudPut();openLogin();};
 /* ---- missions sheet ---- */
 function renderMissions(){if(!PROG)return;ensureDaily();const d=PROG.daily;
-  {const g=growStage(),src=fishThumb(lookOf()),el=$('#growRow');el.textContent='';
-    for(let k=0;k<=10;k++){const sp=document.createElement('span');sp.className=k<=g?(k===g?'now':''):'no';const im=document.createElement('img');im.src=src;im.alt='';
-      im.style.width=Math.round(16+2.2*k)+'px';const t=document.createElement('i');t.style.fontStyle='normal';t.textContent='lv '+k*5;sp.append(im,t);el.appendChild(sp);}}
+  {const g=growStage(),el=$('#growRow');el.textContent='';
+    for(let k=0;k<=10;k++){const sp=document.createElement('span');sp.className=k<=g?(k===g?'now':''):'no';const im=document.createElement('img');im.src=fishThumb(lookOf(),k);im.alt='';
+      im.style.width='100%';const t=document.createElement('i');t.style.fontStyle='normal';t.textContent='lv '+k*5;sp.append(im,t);el.appendChild(sp);}}
   $('#misTitle').textContent='level '+PROG.level+(PROG.level>=MAXL?' · max':'');
   $('#misXp').textContent=PROG.level>=MAXL?'Every level reached.':(PROG.exp+' / '+need(PROG.level)+' xp to level '+(PROG.level+1));
   const row=(txt,right,done)=>'<span class="'+(done?'done':'')+'">'+txt+'</span><em>'+right+'</em>';
