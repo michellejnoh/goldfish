@@ -48,11 +48,14 @@ body.night #dark{opacity:.55}
 .stats b{display:block;height:2px;background:var(--track);position:relative;overflow:hidden}
 .stats b i{position:absolute;inset:0 auto 0 0;background:var(--ink);transition:width .5s ease}
 button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer;touch-action:manipulation;text-shadow:inherit}
+.icon{color:var(--ink);padding:8px 0 8px 12px;min-width:44px;min-height:44px;display:flex;align-items:center;justify-content:flex-end}
+.icon svg{display:block}
+.card .icon{padding:6px 0 6px 12px}
 .mini{font-size:15px;color:var(--soft);padding:6px 0;letter-spacing:.02em}
 .bottom{bottom:0;padding-bottom:calc(env(safe-area-inset-bottom,0px) + 8px);display:flex;flex-direction:column;align-items:center;gap:2px}
 #cap{pointer-events:none;margin:0;font-size:16px;color:var(--soft);text-align:center;min-height:1.3em;max-width:34ch;letter-spacing:.01em}
 .tools{display:flex;justify-content:space-between;width:100%;max-width:440px}
-.tools button{font-size:21px;letter-spacing:.005em;color:var(--dim);padding:12px 6px;min-width:44px}
+.tools button{font-size:24px;letter-spacing:.005em;color:var(--dim);padding:12px 6px;min-width:44px}
 .tools button[aria-pressed="true"]{color:var(--ink);text-decoration:underline;text-decoration-thickness:1.5px;text-underline-offset:6px}
 button:focus-visible,#name:focus-visible{outline:1.5px solid var(--ink);outline-offset:3px}
 body.night{--ink:#ededed;--dim:#7d7d7d;--soft:#b3b3b3;--track:#4a4a4a}
@@ -95,7 +98,7 @@ body.night #say{color:#e0e0e0}
     <input id="name" maxlength="14" aria-label="Fish name" spellcheck="false" autocomplete="off" readonly>
     <div class="stats" id="stats"></div>
   </div>
-  <div class="side"><button class="mini" id="who">keeper</button><button class="mini" id="misBtn">missions</button><button class="mini" id="shopBtn">shop</button><button class="mini" id="snd">sound on</button></div>
+  <div class="side"><button class="mini" id="who">keeper</button><button class="mini" id="misBtn">missions</button><button class="mini" id="snd">sound on</button><button class="icon" id="editBtn" aria-label="Edit your tank"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20l4.2-1 10.4-10.4a2 2 0 0 0 0-2.8l-.4-.4a2 2 0 0 0-2.8 0L5 15.8 4 20z"/><path d="M13.5 6.5l4 4"/></svg></button></div>
 </div>
 <div class="ui bottom">
   <p id="cap" aria-live="polite"></p>
@@ -120,7 +123,7 @@ body.night #say{color:#e0e0e0}
 </div>
 <div class="sheet" id="tank" hidden>
   <div class="card">
-    <h2>tank</h2>
+    <div class="row2"><h2>edit your tank</h2><button type="button" class="icon" id="shopBtn" aria-label="Shop"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 8h14l-1.2 12H6.2L5 8z"/><path d="M9 8V6.5a3 3 0 0 1 6 0V8"/></svg></button></div>
     <p class="small">water</p>
     <div class="row2" id="waterRow"><button type="button" class="link" data-w="clear">clear</button><button type="button" class="link" data-w="blue">blue</button><button type="button" class="link" data-w="green">green</button></div>
     <p class="small">pebbles</p>
@@ -176,7 +179,7 @@ const n3=(x,y,z)=>(Math.sin(x*1.7+Math.sin(y*2.3))+Math.sin(y*1.9+Math.sin(z*2.9
 
 /* ================= text ================= */
 const DEF='Kumquat',WORDS=['blub','blub blub','o','o  o','· °'];
-const HINT={hand:'drag to lead · tap to call · tap the fish to say hi',food:'tap to sprinkle flakes',wash:'wipe the glass',toy:'drag the lure',scatter:'tap the floor to scatter pebbles',stack:'tap to stack pebbles on top of each other',collect:'tap pebbles to pick them up',arrange:'drag your decorations around'};
+const HINT={hand:'drag to lead · tap to call · tap the fish to say hi',food:'tap to sprinkle flakes',wash:'wipe the glass',toy:'drag the lure',scatter:'tap the floor to scatter pebbles \u00b7 tap hand when done',stack:'tap to stack pebbles \u00b7 tap hand when done',collect:'tap pebbles to pick them up \u00b7 tap hand when done',arrange:'drag your decorations around \u00b7 tap hand when done'};
 const MOOD={food:'{n} is nosing at the surface.',clean:'The glass is getting cloudy.',energy:'{n} is drifting low.',fun:'{n} is pacing the glass.',ok:'{n} is gliding around.'};
 const STATS=[['food','full'],['clean','clean'],['energy','energy'],['fun','fun']];
 const RATE={food:1.3,clean:0.6,energy:0.7,fun:1.0}; // per minute
@@ -719,7 +722,7 @@ function updateRocks(dt){
       if(pb.target){pb.m.position.x=damp(pb.m.position.x,pb.target.x,6,dt);pb.m.position.z=damp(pb.m.position.z,pb.target.z,6,dt);}
       if(pb.m.position.y<=ty){pb.m.position.y=ty;pb.state=pb.target?'pile':'floor';}}}}
 function needs(dt){const p=pet();for(const s in RATE)p.s[s]=clamp(p.s[s]-RATE[s]*dt/60,0,100);p.last=Date.now();}
-const TOOLS=['hand','food','wash','toy','sleep','tank'];let hintUntil=0;
+const TOOLS=['hand','food','wash','toy','sleep'];let hintUntil=0;
 function hint(){hintUntil=performance.now()+3800;updateCap();}
 function updateCap(){const el=$('#cap');
   if(S&&S.toastT>0){el.textContent=S.toast;return;}
@@ -857,7 +860,8 @@ setInterval(()=>{if(cloudDirty)cloudPut();else if(!document.hidden)pull();},3000
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)pull();});
 
 /* ================= tank sheet ================= */
-const wallet=()=>PROG?Math.max(0,PROG.total-(PROG.spent||0)):0;
+const wallet=()=>{if(!PROG)return 0;let w=PROG.exp;for(let L=1;L<PROG.level;L++)w+=need(L);return w;};
+function spendXP(n){if(!PROG||wallet()<n)return false;PROG.exp-=n;while(PROG.exp<0&&PROG.level>1){PROG.level--;PROG.exp+=need(PROG.level);}PROG.exp=Math.max(0,PROG.exp);updateStats();return true;}
 function renderTank(){const t=save.tank;document.querySelectorAll('#waterRow [data-w]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.w===t.water));
   document.querySelectorAll('[data-p]').forEach(b=>b.setAttribute('aria-pressed',tool==='peb'&&S.pebMode===b.dataset.p));
 }
@@ -868,12 +872,14 @@ function makeThumbs(){if(THUMBS)return THUMBS;THUMBS={};const tr=new THREE.WebGL
     cam.position.set(c.x+r*0.55,c.y+r*0.55,c.z+r*2.5);cam.lookAt(c);tr.render(sc,cam);THUMBS[d.id]=tr.domElement.toDataURL('image/png');sc.remove(g);}
   tr.dispose();if(tr.forceContextLoss)tr.forceContextLoss();return THUMBS;}
 function renderShop(){const t=save.tank,th=makeThumbs();
-  $('#wallet').textContent=PROG?wallet()+' xp to spend \u00b7 buying never lowers your level':'sign in to collect decorations';
+  $('#wallet').textContent=PROG?'level '+PROG.level+' \u00b7 '+wallet()+' xp to spend \u00b7 buying uses up xp, so your level can go down':'sign in to collect decorations';
   $('#shopList').innerHTML=SHOP.map(d=>{const own=t.owned[d.id],on=t.items.some(i=>i.id===d.id),can=PROG&&wallet()>=d.price;
-    const act=!own?(can?'<button data-buy="'+d.id+'">buy \u00b7 '+d.price+' xp</button>':'<em>'+d.price+' xp</em>'):on?'<button data-off="'+d.id+'">put away</button>':'<button data-on="'+d.id+'">place in tank</button>';
+    const after=can?(()=>{let L=PROG.level,e=PROG.exp-d.price;while(e<0&&L>1){L--;e+=need(L);}return L;})():0;
+    const act=!own?(can?'<button data-buy="'+d.id+'">buy \u00b7 '+d.price+' xp'+(after<PROG.level?' (to lv '+after+')':'')+'</button>':'<em>'+d.price+' xp</em>'):on?'<button data-off="'+d.id+'">put away</button>':'<button data-on="'+d.id+'">place in tank</button>';
     return '<div class="item'+(!own&&!can?' locked':'')+'"><img src="'+th[d.id]+'" alt="'+d.name+'"><b>'+d.name+'</b>'+act+'</div>';}).join('');}
-$('#shopBtn').onclick=()=>{renderShop();$('#shop').hidden=false;};
-$('#shopClose').onclick=()=>{$('#shop').hidden=true;};
+$('#shopBtn').onclick=()=>{renderShop();$('#tank').hidden=true;$('#shop').hidden=false;};
+$('#editBtn').onclick=()=>openTank();
+$('#shopClose').onclick=()=>{$('#shop').hidden=true;openTank();};
 function openTank(){renderTank();$('#tank').hidden=false;}
 $('#tankClose').onclick=()=>{$('#tank').hidden=true;};
 $('#waterRow').addEventListener('click',e=>{const w=e.target.dataset&&e.target.dataset.w;if(!w)return;save.tank.water=w;applyWater();persist();renderTank();});
@@ -881,7 +887,7 @@ document.querySelectorAll('[data-p]').forEach(b=>b.onclick=()=>{tool='peb';S.peb
 $('#arrangeBtn').onclick=()=>{tool='arrange';$('#tank').hidden=true;renderUI();hint();};
 function placeItem(id){const it={id,x:+rnd(-0.8,0.8).toFixed(3),z:+rnd(-0.45,0.45).toFixed(2),r:+rnd(-0.6,0.6).toFixed(2)};save.tank.items.push(it);rebuildTank();persist();}
 $('#shopList').addEventListener('click',e=>{const d=e.target.dataset||{};
-  if(d.buy){const it=SHOP.find(x=>x.id===d.buy);if(!PROG||wallet()<it.price)return;PROG.spent=(PROG.spent||0)+it.price;save.tank.owned[it.id]=true;placeItem(it.id);toast(it.name+' added to the tank');}
+  if(d.buy){const it=SHOP.find(x=>x.id===d.buy);const lv0=PROG?PROG.level:1;if(!spendXP(it.price))return;save.tank.owned[it.id]=true;placeItem(it.id);toast(it.name+' added to the tank'+(PROG.level<lv0?' \u00b7 now level '+PROG.level:''));}
   else if(d.on)placeItem(d.on);
   else if(d.off){save.tank.items=save.tank.items.filter(i=>i.id!==d.off);rebuildTank();persist();}
   renderShop();});
