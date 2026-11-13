@@ -18,3 +18,4 @@ Its needs (full, clean, energy, fun) drop in real time, even while the page is c
 
 - [three.js](https://threejs.org) r128 (MIT), bundled in `vendor/`
 - [Caveat](https://fonts.google.com/specimen/Caveat) (SIL Open Font License), bundled in `fonts/`
+- [Nanum Pen Script](https://fonts.google.com/specimen/Nanum+Pen+Script) (SIL Open Font License) for Korean, bundled in `fonts/nanum/`

@@ -9,6 +9,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Goldfish">
 <title>Goldfish</title>
+<link rel="stylesheet" href="fonts/nanum-pen-script.css">
 <link rel="icon" href="favicon-64.png?v=7" sizes="64x64" type="image/png">
 <link rel="icon" href="favicon-32.png?v=7" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
@@ -24,7 +25,7 @@
 /* Layout: a full-screen white tank; name + needs float top-left, sound top-right, tools along the bottom. Monotone UI; only the fish and its things carry color. */
 :root{
   --ink:#111111; --dim:#a3a3a3; --soft:#6b6b6b; --track:#dedede; --bg:#ffffff;
-  --font:"Caveat","Bradley Hand","Segoe Print",cursive;
+  --font:"Caveat","Nanum Pen Script","Bradley Hand","Segoe Print",cursive;
   color-scheme:light;
 }
 html,body{height:100%;margin:0;overflow:hidden;overscroll-behavior:none}
@@ -80,6 +81,8 @@ body.editing .ui,body.editing #say{display:none}
 .card p{margin:0;font-size:16px;color:#6b6b6b;line-height:1.4}
 .card input{font:500 24px var(--font);border:0;border-bottom:1px solid #111;border-radius:0;padding:6px 0;background:transparent;color:#111;-webkit-user-select:text;user-select:text;width:100%}
 .card input:focus{outline:none}
+.langrow{display:flex;gap:18px;justify-content:flex-end;margin-bottom:-6px}
+.langrow .link[aria-pressed="true"]{color:#111;text-decoration-thickness:2px}
 .mrow{display:flex;align-items:center;gap:14px;width:100%;text-align:left;padding:9px 0;border-bottom:1px solid #ececec;cursor:pointer}
 .mrow:last-of-type{border-bottom:0}
 .mi{width:40px;height:40px;flex:none;display:flex;align-items:center;justify-content:center;color:var(--ink)}
@@ -134,6 +137,7 @@ body.editing .ui,body.editing #say{display:none}
 
 <div class="sheet" id="login" hidden>
   <form class="card" id="loginForm">
+    <div class="langrow"><button type="button" class="link" data-lang="en">English</button><button type="button" class="link" data-lang="ko">한국어</button></div>
     <h2>who's keeping this fish?</h2>
     <p id="loginNote">Pick a username. Your fish, its level and missions are saved under it.</p>
     <input id="loginName" maxlength="16" autocomplete="off" autocapitalize="none" spellcheck="false" aria-label="Username" placeholder="username">
@@ -232,6 +236,95 @@ body.editing .ui,body.editing #say{display:none}
 <script>window.GOLDFISH_DB={apiKey:"AIzaSyCQNpsLEEAa2q6woKbcn-HrOUpjk2vd-Dg",projectId:"goldfish-tank-f99a7"};</script>
 <script src="vendor/three.min.js"></script>
 <script>
+/* ================= language: English / 한국어 =================
+   The UI is written in English; in Korean mode every text node and label is swapped through this table as it appears. */
+const KO={
+'blub':'뻐끔','blub blub':'뻐끔뻐끔','nom':'냠','nom nom':'냠냠','munch':'오물오물','mm':'음',
+'hand':'손','food':'먹이','wash':'청소','toy':'장난감','sleep':'재우기','wake':'깨우기',
+'full':'배부름','clean':'청결','energy':'기운','fun':'재미',
+'drag to lead · tap to call · tap the fish to say hi':'끌어서 데려가기 · 탭해서 부르기 · 금붕어를 탭하면 인사해요',
+'tap to sprinkle flakes':'탭해서 먹이 뿌리기','wipe the glass':'유리를 닦아 주세요','drag the lure':'미끼를 끌어 보세요',
+'tap or drag on the floor to add pebbles · they pile up where they touch':'바닥을 누르거나 끌어서 자갈 놓기 · 닿으면 위로 쌓여요',
+'rub over pebbles to pick them up':'자갈 위를 문지르면 주워져요',
+'drag to move · twist with two fingers or tap turn to rotate the last one you touched':'끌어서 옮기기 · 두 손가락으로 비틀거나 돌리기 버튼으로 마지막에 만진 장식을 돌려요',
+'The glass is getting cloudy.':'유리가 뿌예지고 있어요.',
+'plain':'단색','fade':'그러데이션','red cap':'빨간 모자','patches':'얼룩','calico':'캘리코','spots':'점박이',
+'orange':'주황','tangerine':'귤색','gold':'금색','yellow':'노랑','lemon':'레몬','cream':'크림','peach':'복숭아','coral':'코랄','salmon':'연어색',
+'red':'빨강','crimson':'진홍','rose':'장미','pink':'분홍','lilac':'라일락','violet':'보라','sky':'하늘','blue':'파랑','navy':'남색','teal':'청록',
+'mint':'민트','olive':'올리브','chocolate':'초콜릿','silver':'은색','white':'하양','black':'검정',
+'clear':'투명','green':'초록',
+'candy cane':'지팡이 사탕','gift box':'선물 상자','ice crystals':'얼음 결정','snowman':'눈사람','little sled':'작은 썰매','pine tree':'소나무',
+'penguin':'펭귄','igloo':'이글루','polar bear':'북극곰','snow globe':'스노볼',
+'first meal':'첫 식사','100 flakes eaten':'먹이 100개 먹기','caught the lure 100 times':'미끼 100번 잡기','50 tricks':'재주 50번',
+'a heap of 20 pebbles':'자갈 20개 더미','100 smudges wiped':'얼룩 100개 닦기','7 days in a row':'7일 연속','30 days in a row':'30일 연속',
+'get every need above 60 at once':'모든 상태를 한꺼번에 60 넘기기',
+'all of today’s missions done +50 xp':'오늘 미션을 모두 끝냈어요 +50 xp','all three':'세 개 모두',
+'saved on this device':'이 기기에 저장됨','saved online':'온라인에 저장됨','connecting to the online save…':'온라인 저장소에 연결하는 중…',
+'saved on this device only':'이 기기에만 저장됨','synced with your other devices':'다른 기기와 동기화됨','already up to date':'이미 최신 상태예요',
+'couldn’t reach the online save':'온라인 저장소에 연결할 수 없어요','offline: will save online when connected':'오프라인: 연결되면 온라인에 저장해요',
+'Pick a username. Your fish, its level and missions are saved under it.':'사용자 이름을 정해 주세요. 금붕어와 레벨, 미션이 이 이름으로 저장돼요.',
+'Pick a username. Your fish, its level and missions are saved under it, so you can carry on from any device.':'사용자 이름을 정해 주세요. 금붕어와 레벨, 미션이 이 이름으로 저장돼서 어느 기기에서든 이어서 할 수 있어요.',
+'Pick a username. Your fish, its level and missions are saved under it on this device.':'사용자 이름을 정해 주세요. 금붕어와 레벨, 미션이 이 기기에 이 이름으로 저장돼요.',
+'letters, numbers and _ · 2 to 16 characters':'영문, 숫자, _ · 2~16자',
+'letters, numbers and _ · 2 to 16 characters · anyone who types the same username opens the same fish':'영문, 숫자, _ · 2~16자 · 같은 이름을 입력하면 누구나 같은 금붕어를 열 수 있어요',
+'use 2 to 16 letters, numbers or _':'영문, 숫자, _로 2~16자를 입력해 주세요',
+'couldn’t reach the online save. Check your connection and try again.':'온라인 저장소에 연결할 수 없어요. 인터넷 연결을 확인하고 다시 해 주세요.',
+'that’s me':'네, 제 거예요','start new fish':'새 금붕어 시작','Every level reached.':'모든 레벨을 달성했어요.',
+'sign in to collect decorations':'로그인하면 장식을 모을 수 있어요','put away':'치우기','place in tank':'수조에 놓기',
+'the floor is full of pebbles':'바닥에 자갈이 가득 찼어요','my goldfish tank':'내 금붕어 수조',
+'sign in':'로그인','switch':'바꾸기','sound on':'소리 켜짐','sound off':'소리 꺼짐',
+'25 shades to choose from':'25가지 색 중에서 골라요','On iPhone, touch and hold the picture, then choose Save to Photos.':'아이폰에서는 사진을 길게 누른 뒤 ‘사진 앱에 저장’을 고르세요.',
+'a cool, soft tint':'시원하고 은은한 푸른빛','a little mossy':'살짝 이끼 낀 느낌','bright and plain':'맑고 깨끗하게',
+'achievements':'업적','add pebbles':'자갈 놓기','remove pebbles':'자갈 치우기','back':'뒤로','close':'닫기','done':'완료','download':'다운로드',
+'buy winter decorations with xp':'경험치로 겨울 장식 사기','clear, blue or green':'투명, 파랑, 초록','colour':'색','colour & pattern':'색과 무늬',
+'decorations':'장식','drag them, twist to rotate':'끌어서 옮기고 비틀어 돌리기','edit':'편집','fish colour':'금붕어 색','keep it':'이 이름으로 할게요',
+'keeper':'키퍼','move & turn':'옮기기·돌리기','move decorations':'장식 옮기기','pattern':'무늬','pick another':'다른 이름 고르기',
+'rub over them to pick up':'문질러서 줍기','save':'저장','shop':'상점','shop, move & pebbles':'상점, 옮기기, 자갈','spots, patches & more':'점박이, 얼룩 등',
+'start':'시작','sync now':'지금 동기화','tap a pattern again to reshuffle it':'같은 무늬를 한 번 더 누르면 모양이 바뀌어요',
+'tap or drag on the floor':'바닥을 누르거나 끌기','today':'오늘','turn left':'왼쪽으로','turn right':'오른쪽으로','water':'물',
+'what’s your fish called?':'금붕어 이름이 뭐예요?',"what's your fish called?":'금붕어 이름이 뭐예요?',"who's keeping this fish?":'누가 이 금붕어를 키우나요?',
+'winter shop':'겨울 상점','your fish':'내 금붕어','add':'놓기','remove':'치우기','missions':'미션',
+'Capture the tank':'수조 찍기','Edit tools':'편집 도구','Edit your tank':'수조 편집','Fish name':'금붕어 이름','Missions':'미션',
+'Picture of your tank':'수조 사진','Tools':'도구','Username':'사용자 이름','username':'사용자 이름','Fish colour':'금붕어 색','Fish pattern':'금붕어 무늬','Shop':'상점','Goldfish tank. Tap, drag and feed to interact.':'금붕어 수조. 탭하고 끌고 먹이를 주며 놀아 주세요.',
+': check the Firestore rules':': Firestore 규칙을 확인해 주세요',': is the Firestore database created?':': Firestore 데이터베이스가 만들어졌는지 확인해 주세요'};
+const KO_RX=[
+[/^(.+) is nosing at the surface\.$/,'$1, 수면에서 뻐끔거리고 있어요.'],[/^(.+) is drifting low\.$/,'$1, 바닥 가까이 떠 있어요.'],
+[/^(.+) is pacing the glass\.$/,'$1, 유리 앞을 왔다 갔다 해요.'],[/^(.+) is gliding around\.$/,'$1, 여유롭게 헤엄치고 있어요.'],
+[/^(.+) is full right now\.$/,'$1, 지금은 배불러요.'],[/^(.+) is too tired to play\. Try sleep\.$/,'$1, 너무 피곤해서 못 놀아요. 재워 주세요.'],
+[/^(.+) is eating\.$/,'$1, 먹는 중이에요.'],[/^(.+) spotted food\.$/,'$1, 먹이를 발견했어요.'],
+[/^(.+) is asleep\. Tap wake to turn the lights on\.$/,'$1, 자고 있어요. 깨우기를 누르면 불이 켜져요.'],[/^(.+) is settling down\.$/,'$1, 잠들 준비를 해요.'],
+[/^welcome back\. (.+) missed you\.$/,'다시 왔군요. $1, 많이 보고 싶었대요.'],[/^hello, (.+)\.$/,'안녕, $1.'],
+[/^(.+) reached level (\d+)!$/,'$1, 레벨 $2 달성!'],[/^achievement: (.+) \+(\d+) xp$/,'업적: $1 +$2 xp'],[/^mission done: (.+) \+(\d+) xp$/,'미션 완료: $1 +$2 xp'],
+[/^feed (.+) (\d+) flakes$/,'먹이 $2개 주기'],[/^wipe (\d+) smudges off the glass$/,'유리 얼룩 $1개 닦기'],[/^let (.+) catch the lure (\d+) times$/,'미끼 $2번 잡게 하기'],
+[/^tap (.+) to say hi (\d+) times$/,'탭해서 인사하기 $2번'],[/^lead (.+) around for (\d+) seconds$/,'$2초 동안 데리고 다니기'],
+[/^double-tap (.+) for a trick, twice$/,'두 번 탭해서 재주 보기 2번'],[/^leave (.+) alone and watch (\d+) stone bumps$/,'혼자 두고 돌 튕기기 $2번 지켜보기'],
+[/^let (.+) add (\d+) pebbles to its heap$/,'자갈 더미에 자갈 $2개 쌓게 두기'],[/^let (.+) sleep for at least a minute$/,'1분 이상 재우기'],
+[/^“(.+)” already keeps a fish: (.+), level (\d+)\. Load it\?$/,'“$1” 이름으로 키우는 금붕어가 이미 있어요: $2, 레벨 $3. 불러올까요?'],
+[/^There’s no fish under “(.+)” yet\. Start a new one\?$/,'“$1” 이름의 금붕어가 아직 없어요. 새로 시작할까요?'],
+[/^(\d+) \/ (\d+) xp to level (\d+)$/,'$3레벨까지 $1 / $2 xp'],[/^level (\d+)$/,'레벨 $1'],[/^level (\d+) · max$/,'레벨 $1 · 최고'],[/^lv (\d+)$/,'Lv $1'],
+[/^(\d+) days? in a row · new missions at midnight$/,'$1일 연속 · 자정에 새 미션'],
+[/^level (\d+) · (\d+) xp to spend · buying uses up xp, so your level can go down$/,'레벨 $1 · 쓸 수 있는 xp $2 · 사면 xp가 줄어 레벨이 내려갈 수 있어요'],
+[/^buy · (\d+) xp \(to lv (\d+)\)$/,'사기 · $1 xp (Lv $2로)'],[/^buy · (\d+) xp$/,'사기 · $1 xp'],
+[/^(.+) added to the tank · now level (\d+)$/,'$1, 수조에 놓았어요 · 이제 레벨 $2'],[/^(.+) added to the tank$/,'$1, 수조에 놓았어요'],
+[/^couldn’t read the online save \(error (\d+)\)(.*)$/,'온라인 저장을 읽지 못했어요 (오류 $1)$2'],[/^online save refused \(error (\d+)\)(.*)$/,'온라인 저장이 거부됐어요 (오류 $1)$2']];
+let LANG=(()=>{try{return localStorage.getItem('goldfish-lang')||'en';}catch(e){return 'en';}})();
+function trs(t){if(LANG!=='ko'||!t)return t;const k=t.trim();if(!k||!/[A-Za-z]/.test(k))return t;let r=KO[k];
+  if(r===undefined)for(const [rx,rep] of KO_RX){const m=k.match(rx);if(m){r=rep.replace(/\$(\d)/g,(_,i)=>{const g=m[+i]||'';return KO[g]!==undefined?KO[g]:g;});break;}}
+  return r===undefined?t:t.replace(k,r);}
+const I18N=new WeakMap(),I18A=['aria-label','placeholder','alt','title'];
+function trNode(n){
+  if(n.nodeType===3){const p=n.parentNode;if(!p||/^(SCRIPT|STYLE)$/.test(p.nodeName))return;let o=I18N.get(n);if(!o||n.data!==o.tr)o={en:n.data};
+    o.tr=LANG==='ko'?trs(o.en):o.en;I18N.set(n,o);if(n.data!==o.tr)n.data=o.tr;return;}
+  if(n.nodeType!==1||n.nodeName==='SCRIPT'||n.nodeName==='STYLE')return;
+  let A=I18N.get(n);if(!A){A={};I18N.set(n,A);}
+  for(const a of I18A){if(!n.hasAttribute(a))continue;const v=n.getAttribute(a);let o=A[a];if(!o||v!==o.tr)o=A[a]={en:v};o.tr=LANG==='ko'?trs(o.en):o.en;if(v!==o.tr)n.setAttribute(a,o.tr);}
+  for(const c of n.childNodes)trNode(c);}
+new MutationObserver(ms=>{for(const m of ms){if(m.type==='characterData')trNode(m.target);else if(m.type==='attributes')trNode(m.target);else m.addedNodes.forEach(trNode);}})
+  .observe(document.body,{subtree:true,childList:true,characterData:true,attributes:true,attributeFilter:I18A});
+function setLang(l){LANG=l==='ko'?'ko':'en';try{localStorage.setItem('goldfish-lang',LANG);}catch(e){}document.documentElement.lang=LANG;
+  document.querySelectorAll('[data-lang]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.lang===LANG));trNode(document.body);}
+document.documentElement.lang=LANG;let langPicked=false;if(LANG==='ko')trNode(document.body);
+
 (function(){
 const $=s=>document.querySelector(s);
 const V3=THREE.Vector3;
@@ -1031,13 +1124,14 @@ function cloudPut(keep){if(!DB||!USER||!cloudDirty)return;cloudDirty=false;const
     .catch(()=>{cloudDirty=true;SYNC={ok:false,msg:'offline: will save online when connected',t:Date.now()};});}
 // take the online copy when another device changed things more recently than this one
 function pull(){if(!DB||!USER||cloudDirty)return;cloudGet(USER).then(c=>{if(c&&c.updated>lastChange+500){lastChange=c.updated;adopt(c);persistLocal();}},()=>{});}
-function adopt(rec){save=normalizeSave(rec&&rec.save);PROG=normProg(rec&&rec.prog);ensureDaily();
+function adopt(rec){save=normalizeSave(rec&&rec.save);if(save.lang&&save.lang!==LANG&&!langPicked)setLang(save.lang);PROG=normProg(rec&&rec.prog);ensureDaily();
   if(typeof lightsOff!=='undefined'&&S){rebuildTank();lightsOff=!!save.night;document.body.classList.toggle('night',lightsOff);S.asleep=lightsOff;renderUI();}}
-function signIn(n,rec){USER=n;adopt(rec);lastChange=(rec&&rec.updated)||Date.now();persist();cloudPut();$('#who').textContent='@'+n;$('#login').hidden=true;
+function signIn(n,rec){USER=n;adopt(rec);if(langPicked||!save.lang)save.lang=LANG;langPicked=false;lastChange=(rec&&rec.updated)||Date.now();persist();cloudPut();$('#who').textContent='@'+n;$('#login').hidden=true;
   if(PROG.total)toast(fill('welcome back. {n} missed you.'));else setTimeout(openNaming,300);}
 /* ---- the username sheet ---- */
 let pending=null;
-function openLogin(){pending=null;const f=$('#loginName');f.value='';$('#loginBack').hidden=true;$('#loginClose').hidden=!USER;$('#loginGo').textContent=USER?'switch':'start';
+document.querySelectorAll('[data-lang]').forEach(b=>b.onclick=()=>{langPicked=true;setLang(b.dataset.lang);});
+function openLogin(){pending=null;setLang(LANG);const f=$('#loginName');f.value='';$('#loginBack').hidden=true;$('#loginClose').hidden=!USER;$('#loginGo').textContent=USER?'switch':'start';
   $('#loginNote').textContent=DB?'Pick a username. Your fish, its level and missions are saved under it, so you can carry on from any device.':'Pick a username. Your fish, its level and missions are saved under it on this device.';
   $('#loginMsg').textContent='letters, numbers and _ · 2 to 16 characters'+(DB?' · anyone who types the same username opens the same fish':'');
   $('#login').hidden=false;setTimeout(()=>{try{f.focus()}catch(e){}},250);}
