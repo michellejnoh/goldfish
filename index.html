@@ -502,7 +502,7 @@ function lookColor(x,y,z,fin,lk,v,q){const main=_lm.set(LOOK_COLORS[lk.c]||LOOK_
   if(fin&&lk.p!=='dark fins')c.lerp(_cr,0.16);return c;}
 const _fry=new THREE.Color('#d9d1c0'),_frySpot=new THREE.Color('#4a4034');
 function youthColor(c,x,y,z,fin,v,Y){if(Y.pale>0)c.lerp(_fry,0.85*Y.pale*(fin?1:0.6+0.4*v));
-  if(Y.speck>0&&!fin&&v>0.25&&vnoise(x*26,y*26,z*26,71)>0.74)c.lerp(_frySpot,0.75*Y.speck);return c;}
+  return c;}
 function bodyProfile(F){if(F.prof)return F.prof;let bg=null;F.inner.traverse(o=>{if(o.isMesh&&o.material===MAT_FISH&&o.userData.part==='body'&&!bg)bg=o.geometry;});
   const r=bg.userData.rest,N=60;let x0=1e9,x1=-1e9;for(let i=0;i<r.length;i+=3){x0=Math.min(x0,r[i]);x1=Math.max(x1,r[i]);}
   const lo=new Float32Array(N+1).fill(1e9),hi=new Float32Array(N+1).fill(-1e9);
@@ -524,7 +524,7 @@ function applyLook(F,lk,st){F=F||R;if(!F)return;lk=lk||lookOf();if(st===undefine
 /* growing up, like a real goldfish: a slender, pale, big-eyed fry (lv 0-4), then a rounder speckled juvenile,
    colouring in and growing long fins toward the adult (lv 50). s = growth stage 0..10 (may be fractional) */
 function youth(s){const slim=clamp(1-s/3),pale=clamp(1-(s-1)/5),speck=clamp(Math.min(s-0.3,6.5-s)/1.5);
-  return {size:0.17+0.83*Math.pow(s/10,1.1),lx:1+0.38*slim,ly:1-0.45*slim,lz:1-0.38*slim,eye:1+0.75*clamp(1-s/6),tail:0.42+0.58*clamp(s/8),fin:0.55+0.45*clamp(s/6),pale,speck};}
+  return {size:0.3+0.7*Math.pow(s/10,1.1),lx:1+0.38*slim,ly:1-0.45*slim,lz:1-0.38*slim,eye:1+0.75*clamp(1-s/6),tail:0.42+0.58*clamp(s/8),fin:0.55+0.45*clamp(s/6),pale,speck};}
 function poseYouth(F,s,innerToo){const Y=youth(s);
   if(!F.tails){F.tails=[];F.inner.traverse(o=>{if(o.isMesh&&o.geometry.userData.kind==='tail')F.tails.push(o);});}
   for(const m of F.tails){m.scale.set(Y.tail,0.6+0.4*Y.tail,1);m.position.x=-0.66*(1-Y.tail);}
@@ -1101,7 +1101,7 @@ function animate(dt){CUR.mouth=damp(CUR.mouth,0,8,dt);CUR.burst=damp(CUR.burst,0
   {const st=growStage()/10;S.grow=S.grow===undefined?st:damp(S.grow,st,1.2,dt);const y=1-S.grow;
     const Y=poseYouth(R,S.grow*10,false);R.g.scale.setScalar(0.434*Y.size);S.yShape=Y;
     if(R.lookStage!==growStage()){R.lookStage=growStage();applyLook();}}
-  // smiling eyes: when happy the bottom half of each eye is cut off with a straight line; babies smile more often
+  // smiling eyes: when happy the bottom 40% of each eye is cut off with a straight line; babies smile more often
   {const n=pet().s,happy=!S.asleep&&!lightsOff&&n.food>55&&n.clean>55&&n.energy>45&&n.fun>50;let want=0;
     if(S.react&&(S.react.type==='hello'||S.react.type==='trick'))want=1;
     if(happy){S.smileWait=(S.smileWait===undefined?rnd(1,4):S.smileWait)-dt;if(S.smileWait<=0&&!(S.smileT>0)){S.smileT=rnd(1.6,3);S.smileWait=lerp(3,13,S.grow||0)*rnd(0.6,1.4);}}
@@ -1109,8 +1109,8 @@ function animate(dt){CUR.mouth=damp(CUR.mouth,0,8,dt);CUR.burst=damp(CUR.burst,0
     S.sm=damp(S.sm||0,want,want?9:6,dt);const sm=S.sm<0.01?0:S.sm;
     if(Math.abs(sm-(R.smDone||0))>0.002){R.smDone=sm;for(const o of R.eyes){const pm=o.pup.children[0],p=pm.geometry.attributes.position;if(!pm.userData.b)pm.userData.b=p.array.slice();
       if(!o.up){const q=o.e.quaternion.clone().invert(),u3=new V3(0,1,0).applyQuaternion(q);o.up=new THREE.Vector2(u3.x,u3.y).normalize();o.sd=new THREE.Vector2(o.up.y,-o.up.x);}
-      // cut straight across along the fish's own up/down, up to half the eye
-      const b=pm.userData.b,ER0=0.052,U=o.up,D=o.sd;for(let i=0;i<p.count;i++){const x=b[i*3],y=b[i*3+1];const a=x*D.x+y*D.y;let v=x*U.x+y*U.y;const vc=-ER0+sm*ER0;if(v<vc)v=vc;
+      // cut straight across along the fish's own up/down, the bottom 40% of the eye
+      const b=pm.userData.b,ER0=0.052,U=o.up,D=o.sd;for(let i=0;i<p.count;i++){const x=b[i*3],y=b[i*3+1];const a=x*D.x+y*D.y;let v=x*U.x+y*U.y;const vc=-ER0+sm*0.8*ER0;if(v<vc)v=vc;
         p.setXY(i,a*D.x+v*U.x,a*D.y+v*U.y);}p.needsUpdate=true;}}}
   R.eyes.forEach(o=>{let tx=S.eyeDX||0,ty=S.eyeDY||0;const tgt=S.look||(toy&&toy.pos)||null;
     if(tgt){const l=o.e.worldToLocal(tgt.clone());const n=Math.hypot(l.x,l.y)||1;tx=l.x/n*(l.z>0?1:0.5);ty=l.y/n*(l.z>0?1:0.5);}
