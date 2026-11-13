@@ -76,6 +76,10 @@ body.night #say{color:#e0e0e0}
 @media (min-width:700px){#name{font-size:46px}}
 [hidden]{display:none!important}
 body.editing .ui,body.editing #say{display:none}
+body.viewing .ui,body.viewing #say{display:none}
+#viewBar{position:fixed;left:0;right:0;top:0;z-index:4;display:flex;justify-content:space-between;align-items:center;gap:12px;
+  padding-top:calc(env(safe-area-inset-top,0px) + 12px);padding-left:max(20px,env(safe-area-inset-left,0px));padding-right:max(20px,env(safe-area-inset-right,0px))}
+#viewHint{margin:0;font-size:17px;color:var(--soft)}
 #editBar{position:fixed;left:0;right:0;top:0;z-index:4;display:flex;flex-direction:column;align-items:center;gap:2px;
   padding-top:calc(env(safe-area-inset-top,0px) + 10px);padding-left:max(18px,env(safe-area-inset-left,0px));padding-right:max(18px,env(safe-area-inset-right,0px));text-shadow:0 0 1.2px rgba(0,0,0,.3)}
 #editBar nav{display:flex;justify-content:space-between;gap:10px;width:100%;max-width:440px}
@@ -133,6 +137,7 @@ body.editing .ui,body.editing #say{display:none}
 <canvas id="c" aria-label="Goldfish tank. Tap, drag and feed to interact."></canvas>
 <div id="dark"></div>
 <canvas id="touch" aria-hidden="true"></canvas>
+<div id="viewBar" hidden><p id="viewHint">drag to turn the tank</p><button type="button" class="go" id="viewDone">done</button></div>
 <div id="editBar" hidden><nav aria-label="Edit tools"><button type="button" data-e="add">add pebbles</button><button type="button" data-e="remove">remove pebbles</button><button type="button" data-e="arrange">move decorations</button><button type="button" class="done" id="editDone">done</button></nav><p id="editHint"></p><div id="turnRow" hidden><button type="button" data-turn="1">turn left</button><button type="button" data-turn="-1">turn right</button></div></div>
 <div id="say" aria-live="polite"></div>
 <div class="ui top">
@@ -140,7 +145,7 @@ body.editing .ui,body.editing #say{display:none}
     <input id="name" maxlength="14" aria-label="Fish name" spellcheck="false" autocomplete="off" readonly>
     <div class="stats" id="stats"></div>
   </div>
-  <div class="side"><button class="mini" id="who">keeper</button><button class="icon" id="misBtn" aria-label="Missions"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 21V3.5"/><path d="M6 4.5h11.5l-2.4 4 2.4 4H6"/></svg></button><button class="mini" id="snd">sound on</button><button class="icon" id="editBtn" aria-label="Edit your tank"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20l4.2-1 10.4-10.4a2 2 0 0 0 0-2.8l-.4-.4a2 2 0 0 0-2.8 0L5 15.8 4 20z"/><path d="M13.5 6.5l4 4"/></svg></button><button class="icon" id="captureBtn" aria-label="Capture the tank"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8.5h3.2L8.8 6h6.4l1.6 2.5H20v10H4z"/><circle cx="12" cy="13.2" r="3.3"/></svg></button></div>
+  <div class="side"><button class="mini" id="who">keeper</button><button class="icon" id="misBtn" aria-label="Missions"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 21V3.5"/><path d="M6 4.5h11.5l-2.4 4 2.4 4H6"/></svg></button><button class="icon" id="snd" aria-label="Sound on"></button><button class="icon" id="tvBtn" aria-label="Tank view"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 8.5h12.5v11.5H3.5z"/><path d="M3.5 8.5L7.5 4.5h12.5v11.5l-4 4"/><path d="M16 8.5l4-4"/><path d="M3.5 13c2.1 1 4.2 1 6.3 0s4.1-1 6.2 0"/></svg></button><button class="icon" id="editBtn" aria-label="Edit your tank"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20l4.2-1 10.4-10.4a2 2 0 0 0 0-2.8l-.4-.4a2 2 0 0 0-2.8 0L5 15.8 4 20z"/><path d="M13.5 6.5l4 4"/></svg></button><button class="icon" id="captureBtn" aria-label="Capture the tank"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8.5h3.2L8.8 6h6.4l1.6 2.5H20v10H4z"/><circle cx="12" cy="13.2" r="3.3"/></svg></button></div>
 </div>
 <div class="ui bottom">
   <p id="cap" aria-live="polite"></p>
@@ -299,7 +304,7 @@ const KO={
 'what’s your fish called?':'금붕어 이름이 뭐예요?',"what's your fish called?":'금붕어 이름이 뭐예요?',"who's keeping this fish?":'누가 이 금붕어를 키우나요?',
 'winter shop':'겨울 상점','your fish':'내 금붕어','add':'놓기','remove':'치우기','missions':'미션',
 'Capture the tank':'수조 찍기','Edit tools':'편집 도구','Edit your tank':'수조 편집','Fish name':'금붕어 이름','Missions':'미션',
-'Picture of your tank':'수조 사진','Tools':'도구','Username':'사용자 이름','username':'사용자 이름','Fish colour':'금붕어 색','Fish pattern':'금붕어 무늬','Shop':'상점','Goldfish tank. Tap, drag and feed to interact.':'금붕어 수조. 탭하고 끌고 먹이를 주며 놀아 주세요.',
+'Picture of your tank':'수조 사진','Tools':'도구','Username':'사용자 이름','username':'사용자 이름','Fish colour':'금붕어 색','Fish pattern':'금붕어 무늬','Shop':'상점','Sound on':'소리 켜짐','Sound off':'소리 꺼짐','Tank view':'어항 보기','drag to turn the tank':'끌어서 어항을 돌려 보세요','Goldfish tank. Tap, drag and feed to interact.':'금붕어 수조. 탭하고 끌고 먹이를 주며 놀아 주세요.',
 ': check the Firestore rules':': Firestore 규칙을 확인해 주세요',': is the Firestore database created?':': Firestore 데이터베이스가 만들어졌는지 확인해 주세요'};
 const KO_RX=[
 [/^(.+) is nosing at the surface\.$/,'$1, 수면에서 뻐끔거리고 있어요.'],[/^(.+) is drifting low\.$/,'$1, 바닥 가까이 떠 있어요.'],
@@ -1108,7 +1113,8 @@ function renderUI(){
   const tl=$('#tools');tl.innerHTML='';
   TOOLS.forEach(t=>{const b=document.createElement('button');b.id='t-'+t;b.textContent=t==='sleep'&&lightsOff?'wake':t==='wash'?'clean':t;if(t==='wash'){b.dataset.ko='청소';b.classList.toggle('nudge',needCleanNudge());}b.setAttribute('aria-pressed',t==='sleep'?lightsOff:t==='tank'?(tool==='peb'||tool==='arrange'):t===tool);
     b.onclick=()=>{snd.ac();if(t==='sleep'){toggleLights();return;}if(t==='tank'){openTank();return;}tool=t;if(toy&&t!=='toy')endToy(true);renderUI();hint();};tl.appendChild(b);});
-  $('#snd').textContent=save.sound?'sound on':'sound off';updateStats();updateCap();}
+  {const b=$('#snd'),on=!!save.sound;if(b.dataset.on!==String(on)){b.dataset.on=on;b.setAttribute('aria-label',on?'Sound on':'Sound off');
+    b.innerHTML='<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9.5v5h3.5L12 18.5v-13L7.5 9.5H4z"/>'+(on?'<path d="M15.5 9.5a3.5 3.5 0 0 1 0 5"/><path d="M18 7a7 7 0 0 1 0 10"/>':'<path d="M16 10l4.5 4.5M20.5 10L16 14.5"/>')+'</svg>';}}updateStats();updateCap();}
 function updateStats(){const s=pet().s;for(const [k] of STATS){const b=$('#b-'+k);if(b)b.style.width=Math.round(s[k])+'%';}
   const lv=$('#lvl'),bx=$('#b-xp');if(lv&&PROG){lv.textContent='lv '+PROG.level;bx.style.width=(PROG.level>=MAXL?100:Math.round(PROG.exp/need(PROG.level)*100))+'%';}}
 function toggleLights(){lightsOff=!lightsOff;save.night=lightsOff;if(lightsOff)S.sleptAt=T;else if(S.sleptAt!==undefined&&T-S.sleptAt>=60)track('sleep');persist();document.body.classList.toggle('night',lightsOff);
@@ -1349,12 +1355,39 @@ function drawMarks(){const all=[...MARKS.values(),...FADING];if(!all.length&&!dr
 
 /* ================= loop ================= */
 let uiT=0,saveT=0,algT=0;const clock=new THREE.Clock();
-function frame(){requestAnimationFrame(frame);const nowF=performance.now(),busy=ptr.down||toy||foods.length||T-(S.lastTouch||-9)<4,minF=busy?0:(lightsOff&&S.asleep?62:30);
+/* ---- tank view: pull back to see the whole tank as a small glass box in the middle, and turn it by dragging ---- */
+const TV={on:false,t:0,yaw:0.6,pitch:0.32,box:null,c:new V3(),D:6,fogN:0,fogF:0,drag:null};
+function buildTankBox(){if(TV.box)world.remove(TV.box);const F=B.floor,W=B.hw,y0=F-0.32,y1=B.surf+0.04,z0=-2.0,z1=1.02,g=new THREE.Group();
+  const water=new THREE.Color(getComputedStyle(document.body).backgroundColor);
+  const glass=new THREE.Mesh(new THREE.BoxGeometry(2*W,y1-y0,z1-z0),new THREE.MeshBasicMaterial({color:water.clone().lerp(new THREE.Color(0x9fb4bd),0.35),transparent:true,opacity:0.16,depthWrite:false,side:THREE.DoubleSide}));
+  glass.position.set(0,(y0+y1)/2,(z0+z1)/2);glass.renderOrder=6;g.add(glass);
+  const edges=new THREE.LineSegments(new THREE.EdgesGeometry(glass.geometry),new THREE.LineBasicMaterial({color:0x8d979c}));edges.position.copy(glass.position);g.add(edges);
+  const sub=new THREE.Mesh(new THREE.BoxGeometry(2*W-0.004,F-0.02-y0,z1-z0-0.004),flatMat({color:0xdcdcdc}));sub.position.set(0,(y0+F-0.02)/2,(z0+z1)/2);g.add(sub);
+  const top=new THREE.Mesh(new THREE.PlaneGeometry(2*W,z1-z0),new THREE.MeshBasicMaterial({color:0xb9c9d0,transparent:true,opacity:0.12,depthWrite:false,side:THREE.DoubleSide}));
+  top.rotation.x=-Math.PI/2;top.position.set(0,B.surf,(z0+z1)/2);g.add(top);
+  g.visible=false;world.add(g);TV.box=g;world.updateMatrixWorld(true);
+  TV.c.set(0,(y0+y1)/2,(z0+z1)/2);world.localToWorld(TV.c);
+  const m=0.012;TV.planes=[[1,0,0,W+m],[-1,0,0,W+m],[0,1,0,-y0+m],[0,-1,0,y1+m],[0,0,1,-z0+m],[0,0,-1,z1+m]].map(p=>new THREE.Plane(new V3(p[0],p[1],p[2]),p[3]).applyMatrix4(world.matrixWorld));
+  const rB=0.5*Math.hypot(2*W,y1-y0,z1-z0),fv=camera.fov*Math.PI/180,fh=2*Math.atan(Math.tan(fv/2)*camera.aspect);TV.D=rB/Math.sin(Math.min(fv,fh)/2)/0.62;}
+function setTankView(on){if(on===TV.on)return;TV.on=on;if(on){if(toy)endToy(true);buildTankBox();TV.box.visible=true;renderer.clippingPlanes=TV.planes;TV.fogN=scene.fog.near;TV.fogF=scene.fog.far;
+    document.body.classList.add('viewing');$('#viewBar').hidden=false;say('');}
+  else{document.body.classList.remove('viewing');$('#viewBar').hidden=true;}S.lastTouch=T;}
+function tankViewCam(dt){TV.t=clamp(TV.t+(TV.on?1:-1)*dt/0.75);const e=TV.t*TV.t*(3-2*TV.t);
+  if(TV.t<=0&&!TV.on){if(TV.box&&TV.box.visible){TV.box.visible=false;renderer.clippingPlanes=[];scene.fog.near=TV.fogN;}return false;}
+  scene.fog.near=lerp(TV.fogN,200,e);scene.fog.far=lerp(TV.fogF,400,e);
+  const o=new V3(Math.sin(TV.yaw)*Math.cos(TV.pitch),Math.sin(TV.pitch),Math.cos(TV.yaw)*Math.cos(TV.pitch)).multiplyScalar(TV.D).add(TV.c);
+  camera.position.lerpVectors(camBase,o,e);camera.lookAt(new V3().lerpVectors(camLook,TV.c,e));return true;}
+$('#tvBtn').onclick=()=>setTankView(true);$('#viewDone').onclick=()=>setTankView(false);
+cv.addEventListener('pointerdown',e=>{if(!TV.on)return;TV.drag={x:e.clientX,y:e.clientY};S.lastTouch=T;e.stopImmediatePropagation();},true);
+cv.addEventListener('pointermove',e=>{if(!TV.on)return;e.stopImmediatePropagation();if(!TV.drag)return;S.lastTouch=T;
+  TV.yaw-=(e.clientX-TV.drag.x)*0.009;TV.pitch=clamp(TV.pitch+(e.clientY-TV.drag.y)*0.007,-0.35,1.35);TV.drag={x:e.clientX,y:e.clientY};},true);
+['pointerup','pointercancel'].forEach(t=>cv.addEventListener(t,e=>{if(!TV.on)return;TV.drag=null;e.stopImmediatePropagation();},true));
+function frame(){requestAnimationFrame(frame);const nowF=performance.now(),busy=ptr.down||toy||foods.length||T-(S.lastTouch||-9)<4||(TV.t>0&&TV.t<1),minF=busy?0:(lightsOff&&S.asleep?62:30);
   if(nowF-(frame.last||0)<minF)return;frame.last=nowF;const dt=Math.min(clock.getDelta(),0.07);T+=dt;
   needs(dt);behave(dt);physics(dt);animate(dt);keepAboveFloor();updateFoods(dt);updateToy(dt);updateRocks(dt);updateFX(dt);updateSay(dt);
   const lt=lightsOff?0.35:1;hemi.intensity=damp(hemi.intensity,0.85*lt,2,dt);keyL.intensity=damp(keyL.intensity,0.7*lt,2,dt);
-  const d=camera.position.distanceTo(camLook);scene.fog.far=damp(scene.fog.far,d+lerp(3,40,pet().s.clean/100),2,dt);
-  camera.position.x=camBase.x+Math.sin(T*0.17)*0.05;camera.position.y=camBase.y+Math.sin(T*0.23)*0.03;camera.lookAt(camLook);
+  if(!tankViewCam(dt)){const d=camera.position.distanceTo(camLook);scene.fog.far=damp(scene.fog.far,d+lerp(3,40,pet().s.clean/100),2,dt);
+  camera.position.x=camBase.x+Math.sin(T*0.17)*0.05;camera.position.y=camBase.y+Math.sin(T*0.23)*0.03;camera.lookAt(camLook);}
   if((algT+=dt)>1){algT=0;syncAlgae();}
   if((uiT+=dt)>0.3){uiT=0;updateStats();updateCap();if(PROG){ensureDaily();const n=pet().s;if(n.food>60&&n.clean>60&&n.energy>60&&n.fun>60&&!S.happyOnce){S.happyOnce=true;track('needs');}}}
   if(S.toastT>0)S.toastT-=dt;
