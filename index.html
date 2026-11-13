@@ -381,6 +381,13 @@ const WC={snow:0xf3f5f6,ice:0xb3cfda,red:0xc95a50,green:0x5d8566,pine:0x4c6f58,w
 const fm=c=>flatMat({color:c});
 function part(geo,col,x,y,z,sx,sy,sz){const m=new THREE.Mesh(geo,fm(col));m.position.set(x,y,z);if(sx)m.scale.set(sx,sy,sz);return m;}
 const SPH=new THREE.SphereGeometry(1,20,14),CONE=new THREE.ConeGeometry(1,1,20),CYL=new THREE.CylinderGeometry(1,1,1,20),BOX=new THREE.BoxGeometry(1,1,1);
+/* a lathe (turned) shape that smoothly blends several stacked ellipsoids [centreY, halfHeight, radius] so joins read as one soft form */
+function blobLathe(parts,k,phiS,phiL){const lo=Math.min(...parts.map(p=>p[0]-p[1])),hi=Math.max(...parts.map(p=>p[0]+p[1])),N=40,pts=[];
+  const smax=(a,b)=>{const h=clamp(0.5+0.5*(a-b)/k);return b+(a-b)*h+k*h*(1-h);};
+  for(let i=0;i<=N;i++){const t=i/N,y=lo+(hi-lo)*(0.5-0.5*Math.cos(Math.PI*t));let r=0;
+    for(const [c,h,R0] of parts){const u=(y-c)/h,v=u*u<1?R0*Math.sqrt(1-u*u):0;r=i&&i<N?smax(r,v):0;}
+    pts.push(new THREE.Vector2(Math.max(0,i===0||i===N?0:r),y));}
+  return new THREE.LatheGeometry(pts,28,phiS||0,phiL||Math.PI*2);}
 function grp(...a){const g=new THREE.Group();a.forEach(x=>g.add(x));return g;}
 const SHOP=[
  {id:'cane',name:'candy cane',price:60,make:()=>{const g=new THREE.Group();for(let i=0;i<6;i++)g.add(part(CYL,i%2?WC.snow:WC.red,0,0.03+i*0.05,0,0.018,0.05,0.018));
@@ -388,16 +395,32 @@ const SHOP=[
  {id:'gift',name:'gift box',price:80,make:()=>grp(part(BOX,WC.red,0,0.07,0,0.15,0.14,0.15),part(BOX,WC.green,0,0.07,0,0.035,0.145,0.155),part(BOX,WC.green,0,0.07,0,0.155,0.145,0.035),
    part(SPH,WC.green,-0.02,0.15,0,0.03,0.02,0.03),part(SPH,WC.green,0.02,0.15,0,0.03,0.02,0.03))},
  {id:'ice',name:'ice crystals',price:100,make:()=>{const g=new THREE.Group();[[0,0.16,0,0],[0.06,0.11,0.03,0.4],[-0.06,0.12,-0.02,-0.35],[0.02,0.09,-0.06,0.2]].forEach(([x,h,z,a])=>{const c=part(CONE,WC.ice,x,h/2,z,0.035,h,0.035);c.rotation.z=a;g.add(c);});return g;}},
- {id:'snowman',name:'snowman',price:120,make:()=>grp(part(SPH,WC.snow,0,0.11,0,0.12,0.11,0.12),part(SPH,WC.snow,0,0.27,0,0.085,0.08,0.085),part(SPH,WC.snow,0,0.4,0,0.065,0.065,0.065),
-   (()=>{const c=part(CONE,WC.orange,0.08,0.4,0,0.014,0.06,0.014);c.rotation.z=-Math.PI/2;return c;})(),part(SPH,WC.black,0.055,0.425,0.025,0.008,0.008,0.008),part(SPH,WC.black,0.055,0.425,-0.025,0.008,0.008,0.008),
-   (()=>{const t=new THREE.Mesh(new THREE.TorusGeometry(0.07,0.018,8,24),fm(WC.red));t.rotation.x=Math.PI/2;t.position.y=0.34;return t;})())},
+ {id:'snowman',name:'snowman',price:120,make:()=>{const g=new THREE.Group();
+   const body=new THREE.Mesh(blobLathe([[0.1,0.105,0.122],[0.265,0.082,0.088],[0.395,0.066,0.066]],0.03),fm(WC.snow));body.rotation.z=0.04;g.add(body);
+   const head=new THREE.Group();head.position.set(0.012,0.395,0);head.rotation.z=-0.12;g.add(head);
+   head.add((()=>{const c=part(CONE,WC.orange,0.085,0,0,0.014,0.065,0.014);c.rotation.z=-Math.PI/2-0.1;return c;})());
+   head.add(part(SPH,WC.black,0.056,0.024,0.026,0.009,0.009,0.009),part(SPH,WC.black,0.056,0.024,-0.026,0.009,0.009,0.009));
+   for(const [y,x] of [[0.235,0.088],[0.29,0.083]])g.add(part(SPH,WC.black,x,y,0,0.008,0.008,0.008));
+   const sc=new THREE.Mesh(new THREE.TorusGeometry(0.068,0.02,8,24),fm(WC.red));sc.rotation.x=Math.PI/2;sc.position.y=0.335;sc.scale.set(1,1,0.8);g.add(sc);
+   const tail=part(BOX,WC.red,0.02,0.29,0.07,0.03,0.08,0.012);tail.rotation.x=0.25;tail.rotation.z=0.2;g.add(tail);
+   // twig arms: a stick out from each side with a little fork near the end
+   for(const sd of [-1,1]){const a=part(CYL,WC.wood,0,0.29,sd*0.125,0.006,0.13,0.006);a.rotation.x=sd*1.05;g.add(a);
+     const f=part(CYL,WC.wood,0,0.326,sd*0.163,0.005,0.045,0.005);f.rotation.x=sd*0.25;g.add(f);}
+   return g;}},
  {id:'sled',name:'little sled',price:140,make:()=>{const g=new THREE.Group();for(const z of [-0.06,0.06]){const r=new THREE.Mesh(new THREE.TorusGeometry(0.05,0.008,6,16,Math.PI*0.6),fm(WC.wood));r.position.set(0.12,0.05,z);r.rotation.z=-Math.PI*0.3;g.add(r);g.add(part(BOX,WC.wood,0,0.012,z,0.26,0.012,0.012));}
    for(let i=0;i<4;i++)g.add(part(BOX,WC.red,-0.09+i*0.06,0.05,0,0.045,0.012,0.16));g.add(part(BOX,WC.wood,-0.04,0.03,0.06,0.006,0.04,0.006));g.add(part(BOX,WC.wood,-0.04,0.03,-0.06,0.006,0.04,0.006));return g;}},
  {id:'pine',name:'pine tree',price:150,make:()=>grp(part(CYL,WC.wood,0,0.04,0,0.025,0.08,0.025),part(CONE,WC.pine,0,0.15,0,0.13,0.17,0.13),part(CONE,WC.pine,0,0.25,0,0.1,0.15,0.1),part(CONE,WC.pine,0,0.34,0,0.07,0.13,0.07),
    part(CONE,WC.snow,0,0.39,0,0.03,0.04,0.03),part(SPH,WC.gold,0,0.42,0,0.018,0.018,0.018))},
- {id:'penguin',name:'penguin',price:180,make:()=>grp(part(SPH,WC.black,0,0.12,0,0.08,0.12,0.075),part(SPH,WC.snow,0.03,0.11,0,0.06,0.095,0.058),part(SPH,WC.black,0,0.26,0,0.06,0.055,0.058),
-   (()=>{const c=part(CONE,WC.orange,0.07,0.255,0,0.014,0.04,0.014);c.rotation.z=-Math.PI/2;return c;})(),part(SPH,WC.snow,0.04,0.275,0.03,0.012,0.012,0.008),part(SPH,WC.snow,0.04,0.275,-0.03,0.012,0.012,0.008),
-   part(SPH,WC.orange,0.03,0.008,0.03,0.035,0.01,0.02),part(SPH,WC.orange,0.03,0.008,-0.03,0.035,0.01,0.02))},
+ {id:'penguin',name:'penguin',price:180,make:()=>{const g=new THREE.Group();
+   // one smooth pear-shaped body: plump bottom flowing into the head, no seam
+   const prof=[[0.115,0.115,0.088],[0.27,0.062,0.058]];
+   const body=new THREE.Mesh(blobLathe(prof,0.045),fm(WC.black));body.scale.z=0.9;g.add(body);
+   g.add(part(SPH,WC.snow,0.03,0.115,0,0.064,0.098,0.062));
+   for(const sd of [-1,1]){g.add(part(SPH,WC.snow,0.035,0.275,sd*0.026,0.016,0.019,0.014),part(SPH,WC.black,0.048,0.277,sd*0.026,0.007,0.008,0.007));
+     const fl=part(SPH,WC.black,-0.005,0.135,sd*0.085,0.022,0.075,0.012);fl.rotation.x=sd*0.35;fl.rotation.z=0.15;g.add(fl);
+     const ft=part(SPH,WC.orange,0.04,0.008,sd*0.03,0.035,0.01,0.022);ft.rotation.y=-sd*0.25;g.add(ft);}
+   const bk=part(CONE,WC.orange,0.072,0.262,0,0.013,0.04,0.011);bk.rotation.z=-Math.PI/2-0.25;g.add(bk);
+   g.rotation.z=0.03;return g;}},
  {id:'igloo',name:'igloo',price:250,make:()=>{const d=new THREE.Mesh(new THREE.SphereGeometry(0.2,24,12,0,Math.PI*2,0,Math.PI/2),fm(WC.snow));
    const tun=part(CYL,0xe3e9ec,0.19,0,0,0.075,0.14,0.075);tun.rotation.z=Math.PI/2;
    const door=new THREE.Mesh(new THREE.CircleGeometry(0.052,20),fm(0x56606a));door.rotation.y=Math.PI/2;door.position.set(0.262,0,0);
