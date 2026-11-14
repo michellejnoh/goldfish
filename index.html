@@ -1333,12 +1333,17 @@ function cloudPut(keep){if(!DB||!USER||!cloudDirty||!cloudReady)return;const who
   cloudWrite(true,who);}
 function cloudWrite(keep,who){if(!cloudDirty||who!==USER||UTS[who]===undefined)return;cloudDirty=false;rememberBest();const rec={updated:lastChange||Date.now(),save,prog:PROG};
   const body={fields:{name:{stringValue:USER},level:{integerValue:String(PROG.level)},data:{stringValue:JSON.stringify(rec)},updated:{timestampValue:new Date().toISOString()}}};
+  // total xp ever earned and a format version go alongside, so the database rules can refuse any save that would go backwards (or comes from an old copy of the game)
+  if(!cloudWrite.legacy){body.fields.total={integerValue:String(Math.floor(PROG.total||0))};body.fields.v={integerValue:'3'};}
   // only write if the online copy is still the one we last read; if another device saved meanwhile, merge again first
   const ut=UTS[who],pre=cloudWrite.loose?'':ut==='none'?'&currentDocument.exists=false':ut?'&currentDocument.updateTime='+encodeURIComponent(ut):'';cloudWrite.loose=false;
   fetch(docURL(who)+pre,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify(body),keepalive:!!keep})
-    .then(r=>{if(r.ok){cloudWrite.retry=0;SYNC={ok:true,msg:'',t:Date.now()};return r.json().then(j=>{if(j&&j.updateTime)UTS[who]=j.updateTime;},()=>{});}
+    .then(r=>{if(r.ok){cloudWrite.retry=0;cloudWrite.f403=0;SYNC={ok:true,msg:'',t:Date.now()};return r.json().then(j=>{if(j&&j.updateTime)UTS[who]=j.updateTime;},()=>{});}
       if(r.status===400||r.status===409||r.status===412){if(who!==USER)return;cloudWrite.retry=(cloudWrite.retry||0)+1;if(cloudWrite.retry>=3)cloudWrite.loose=true;
         cloudDirty=true;clearTimeout(pushT);pushT=setTimeout(()=>cloudPut(),1500);return;}
+      if(r.status===403&&who===USER&&(cloudWrite.f403=(cloudWrite.f403||0)+1)<4){cloudDirty=true;
+        // refused: first merge with the online copy and try again; if the database still uses the older rules, fall back to the older save format
+        if(cloudWrite.f403===2)cloudWrite.legacy=true;clearTimeout(pushT);pushT=setTimeout(()=>cloudPut(),1200);return;}
       {cloudDirty=true;return r.text().then(t=>{SYNC={ok:false,msg:'online save refused (error '+r.status+')'+(r.status===403?': check the Firestore rules':r.status===404?': is the Firestore database created?':''),t:Date.now()};console.warn('Goldfish save:',r.status,t);});}})
     .catch(()=>{if(who===USER)cloudDirty=true;SYNC={ok:false,msg:'offline: will save online when connected',t:Date.now()};});}
 // take the online copy when another device changed things more recently than this one
