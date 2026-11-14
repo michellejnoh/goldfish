@@ -792,7 +792,12 @@ function buildEnv(){
     const s=new THREE.Mesh(stoneGeo(r,rnd(0,9),rough,flat),MAT);s.position.set(rnd(-span,span),F+r*flat*0.35,rnd(-1.5,0.9));s.rotation.y=rnd(0,6);e.add(s);
     if(!rough&&r<0.1&&Math.abs(s.position.x)<B.x*0.95&&s.position.z>-1.3&&s.position.z<0.6){if(save.tank.pebbles){e.remove(s);}else PEBBLES.push({m:s,r,flat,shade:+s.geometry.attributes.color.getX(0).toFixed(2),rest:F+r*flat*0.35,inPile:false,state:'floor',vy:0});}}
   if(save.tank.pebbles)for(const q of save.tank.pebbles)addPebble(e,q[0]*B.x,F+q[1],q[2],q[3],q[4],q[5],!!q[6],false);
-  PILE=new V3((save.tank.pileSide||(save.tank.pileSide=Math.random()<0.5?-1:1))*B.x*0.7,F,0.35);PILE.n=PEBBLES.filter(p=>p.inPile).length;
+  // make sure there are enough loose pebbles for a proper heap (older tanks only had about a dozen)
+  if(!save.tank.topped){save.tank.topped=1;let tries=0;while(PEBBLES.length<28&&tries++<400){const r=rnd(0.05,0.09),flat=rnd(0.45,0.7),x=rnd(-B.x*0.9,B.x*0.9),z=rnd(-1.2,0.55);
+      if(PEBBLES.some(p=>Math.hypot(p.m.position.x-x,p.m.position.z-z)<0.16))continue;addPebble(e,x,F+r*flat*0.35,z,r,flat,[0.62,0.7,0.78,0.85][Math.floor(Math.random()*4)],false,false);}}
+  // the heap sits in the open toward the front, where it can be seen
+  PILE=new V3((save.tank.pileSide||(save.tank.pileSide=Math.random()<0.5?-1:1))*B.x*0.4,F,0.45);PILE.n=PEBBLES.filter(p=>p.inPile).length;
+  if(PILE.n){let sx=0,sz=0;for(const p of PEBBLES)if(p.inPile){sx+=p.m.position.x;sz+=p.m.position.z;}PILE.x=sx/PILE.n;PILE.z=sz/PILE.n;}// keep growing an existing heap where it is
   ITEMS_ON=[];for(const it of save.tank.items){const def=SHOP.find(d=>d.id===it.id);if(!def)continue;const g=def.make();g.scale.setScalar(1.8);g.position.set(it.x*B.x,F,it.z);g.rotation.y=it.r||0;g.userData.item=it;e.add(g);ITEMS_ON.push(g);}
   {const bg=stoneGeo(0.1,7,false,1);const cc2=new THREE.Color();tint(bg,()=>cc2.setRGB(0.5,0.5,0.5));const bm=new THREE.Mesh(bg,MAT);bm.position.set(B.x*0.25,F+0.1,-0.1);e.add(bm);BALL={m:bm,pos:bm.position,vel:new V3(),r:0.1,floor:F+0.1};}
   BIGROCKS=[];[[-B.x*0.75,-1.0,0.42],[B.x*0.6,-1.2,0.55],[B.x*0.95,-0.7,0.26]].forEach(([x,z,r])=>{const s=new THREE.Mesh(stoneGeo(r,rnd(0,9),false,0.72),MAT);s.position.set(x,F+r*0.3,z);s.rotation.y=rnd(0,6);e.add(s);BIGROCKS.push(s);});
@@ -1037,7 +1042,10 @@ function tidy(dt){
     if(S.modeT<0){S.peb=null;S.mode='idle';}return;}
   const top=new V3(PILE.x,B.floor+0.35,PILE.z),t=mouthTarget(top);const d=move(t.x,t.y,t.z,0.8,dt,B.floor+0.06,B.surf);if(d<0.6)S.faceT=top;
   if(mouthWorld().distanceTo(top)<0.22){const n=PILE.n++,mr=0.05+0.035*Math.sqrt(n),a=rnd(0,Math.PI*2),rad=mr*Math.sqrt(Math.random()),h=0.03*Math.sqrt(n);
-    pb.target=new V3(PILE.x+Math.cos(a)*rad,pb.rest+h*(1-rad/mr),PILE.z+Math.sin(a)*rad*0.7);pb.state='fall';pb.vy=0;pb.inPile=true;S.peb=null;S.tidyLeft--;if(!document.hidden)track('pebble');squish(-1.5);snd.blub();
+    const tx=PILE.x+Math.cos(a)*rad,tz=PILE.z+Math.sin(a)*rad*0.7;let ty=pb.rest;
+    // land on top of the stones already in the heap, so it really piles up
+    for(const q of PEBBLES){if(!q.inPile||q===pb)continue;const qp=q.target||q.m.position;if(Math.hypot(qp.x-tx,qp.z-tz)<q.r+pb.r*0.7){ty=Math.max(ty,qp.y+q.r*q.flat*0.6+pb.r*pb.flat*0.35);}}
+    pb.target=new V3(tx,Math.min(ty,B.floor+0.45),tz);pb.state='fall';pb.vy=0;pb.inPile=true;S.peb=null;S.tidyLeft--;if(!document.hidden){track('pebble');if(PROG)checkAch('heapsize',PEBBLES.filter(p=>p.inPile).length);}squish(-1.5);snd.blub();
     if(Math.random()<0.4)say(pick(['mm','o']),1);}}
 function juggle(dt){const b=BALL;if(!b){S.mode='idle';return;}S.bumpCD-=dt;const bp=b.pos,m=mouthWorld();S.faceT=bp;
   const toward=p=>{const t=S.pos.clone().add(p.clone().sub(m));return move(t.x,t.y,t.z,2.6,dt,B.floor+0.03,B.surf);};
@@ -1236,7 +1244,7 @@ const MISSIONS=[
 const ACH=[
   {id:'first',t:'first meal',ty:'eat',g:1,xp:20},{id:'eat100',t:'100 flakes eaten',ty:'eat',g:100,xp:150},
   {id:'catch100',t:'caught the lure 100 times',ty:'catch',g:100,xp:300},{id:'trick50',t:'50 tricks',ty:'trick',g:50,xp:200},
-  {id:'heap20',t:'a heap of 20 pebbles',ty:'pebble',g:20,xp:200},{id:'wipe100',t:'100 smudges wiped',ty:'smudge',g:100,xp:250},
+  {id:'heap20',t:'a heap of 20 pebbles',ty:'heapsize',g:20,xp:200},{id:'wipe100',t:'100 smudges wiped',ty:'smudge',g:100,xp:250},
   {id:'streak7',t:'7 days in a row',ty:'streak',g:7,xp:200},{id:'streak30',t:'30 days in a row',ty:'streak',g:30,xp:800}];
 const PASSIVE={eat:1,hello:1,trick:2,catch:2,smudge:2,pebble:1};
 let USER=null,PROG=null,cloudT=0,cloudDirty=false,lastChange=0,pushT=0,SYNC={ok:null,msg:'',t:0};
@@ -1350,7 +1358,7 @@ function renderMissions(){if(!PROG)return;ensureDaily();const d=PROG.daily;
   $('#misList').innerHTML=d.ids.map(id=>{const m=MISSIONS.find(x=>x.id===id);return row(fill(m.t),d.done[id]?'done':(d.prog[id]||0)+'/'+m.g+' · '+m.xp+' xp',d.done[id]);}).join('')+row('all three',d.bonus?'done':'+50 xp',d.bonus);
   $('#syncInfo').textContent=!DB?'saved on this device':SYNC.ok===false?SYNC.msg:SYNC.ok?('saved online'+(SYNC.t?' \u00b7 '+new Date(SYNC.t).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}):'')):'connecting to the online save\u2026';
   $('#misStreak').textContent=(PROG.streak.n||1)+' day'+(PROG.streak.n>1?'s':'')+' in a row · new missions at midnight';
-  $('#achList').innerHTML=ACH.map(a=>row(a.t,PROG.ach[a.id]?'done':Math.min(a.g,a.ty==='streak'?PROG.streak.n:(PROG.life[a.ty]||0))+'/'+a.g,!!PROG.ach[a.id])).join('');}
+  $('#achList').innerHTML=ACH.map(a=>row(a.t,PROG.ach[a.id]?'done':Math.min(a.g,a.ty==='streak'?PROG.streak.n:a.ty==='heapsize'?PEBBLES.filter(p=>p.inPile).length:(PROG.life[a.ty]||0))+'/'+a.g,!!PROG.ach[a.id])).join('');}
 function syncNow(){if(!USER)return;if(!DB){toast('saved on this device only');return;}SYNC={ok:null,msg:'',t:0};renderMissions();cloudDirty=true;cloudPut();
   setTimeout(()=>cloudGet(USER).then(c=>{if(takeMerged(c))toast('synced with your other devices');else toast('already up to date');renderMissions();},()=>{toast('couldn\u2019t reach the online save');renderMissions();}),900);}
 $('#syncNow').onclick=syncNow;
@@ -1516,7 +1524,7 @@ function frame(){requestAnimationFrame(frame);const nowF=performance.now(),busy=
   if(!tankViewCam(dt)){const d=camera.position.distanceTo(camLook);scene.fog.far=damp(scene.fog.far,d+lerp(3,40,pet().s.clean/100),2,dt);
   camera.position.x=camBase.x+Math.sin(T*0.17)*0.05;camera.position.y=camBase.y+Math.sin(T*0.23)*0.03;camera.lookAt(camLook);}
   if((algT+=dt)>1){algT=0;syncAlgae();}
-  if((uiT+=dt)>0.3){uiT=0;updateStats();updateCap();if(PROG){ensureDaily();const n=pet().s;if(n.food>60&&n.clean>60&&n.energy>60&&n.fun>60&&!S.happyOnce){S.happyOnce=true;track('needs');}}}
+  if((uiT+=dt)>0.3){uiT=0;updateStats();updateCap();if(PROG){ensureDaily();const n=pet().s,ok=n.food>60&&n.clean>60&&n.energy>60&&n.fun>60;if(ok&&!S.happyNow)track('needs');S.happyNow=ok;}}
   if(S.toastT>0)S.toastT-=dt;
   if((saveT+=dt)>5){saveT=0;persistLocal();}
   renderer.render(scene,camera);}
