@@ -103,7 +103,8 @@ body.photo .ui,body.photo #say{display:none}
 #flash.on{opacity:.85;transition:none}
 #viewBar{position:fixed;left:0;right:0;top:0;z-index:4;display:flex;justify-content:space-between;align-items:center;gap:12px;
   padding-top:calc(env(safe-area-inset-top,0px) + 12px);padding-left:max(20px,env(safe-area-inset-left,0px));padding-right:max(20px,env(safe-area-inset-right,0px))}
-#viewHint{margin:0;font-size:17px;color:var(--soft)}
+#viewHint{margin:0;font-size:17px;color:var(--soft);flex:1}
+.zoombtns{display:flex;gap:4px}.zoombtns .icon{font-size:30px;line-height:1;width:40px;height:40px;color:var(--ink)}
 #editBar{position:fixed;left:0;right:0;top:0;z-index:4;display:flex;flex-direction:column;align-items:center;gap:2px;
   padding-top:calc(env(safe-area-inset-top,0px) + 10px);padding-left:max(18px,env(safe-area-inset-left,0px));padding-right:max(18px,env(safe-area-inset-right,0px));text-shadow:0 0 1.2px rgba(0,0,0,.3)}
 #editBar nav{display:flex;justify-content:space-between;gap:10px;width:100%;max-width:440px}
@@ -170,7 +171,7 @@ body.photo .ui,body.photo #say{display:none}
   <button type="button" class="go" id="photoClose">close</button><button type="button" id="shutter" aria-label="Take picture"></button></div>
 <div id="polaroid" hidden><div class="pol"><img id="polImg" alt=""><p id="polText"></p></div></div>
 <div id="tour" hidden><div class="ring"></div><div class="tip"><p id="tourText"></p><div class="row2"><button type="button" class="link" id="tourSkip">skip</button><span id="tourStep"></span></div></div></div>
-<div id="viewBar" hidden><p id="viewHint">drag to turn the tank</p><button type="button" class="go" id="viewDone">done</button></div>
+<div id="viewBar" hidden><p id="viewHint">drag to turn · pinch to zoom</p><span class="zoombtns"><button type="button" class="icon" id="tvOut" aria-label="Zoom out">−</button><button type="button" class="icon" id="tvIn" aria-label="Zoom in">+</button></span><button type="button" class="go" id="viewDone">done</button></div>
 <div id="editBar" hidden><nav aria-label="Edit tools"><button type="button" data-e="add">add pebbles</button><button type="button" data-e="remove">remove pebbles</button><button type="button" data-e="arrange">move decorations</button><button type="button" class="done" id="editDone">done</button></nav><p id="editHint"></p><div id="turnRow" hidden><button type="button" data-turn="1">turn left</button><button type="button" data-turn="-1">turn right</button></div></div>
 <div id="say" aria-live="polite"></div>
 <div class="ui top">
@@ -345,7 +346,7 @@ const KO={
 'toy · drag the lure and let your fish chase it':'장난감 · 미끼를 끌면 금붕어가 쫓아와요','sleep · turns the lights off so your fish can rest':'재우기 · 불을 꺼서 금붕어를 쉬게 해요',
 'missions · three goals a day for xp. your fish grows every 5 levels':'미션 · 하루 세 가지 목표로 xp를 모아요. 5레벨마다 금붕어가 자라요',
 'edit · your fish’s colour and pattern, the water, and decorations':'편집 · 금붕어 색과 무늬, 물 색, 장식을 바꿔요','tank view · see the whole tank and turn it around':'어항 보기 · 어항 전체를 보고 돌려 봐요',
-'camera · take a picture of your tank':'카메라 · 어항 사진을 찍어요','your keeper name · tap to switch keepers':'키퍼 이름 · 탭하면 다른 키퍼로 바꿔요','growth':'성장','Take picture':'사진 찍기','Sound on':'소리 켜짐','Sound off':'소리 꺼짐','Tank view':'어항 보기','drag to turn the tank':'끌어서 어항을 돌려 보세요','Goldfish tank. Tap, drag and feed to interact.':'금붕어 수조. 탭하고 끌고 먹이를 주며 놀아 주세요.',
+'camera · take a picture of your tank':'카메라 · 어항 사진을 찍어요','your keeper name · tap to switch keepers':'키퍼 이름 · 탭하면 다른 키퍼로 바꿔요','growth':'성장','Take picture':'사진 찍기','Sound on':'소리 켜짐','Sound off':'소리 꺼짐','Tank view':'어항 보기','drag to turn · pinch to zoom':'끌어서 돌리기 · 두 손가락으로 확대','Zoom in':'확대','Zoom out':'축소','Goldfish tank. Tap, drag and feed to interact.':'금붕어 수조. 탭하고 끌고 먹이를 주며 놀아 주세요.',
 ': check the Firestore rules':': Firestore 규칙을 확인해 주세요',': is the Firestore database created?':': Firestore 데이터베이스가 만들어졌는지 확인해 주세요'};
 const KO_RX=[
 [/^(.+) is nosing at the surface\.$/,'$1, 수면에서 뻐끔거리고 있어요.'],[/^(.+) is drifting low\.$/,'$1, 바닥 가까이 떠 있어요.'],
@@ -1515,7 +1516,7 @@ function drawMarks(){const all=[...MARKS.values(),...FADING];if(!all.length&&!dr
 /* ================= loop ================= */
 let uiT=0,saveT=0,algT=0;const clock=new THREE.Clock();
 /* ---- tank view: pull back to see the whole tank as a small glass box in the middle, and turn it by dragging ---- */
-const TV={on:false,t:0,yaw:0.6,pitch:0.32,box:null,c:new V3(),D:6,fogN:0,fogF:0,drag:null};
+const TV={on:false,t:0,yaw:0.6,pitch:0.32,zoom:1,zs:1,pts:new Map(),pinch:0,box:null,c:new V3(),D:6,fogN:0,fogF:0,drag:null};
 function buildTankBox(){if(TV.box)world.remove(TV.box);const F=B.floor,W=B.hw,y0=F-0.32,y1=B.surf+0.04,z0=-2.0,z1=1.02,g=new THREE.Group();
   const water=new THREE.Color(getComputedStyle(document.body).backgroundColor);
   const glass=new THREE.Mesh(new THREE.BoxGeometry(2*W,y1-y0,z1-z0),new THREE.MeshBasicMaterial({color:water.clone().lerp(new THREE.Color(0x9fb4bd),0.35),transparent:true,opacity:0.16,depthWrite:false,side:THREE.DoubleSide}));
@@ -1528,19 +1529,26 @@ function buildTankBox(){if(TV.box)world.remove(TV.box);const F=B.floor,W=B.hw,y0
   TV.c.set(0,(y0+y1)/2,(z0+z1)/2);world.localToWorld(TV.c);
   const m=0.012;TV.planes=[[1,0,0,W+m],[-1,0,0,W+m],[0,1,0,-y0+m],[0,-1,0,y1+m],[0,0,1,-z0+m],[0,0,-1,z1+m]].map(p=>new THREE.Plane(new V3(p[0],p[1],p[2]),p[3]).applyMatrix4(world.matrixWorld));
   const rB=0.5*Math.hypot(2*W,y1-y0,z1-z0),fv=camera.fov*Math.PI/180,fh=2*Math.atan(Math.tan(fv/2)*camera.aspect);TV.D=rB/Math.sin(Math.min(fv,fh)/2)/0.62;}
-function setTankView(on){if(on===TV.on)return;TV.on=on;if(on){if(toy)endToy(true);buildTankBox();TV.box.visible=true;renderer.clippingPlanes=TV.planes;TV.fogN=scene.fog.near;TV.fogF=scene.fog.far;
+function setTankView(on){if(on===TV.on)return;TV.on=on;if(on){TV.zoom=TV.zs=1;if(toy)endToy(true);buildTankBox();TV.box.visible=true;renderer.clippingPlanes=TV.planes;TV.fogN=scene.fog.near;TV.fogF=scene.fog.far;
     document.body.classList.add('viewing');$('#viewBar').hidden=false;say('');}
-  else{document.body.classList.remove('viewing');$('#viewBar').hidden=true;}S.lastTouch=T;}
-function tankViewCam(dt){TV.t=clamp(TV.t+(TV.on?1:-1)*dt/0.75);const e=TV.t*TV.t*(3-2*TV.t);
+  else{document.body.classList.remove('viewing');$('#viewBar').hidden=true;TV.pts.clear();}S.lastTouch=T;}
+function tankViewCam(dt){TV.t=clamp(TV.t+(TV.on?1:-1)*dt/0.75);TV.zs=damp(TV.zs,TV.zoom,10,dt);const e=TV.t*TV.t*(3-2*TV.t);
   if(TV.t<=0&&!TV.on){if(TV.box&&TV.box.visible){TV.box.visible=false;renderer.clippingPlanes=[];scene.fog.near=TV.fogN;}return false;}
   scene.fog.near=lerp(TV.fogN,200,e);scene.fog.far=lerp(TV.fogF,400,e);
-  const o=new V3(Math.sin(TV.yaw)*Math.cos(TV.pitch),Math.sin(TV.pitch),Math.cos(TV.yaw)*Math.cos(TV.pitch)).multiplyScalar(TV.D).add(TV.c);
+  const o=new V3(Math.sin(TV.yaw)*Math.cos(TV.pitch),Math.sin(TV.pitch),Math.cos(TV.yaw)*Math.cos(TV.pitch)).multiplyScalar(TV.D*TV.zs).add(TV.c);
   camera.position.lerpVectors(camBase,o,e);camera.lookAt(new V3().lerpVectors(camLook,TV.c,e));return true;}
 $('#tvBtn').onclick=()=>setTankView(true);$('#viewDone').onclick=()=>setTankView(false);
-cv.addEventListener('pointerdown',e=>{if(!TV.on)return;TV.drag={x:e.clientX,y:e.clientY};S.lastTouch=T;e.stopImmediatePropagation();},true);
-cv.addEventListener('pointermove',e=>{if(!TV.on)return;e.stopImmediatePropagation();if(!TV.drag)return;S.lastTouch=T;
-  TV.yaw-=(e.clientX-TV.drag.x)*0.009;TV.pitch=clamp(TV.pitch+(e.clientY-TV.drag.y)*0.007,-0.35,1.35);TV.drag={x:e.clientX,y:e.clientY};},true);
-['pointerup','pointercancel'].forEach(t=>cv.addEventListener(t,e=>{if(!TV.on)return;TV.drag=null;e.stopImmediatePropagation();},true));
+// one finger turns the tank; two fingers pinch to zoom; on a computer, scroll to zoom
+const tvZoom=z=>{TV.zoom=clamp(z,0.28,1.6);S.lastTouch=T;};
+cv.addEventListener('pointerdown',e=>{if(!TV.on)return;TV.pts.set(e.pointerId,{x:e.clientX,y:e.clientY});
+  if(TV.pts.size===2){const [a,b]=[...TV.pts.values()];TV.pinch=Math.hypot(a.x-b.x,a.y-b.y);TV.drag=null;}else TV.drag={x:e.clientX,y:e.clientY};S.lastTouch=T;e.stopImmediatePropagation();},true);
+cv.addEventListener('pointermove',e=>{if(!TV.on)return;e.stopImmediatePropagation();if(!TV.pts.has(e.pointerId))return;TV.pts.set(e.pointerId,{x:e.clientX,y:e.clientY});S.lastTouch=T;
+  if(TV.pts.size>=2){const [a,b]=[...TV.pts.values()],d=Math.hypot(a.x-b.x,a.y-b.y);if(TV.pinch>0)tvZoom(TV.zoom*TV.pinch/d);TV.pinch=d;return;}
+  if(!TV.drag)return;TV.yaw-=(e.clientX-TV.drag.x)*0.009;TV.pitch=clamp(TV.pitch+(e.clientY-TV.drag.y)*0.007,-0.35,1.35);TV.drag={x:e.clientX,y:e.clientY};},true);
+['pointerup','pointercancel'].forEach(t=>cv.addEventListener(t,e=>{if(!TV.on)return;TV.pts.delete(e.pointerId);TV.pinch=0;
+  const r=[...TV.pts.values()][0];TV.drag=r?{x:r.x,y:r.y}:null;e.stopImmediatePropagation();},true));
+cv.addEventListener('wheel',e=>{if(!TV.on)return;e.preventDefault();tvZoom(TV.zoom*Math.exp(e.deltaY*0.0015));},{passive:false});
+$('#tvIn').onclick=()=>tvZoom(TV.zoom/1.35);$('#tvOut').onclick=()=>tvZoom(TV.zoom*1.35);
 function frame(){requestAnimationFrame(frame);const nowF=performance.now(),busy=ptr.down||toy||foods.length||T-(S.lastTouch||-9)<4||(TV.t>0&&TV.t<1),minF=busy?0:(lightsOff&&S.asleep?62:30);
   if(nowF-(frame.last||0)<minF)return;frame.last=nowF;const dt=Math.min(clock.getDelta(),0.07);T+=dt;
   needs(dt);behave(dt);physics(dt);animate(dt);keepAboveFloor();updateFoods(dt);updateToy(dt);updateRocks(dt);updateFX(dt);updateSay(dt);
