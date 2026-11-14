@@ -339,7 +339,7 @@ const KO={
 'what’s your fish called?':'금붕어 이름이 뭐예요?',"what's your fish called?":'금붕어 이름이 뭐예요?',"who's keeping this fish?":'누가 이 금붕어를 키우나요?',
 'winter shop':'겨울 상점','your fish':'내 금붕어','add':'놓기','remove':'치우기','missions':'미션',
 'Capture the tank':'수조 찍기','Edit tools':'편집 도구','Edit your tank':'수조 편집','Fish name':'금붕어 이름','Missions':'미션',
-'Picture of your tank':'수조 사진','Tools':'도구','Username':'사용자 이름','username':'사용자 이름','Fish colour':'금붕어 색','Fish pattern':'금붕어 무늬','Shop':'상점','skip':'건너뛰기',
+'Picture of your tank':'수조 사진','Tools':'도구','Username':'사용자 이름','username':'사용자 이름','Fish colour':'금붕어 색','Fish pattern':'금붕어 무늬','Shop':'상점','at least 20 stones stay in the tank':'어항에는 돌이 최소 20개 남아 있어야 해요','skip':'건너뛰기',
 'hand · drag to lead your fish, tap to call it, tap the fish to say hi':'손 · 끌어서 금붕어를 데려가고, 탭해서 부르고, 금붕어를 탭하면 인사해요',
 'food · tap the water to sprinkle flakes':'먹이 · 물을 탭해서 먹이를 뿌려요','clean · when the glass gets dirty, rub it clean':'청소 · 유리가 더러워지면 문질러서 닦아요',
 'toy · drag the lure and let your fish chase it':'장난감 · 미끼를 끌면 금붕어가 쫓아와요','sleep · turns the lights off so your fish can rest':'재우기 · 불을 꺼서 금붕어를 쉬게 해요',
@@ -662,7 +662,7 @@ function fit(){const w=innerWidth,h=innerHeight;renderer.setPixelRatio(LOWRES);r
 
 const shTex=(()=>{const c=document.createElement('canvas');c.width=c.height=128;const x=c.getContext('2d');const g=x.createRadialGradient(64,64,2,64,64,64);
   g.addColorStop(0,'rgba(0,0,0,0.22)');g.addColorStop(1,'rgba(0,0,0,0)');x.fillStyle=g;x.fillRect(0,0,128,128);return new THREE.CanvasTexture(c);})();
-let shadow,ENV,ALG=null,STONE=null,PEBBLES=[],PILE=null,BALL=null,ITEMS_ON=[];
+let shadow,ENV,ALG=null,STONE=null,PEBBLES=[],DECOS=[],PILE=null,BALL=null,ITEMS_ON=[];
 const ribbons=[],ferns=[];
 function stoneGeo(r,seed,rough,flat){const g=new THREE.IcosahedronGeometry(1,rough?1:3),p=g.attributes.position;
   for(let i=0;i<p.count;i++){const x=p.getX(i),y=p.getY(i),z=p.getZ(i),k=1+0.2*n3(x*2+seed,y*2+seed*1.3,z*2-seed);p.setXYZ(i,x*r*k,y*r*flat*k,z*r*k);}
@@ -779,7 +779,7 @@ function keepAboveFloor(){if(!R.g.visible)return;world.updateMatrixWorld(true);_
   if(!touch&&S.onGround)S.leftGround=T;
   S.onGround=touch;S.ground=lerp(S.ground||0,touch?1:0,touch?0.12:0.2);}
 function buildEnv(){
-  const e=new THREE.Group();PEBBLES=[];ribbons.length=0;ferns.length=0;
+  const e=new THREE.Group();PEBBLES=[];DECOS=[];ribbons.length=0;ferns.length=0;
   const F=B.floor,span=B.hw+1.6;
   // sand bed with ripples and grain
   const sg=new THREE.PlaneGeometry(span*2,3.4,90,36);sg.rotateX(-Math.PI/2);const sp=sg.attributes.position;
@@ -788,9 +788,15 @@ function buildEnv(){
   tint(sg,()=>cc.setRGB(0.93,0.93,0.93));
   const sand=new THREE.Mesh(sg,MAT);sand.position.set(0,F,-0.3);e.add(sand);
   // stones: smooth river pebbles, rough chips and a few large rocks
-  for(let i=0;i<85;i++){const rough=Math.random()<0.3,r=rough?rnd(0.04,0.08):rnd(0.05,0.13),flat=rnd(0.45,0.7);
-    const s=new THREE.Mesh(stoneGeo(r,rnd(0,9),rough,flat),MAT);s.position.set(rnd(-span,span),F+r*flat*0.35,rnd(-1.5,0.9));s.rotation.y=rnd(0,6);e.add(s);
-    if(!rough&&r<0.1&&Math.abs(s.position.x)<B.x*0.95&&s.position.z>-1.3&&s.position.z<0.6){if(save.tank.pebbles){e.remove(s);}else PEBBLES.push({m:s,r,flat,shade:+s.geometry.attributes.color.getX(0).toFixed(2),rest:F+r*flat*0.35,inPile:false,state:'floor',vy:0});}}
+  // the scattered background stones are remembered (save.tank.deco) so they stay put and can be removed in edit mode
+  const addDeco=q=>{const [xn,z,r,flat,rough,seed,rot]=q,s=new THREE.Mesh(stoneGeo(r,seed,!!rough,flat),MAT);s.position.set(xn*B.x,F+r*flat*0.35,z);s.rotation.y=rot;e.add(s);DECOS.push({m:s,q,r});};
+  if(save.tank.deco)save.tank.deco.forEach(addDeco);
+  else{const deco=[];
+    for(let i=0;i<85;i++){const rough=Math.random()<0.3,r=rough?rnd(0.04,0.08):rnd(0.05,0.13),flat=rnd(0.45,0.7),seed=+rnd(0,9).toFixed(2),x=rnd(-span,span),z=rnd(-1.5,0.9),rot=+rnd(0,6).toFixed(2);
+      if(!rough&&r<0.1&&Math.abs(x)<B.x*0.95&&z>-1.3&&z<0.6){if(!save.tank.pebbles){const s=new THREE.Mesh(stoneGeo(r,seed,false,flat),MAT);s.position.set(x,F+r*flat*0.35,z);s.rotation.y=rot;e.add(s);
+          PEBBLES.push({m:s,r,flat,shade:+s.geometry.attributes.color.getX(0).toFixed(2),rest:F+r*flat*0.35,inPile:false,state:'floor',vy:0});}continue;}
+      const q=[+(x/B.x).toFixed(3),+z.toFixed(3),+r.toFixed(3),+flat.toFixed(2),rough?1:0,seed,rot];deco.push(q);addDeco(q);}
+    save.tank.deco=deco;}
   if(save.tank.pebbles)for(const q of save.tank.pebbles)addPebble(e,q[0]*B.x,F+q[1],q[2],q[3],q[4],q[5],!!q[6],false);
   // make sure there are enough loose pebbles for a proper heap (older tanks only had about a dozen)
   if(!save.tank.topped){save.tank.topped=1;let tries=0;while(PEBBLES.length<28&&tries++<400){const r=rnd(0.05,0.09),flat=rnd(0.45,0.7),x=rnd(-B.x*0.9,B.x*0.9),z=rnd(-1.2,0.55);
@@ -1039,6 +1045,12 @@ function chase(dt){S.catchCD-=dt;S.playCap=0.6;if(!toy.active){brake(dt);return;
   add('fun',dt*0.3);add('energy',-dt*0.05);}
 // too tired to play: watch the lure, blub, and say so
 function tired(dt){brake(dt);S.tiredCap=0.6;if(toy.active)faceToward(toy.pos);if(Math.random()<dt*0.4&&S.sayCD<=0){S.sayCD=1.5;say('…',1.2);}}
+/* where the next pebble goes so the heap grows as a smooth dome: try a few spots and pick the one that is furthest below the ideal mound */
+function moundSpot(pb,n){const Rn=0.08+0.05*Math.sqrt(n+1),H=Rn*0.62;let best=null,bestGap=-1e9;
+  const surf=(x,z)=>{let y=pb.rest;for(const q of PEBBLES){if(!q.inPile||q===pb)continue;const qp=q.target||q.m.position;const d=Math.hypot(qp.x-x,qp.z-z);if(d<q.r+pb.r*0.6)y=Math.max(y,qp.y+q.r*q.flat*0.55*(1-d/(q.r+pb.r*0.6)*0.5)+pb.r*pb.flat*0.3);}return y;};
+  for(let k=0;k<10;k++){const a=rnd(0,Math.PI*2),rr=Rn*Math.sqrt(Math.random()),x=PILE.x+Math.cos(a)*rr,z=PILE.z+Math.sin(a)*rr*0.75;
+    const ideal=pb.rest+H*(1-Math.pow(rr/Rn,2)),cur=surf(x,z),gap=ideal-cur;if(gap>bestGap){bestGap=gap;best=new V3(x,Math.min(cur,B.floor+0.5),z);}}
+  return best;}
 function tidy(dt){
   if(!S.peb){let best=null,bd=1e9;for(const p of PEBBLES){if(p.inPile||p.state!=='floor')continue;const d=p.m.position.distanceTo(S.pos)+Math.abs(p.m.position.x-PILE.x)*0.3;if(d<bd){bd=d;best=p;}}
     if(!best||S.tidyLeft<=0||S.modeT<0){S.mode='idle';S.think=rnd(2,4);return;}S.peb=best;}
@@ -1047,11 +1059,8 @@ function tidy(dt){
     if(mouthWorld().distanceTo(pp)<0.11+pb.r){pb.state='carried';squish(-1.5);snd.pop();}
     if(S.modeT<0){S.peb=null;S.mode='idle';}return;}
   const top=new V3(PILE.x,B.floor+0.35,PILE.z),t=mouthTarget(top);const d=move(t.x,t.y,t.z,0.8,dt,B.floor+0.06,B.surf);if(d<0.6)S.faceT=top;
-  if(mouthWorld().distanceTo(top)<0.22){const n=PILE.n++,mr=0.05+0.035*Math.sqrt(n),a=rnd(0,Math.PI*2),rad=mr*Math.sqrt(Math.random()),h=0.03*Math.sqrt(n);
-    const tx=PILE.x+Math.cos(a)*rad,tz=PILE.z+Math.sin(a)*rad*0.7;let ty=pb.rest;
-    // land on top of the stones already in the heap, so it really piles up
-    for(const q of PEBBLES){if(!q.inPile||q===pb)continue;const qp=q.target||q.m.position;if(Math.hypot(qp.x-tx,qp.z-tz)<q.r+pb.r*0.7){ty=Math.max(ty,qp.y+q.r*q.flat*0.6+pb.r*pb.flat*0.35);}}
-    pb.target=new V3(tx,Math.min(ty,B.floor+0.45),tz);pb.state='fall';pb.vy=0;pb.inPile=true;S.peb=null;S.tidyLeft--;if(!document.hidden){track('pebble');if(PROG)checkAch('heapsize',PEBBLES.filter(p=>p.inPile).length);}squish(-1.5);snd.blub();
+  if(mouthWorld().distanceTo(top)<0.22){const n=PILE.n++;const pos=moundSpot(pb,n);pb.target=pos;
+    pb.state='fall';pb.vy=0;pb.inPile=true;S.peb=null;S.tidyLeft--;if(!document.hidden){track('pebble');if(PROG)checkAch('heapsize',PEBBLES.filter(p=>p.inPile).length);}squish(-1.5);snd.blub();
     if(Math.random()<0.4)say(pick(['mm','o']),1);}}
 function juggle(dt){const b=BALL;if(!b){S.mode='idle';return;}S.bumpCD-=dt;const bp=b.pos,m=mouthWorld();S.faceT=bp;
   const toward=p=>{const t=S.pos.clone().add(p.clone().sub(m));return move(t.x,t.y,t.z,2.6,dt,B.floor+0.03,B.surf);};
@@ -1447,8 +1456,11 @@ function pebbleAt(fp){const x=clamp(fp.x,-B.x,B.x),z=clamp(fp.z,-1.3,0.7);if(PEB
 let pebDirty=false;
 function pebbleBrush(start){const fp=floorPoint();if(!fp)return;
   if(S.pebMode==='add'){if(start){pebbleAt.full=0;lastPeb=fp;pebbleAt(fp);return;}if(lastPeb&&fp.distanceTo(lastPeb)>0.13){lastPeb=fp;pebbleAt(fp);}return;}
-  let n=0;for(const pb of PEBBLES.slice()){const q=pb.m.position;if(pb.state==='carried')continue;if(Math.hypot(q.x-fp.x,q.z-fp.z)<0.2+pb.r){ENV.remove(pb.m);PEBBLES.splice(PEBBLES.indexOf(pb),1);n++;}}
-  if(n){snd.pop();pebDirty=true;}}
+  let n=0;const left=()=>PEBBLES.length+DECOS.length>20;
+  for(const pb of PEBBLES.slice()){const q=pb.m.position;if(pb.state==='carried')continue;if(left()&&Math.hypot(q.x-fp.x,q.z-fp.z)<0.2+pb.r){ENV.remove(pb.m);PEBBLES.splice(PEBBLES.indexOf(pb),1);n++;}}
+  for(const d of DECOS.slice()){const q=d.m.position;if(left()&&Math.hypot(q.x-fp.x,q.z-fp.z)<0.2+d.r){ENV.remove(d.m);DECOS.splice(DECOS.indexOf(d),1);n++;}}
+  if(n){save.tank.deco=DECOS.map(d=>d.q);snd.pop();pebDirty=true;}
+  else if(!left()&&start&&!pebbleBrush.told){pebbleBrush.told=1;toast('at least 20 stones stay in the tank',2.6);}}
 let dragItem=null;
 function hitItem(){const hs=ray.intersectObjects(ITEMS_ON,true);if(!hs.length)return null;let o=hs[0].object;while(o&&!o.userData.item)o=o.parent;return o;}
 /* ---- capture just the tank as a picture ---- */
