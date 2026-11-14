@@ -1202,10 +1202,10 @@ addEventListener('resize',fitName);if(document.fonts)document.fonts.ready.then(f
 $('#namingForm').addEventListener('submit',e=>{e.preventDefault();const v=$('#fishName').value.replace(/[\u0000-\u001f<>]/g,'').trim().slice(0,14);
   if(v){pet().name=v;persist();renderUI();toast('hello, '+v+'.',2.4);}$('#naming').hidden=true;maybeTour();});
 $('#namingSkip').onclick=()=>{$('#naming').hidden=true;maybeTour();};
-const TOUR=[['#t-hand','hand · drag to lead your fish, tap to call it, tap the fish to say hi'],['#t-food','food · tap the water to sprinkle flakes'],
-  ['#t-wash','clean · when the glass gets dirty, rub it clean'],['#t-toy','toy · drag the lure and let your fish chase it'],['#t-sleep','sleep · turns the lights off so your fish can rest'],
+const TOUR=[['#t-hand','hand · drag to lead your fish, tap to call it, tap the fish to say hi'],
+  ['#t-wash','clean · when the glass gets dirty, rub it clean'],['#t-sleep','sleep · turns the lights off so your fish can rest'],
   ['#misBtn','missions · three goals a day for xp. your fish grows every 5 levels'],['#editBtn','edit · your fish’s colour and pattern, the water, and decorations'],
-  ['#tvBtn','tank view · see the whole tank and turn it around'],['#captureBtn','camera · take a picture of your tank'],['#who','your keeper name · tap to switch keepers']];
+  ['#tvBtn','tank view · see the whole tank and turn it around'],['#who','your keeper name · tap to switch keepers']];
 let tourI=-1;
 function maybeTour(){if(!USER||(save.tut&&save.tut.tour))return;save.tut=save.tut||{};save.tut.tour=1;persist();setTimeout(()=>{tourI=0;$('#tour').hidden=false;tourShow();},500);}
 function tourShow(){const st=TOUR[tourI],el=$(st[0]);if(!el||!el.offsetParent){tourNext();return;}const r=el.getBoundingClientRect(),pad=6,ring=$('#tour .ring'),tip=$('#tour .tip');
