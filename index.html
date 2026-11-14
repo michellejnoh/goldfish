@@ -1269,7 +1269,7 @@ function track(ty,n=1){if(!PROG||!USER)return;ensureDaily();
 /* ---- local copy (instant) and online copy (any device) ---- */
 const LKEY=n=>'goldfish-p-'+n;
 function readLocal(n){try{return JSON.parse(localStorage.getItem(LKEY(n)))}catch(e){return null}}
-function persistLocal(){if(!USER)return;serializeTank();const rec={updated:Date.now(),changed:lastChange,save,prog:PROG};try{localStorage.setItem(LKEY(USER),JSON.stringify(rec));localStorage.setItem('goldfish-user',USER);}catch(e){}}
+function persistLocal(){if(!USER)return;serializeTank();rememberBest();const rec={updated:Date.now(),changed:lastChange,save,prog:PROG};try{localStorage.setItem(LKEY(USER),JSON.stringify(rec));localStorage.setItem('goldfish-user',USER);}catch(e){}}
 /* Two copies of a keeper (this device, online) are merged rather than one simply replacing the other:
    progress comes from whichever has earned more xp in total (achievements, counters and growth combined from both),
    and the tank/fish settings come from whichever was changed more recently. So opening the game somewhere else never loses progress. */
@@ -1288,26 +1288,31 @@ const curRec=()=>({updated:lastChange,save,prog:PROG});
 function takeMerged(c){if(!c)return false;const m=mergeRec(curRec(),c),more=(m.prog&&PROG&&(m.prog.total||0)>(PROG.total||0))||(c.updated||0)>lastChange+500||(m.prog&&PROG&&(m.prog.grow||0)>(PROG.grow||0));
   if(more){lastChange=m.updated;adopt(m);persistLocal();}return more;}
 let cloudReady=false;
+const BKEY=n=>'goldfish-best-'+n;
+function rememberBest(){if(!USER||!PROG)return;try{const b=JSON.parse(localStorage.getItem(BKEY(USER))||'null');
+  if(!b||(PROG.total||0)>=((b.prog&&b.prog.total)||0))localStorage.setItem(BKEY(USER),JSON.stringify({updated:lastChange,save,prog:PROG}));}catch(e){}}
+function readBest(n){try{return JSON.parse(localStorage.getItem(BKEY(n))||'null');}catch(e){return null;}}
 function persist(){if(!USER)return;lastChange=Date.now();persistLocal();cloudDirty=true;clearTimeout(pushT);pushT=setTimeout(()=>cloudPut(),4000);}
 const docURL=n=>'https://firestore.googleapis.com/v1/projects/'+DB.projectId+'/databases/(default)/documents/players/'+n+'?key='+DB.apiKey;
 const UTS={};
 function cloudGet(n){if(!DB)return Promise.resolve(null);return fetch(docURL(n),{cache:'no-store'}).then(r=>{if(r.status===404){UTS[n]='none';SYNC.ok=SYNC.ok===false?false:true;return null;}if(!r.ok){SYNC={ok:false,msg:'couldn\u2019t read the online save (error '+r.status+')',t:Date.now()};return Promise.reject(r.status);}return r.json();})
   .then(j=>{if(!j||!j.fields)return null;UTS[n]=j.updateTime;try{return JSON.parse(j.fields.data.stringValue);}catch(e){return null;}});}
-function cloudPut(keep){if(!DB||!USER||!cloudDirty||!cloudReady)return;
+function cloudPut(keep){if(!DB||!USER||!cloudDirty||!cloudReady)return;const who=USER;
   // read the online copy first and merge, so a device with older progress can never overwrite newer progress
-  if(!keep){cloudDirty=false;cloudGet(USER).then(c=>{if(c)takeMerged(c);cloudDirty=true;cloudWrite(false);},()=>{cloudDirty=true;});return;}
-  cloudWrite(true);}
-function cloudWrite(keep){if(!cloudDirty)return;cloudDirty=false;const rec={updated:lastChange||Date.now(),save,prog:PROG};
+  if(!keep){cloudDirty=false;cloudGet(who).then(c=>{if(USER!==who)return;if(c)takeMerged(c);cloudDirty=true;cloudWrite(false,who);},()=>{if(USER===who)cloudDirty=true;});return;}
+  cloudWrite(true,who);}
+function cloudWrite(keep,who){if(!cloudDirty||who!==USER||UTS[who]===undefined)return;cloudDirty=false;rememberBest();const rec={updated:lastChange||Date.now(),save,prog:PROG};
   const body={fields:{name:{stringValue:USER},level:{integerValue:String(PROG.level)},data:{stringValue:JSON.stringify(rec)},updated:{timestampValue:new Date().toISOString()}}};
   // only write if the online copy is still the one we last read; if another device saved meanwhile, merge again first
-  const ut=UTS[USER],pre=ut==='none'?'&currentDocument.exists=false':ut?'&currentDocument.updateTime='+encodeURIComponent(ut):'';
-  fetch(docURL(USER)+pre,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify(body),keepalive:!!keep})
-    .then(r=>{if(r.ok){cloudWrite.retry=0;SYNC={ok:true,msg:'',t:Date.now()};return r.json().then(j=>{if(j&&j.updateTime)UTS[USER]=j.updateTime;},()=>{});}
-      if((r.status===400||r.status===409||r.status===412)&&(cloudWrite.retry=(cloudWrite.retry||0)+1)<4){cloudDirty=true;clearTimeout(pushT);pushT=setTimeout(()=>cloudPut(),1500);return;}
+  const ut=UTS[who],pre=cloudWrite.loose?'':ut==='none'?'&currentDocument.exists=false':ut?'&currentDocument.updateTime='+encodeURIComponent(ut):'';cloudWrite.loose=false;
+  fetch(docURL(who)+pre,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify(body),keepalive:!!keep})
+    .then(r=>{if(r.ok){cloudWrite.retry=0;SYNC={ok:true,msg:'',t:Date.now()};return r.json().then(j=>{if(j&&j.updateTime)UTS[who]=j.updateTime;},()=>{});}
+      if(r.status===400||r.status===409||r.status===412){if(who!==USER)return;cloudWrite.retry=(cloudWrite.retry||0)+1;if(cloudWrite.retry>=3)cloudWrite.loose=true;
+        cloudDirty=true;clearTimeout(pushT);pushT=setTimeout(()=>cloudPut(),1500);return;}
       {cloudDirty=true;return r.text().then(t=>{SYNC={ok:false,msg:'online save refused (error '+r.status+')'+(r.status===403?': check the Firestore rules':r.status===404?': is the Firestore database created?':''),t:Date.now()};console.warn('Goldfish save:',r.status,t);});}})
-    .catch(()=>{cloudDirty=true;SYNC={ok:false,msg:'offline: will save online when connected',t:Date.now()};});}
+    .catch(()=>{if(who===USER)cloudDirty=true;SYNC={ok:false,msg:'offline: will save online when connected',t:Date.now()};});}
 // take the online copy when another device changed things more recently than this one
-function pull(){if(!DB||!USER||cloudDirty)return;cloudGet(USER).then(c=>{if(!c)return;takeMerged(c);if((PROG.total||0)>((c.prog&&c.prog.total)||0)){cloudDirty=true;cloudPut();}},()=>{});}
+function pull(){if(!DB||!USER||cloudDirty)return;const who=USER;cloudGet(who).then(c=>{if(!c||USER!==who)return;takeMerged(c);if((PROG.total||0)>((c.prog&&c.prog.total)||0)){cloudDirty=true;cloudPut();}},()=>{});}
 function adopt(rec){save=normalizeSave(rec&&rec.save);if(save.lang&&save.lang!==LANG&&!langPicked)setLang(save.lang);PROG=normProg(rec&&rec.prog);ensureDaily();
   if(typeof lightsOff!=='undefined'&&S){rebuildTank();lightsOff=!!save.night;document.body.classList.toggle('night',lightsOff);S.asleep=lightsOff;renderUI();}}
 function signIn(n,rec){USER=n;cloudReady=true;adopt(rec);if(langPicked||!save.lang)save.lang=LANG;langPicked=false;lastChange=(rec&&rec.updated)||Date.now();persist();cloudPut();$('#who').textContent='@'+n;$('#login').hidden=true;
@@ -1326,14 +1331,14 @@ $('#loginForm').addEventListener('submit',e=>{e.preventDefault();const n=$('#log
   $('#loginGo').textContent='\u2026';const local=readLocal(n);
   cloudGet(n).then(c=>({c}),()=>({err:true})).then(({c,err})=>{
     if(err){$('#loginMsg').textContent='couldn\u2019t reach the online save. Check your connection and try again.';$('#loginGo').textContent=USER?'switch':'start';return;}
-    const rec=mergeRec(local,c);
+    const rec=mergeRec(mergeRec(local,readBest(n)),c);
     if(rec&&rec.prog){const pr=normProg(rec.prog),fn=(rec.save&&rec.save.pets&&rec.save.pets.fish&&rec.save.pets.fish.name)||DEF;pending={n,rec};
       $('#loginMsg').textContent='\u201c'+n+'\u201d already keeps a fish: '+fn+', level '+pr.level+'. Load it?';$('#loginGo').textContent='that\u2019s me';$('#loginBack').hidden=false;return;}
     let start=rec;if(!start){let old=null;try{old=JSON.parse(localStorage.getItem('polygon-pets-v1'))}catch(e){}if(old&&!localStorage.getItem('goldfish-migrated')){start={save:old,prog:null};try{localStorage.setItem('goldfish-migrated','1')}catch(e){}}}
     pending={n,rec:start};$('#loginMsg').textContent='There\u2019s no fish under \u201c'+n+'\u201d yet. Start a new one?';$('#loginGo').textContent='start new fish';$('#loginBack').hidden=false;});});
 $('#loginBack').onclick=()=>openLogin();
 $('#loginClose').onclick=()=>{$('#login').hidden=true;};
-$('#who').onclick=()=>{persist();cloudPut();openLogin();};
+$('#who').onclick=()=>{persistLocal();cloudPut();openLogin();};
 /* ---- missions sheet ---- */
 function renderMissions(){if(!PROG)return;ensureDaily();const d=PROG.daily;
   {const g=growStage(),el=$('#growRow');el.textContent='';
@@ -1353,7 +1358,7 @@ $('#misBtn').onclick=()=>{renderMissions();$('#missions').hidden=false;};
 $('#misClose').onclick=()=>{$('#missions').hidden=true;};
 /* ---- start-up: last keeper on this device loads instantly, then the online copy if it's newer ---- */
 {const last=(()=>{try{return localStorage.getItem('goldfish-user')}catch(e){return null}})();
-  if(last&&NAME_RE.test(last)){USER=last;const local=readLocal(last);save=normalizeSave(local&&local.save);PROG=normProg(local&&local.prog);lastChange=(local&&(local.changed||local.updated))||0;
+  if(last&&NAME_RE.test(last)){USER=last;const local=mergeRec(readLocal(last),readBest(last));save=normalizeSave(local&&local.save);PROG=normProg(local&&local.prog);lastChange=(local&&(local.changed||local.updated))||0;
     cloudGet(last).then(c=>{cloudReady=true;if(c)takeMerged(c);if(!c||(PROG.total||0)>((c.prog&&c.prog.total)||0)||lastChange>(c.updated||0)+500){cloudDirty=true;cloudPut();}},()=>{setTimeout(()=>{cloudReady=true;},20000);});}
   else{PROG=null;}}
 setInterval(()=>{if(cloudDirty)cloudPut();else if(!document.hidden)pull();},30000);
@@ -1518,14 +1523,14 @@ function frame(){requestAnimationFrame(frame);const nowF=performance.now(),busy=
 setup();
 if(lightsOff){document.body.classList.add('night');S.asleep=true;S.pos.set(-B.x*0.5,B.ymin+0.05,-0.4);S.heading=S.wantH=0;hemi.intensity=0.3;keyL.intensity=0.25;renderUI();}else hint();
 requestAnimationFrame(frame);
-window.addEventListener('pagehide',()=>{persist();cloudPut(true);});
+window.addEventListener('pagehide',()=>{persistLocal();cloudPut(true);});
 if(!USER)setTimeout(openLogin,600);else{ensureDaily();$('#who').textContent='@'+USER;}
 // pick up new versions by itself: check the page now and then, and reload (keeping the fish's state) when it changes
 (function(){let base=null;
   const check=()=>fetch(location.pathname+'?check='+Date.now(),{method:'HEAD',cache:'no-store'}).then(r=>{if(!r.ok)return;const v=r.headers.get('etag')||r.headers.get('last-modified');if(!v)return;
     if(base===null){base=v;return;}if(v===base)return;const go=()=>{if(ptr.down){setTimeout(go,1000);return;}persist();location.reload();};go();}).catch(()=>{});
   check();setInterval(check,300000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)check();});})();
-document.addEventListener('visibilitychange',()=>{if(document.hidden){persist();cloudPut(true);}clock.getDelta();});
+document.addEventListener('visibilitychange',()=>{if(document.hidden){persistLocal();cloudPut(true);}clock.getDelta();});
 })();
 </script>
 </body>
