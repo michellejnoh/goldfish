@@ -1045,18 +1045,21 @@ function chase(dt){S.catchCD-=dt;S.playCap=0.6;if(!toy.active){brake(dt);return;
   add('fun',dt*0.3);add('energy',-dt*0.05);}
 // too tired to play: watch the lure, blub, and say so
 function tired(dt){brake(dt);S.tiredCap=0.6;if(toy.active)faceToward(toy.pos);if(Math.random()<dt*0.4&&S.sayCD<=0){S.sayCD=1.5;say('…',1.2);}}
-/* where the next pebble goes so the heap grows as a smooth dome: try a few spots and pick the one that is furthest below the ideal mound */
-function moundSpot(pb,n){const Rn=0.08+0.05*Math.sqrt(n+1),H=Rn*0.62;let best=null,bestGap=-1e9;
+/* where the next pebble goes so the heap grows as a neat mound that narrows toward the top: try a few spots and pick the one that is furthest below the ideal mound */
+function moundSpot(pb,n){const Rn=0.08+0.045*Math.sqrt(n+1),H=Rn*0.95;let best=null,bestGap=-1e9;
   const surf=(x,z)=>{let y=pb.rest;for(const q of PEBBLES){if(!q.inPile||q===pb)continue;const qp=q.target||q.m.position;const d=Math.hypot(qp.x-x,qp.z-z);if(d<q.r+pb.r*0.6)y=Math.max(y,qp.y+q.r*q.flat*0.55*(1-d/(q.r+pb.r*0.6)*0.5)+pb.r*pb.flat*0.3);}return y;};
   for(let k=0;k<10;k++){const a=rnd(0,Math.PI*2),rr=Rn*Math.sqrt(Math.random()),x=PILE.x+Math.cos(a)*rr,z=PILE.z+Math.sin(a)*rr*0.75;
-    const ideal=pb.rest+H*(1-Math.pow(rr/Rn,2)),cur=surf(x,z),gap=ideal-cur;if(gap>bestGap){bestGap=gap;best=new V3(x,Math.min(cur,B.floor+0.5),z);}}
+    const ideal=pb.rest+H*Math.pow(1-rr/Rn,1.35),cur=surf(x,z),gap=ideal-cur;if(gap>bestGap){bestGap=gap;best=new V3(x,Math.min(cur,B.floor+0.5),z);}}
   return best;}
 function tidy(dt){
-  if(!S.peb){let best=null,bd=1e9;for(const p of PEBBLES){if(p.inPile||p.state!=='floor')continue;const d=p.m.position.distanceTo(S.pos)+Math.abs(p.m.position.x-PILE.x)*0.3;if(d<bd){bd=d;best=p;}}
-    if(!best||S.tidyLeft<=0||S.modeT<0){S.mode='idle';S.think=rnd(2,4);return;}S.peb=best;}
+  if(!S.peb){let best=null,bd=1e9;for(const p of PEBBLES){if(p.inPile||p.state!=='floor'||(p.skipUntil||0)>T)continue;const d=p.m.position.distanceTo(S.pos)+Math.abs(p.m.position.x-PILE.x)*0.3;if(d<bd){bd=d;best=p;}}
+    if(!best||S.tidyLeft<=0||S.modeT<0){S.mode='idle';S.think=rnd(2,4);return;}S.peb=best;S.pebT=0;}
   const pb=S.peb;
   if(pb.state!=='carried'){const pp=pb.m.position,t=mouthTarget(pp);const d=move(t.x,t.y,t.z,0.9,dt,B.floor+0.06,B.surf);if(d<0.6)S.faceT=pp;
-    if(mouthWorld().distanceTo(pp)<0.11+pb.r){pb.state='carried';squish(-1.5);snd.pop();}
+    // a stone it can't get its mouth to (wedged by a rock) is left for later
+    S.pebT=(S.pebT||0)+dt;if(S.pebT>5){pb.skipUntil=T+90;S.peb=null;return;}
+    {const md=mouthWorld().distanceTo(pp);if(md<0.32)CUR.mouth=Math.max(CUR.mouth||0,0.55*clamp(1-md/0.32));
+    if(md<0.045+pb.r*0.6){pb.state='carried';pb.grab=0;pb.from=pp.clone();squish(-1.5);snd.pop();}}
     if(S.modeT<0){S.peb=null;S.mode='idle';}return;}
   const top=new V3(PILE.x,B.floor+0.35,PILE.z),t=mouthTarget(top);const d=move(t.x,t.y,t.z,0.8,dt,B.floor+0.06,B.surf);if(d<0.6)S.faceT=top;
   if(mouthWorld().distanceTo(top)<0.22){const n=PILE.n++;const pos=moundSpot(pb,n);pb.target=pos;
@@ -1184,7 +1187,10 @@ function updateRocks(dt){
     if(Math.abs(p.x)>B.x){p.x=Math.sign(p.x)*B.x;v.x*=-0.5;}if(p.z<-1.35||p.z>0.65){p.z=clamp(p.z,-1.35,0.65);v.z*=-0.5;}
     b.m.rotation.z-=v.x*dt/b.r;b.m.rotation.x+=v.z*dt/b.r;}
   for(const pb of PEBBLES){
-    if(pb.state==='carried'){if(S.mode!=='tidy'||lightsOff){pb.state='fall';pb.vy=0;pb.target=null;}else{pb.m.position.copy(mouthWorld());continue;}}
+    if(pb.state==='carried'){if(S.mode!=='tidy'||lightsOff){pb.state='fall';pb.vy=0;pb.target=null;}else{
+      // held in the mouth: sits just in front of the lips (a quick slurp from where it lay, so it never jumps)
+      const m=mouthWorld(),fw=m.clone().sub(S.pos).normalize(),hold=m.addScaledVector(fw,pb.r*0.55);pb.grab=Math.min(1,(pb.grab||0)+dt/0.18);
+      if(pb.from&&pb.grab<1)pb.m.position.lerpVectors(pb.from,hold,pb.grab*pb.grab*(3-2*pb.grab));else pb.m.position.copy(hold);CUR.mouth=Math.max(CUR.mouth||0,0.35);continue;}}
     if(pb.state==='fall'){pb.vy-=2.5*dt;pb.m.position.y+=pb.vy*dt;const ty=pb.target?pb.target.y:pb.rest;
       if(pb.target){pb.m.position.x=damp(pb.m.position.x,pb.target.x,6,dt);pb.m.position.z=damp(pb.m.position.z,pb.target.z,6,dt);}
       if(pb.m.position.y<=ty){pb.m.position.y=ty;pb.state=pb.target?'pile':'floor';}}}}
