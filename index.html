@@ -579,8 +579,8 @@ let world=new THREE.Group();scene.add(world);
    and a soft moving web of light (projected from above) plays over sand, stones and fish only where the beams fall. At night it does nothing. */
 const SUNU={uA:{value:0},uB:{value:[0,1,2,3,4,5].map(()=>new THREE.Vector4(0,9,0,0))},uK:{value:[0,0,0,0,0,0]},uL:{value:4},uCaus:{value:null},uCo:{value:new THREE.Vector4()},uCol:{value:new THREE.Color(1,1,1)},uZ:{value:[0,0,0,0,0,0]},uF:{value:0},uT:{value:0}};
 const NIGHTU={uN:{value:0},uNF:{value:0},uNL:{value:new THREE.Vector4(2,1,0.4,2.4)},uLC:{value:new THREE.Vector3(1.05,1,0.92)}};
-const LAMPS={warm:{c:'255,236,206',t:[1.07,1,0.89]},white:{c:'255,255,255',t:[1.02,1.02,1.02]},pink:{c:'255,206,222',t:[1.09,0.92,0.98]},
-  blue:{c:'200,222,255',t:[0.91,0.98,1.1]},green:{c:'206,240,206',t:[0.93,1.08,0.93]},purple:{c:'222,206,255',t:[1.0,0.92,1.1]}};
+const LAMPS={warm:{c:'255,236,206',t:[1.05,1,0.92]},white:{c:'255,255,255',t:[1.02,1.02,1.02]},pink:{c:'255,206,222',t:[1.07,0.94,0.99]},
+  blue:{c:'200,222,255',t:[0.93,0.99,1.08]},green:{c:'206,240,206',t:[0.95,1.06,0.95]},purple:{c:'222,206,255',t:[1.0,0.94,1.08]}};
 const SUN_GLSL=`uniform float uN;uniform float uNF;uniform vec4 uNL;uniform vec3 uLC;
 uniform float uA;uniform vec4 uB[6];uniform float uK[6];uniform float uL;uniform sampler2D uCaus;uniform vec4 uCo;uniform vec3 uCol;uniform float uZ[6];uniform float uF;uniform float uT;varying vec3 vSunP;varying vec3 vSunN;
 float sunMask(vec3 p){float m=0.;
@@ -598,7 +598,12 @@ function sunPatch(sh){Object.assign(sh.uniforms,SUNU,NIGHTU);
    gl_FragColor.rgb=min(gl_FragColor.rgb*f*mix(vec3(1.),uCol,m*0.6),vec3(1.));}
 if(uN>0.001){vec3 dl=vSunP-uNL.xyz;float lm=exp(-dot(dl,dl)/(uNL.w*uNL.w));
    // night: the room is dark except for a mood lamp beside the tank; things nearer to it catch its soft, slightly warm light
-   vec3 b0=gl_FragColor.rgb;float sat=max(b0.r,max(b0.g,b0.b))-min(b0.r,min(b0.g,b0.b)),tk=uN*lm*(1.25-1.05*smoothstep(0.08,0.35,sat));
+   vec3 b0=gl_FragColor.rgb;
+   #ifdef FISHLIT
+   float tk=uN*(0.35+lm)*1.5;// the fish picks up the lamp's colour (more as it swims near), over its own
+   #else
+   float tk=uN*lm*0.8;
+   #endif
    vec3 cN=b0*(1.-uN*0.34+uN*0.62*lm)*mix(vec3(1.),uLC,tk);cN=min(cN,vec3(1.));
    float lmN=dot(cN,vec3(0.299,0.587,0.114));gl_FragColor.rgb=clamp(mix(vec3(lmN),cN,1.+0.3*uN),0.,1.);}
 #include <tonemapping_fragment>`);}
@@ -607,6 +612,7 @@ const FISH_COL=0xff7a3c,FIN_COL=0xff8d4f;
 const MAT=flatMat({vertexColors:true});
 const MAT_FISH=flatMat({color:FISH_COL});
 const MAT_FIN=flatMat({color:FIN_COL,side:THREE.DoubleSide});
+MAT_FISH.defines={FISHLIT:''};MAT_FIN.defines={FISHLIT:''};
 const MAT_PLANT=flatMat({color:0xb9b9b9,side:THREE.DoubleSide});
 const BLACK=new THREE.MeshBasicMaterial({color:0x0b0b0b});
 const EYE_IRIS=(()=>{const c=document.createElement('canvas');c.width=c.height=256;const x=c.getContext('2d');
@@ -2046,6 +2052,13 @@ function buildRoom(F,W,y0,yG,z0,z1){
   // ---------- the tank's table and a round shag rug ----------
   {const t=grp(root,0,0,0),TW=tw+22,TD=td+18;box(t,TW,3,TD,0x9d9d9d,0,TH-1.5,0);box(t,TW-4,6,TD-4,0x8c8c8c,0,TH-6,0);
     for(const sx of [-1,1])for(const sz of [-1,1])cyl(t,2,1.5,TH-6,0x7f7f7f,sx*(TW/2-5),(TH-6)/2,sz*(TD/2-5),12);box(t,TW-14,1.5,TD-14,0x969696,0,18,0);
+    // the mood lamp beside the tank (the one that lights it at night): a little mushroom lamp, its shade glowing in the chosen colour
+    {const lp=grp(t,tw/2+5.5,TH,3);cyl(lp,4.2,4.8,1.6,0x8a8a8a,0,0.8,0,24);cyl(lp,0.7,0.7,12,0x9a9a9a,0,7.5,0,10);
+      const shade=new THREE.Mesh(new THREE.SphereGeometry(6.5,28,14,0,Math.PI*2,0,Math.PI*0.55),new THREE.MeshBasicMaterial({color:0xffeccc,side:THREE.DoubleSide}));shade.position.y=12.5;shade.scale.y=0.9;lp.add(shade);
+      const bulb=new THREE.Mesh(new THREE.SphereGeometry(2.4,16,10),new THREE.MeshBasicMaterial({color:0xffffff}));bulb.position.y=13;lp.add(bulb);
+      const gc=document.createElement('canvas');gc.width=gc.height=64;{const x=gc.getContext('2d'),g=x.createRadialGradient(32,32,0,32,32,32);g.addColorStop(0,'rgba(255,255,255,.9)');g.addColorStop(0.35,'rgba(255,255,255,.3)');g.addColorStop(1,'rgba(255,255,255,0)');x.fillStyle=g;x.fillRect(0,0,64,64);}
+      const glow=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(gc),color:0xffeccc,transparent:true,opacity:0.55,depthWrite:false,blending:THREE.AdditiveBlending}));glow.position.y=12;glow.scale.set(34,34,1);lp.add(glow);
+      TV.lamp={shade:shade.material,glow:glow.material};nightTick.lc=null;}
     cyl(t,3.5,3.5,8,0xd4d4d4,TW/2-6,TH+4,TD/2-7);cyl(t,3.7,3.7,1.6,0x8a8a8a,TW/2-6,TH+8.6,TD/2-7);
     const nh=cyl(t,0.4,0.4,26,0x7d7d7d,-TW/2+5,TH+0.6,-2,8);nh.rotation.x=Math.PI/2;const nr=mk(new THREE.TorusGeometry(4,0.35,6,24),0x7d7d7d,t,-TW/2+5,TH+0.6,13);nr.rotation.x=Math.PI/2;
     const rug=tex(512,384,(x,w,h)=>{x.clearRect(0,0,w,h);x.fillStyle='#d7d7d7';x.beginPath();for(let i=0;i<=80;i++){const t=i/80;x.lineTo(10+t*(w-20)+Math.sin(i*1.7)*2,10+Math.sin(i*2.3)*4);}for(let i=0;i<=60;i++){const t=i/60;x.lineTo(w-10+Math.sin(i*1.9)*4,10+t*(h-20));}
@@ -2369,7 +2382,7 @@ function sunTick(dt){if(!SUN){const tex=rayTex(),glow=glowTex();SUN={g:new THREE
 function nightAmt(){const d=new Date(),h=d.getHours()+d.getMinutes()/60;if(h>=21)return clamp((h-21)/0.33);if(h<5)return 1-clamp((h-4.67)/0.33);return 0;}
 function shade(hex,k){const c=new THREE.Color(hex);c.multiplyScalar(k);return '#'+c.getHexString();}
 function nightTick(dt){const want=TV.t>0.02?0:!$('#lampMenu').hidden?1:lightsOff?0:nightAmt();
-  {const L=LAMPS[VISIT?VISIT.lamp:save&&save.lamp]||LAMPS.warm;if(nightTick.lc!==L){nightTick.lc=L;NIGHTU.uLC.value.set(...L.t);document.documentElement.style.setProperty('--lampc',L.c);}}NIGHTU.uN.value=damp(NIGHTU.uN.value,want,1.2,dt);
+  {const L=LAMPS[VISIT?VISIT.lamp:save&&save.lamp]||LAMPS.warm;if(nightTick.lc!==L){nightTick.lc=L;if(TV.lamp){const [r,g,b]=L.c.split(',').map(Number);TV.lamp.shade.color.setRGB(r/255,g/255,b/255);TV.lamp.glow.color.setRGB(r/255,g/255,b/255);}NIGHTU.uLC.value.set(...L.t);document.documentElement.style.setProperty('--lampc',L.c);}}NIGHTU.uN.value=damp(NIGHTU.uN.value,want,1.2,dt);
   const N=NIGHTU.uN.value;NIGHTU.uNF.value=B.floor;
   const on=N>0.02;document.body.classList.toggle('evening',on);
   {const w0=WATER[(save.tank&&save.tank.water)||'clear']||WATER.clear;if(scene.fog)scene.fog.color.set(w0).multiplyScalar(1-0.3*N);}// haze matches the dimmer night water, so fish don't fade into a pale glow
