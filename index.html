@@ -7,7 +7,7 @@
 <meta name="description" content="A tiny goldfish to feed, lead around, play with and put to sleep.">
 <meta name="theme-color" content="#f1f2f3">
 <meta name="color-scheme" content="light only">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Goldfish">
 <title>Goldfish</title>
@@ -583,7 +583,7 @@ function sunPatch(sh){Object.assign(sh.uniforms,SUNU,NIGHTU);
 if(uN>0.001){float h=clamp((vSunP.y-uNF)/2.6,0.,1.);
    // night light on things: just a soft lift of brightness that fades with height, no shape-revealing rim or facing terms
    float back=clamp((-vSunP.z+0.4)/2.0,0.,1.),lit=pow(1.-h,1.6);
-   float f=(1.-uN*0.27*(0.4+0.6*h))+uN*lit*0.17*(0.65+0.35*back);
+   float f=(1.-uN*0.27*(0.4+0.6*h))+uN*lit*0.24*(0.65+0.35*back);
    float upN=dot(vSunN,vSunN)>0.0001?normalize(vSunN).y:0.;f-=uN*0.075*smoothstep(0.75,0.95,upN)*(1.-smoothstep(0.,0.5,vSunP.y-uNF));// the sand floor stays a shade under the glowing water so the line between them still reads
    vec3 cN=min(gl_FragColor.rgb*f,vec3(1.));float lmN=dot(cN,vec3(0.299,0.587,0.114));gl_FragColor.rgb=clamp(mix(vec3(lmN),cN,1.+0.35*uN),0.,1.);}// colours keep their strength in the dimmer light
 #include <tonemapping_fragment>`);}
@@ -2385,7 +2385,7 @@ function nightTick(dt){const want=lightsOff||TV.t>0.02?0:nightAmt();NIGHTU.uN.va
   {const w=WATER[(save.tank&&save.tank.water)||'clear']||WATER.clear,top=on?shade(w,(1-0.2*N)*0.985):null;if(syncTheme.over!==top){syncTheme.over=top;syncTheme();}}// Safari's top bar follows the night water
   if(NL&&NL.env!==ENV){world.remove(NL.g);NL=null;}
   if(!on){if(NL)NL.g.visible=false;return;}
-  if(!NL)NL=nlBuild();NL.g.visible=true;const A=N*breathe*0.65,F=B.floor,top=(B.top||B.surf)+0.3,HT=top-F;
+  if(!NL)NL=nlBuild();NL.g.visible=true;const A=N*breathe,F=B.floor,top=(B.top||B.surf)+0.3,HT=top-F;
   NL.band.material.opacity=A*NL.band.userData.op;NL.band.scale.set(B.hw*2+4,HT,1);NL.band.position.set(0,F-0.12,-1.85);
   for(const sp of NL.spots){const u=sp.userData;sp.material.opacity=A*u.op*(0.9+0.1*Math.sin(T*0.5+u.ph));sp.scale.set(u.w,HT*0.9,1);sp.position.set(u.x*B.x,F-0.12,-1.8);}
   for(const r of NL.rays){const u=r.userData;r.material.opacity=A*u.op*(0.6+0.4*Math.sin(T*0.4+u.ph));r.scale.set(u.w,HT*1.08,1);r.rotation.z=u.a+Math.sin(T*0.17+u.ph)*0.02;r.position.set(u.x*B.x,F-0.05,-1.75);}
