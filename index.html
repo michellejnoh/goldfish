@@ -909,7 +909,7 @@ function applyWater(){const c=WATER[(save.tank&&save.tank.water)||'clear']||WATE
   WTINT.set(c);if(ENV)ENV.traverse(o=>{const ms=o.material?(Array.isArray(o.material)?o.material:[o.material]):[];
     for(const m of ms){if(!m.color)continue;if(!m.userData.base)m.userData.base=m.color.clone();m.color.copy(m.userData.base).multiply(WTINT);}});}
 // the browser's top bar (and the iPhone status bar area) takes this colour, so keep it matching the water, or dark at night
-function syncTheme(){let night=false;try{night=lightsOff;}catch(e){}const c=night?'#0f0f12':(WATER[(save.tank&&save.tank.water)||'clear']||WATER.clear);if(syncTheme.c===c)return;syncTheme.c=c;
+function syncTheme(){let night=false;try{night=lightsOff;}catch(e){}const c=night?'#0f0f12':syncTheme.over||(WATER[(save.tank&&save.tank.water)||'clear']||WATER.clear);if(syncTheme.c===c)return;syncTheme.c=c;
   document.querySelectorAll('meta[name="theme-color"]').forEach(m=>m.setAttribute('content',c));}
 function rebuildTank(){if(!ENV)return;world.remove(ENV);PEBBLES=[];ENV=buildEnv();world.add(ENV);applyWater();computeObst();applyLook();}
 /* solid things in the tank (big rocks, decorations) as soft ellipsoids the fish slides around instead of swimming through */
@@ -2354,9 +2354,10 @@ function nlTex(fn,w,h){const c=document.createElement('canvas');c.width=w;c.heig
   for(let j=0;j<h;j++)for(let i=0;i<w;i++){const a=fn(i/(w-1),1-j/(h-1)),k=(j*w+i)*4;im.data[k]=im.data[k+1]=im.data[k+2]=255;im.data[k+3]=Math.round(clamp(a)*255);}x.putImageData(im,0,0);return new THREE.CanvasTexture(c);}
 function nlBuild(){const g=new THREE.Group(),add=(geo,tex,op,ro,blend,col)=>{const m=new THREE.Mesh(geo,new THREE.MeshBasicMaterial({map:tex,color:col||0xffffff,transparent:true,opacity:0,depthWrite:false,fog:false,blending:blend||THREE.AdditiveBlending}));m.renderOrder=ro;m.userData.op=op;g.add(m);return m;};
   const plane=()=>new THREE.PlaneGeometry(1,1).translate(0,0.5,0);
-  const band=nlTex((u,v)=>(0.7*Math.exp(-v*7)+0.12*Math.pow(1-v,1.8))*Math.min(1,u*8,(1-u)*8),8,256);
-  const spot=nlTex((u,v)=>{const x=(u-0.5)*2;return Math.exp(-x*x*3.2)*(0.9*Math.exp(-v*5.5)+0.18*Math.pow(1-v,2));},64,256);
-  const ray=nlTex((u,v)=>{const x=(u-0.5)*2;return Math.exp(-x*x*5)*Math.pow(1-v,1.0)*Math.min(1,v*30+0.2);},32,256);
+  const sm=(a,b,x)=>{const t=clamp((x-a)/(b-a));return t*t*(3-2*t);};
+  const band=nlTex((u,v)=>(0.7*Math.exp(-v*6)+0.12*Math.pow(1-v,1.8))*sm(0,0.16,v)*sm(0,0.3,Math.min(u,1-u)),8,256);
+  const spot=nlTex((u,v)=>{const x=(u-0.5)*2;return Math.exp(-x*x*2.6)*(0.9*Math.exp(-v*4.8)+0.18*Math.pow(1-v,2))*sm(0,0.18,v);},64,256);
+  const ray=nlTex((u,v)=>{const x=(u-0.5)*2;return Math.exp(-x*x*4)*Math.pow(1-v,1.0)*sm(0,0.2,v);},32,256);
   const shadow=nlTex((u,v)=>{const x=(u-0.5)*2;return Math.exp(-x*x*2.2)*Math.pow(1-v,1.1)*Math.min(1,v*5);},64,128);
   const blob=nlTex((u,v)=>{const x=(u-0.5)*2,y=(v-0.5)*2;return Math.exp(-(x*x+y*y)*2.6);},64,64);
   const L={g,band:add(plane(),band,0.3,2),spots:[],rays:[],shadows:[]};
@@ -2381,6 +2382,7 @@ function nightTick(dt){const want=lightsOff||TV.t>0.02?0:nightAmt();NIGHTU.uN.va
   {const w0=WATER[(save.tank&&save.tank.water)||'clear']||WATER.clear;if(scene.fog)scene.fog.color.set(w0).multiplyScalar(1-0.2*N);}// haze matches the dimmer night water, so fish don't fade into a pale glow
   if(on){const w=WATER[(save.tank&&save.tank.water)||'clear']||WATER.clear,k=1-0.2*N;if(nightTick.w!==w+k.toFixed(2)){nightTick.w=w+k.toFixed(2);const r=document.documentElement.style;
     r.setProperty('--nTop',shade(w,k*0.985));r.setProperty('--nMid',shade(w,k));r.setProperty('--nBot',shade(w,k*0.95));}}
+  {const w=WATER[(save.tank&&save.tank.water)||'clear']||WATER.clear,top=on?shade(w,(1-0.2*N)*0.985):null;if(syncTheme.over!==top){syncTheme.over=top;syncTheme();}}// Safari's top bar follows the night water
   if(NL&&NL.env!==ENV){world.remove(NL.g);NL=null;}
   if(!on){if(NL)NL.g.visible=false;return;}
   if(!NL)NL=nlBuild();NL.g.visible=true;const A=N*breathe*0.65,F=B.floor,top=(B.top||B.surf)+0.3,HT=top-F;
