@@ -6,6 +6,8 @@
 <meta name="referrer" content="no-referrer">
 <meta name="description" content="A tiny goldfish to feed, lead around, play with and put to sleep.">
 <meta name="theme-color" content="#f1f2f3">
+<meta name="color-scheme" content="light only">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Goldfish">
 <title>Goldfish</title>
@@ -37,6 +39,7 @@ html[lang="ko"] .mt small{line-height:1.35}
 html[lang="ko"] .mrow{padding:11px 0}
 html[lang="ko"] .small,html[lang="ko"] p{line-height:1.45}
 html[lang="ko"] .item b,html[lang="ko"] .lookgrid span{line-height:1.3}
+html{background:var(--bg)}
 html,body{height:100%;margin:0;overflow:hidden;overscroll-behavior:none}
 body{background:var(--bg);color:var(--ink);font-family:var(--font);-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
 #c{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none;z-index:0}
@@ -270,19 +273,19 @@ body.visiting .ui,body.visiting #say{display:none}
 <div class="sheet" id="tank" hidden>
   <div class="card">
     <h2>edit</h2>
-    <button type="button" class="mrow" id="fishMenuBtn"><span class="mi"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.8 12c2.6-4.2 7.4-5.6 11.4-3.4L19.5 5v14l-5.3-3.6C10.2 17.6 5.4 16.2 2.8 12z"/><circle cx="7.6" cy="11.2" r=".9" fill="currentColor"/></svg></span><span class="mt"><b>your fish</b><small>colour, pattern, skin &amp; friends</small></span></button>
-    <button type="button" class="mrow" id="waterMenuBtn"><span class="mi"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.5c3.2 3.8 6 7.4 6 10.6a6 6 0 0 1-12 0c0-3.2 2.8-6.8 6-10.6z"/><path d="M9 14.5a3 3 0 0 0 2.5 2.8"/></svg></span><span class="mt"><b>water</b><small>clear, blue or green</small></span></button>
-    <button type="button" class="mrow" id="decorMenuBtn"><span class="mi"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 20h14"/><path d="M12 20v-7"/><path d="M12 13c0-3.2-2.2-5.4-5.6-5.4 0 3.2 2.2 5.4 5.6 5.4z"/><path d="M12 11c0-3.4 2.3-5.8 5.8-5.8 0 3.4-2.3 5.8-5.8 5.8z"/></svg></span><span class="mt"><b>decorations</b><small>shop, move &amp; pebbles</small></span></button>
+    <button type="button" class="mrow" id="fishMenuBtn"><span class="mi"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><g><path d="M2.5 12c2.6-4 6.2-5.6 9.6-5.6 3.3 0 5.6 1.6 6.9 3.4l2.4-2.1c.5-.4 1.2 0 1 .7l-.8 3.6.8 3.6c.2.7-.5 1.1-1 .7l-2.4-2.1c-1.3 1.8-3.6 3.4-6.9 3.4-3.4 0-7-1.6-9.6-5.6z" fill="currentColor" stroke="none"/><circle cx="7" cy="11.2" r="1" fill="#fff" stroke="none"/></g></svg></span><span class="mt"><b>your fish</b><small>color, pattern, skin &amp; friends</small></span></button>
+    <button type="button" class="mrow" id="waterMenuBtn"><span class="mi"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.5c3 3.9 6 7.4 6 10.9a6 6 0 0 1-12 0c0-3.5 3-7 6-10.9z"/></svg></span><span class="mt"><b>water</b><small>clear, blue or green</small></span></button>
+    <button type="button" class="mrow" id="decorMenuBtn"><span class="mi"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.5 5c.75 4.4 2.3 6.1 6.7 6.8-4.4.75-5.95 2.45-6.7 6.95-.75-4.5-2.3-6.2-6.7-6.95 4.4-.7 5.95-2.4 6.7-6.8z"/><path d="M18 2.8c.38 2 1.1 2.75 3.1 3.15-2 .4-2.72 1.15-3.1 3.2-.38-2.05-1.1-2.8-3.1-3.2 2-.4 2.72-1.15 3.1-3.15z"/></svg></span><span class="mt"><b>decorations</b><small>shop, move &amp; pebbles</small></span></button>
     <div class="row2"><span></span><button type="button" class="go" id="tankClose">close</button></div>
   </div>
 </div>
 <div class="sheet" id="fishMenu" hidden>
   <div class="card">
     <h2>your fish</h2>
-    <button type="button" class="mrow" id="colorBtn"><span class="mi"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.2a8.8 8.8 0 1 0 0 17.6c1.3 0 1.9-1 1.4-2-.6-1.2.3-2.3 1.5-2.3h2.3a3.8 3.8 0 0 0 3.8-3.8c0-5.2-4-9.5-9-9.5z"/><circle cx="7.8" cy="11" r="1.1" fill="currentColor"/><circle cx="10.5" cy="7.3" r="1.1" fill="currentColor"/><circle cx="15" cy="7.6" r="1.1" fill="currentColor"/></svg></span><span class="mt"><b>colour</b><small>25 shades to choose from</small></span></button>
-    <button type="button" class="mrow" id="patBtn"><span class="mi"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8"/><circle cx="9.5" cy="9.5" r="1.4" fill="currentColor"/><circle cx="14.8" cy="11" r="1.1" fill="currentColor"/><circle cx="10.5" cy="15" r="1.2" fill="currentColor"/><circle cx="15" cy="15.6" r=".8" fill="currentColor"/></svg></span><span class="mt"><b>pattern</b><small>fade, dark fins &amp; patches</small></span></button>
-    <button type="button" class="mrow" id="skinBtn"><span class="mi"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 18.5h14"/><path d="M6.5 18.5L12 5l6.5 13.5"/><circle cx="12" cy="4.2" r="1.5"/><path d="M8 13.5h8"/></svg></span><span class="mt"><b>skin</b><small>special looks, like christmas</small></span></button>
-    <button type="button" class="mrow" id="friendsBtn"><span class="mi"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10c1.5-2.4 3.9-3.3 6.2-2.6L12 5.5v8l-2.8-1.9C6.9 12.3 4.5 11.4 3 10z"/><path d="M12 16c1.3-2 3.3-2.8 5.2-2.2L19.5 12v7l-2.3-1.8c-1.9.6-3.9-.2-5.2-2.2z"/></svg></span><span class="mt"><b>friends’ fish</b><small id="friendsTxt"></small></span></button>
+    <button type="button" class="mrow" id="colorBtn"><span class="mi"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.2a8.8 8.8 0 1 0 0 17.6c1.3 0 1.9-1 1.4-2-.6-1.2.3-2.3 1.5-2.3h2.3a3.8 3.8 0 0 0 3.8-3.8c0-5.2-4-9.5-9-9.5z"/><circle cx="7.8" cy="11" r="1.1" fill="currentColor"/><circle cx="10.5" cy="7.3" r="1.1" fill="currentColor"/><circle cx="15" cy="7.6" r="1.1" fill="currentColor"/></svg></span><span class="mt"><b>color</b><small>25 shades to choose from</small></span></button>
+    <button type="button" class="mrow" id="patBtn"><span class="mi"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7.5c2-2 4-2 6 0s4 2 6 0 4-2 6 0"/><path d="M3 12.5c2-2 4-2 6 0s4 2 6 0 4-2 6 0"/><path d="M3 17.5c2-2 4-2 6 0s4 2 6 0 4-2 6 0"/></svg></span><span class="mt"><b>pattern</b><small>fade, dark fins &amp; patches</small></span></button>
+    <button type="button" class="mrow" id="skinBtn"><span class="mi"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.2 17L3 7.8l5 4.2 4-6.5 4 6.5 5-4.2-1.2 9.2z"/><path d="M4.8 20.2h14.4"/></svg></span><span class="mt"><b>skin</b><small>special looks, like christmas</small></span></button>
+    <button type="button" class="mrow" id="friendsBtn"><span class="mi"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><g transform="translate(-0.5 0.5) scale(0.68)"><path d="M2.5 12c2.6-4 6.2-5.6 9.6-5.6 3.3 0 5.6 1.6 6.9 3.4l2.4-2.1c.5-.4 1.2 0 1 .7l-.8 3.6.8 3.6c.2.7-.5 1.1-1 .7l-2.4-2.1c-1.3 1.8-3.6 3.4-6.9 3.4-3.4 0-7-1.6-9.6-5.6z" fill="currentColor" stroke="none"/><circle cx="7" cy="11.2" r="1" fill="#fff" stroke="none"/></g><g transform="translate(8.2 9.4) scale(0.68)"><path d="M2.5 12c2.6-4 6.2-5.6 9.6-5.6 3.3 0 5.6 1.6 6.9 3.4l2.4-2.1c.5-.4 1.2 0 1 .7l-.8 3.6.8 3.6c.2.7-.5 1.1-1 .7l-2.4-2.1c-1.3 1.8-3.6 3.4-6.9 3.4-3.4 0-7-1.6-9.6-5.6z" fill="currentColor" stroke="none"/><circle cx="7" cy="11.2" r="1" fill="#fff" stroke="none"/></g></svg></span><span class="mt"><b>friends’ fish</b><small id="friendsTxt"></small></span></button>
     <div class="row2"><span></span><button type="button" class="go" data-back>back</button></div>
   </div>
 </div>
@@ -317,7 +320,7 @@ body.visiting .ui,body.visiting #say{display:none}
 </div>
 <div class="sheet dock" id="colors" hidden>
   <div class="card">
-    <h2>fish colour</h2>
+    <h2>fish color</h2>
     <div class="lookgrid" id="colorList"></div>
     <div class="row2"><span></span><button type="button" class="go" id="colorsClose">back</button></div>
   </div>
@@ -325,7 +328,7 @@ body.visiting .ui,body.visiting #say{display:none}
 <div class="sheet dock" id="skins" hidden>
   <div class="card">
     <h2>skin</h2>
-    <p class="small">a skin is worn over your colour and pattern · tap it again to reshuffle</p>
+    <p class="small">a skin is worn over your color and pattern · tap it again to reshuffle</p>
     <div class="lookgrid pat" id="skinList"></div>
     <div class="row2"><span></span><button type="button" class="go" id="skinsClose">back</button></div>
   </div>
@@ -413,8 +416,8 @@ const KO={
 '25 shades to choose from':'25가지 색 중에서 골라요','On iPhone, touch and hold the picture, then choose Save to Photos.':'아이폰에서는 사진을 길게 누른 뒤 ‘사진 앱에 저장’을 고르세요.',
 'a cool, soft tint':'시원하고 은은한 푸른빛','a little mossy':'살짝 이끼 낀 느낌','bright and plain':'맑고 깨끗하게',
 'achievements':'업적','add pebbles':'자갈 놓기','remove pebbles':'자갈 치우기','back':'뒤로','close':'닫기','done':'완료','download':'다운로드',
-'buy winter decorations with xp':'경험치로 겨울 장식 사기','clear, blue or green':'투명, 파랑, 초록','colour':'색','colour & pattern':'색과 무늬','colour, pattern, skin & friends':'색, 무늬, 스킨, 친구 물고기',
-'decorations':'장식','drag them, twist to rotate':'끌어서 옮기고 비틀어 돌리기','edit':'편집','fish colour':'금붕어 색','keep it':'이 이름으로 할게요',
+'buy winter decorations with xp':'경험치로 겨울 장식 사기','clear, blue or green':'투명, 파랑, 초록','color':'색','color & pattern':'색과 무늬','color, pattern, skin & friends':'색, 무늬, 스킨, 친구 물고기',
+'decorations':'장식','drag them, twist to rotate':'끌어서 옮기고 비틀어 돌리기','edit':'편집','fish color':'금붕어 색','keep it':'이 이름으로 할게요',
 'keeper':'키퍼','move & turn':'옮기기 · 돌리기','move decorations':'장식 옮기기','pattern':'무늬','pick another':'다른 이름 고르기',
 'rub over them to pick up':'문질러서 줍기','save':'저장','shop':'상점','shop, move & pebbles':'상점, 옮기기, 자갈','fade, dark fins & patches':'그러데이션, 진한 지느러미, 얼룩',
 'start':'시작','sync now':'지금 동기화','tap a pattern again to reshuffle it':'같은 무늬를 한 번 더 누르면 모양이 바뀌어요',
@@ -422,18 +425,18 @@ const KO={
 'what’s your fish called?':'금붕어 이름이 뭐예요?',"what's your fish called?":'금붕어 이름이 뭐예요?',"who's keeping this fish?":'누가 이 금붕어를 키우나요?',
 'winter shop':'겨울 상점','your fish':'내 금붕어','add':'놓기','remove':'치우기','missions':'미션',
 'Capture the tank':'수조 찍기','Edit tools':'편집 도구','Edit your tank':'수조 편집','Fish name':'금붕어 이름','Missions':'미션',
-'Picture of your tank':'수조 사진','Tools':'도구','Username':'사용자 이름','username':'사용자 이름','Fish colour':'금붕어 색','Fish pattern':'금붕어 무늬','Shop':'상점','Visit a keeper':'다른 키퍼 방문','visit a keeper':'다른 키퍼 방문하기','type the username of the keeper you want to visit':'방문하고 싶은 키퍼의 사용자 이름을 입력하세요',
+'Picture of your tank':'수조 사진','Tools':'도구','Username':'사용자 이름','username':'사용자 이름','Fish color':'금붕어 색','Fish pattern':'금붕어 무늬','Shop':'상점','Visit a keeper':'다른 키퍼 방문','visit a keeper':'다른 키퍼 방문하기','type the username of the keeper you want to visit':'방문하고 싶은 키퍼의 사용자 이름을 입력하세요',
 'cancel':'취소','visit':'방문','looking…':'찾는 중…','that’s your own tank':'내 어항이에요','send a gift':'선물 보내기','home':'집으로','snack':'간식','sticker':'스티커',
 'decoration · paid with your xp':'장식 · 내 xp로 결제','none left today':'오늘은 다 보냈어요','sending…':'보내는 중…','you got gifts':'선물이 왔어요','thanks':'고마워요',
 'gifts need the new database rules (see the guide)':'선물을 보내려면 새 저장 서버 규칙이 필요해요','visiting needs the online save':'방문하려면 온라인 저장이 필요해요',
 'heart':'하트','sparkle':'반짝','fishy':'물고기','bubbles':'방울','cucumber':'오이','yum':'냠','crunch':'아삭','zucchini':'애호박','banana':'바나나',
 'a little fish like yours · 50 xp':'내 금붕어를 닮은 작은 물고기 · 50 xp','send · 50 xp':'보내기 · 50 xp','friends’ fish':'친구 물고기','tap a fish to show or hide it in your tank':'물고기를 탭해서 어항에 보이거나 숨겨요','no skin':'스킨 없음','little fish your friends send you swim here':'친구가 보낸 작은 물고기가 여기서 헤엄쳐요',
-'visit · type a friend’s username to visit their tank and send gifts':'방문 · 친구 사용자 이름을 입력해 어항에 놀러 가고 선물을 보내요','skin':'스킨','special looks, like christmas':'크리스마스 같은 특별한 모습','a skin is worn over your colour and pattern · tap it again to reshuffle':'스킨은 색과 무늬 위에 입혀져요 · 한 번 더 누르면 모양이 바뀌어요','none':'없음','christmas':'크리스마스','at least 20 stones stay in the tank':'어항에는 돌이 최소 20개 남아 있어야 해요','skip':'건너뛰기',
+'visit · type a friend’s username to visit their tank and send gifts':'방문 · 친구 사용자 이름을 입력해 어항에 놀러 가고 선물을 보내요','skin':'스킨','special looks, like christmas':'크리스마스 같은 특별한 모습','a skin is worn over your color and pattern · tap it again to reshuffle':'스킨은 색과 무늬 위에 입혀져요 · 한 번 더 누르면 모양이 바뀌어요','none':'없음','christmas':'크리스마스','at least 20 stones stay in the tank':'어항에는 돌이 최소 20개 남아 있어야 해요','skip':'건너뛰기',
 'hand · drag to lead your fish, tap to call it, tap the fish to say hi':'손 · 끌어서 금붕어를 데려가고, 탭해서 부르고, 금붕어를 탭하면 인사해요',
 'food · tap the water to sprinkle flakes':'먹이 · 물을 탭해서 먹이를 뿌려요','clean · when the glass gets dirty, rub it clean':'청소 · 유리가 더러워지면 문질러서 닦아요',
 'toy · drag the lure and let your fish chase it':'장난감 · 미끼를 끌면 금붕어가 쫓아와요','sleep · turns the lights off so your fish can rest':'재우기 · 불을 꺼서 금붕어를 쉬게 해요',
 'missions · three goals a day for xp. your fish grows every 5 levels':'미션 · 하루 세 가지 목표로 xp를 모아요. 5레벨마다 금붕어가 자라요',
-'edit · your fish’s colour and pattern, the water, and decorations':'편집 · 금붕어 색과 무늬, 물 색, 장식을 바꿔요','tank view · see the whole tank and turn it around':'어항 보기 · 어항 전체를 보고 돌려 봐요',
+'edit · your fish’s color and pattern, the water, and decorations':'편집 · 금붕어 색과 무늬, 물 색, 장식을 바꿔요','tank view · see the whole tank and turn it around':'어항 보기 · 어항 전체를 보고 돌려 봐요',
 'camera · take a picture of your tank':'카메라 · 어항 사진을 찍어요','your keeper name · tap to switch keepers':'키퍼 이름 · 탭하면 다른 키퍼로 바꿔요','growth':'성장','language':'언어','growth · by level':'성장 · 레벨별','Take picture':'사진 찍기','Sound on':'소리 켜짐','Sound off':'소리 꺼짐','Tank view':'어항 보기','drag to turn · pinch to zoom':'끌어서 돌리기 · 두 손가락으로 확대','Zoom in':'확대','Zoom out':'축소','Goldfish tank. Tap, drag and feed to interact.':'금붕어 수조. 탭하고 끌고 먹이를 주며 놀아 주세요.',
 ': check the Firestore rules':': Firestore 규칙을 확인해 주세요',': is the Firestore database created?':': Firestore 데이터베이스가 만들어졌는지 확인해 주세요'};
 const KO_RX=[
@@ -585,7 +588,7 @@ function finGeo(nu,nv,pf,cf,axis){const pos=[],col=[],flex=[],idx=[],uvs=[];
   const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));g.setAttribute('color',new THREE.Float32BufferAttribute(col,4));g.setAttribute('uv',new THREE.Float32BufferAttribute(uvs,2));
   g.setIndex(idx);g.computeVertexNormals();g.userData.flex=new Float32Array(flex);return g;}
 
-/* ================= the fish's look: colour + pattern ================= */
+/* ================= the fish's look: color + pattern ================= */
 const LOOK_COLORS={orange:'#ff7a3c',tangerine:'#ff9a3d',gold:'#f9a62b',yellow:'#ffcf4a',lemon:'#f2e070',cream:'#f0d8a8',
   peach:'#f6a585',coral:'#ff6f61',salmon:'#ef8a72',red:'#e5412d',crimson:'#c4243a',rose:'#e5728d',pink:'#f3a7c1',lilac:'#bba5da',
   violet:'#8a78cf',sky:'#82b9e6',blue:'#3554a8',navy:'#26325c',teal:'#2b9a93',mint:'#8fd3b6',olive:'#9b9a4b',chocolate:'#8b4a2b',
@@ -618,8 +621,8 @@ function speckle(x,y,z,sd,v,bias){
 const _hsl={h:0,s:0,l:0},_lt=new THREE.Color(),_dk=new THREE.Color(),_cr=new THREE.Color('#f0e4ce');
 /* v = how high the point sits on the body at that spot (0 belly .. 1 back), q = how far out along a fin (0 root .. 1 tip) */
 const _xr=new THREE.Color('#d42f2f'),_xw=new THREE.Color('#ffffff'),_xg=new THREE.Color('#2f7d4f');
-/* christmas skin: festive colours laid out the way a bred goldfish's pigment really falls:
-   big irregular red patches on white (like a sarasa), the odd green patch, a paler belly, and colour that runs from the body
+/* christmas skin: festive colors laid out the way a bred goldfish's pigment really falls:
+   big irregular red patches on white (like a sarasa), the odd green patch, a paler belly, and color that runs from the body
    out into the fins and fades toward their see-through tips */
 function skinColor(x,y,z,fin,lk,v,q){const c=_lc,sd=(lk.seed||0)+500;
   const fb=(a,b,e,k)=>0.62*vnoise(a*k,b*k,e*k,sd)+0.38*vnoise(a*k*2.1+3.3,b*k*2.1+1.7,e*k*2.1,sd+1);
@@ -628,13 +631,13 @@ function skinColor(x,y,z,fin,lk,v,q){const c=_lc,sd=(lk.seed||0)+500;
   if(fin)c.lerp(_xw,0.55*ss(0.35,1,q));return c;}
 function lookColor(x,y,z,fin,lk,v,q){if(lk.skin==='christmas')return skinColor(x,y,z,fin,lk,v,q);const main=_lm.set(LOOK_COLORS[lk.c]||LOOK_COLORS.orange),sd=lk.seed||0;main.getHSL(_hsl);
   const lightTone=_lt.setHSL(_hsl.h,_hsl.s*0.8,_hsl.l+(1-_hsl.l)*0.62);
-  // spots are a deeper shade of the fish's own colour; very pale fish get a soft warm charcoal, very dark fish get pale flecks
+  // spots are a deeper shade of the fish's own color; very pale fish get a soft warm charcoal, very dark fish get pale flecks
   const deep=_hsl.l<0.3?_dk.setHSL(_hsl.h,_hsl.s*0.6,0.74):_hsl.l>0.82||_hsl.s<0.12?_dk.set('#4d4441'):_dk.setHSL(_hsl.h,Math.min(1,_hsl.s*1.05),_hsl.l*0.4);
   let c=_lc.copy(main);const wob=lookNoise(x,y,z,sd+3,6)*0.07;
   switch(lk.p){
     case 'fade':{// lighter belly that follows the body's curve, soft and slightly uneven, rising a little toward the head
       if(fin){c.lerp(lightTone,0.15+0.45*q);break;}const a=ss(0.6,0.08,v+wob-0.08*ss(0.1,0.6,x));c.lerp(lightTone,a*0.95);break;}
-    case 'dark fins':{// the colour deepens smoothly from mid-body back toward the tail and runs on out to the fin tips, so body and fins read as one
+    case 'dark fins':{// the color deepens smoothly from mid-body back toward the tail and runs on out to the fin tips, so body and fins read as one
       const sh=_hsl.l>0.86||_hsl.s<0.1?_dk.setHSL(_hsl.h,_hsl.s,_hsl.l*0.68):_hsl.l<0.3?_dk.setHSL(_hsl.h,_hsl.s*0.7,0.6):_dk.setHSL(_hsl.h,_hsl.s*0.85,_hsl.l*0.66);
       const along=ss(0.3,-0.8,x),t=fin?clamp(along*0.5+0.55*q):along*0.55+0.12*ss(0.6,1,v+wob);c.lerp(sh,t);break;}
     case 'patches':if(lookNoise(x,y,z,sd,4.2)<0.05)c.copy(_cr);if(fin&&q>0.5&&lookNoise(x,y,z,sd+9,3)<-0.2)c.copy(_cr);break;
@@ -663,7 +666,7 @@ function applyLook(F,lk,st){F=F||R;if(!F)return;lk=lk||lookOf();if(st===undefine
   for(const M of [MAT_FISH,MAT_FIN]){M.vertexColors=true;M.color.set(0xffffff);M.needsUpdate=true;}}
 
 /* growing up, like a real goldfish: a slender, pale, big-eyed fry (lv 0-4), then a rounder speckled juvenile,
-   colouring in and growing long fins toward the adult (lv 50). s = growth stage 0..10 (may be fractional) */
+   coloring in and growing long fins toward the adult (lv 50). s = growth stage 0..10 (may be fractional) */
 function youth(s){const slim=clamp(1-s/3),pale=clamp(2-s),speck=clamp(Math.min(s-0.3,6.5-s)/1.5);
   return {size:0.3+0.7*Math.pow(s/10,1.1),lx:1+0.26*slim,ly:1-0.45*slim,lz:1-0.38*slim,eye:1+0.75*clamp(1-s/6),tail:0.42+0.58*clamp(s/8),fin:0.55+0.45*clamp(s/6),pale,speck};}
 function poseYouth(F,s,innerToo){const Y=youth(s);
@@ -673,7 +676,7 @@ function poseYouth(F,s,innerToo){const Y=youth(s);
   for(const o of F.eyes){if(!o.bs)o.bs=o.e.scale.clone();o.e.scale.copy(o.bs).multiplyScalar(Y.eye);}
   if(innerToo)F.inner.scale.set(Y.lx,Y.ly,Y.lz);return Y;}
 
-/* small pictures of the fish in a given look, for the colour and pattern menus */
+/* small pictures of the fish in a given look, for the color and pattern menus */
 let FT=null;
 function fishThumb(lk,st,big){if(!FT){const r=new THREE.WebGLRenderer({antialias:true,alpha:true,preserveDrawingBuffer:true});r.setPixelRatio(1);r.setSize(168,120,false);r.setClearColor(0xffffff,0);
     const sc=new THREE.Scene(),f=buildFish();sc.add(f.g);f.g.rotation.set(0,-0.42,0.04);f.g.updateMatrixWorld(true);
@@ -798,7 +801,7 @@ function addPebble(e,x,y,z,r,flat,shade,inPile,drop){const g=stoneGeo(r,(x*13+z*
 function serializeTank(){if(!save||!save.tank||!B.x||!ENV)return;const F=B.floor;
   save.tank.pebbles=PEBBLES.filter(p=>p.state!=='carried').map(p=>{const m=p.m.position,y=p.state==='fall'&&p.target?p.target.y:m.y;
     return [+(m.x/B.x).toFixed(3),+(y-F).toFixed(3),+m.z.toFixed(2),+p.r.toFixed(3),+p.flat.toFixed(2),+p.shade.toFixed(2),p.inPile?1:0];});}
-/* ---- winter shop: ten flat-coloured decorations ---- */
+/* ---- winter shop: ten flat-colored decorations ---- */
 const WC={snow:0xf3f5f6,ice:0xb3cfda,red:0xc95a50,green:0x5d8566,pine:0x4c6f58,wood:0x9a7356,black:0x2e3236,orange:0xef8a3c,cream:0xf2e6d2,gold:0xd8b25a};
 const fm=c=>flatMat({color:c});
 function part(geo,col,x,y,z,sx,sy,sz){const m=new THREE.Mesh(geo,fm(col));m.position.set(x,y,z);if(sx)m.scale.set(sx,sy,sz);return m;}
@@ -872,11 +875,14 @@ const SHOP=[
    for(let i=0;i<8;i++)g.add(part(SPH,WC.snow,Math.cos(i*2.4)*0.06,0.12+((i*37)%7)/70,Math.sin(i*2.4)*0.06,0.006,0.006,0.006));return g;}}];
 const WATER={clear:'#f1f2f3',blue:'#e2eaee',green:'#e5ebe0'};
 const WTINT=new THREE.Color(1,1,1);
-/* the water colour tints everything in the tank (floor, stones, plants, decorations) the same way it tints the background,
-   so the floor sits in the water instead of standing out as a white strip. The fish keeps its own colour. */
-function applyWater(){const c=WATER[(save.tank&&save.tank.water)||'clear']||WATER.clear;document.body.style.background=c;if(scene.fog)scene.fog.color.set(c);
+/* the water color tints everything in the tank (floor, stones, plants, decorations) the same way it tints the background,
+   so the floor sits in the water instead of standing out as a white strip. The fish keeps its own color. */
+function applyWater(){const c=WATER[(save.tank&&save.tank.water)||'clear']||WATER.clear;document.body.style.background=c;document.documentElement.style.background=c;syncTheme();if(scene.fog)scene.fog.color.set(c);
   WTINT.set(c);if(ENV)ENV.traverse(o=>{const ms=o.material?(Array.isArray(o.material)?o.material:[o.material]):[];
     for(const m of ms){if(!m.color)continue;if(!m.userData.base)m.userData.base=m.color.clone();m.color.copy(m.userData.base).multiply(WTINT);}});}
+// the browser's top bar (and the iPhone status bar area) takes this colour, so keep it matching the water, or dark at night
+function syncTheme(){let night=false;try{night=lightsOff;}catch(e){}const c=night?'#0f0f12':(WATER[(save.tank&&save.tank.water)||'clear']||WATER.clear);if(syncTheme.c===c)return;syncTheme.c=c;
+  document.querySelectorAll('meta[name="theme-color"]').forEach(m=>m.setAttribute('content',c));}
 function rebuildTank(){if(!ENV)return;world.remove(ENV);PEBBLES=[];ENV=buildEnv();world.add(ENV);applyWater();computeObst();applyLook();}
 /* solid things in the tank (big rocks, decorations) as soft ellipsoids the fish slides around instead of swimming through */
 let BIGROCKS=[],OBST=[];const _bx=new THREE.Box3(),_wInv=new THREE.Matrix4(),_m4=new THREE.Matrix4(),_v=new V3();
@@ -1400,7 +1406,7 @@ $('#namingForm').addEventListener('submit',e=>{e.preventDefault();const v=$('#fi
 $('#namingSkip').onclick=()=>{$('#naming').hidden=true;maybeTour();};
 const TOUR=[['#t-hand','hand · drag to lead your fish, tap to call it, tap the fish to say hi'],
   ['#t-wash','clean · when the glass gets dirty, rub it clean'],['#t-sleep','sleep · turns the lights off so your fish can rest'],
-  ['#misBtn','missions · three goals a day for xp. your fish grows every 5 levels'],['#editBtn','edit · your fish’s colour and pattern, the water, and decorations'],
+  ['#misBtn','missions · three goals a day for xp. your fish grows every 5 levels'],['#editBtn','edit · your fish’s color and pattern, the water, and decorations'],
   ['#tvBtn','tank view · see the whole tank and turn it around'],['#visitBtn','visit · type a friend’s username to visit their tank and send gifts'],['#who','your keeper name · tap to switch keepers']];
 let tourI=-1;
 function maybeTour(){if(!USER||(save.tut&&save.tut.tour))return;save.tut=save.tut||{};save.tut.tour=1;persist();setTimeout(()=>{tourI=0;$('#tour').hidden=false;tourShow();},500);}
@@ -1709,7 +1715,7 @@ let uiT=0,saveT=0,algT=0;const clock=new THREE.Clock();
 /* A visit shows another keeper's tank and fish (read only: nothing here is saved to your own keeper).
    Gifts are small records left in the other keeper's gift box online; they open them next time they play. */
 // flat, slightly wobbly shapes in the fish's warm palette, no outlines, like the rest of the tank
-/* gift snacks and stickers: small flat-coloured 3D models, rendered the same way as the shop decorations */
+/* gift snacks and stickers: small flat-colored 3D models, rendered the same way as the shop decorations */
 const MATV=flatMat({vertexColors:true,side:THREE.DoubleSide});
 function sweepGeo(path,rad,col,seg,rs){seg=seg||56;rs=rs||24;const cv=new THREE.CatmullRomCurve3(path),fr=cv.computeFrenetFrames(seg,false),pos=[],cols=[],idx=[],c=new THREE.Color();
   for(let i=0;i<=seg;i++){const t=i/seg,p=cv.getPointAt(t),N=fr.normals[i],Bn=fr.binormals[i],r=rad(t);
@@ -1775,7 +1781,7 @@ function packLook(l,st){const a=[l.c||'orange',PAT_CODE[l.p]||'a',(l.seed||0)%10
 const fstage=f=>f&&f.stage!==undefined?f.stage:10,fthumb=(lk,st)=>fishThumb(lk,st,0.6+0.4*st/10),recStage=rec=>{const pr=normProg(rec&&rec.prog);return Math.min(10,Math.max(pr.grow||0,Math.floor(pr.level/5)));};
 function unpackLook(s){const [c,p,sd,sk,st]=String(s||'').split('.'),P=Object.keys(PAT_CODE).find(k=>PAT_CODE[k]===p)||'plain';return {c:LOOK_COLORS[c]?c:'orange',p:P,seed:+sd||0,skin:sk==='x'?'christmas':''};}
 let FRIENDS=[];
-// gifted fish: a fifth of an adult's size, in the sender's colours; they just potter about and can't be played with
+// gifted fish: a fifth of an adult's size, in the sender's colors; they just potter about and can't be played with
 function spawnFriends(){for(const f of FRIENDS)world.remove(f.g);FRIENDS=[];const list=(VISIT?VISIT.friends:save.friends)||[];
   if(!VISIT)friendsFix();
   for(const it of list){if(it.hide)continue;const st=fstage(it),F=buildFish();poseYouth(F,st,true);applyLook(F,it.look,st);F.g.scale.setScalar(0.434*0.2*(0.8+0.2*youth(st).size));
@@ -1953,7 +1959,7 @@ function frame(){requestAnimationFrame(frame);const nowF=performance.now(),busy=
   if(!tankViewCam(dt)){const d=camera.position.distanceTo(camLook);scene.fog.far=damp(scene.fog.far,d+lerp(3,40,pet().s.clean/100),2,dt);
   camera.position.x=camBase.x+Math.sin(T*0.17)*0.05;camera.position.y=camBase.y+Math.sin(T*0.23)*0.03;camera.lookAt(camLook);}
   if((algT+=dt)>1){algT=0;syncAlgae();}
-  if((uiT+=dt)>0.3){uiT=0;{let up=false,any=false;document.querySelectorAll('.sheet.dock').forEach(sh=>{if(!sh.hidden){any=true;if(!sh.classList.contains('top'))up=true;}});
+  if((uiT+=dt)>0.3){uiT=0;syncTheme();{let up=false,any=false;document.querySelectorAll('.sheet.dock').forEach(sh=>{if(!sh.hidden){any=true;if(!sh.classList.contains('top'))up=true;}});
     document.body.classList.toggle('docked',any);S.hold=up?new V3(0,B.surf-(B.surf-B.floor)*0.2,0.8):null;}updateStats();updateCap();if(PROG){ensureDaily();const n=pet().s,ok=n.food>60&&n.clean>60&&n.energy>60&&n.fun>60;if(ok&&!S.happyNow)track('needs');S.happyNow=ok;}}
   if(S.toastT>0)S.toastT-=dt;
   if((saveT+=dt)>5){saveT=0;persistLocal();}
