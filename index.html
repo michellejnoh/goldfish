@@ -74,7 +74,7 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
 .tools button{font-size:24px;letter-spacing:.005em;color:var(--dim);padding:12px 6px;min-width:44px}
 .tools button[aria-pressed="true"]{color:var(--ink);text-decoration:underline;text-decoration-thickness:1.5px;text-underline-offset:6px}
 button:focus-visible,#name:focus-visible{outline:1.5px solid var(--ink);outline-offset:3px}
-body.evening{background:linear-gradient(to top,var(--nBot) 0%,var(--nMid) 30%,var(--nTop) 75%)!important;transition:background .6s}
+body.evening{background:radial-gradient(ellipse 95% 55% at 102% 58%,rgba(var(--lampc,255,236,206),.62),rgba(var(--lampc,255,236,206),.26) 45%,rgba(var(--lampc,255,236,206),0) 75%),linear-gradient(to top,var(--nBot) 0%,var(--nMid) 30%,var(--nTop) 75%)!important;transition:background .6s}
 body.night{--ink:#ededed;--dim:#7d7d7d;--soft:#b3b3b3;--track:#4a4a4a}
 body.night #say{color:#e0e0e0}
 @media (min-width:700px){#name{font-size:46px}}
@@ -197,6 +197,8 @@ body.visiting .ui,body.visiting #say{display:none}
 .lookgrid button.off img{opacity:.3}
 /* docked menus cover only part of the screen, so a change shows in the tank right away */
 .sheet.dock{background:transparent;align-items:flex-end;padding:0}
+#lampRow{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin:10px 0 4px}#lampRow button{display:flex;flex-direction:column;align-items:center;gap:6px;background:none;border:0;padding:6px 0;font:inherit;font-size:13px;color:inherit;opacity:.65}
+#lampRow button[aria-pressed=true]{opacity:1;font-weight:600}#lampRow i{width:34px;height:34px;border-radius:50%;box-shadow:0 0 0 1px rgba(0,0,0,.18),0 0 14px 4px var(--lc);background:var(--lc)}#lampRow button[aria-pressed=true] i{box-shadow:0 0 0 2px #222,0 0 16px 6px var(--lc)}
 .sheet.dock .card{max-width:none;background:rgba(255,255,255,.97);border-radius:22px 22px 0 0;padding:20px max(24px,env(safe-area-inset-right,0px)) calc(16px + env(safe-area-inset-bottom,0px)) max(24px,env(safe-area-inset-left,0px));
   max-height:58vh;box-shadow:0 -8px 28px rgba(0,0,0,.07);animation:dockUp .28s ease-out}
 .sheet.dock.top{align-items:flex-start}
@@ -294,6 +296,7 @@ body.lookdock #viewArrows{display:flex}
     <button type="button" class="mrow" id="fishMenuBtn"><span class="mi"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><g><path d="M2.5 12c2.6-4 6.2-5.6 9.6-5.6 3.3 0 5.6 1.6 6.9 3.4l2.4-2.1c.5-.4 1.2 0 1 .7l-.8 3.6.8 3.6c.2.7-.5 1.1-1 .7l-2.4-2.1c-1.3 1.8-3.6 3.4-6.9 3.4-3.4 0-7-1.6-9.6-5.6z" fill="currentColor" stroke="none"/><circle cx="7" cy="11.2" r="1" fill="#fff" stroke="none"/></g></svg></span><span class="mt"><b>your fish</b><small>color, pattern, skin &amp; friends</small></span></button>
     <button type="button" class="mrow" id="waterMenuBtn"><span class="mi"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.5c3 3.9 6 7.4 6 10.9a6 6 0 0 1-12 0c0-3.5 3-7 6-10.9z"/></svg></span><span class="mt"><b>water</b><small>clear, blue or green</small></span></button>
     <button type="button" class="mrow" id="decorMenuBtn"><span class="mi"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.5 5c.75 4.4 2.3 6.1 6.7 6.8-4.4.75-5.95 2.45-6.7 6.95-.75-4.5-2.3-6.2-6.7-6.95 4.4-.7 5.95-2.4 6.7-6.8z"/><path d="M18 2.8c.38 2 1.1 2.75 3.1 3.15-2 .4-2.72 1.15-3.1 3.2-.38-2.05-1.1-2.8-3.1-3.2 2-.4 2.72-1.15 3.1-3.15z"/></svg></span><span class="mt"><b>decorations</b><small>shop, move &amp; pebbles</small></span></button>
+    <button type="button" class="mrow" id="lampMenuBtn"><span class="mi"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 4h8l2.2 8H5.8z"/><path d="M12 12v6"/><path d="M8.5 20h7"/></svg></span><span class="mt"><b>night lamp</b><small>the color of the light at night</small></span></button>
     <div class="row2"><span></span><button type="button" class="go" id="tankClose">close</button></div>
   </div>
 </div>
@@ -325,6 +328,14 @@ body.lookdock #viewArrows{display:flex}
     <button type="button" class="mrow" data-w="green"><span class="mi"><svg viewBox="0 0 24 24" width="28" height="28" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="#c8d6bc" stroke="#a7b59b" stroke-width="1"/></svg></span><span class="mt"><b>green</b><small>a little mossy</small></span></button>
     </div>
     <div class="row2"><span></span><button type="button" class="go" data-back>back</button></div>
+  </div>
+</div>
+<div class="sheet dock" id="lampMenu" hidden>
+  <div class="card">
+    <h2>night lamp</h2>
+    <p class="small">a mood lamp beside the tank, on from 9 pm to 5 am</p>
+    <div id="lampRow"></div>
+    <div class="row2 topclose"><span></span><button type="button" class="go" id="lampClose">back</button></div>
   </div>
 </div>
 <div class="sheet" id="decorMenu" hidden>
@@ -411,7 +422,8 @@ const KO={
 'orange':'주황','tangerine':'귤색','gold':'금색','yellow':'노랑','lemon':'레몬','cream':'크림','peach':'복숭아','coral':'코랄','salmon':'연어색',
 'red':'빨강','crimson':'진홍','rose':'장미','pink':'분홍','lilac':'라일락','violet':'보라','sky':'하늘','blue':'파랑','navy':'남색','teal':'청록',
 'mint':'민트','olive':'올리브','chocolate':'초콜릿','silver':'은색','white':'하양','black':'검정',
-'clear':'투명','green':'초록',
+'clear':'투명','green':'초록','warm':'따뜻한','blue':'파랑','purple':'보라','night lamp':'무드등','the color of the light at night':'밤에 켜지는 빛의 색',
+'a mood lamp beside the tank, on from 9 pm to 5 am':'어항 옆 무드등 · 밤 9시부터 새벽 5시까지 켜져요',
 'candy cane':'지팡이 사탕','gift box':'선물 상자','ice crystals':'얼음 결정','snowman':'눈사람','little sled':'작은 썰매','pine tree':'소나무',
 'penguin':'펭귄','igloo':'이글루','polar bear':'북극곰','snow globe':'스노볼',
 'first meal':'첫 식사','100 flakes eaten':'먹이 100개 먹기','caught the lure 100 times':'미끼 100번 잡기','50 tricks':'재주 50번',
@@ -455,7 +467,7 @@ const KO={
 'food · tap the water to sprinkle flakes':'먹이 · 물을 탭해서 먹이를 뿌려요','clean · when the glass gets dirty, rub it clean':'청소 · 유리가 더러워지면 문질러서 닦아요',
 'toy · drag the lure and let your fish chase it':'장난감 · 미끼를 끌면 금붕어가 쫓아와요','sleep · turns the lights off so your fish can rest':'재우기 · 불을 꺼서 금붕어를 쉬게 해요',
 'missions · three goals a day for xp. your fish grows every 5 levels':'미션 · 하루 세 가지 목표로 xp를 모아요. 5레벨마다 금붕어가 자라요',
-'edit · your fish’s color and pattern, the water, and decorations':'편집 · 금붕어 색과 무늬, 물 색, 장식을 바꿔요','tank view · see your tank on its table in a little room, and turn it around':'어항 보기 · 작은 방 탁자 위의 어항을 보고 돌려 봐요',
+'edit · your fish’s color and pattern, the water, decorations, and the night lamp':'편집 · 금붕어 색과 무늬, 물 색, 장식, 무드등을 바꿔요','tank view · see your tank on its table in a little room, and turn it around':'어항 보기 · 작은 방 탁자 위의 어항을 보고 돌려 봐요',
 'camera · take a picture of your tank':'카메라 · 어항 사진을 찍어요','your keeper name · tap to switch keepers':'키퍼 이름 · 탭하면 다른 키퍼로 바꿔요','growth':'성장','drag it where you like · twist or use the arrows to turn it':'원하는 곳으로 끌어 놓고, 비틀거나 화살표로 돌려요','send':'보내기','cancel':'취소','turn your fish':'물고기 돌리기','language':'언어','growth · by level':'성장 · 레벨별','Take picture':'사진 찍기','Sound on':'소리 켜짐','Sound off':'소리 꺼짐','Tank view':'어항 보기','drag to turn · pinch to zoom':'끌어서 돌리기 · 두 손가락으로 확대','Zoom in':'확대','Zoom out':'축소','Goldfish tank. Tap, drag and feed to interact.':'금붕어 수조. 탭하고 끌고 먹이를 주며 놀아 주세요.',
 ': check the Firestore rules':': Firestore 규칙을 확인해 주세요',': is the Firestore database created?':': Firestore 데이터베이스가 만들어졌는지 확인해 주세요'};
 const KO_RX=[
@@ -564,8 +576,10 @@ let world=new THREE.Group();scene.add(world);
 /* sunlight inside the flat materials: a surface inside a beam is brighter (more so where it faces up), the water between beams is a touch shadier,
    and a soft moving web of light (projected from above) plays over sand, stones and fish only where the beams fall. At night it does nothing. */
 const SUNU={uA:{value:0},uB:{value:[0,1,2,3,4,5].map(()=>new THREE.Vector4(0,9,0,0))},uK:{value:[0,0,0,0,0,0]},uL:{value:4},uCaus:{value:null},uCo:{value:new THREE.Vector4()},uCol:{value:new THREE.Color(1,1,1)},uZ:{value:[0,0,0,0,0,0]},uF:{value:0},uT:{value:0}};
-const NIGHTU={uN:{value:0},uNF:{value:0}};
-const SUN_GLSL=`uniform float uN;uniform float uNF;
+const NIGHTU={uN:{value:0},uNF:{value:0},uNL:{value:new THREE.Vector4(2,1,0.4,2.4)},uLC:{value:new THREE.Vector3(1.05,1,0.92)}};
+const LAMPS={warm:{c:'255,236,206',t:[1.05,1,0.92]},white:{c:'255,255,255',t:[1.02,1.02,1.02]},pink:{c:'255,206,222',t:[1.07,0.94,0.99]},
+  blue:{c:'200,222,255',t:[0.93,0.99,1.08]},green:{c:'206,240,206',t:[0.95,1.06,0.95]},purple:{c:'222,206,255',t:[1.0,0.94,1.08]}};
+const SUN_GLSL=`uniform float uN;uniform float uNF;uniform vec4 uNL;uniform vec3 uLC;
 uniform float uA;uniform vec4 uB[6];uniform float uK[6];uniform float uL;uniform sampler2D uCaus;uniform vec4 uCo;uniform vec3 uCol;uniform float uZ[6];uniform float uF;uniform float uT;varying vec3 vSunP;varying vec3 vSunN;
 float sunMask(vec3 p){float m=0.;
   // near the floor the light lands as soft rounded pools with wavy, drifting edges instead of straight strips
@@ -580,12 +594,10 @@ function sunPatch(sh){Object.assign(sh.uniforms,SUNU,NIGHTU);
    float c1=texture2D(uCaus,vSunP.xz*0.55+uCo.xy).a,c2=texture2D(uCaus,vSunP.xz*0.43+uCo.zw).a,cau=sqrt(c1*c2)*1.3;
    float f=(1.-0.06*uA)*(1.+uA*0.05*(up-0.3))+m*(0.17+0.1*max(up,0.))+m*0.8*(cau-0.35)*smoothstep(0.1,0.7,up);
    gl_FragColor.rgb=min(gl_FragColor.rgb*f*mix(vec3(1.),uCol,m*0.6),vec3(1.));}
-if(uN>0.001){float h=clamp((vSunP.y-uNF)/2.6,0.,1.);
-   // night light on things: just a soft lift of brightness that fades with height, no shape-revealing rim or facing terms
-   float back=clamp((-vSunP.z+0.4)/2.0,0.,1.),lit=pow(1.-h,1.6);
-   float f=(1.-uN*0.27*(0.4+0.6*h))+uN*lit*0.24*(0.65+0.35*back);
-   float upN=dot(vSunN,vSunN)>0.0001?normalize(vSunN).y:0.;f-=uN*0.075*smoothstep(0.75,0.95,upN)*(1.-smoothstep(0.,0.5,vSunP.y-uNF));// the sand floor stays a shade under the glowing water so the line between them still reads
-   vec3 cN=min(gl_FragColor.rgb*f,vec3(1.));float lmN=dot(cN,vec3(0.299,0.587,0.114));gl_FragColor.rgb=clamp(mix(vec3(lmN),cN,1.+0.35*uN),0.,1.);}// colours keep their strength in the dimmer light
+if(uN>0.001){vec3 dl=vSunP-uNL.xyz;float lm=exp(-dot(dl,dl)/(uNL.w*uNL.w));
+   // night: the room is dark except for a mood lamp beside the tank; things nearer to it catch its soft, slightly warm light
+   vec3 cN=gl_FragColor.rgb*(1.-uN*0.34+uN*0.62*lm)*mix(vec3(1.),uLC,uN*lm*0.8);cN=min(cN,vec3(1.));
+   float lmN=dot(cN,vec3(0.299,0.587,0.114));gl_FragColor.rgb=clamp(mix(vec3(lmN),cN,1.+0.3*uN),0.,1.);}
 #include <tonemapping_fragment>`);}
 function flatMat(o){o=Object.assign({},o);['roughness','metalness','envMap','envMapIntensity','bumpMap','bumpScale','emissive'].forEach(k=>delete o[k]);const m=new THREE.MeshBasicMaterial(o);m.onBeforeCompile=sunPatch;return m;}
 const FISH_COL=0xff7a3c,FIN_COL=0xff8d4f;
@@ -1446,7 +1458,7 @@ $('#namingForm').addEventListener('submit',e=>{e.preventDefault();const v=$('#fi
 $('#namingSkip').onclick=()=>{$('#naming').hidden=true;if(openNaming.first)maybeTour();};
 const TOUR=[['#t-hand','hand · drag to lead your fish, tap to call it, tap the fish to say hi'],
   ['#t-wash','clean · when the glass gets dirty, rub it clean'],['#t-sleep','sleep · turns the lights off so your fish can rest'],
-  ['#misBtn','missions · three goals a day for xp. your fish grows every 5 levels'],['#editBtn','edit · your fish’s color and pattern, the water, and decorations'],
+  ['#misBtn','missions · three goals a day for xp. your fish grows every 5 levels'],['#editBtn','edit · your fish’s color and pattern, the water, decorations, and the night lamp'],
   ['#tvBtn','tank view · see your tank on its table in a little room, and turn it around'],['#visitBtn','visit · type a friend’s username to visit their tank and send gifts. fish you’re sent swim with yours'],['#who','your keeper name · tap to switch keepers']];
 let tourI=-1;
 function maybeTour(){if(!USER||(save.tut&&save.tut.tour))return;save.tut=save.tut||{};save.tut.tour=1;persist();setTimeout(()=>{tourI=0;$('#tour').hidden=false;tourShow();},500);}
@@ -1698,11 +1710,15 @@ document.querySelectorAll('.sheet').forEach(sh=>sh.addEventListener('click',e=>{
   sh.hidden=true;}));
 $('#shopClose').onclick=()=>{$('#shop').hidden=true;openSub('decorMenu');};
 function openTank(){renderTank();$('#tank').hidden=false;}
-const SUBS=['fishMenu','waterMenu','decorMenu'];
+const SUBS=['fishMenu','waterMenu','decorMenu','lampMenu'];
 function openSub(id){$('#tank').hidden=true;SUBS.forEach(k=>$('#'+k).hidden=k!==id);renderTank();friendsLabel();}
 $('#fishMenuBtn').onclick=()=>openSub('fishMenu');$('#waterMenuBtn').onclick=()=>openSub('waterMenu');$('#decorMenuBtn').onclick=()=>openSub('decorMenu');
 document.querySelectorAll('[data-back]').forEach(b=>b.onclick=()=>{SUBS.forEach(k=>$('#'+k).hidden=true);openTank();});
 $('#tankClose').onclick=()=>{$('#tank').hidden=true;};
+function renderLamps(){const el=$('#lampRow'),cur=save.lamp||'warm';el.textContent='';
+  for(const k in LAMPS){const b=document.createElement('button');b.type='button';b.setAttribute('aria-pressed',k===cur);const i=document.createElement('i');i.style.setProperty('--lc','rgb('+LAMPS[k].c+')');
+    const t=document.createElement('span');t.textContent=k;b.append(i,t);b.onclick=()=>{save.lamp=k;persist();renderLamps();};el.appendChild(b);}}
+$('#lampMenuBtn').onclick=()=>{openSub('lampMenu');renderLamps();};$('#lampClose').onclick=()=>{$('#lampMenu').hidden=true;openTank();};
 $('#waterRow').addEventListener('click',e=>{const b=e.target.closest('[data-w]'),w=b&&b.dataset.w;if(!w)return;save.tank.water=w;applyWater();persist();renderTank();});
 function setEdit(m){if(toy)endToy(true);if(m==='arrange')tool='arrange';else{tool='peb';S.pebMode=m;}$('#tank').hidden=true;$('#decorMenu').hidden=true;
   document.body.classList.add('editing');$('#editBar').hidden=false;R.g.visible=false;say('');
@@ -2325,7 +2341,7 @@ function sunTick(dt){if(!SUN){const tex=rayTex(),glow=glowTex();SUN={g:new THREE
     SUN.dots=new THREE.Points(pg,new THREE.PointsMaterial({size:0.05,map:glow,transparent:true,opacity:0,depthWrite:false,depthTest:false,fog:false,blending:THREE.AdditiveBlending}));SUN.dots.renderOrder=9;SUN.g.add(SUN.dots);
     SUN.dd=[];for(let i=0;i<n;i++)SUN.dd.push({b:i%6,f:rnd(-0.45,0.45),y:rnd(0,1),ph:rnd(0,6),v:rnd(0.01,0.035)});world.add(SUN.g);}
   const d=new Date(),h=d.getHours()+d.getMinutes()/60,u=(h-6.3)/12.6,day=u>0&&u<1,alt=day?Math.sin(Math.PI*u):0,side=(0.5-clamp(u))*2;
-  const want=lightsOff||TV.t>0.02?0:clamp(alt*1.8);SUN.a=damp(SUN.a||0,want,0.8,dt);const A=SUN.a;
+  const want=lightsOff||TV.t>0.02||!$('#lampMenu').hidden?0:clamp(alt*1.8);SUN.a=damp(SUN.a||0,want,0.8,dt);const A=SUN.a;
   if(!SUNU.uCaus.value){const t=causticTex(5);t.magFilter=THREE.LinearFilter;SUNU.uCaus.value=t;}
   SUNU.uA.value=A;SUNU.uCo.value.set(T*0.011+Math.sin(T*0.31)*0.03,-T*0.008+Math.cos(T*0.27)*0.03,-T*0.009+Math.sin(T*0.23+1)*0.03,T*0.012+Math.cos(T*0.19+2)*0.03);
   SUN.g.visible=A>0.005;if(!SUN.g.visible){SUNU.uK.value.fill(0);return;}
@@ -2347,58 +2363,17 @@ function sunTick(dt){if(!SUN){const tex=rayTex(),glow=glowTex();SUN={g:new THREE
 /* night light, 9 pm to 5 am: the water dims a little and a soft white light shines up from behind the sand. It has a few brighter spots,
    faint rays rising from them, shadows where plants and stones block it, bright rims on edges facing it, specks glinting as they drift
    through it, and a slow breathing shimmer. It fades in and out over about twenty minutes and goes out with the lights when the fish sleeps. */
-let NL=null;
 function nightAmt(){const d=new Date(),h=d.getHours()+d.getMinutes()/60;if(h>=21)return clamp((h-21)/0.33);if(h<5)return 1-clamp((h-4.67)/0.33);return 0;}
 function shade(hex,k){const c=new THREE.Color(hex);c.multiplyScalar(k);return '#'+c.getHexString();}
-function nlTex(fn,w,h){const c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d'),im=x.createImageData(w,h);
-  for(let j=0;j<h;j++)for(let i=0;i<w;i++){const a=fn(i/(w-1),1-j/(h-1)),k=(j*w+i)*4;im.data[k]=im.data[k+1]=im.data[k+2]=255;im.data[k+3]=Math.round(clamp(a)*255);}x.putImageData(im,0,0);return new THREE.CanvasTexture(c);}
-function nlBuild(){const g=new THREE.Group(),add=(geo,tex,op,ro,blend,col)=>{const m=new THREE.Mesh(geo,new THREE.MeshBasicMaterial({map:tex,color:col||0xffffff,transparent:true,opacity:0,depthWrite:false,fog:false,blending:blend||THREE.AdditiveBlending}));m.renderOrder=ro;m.userData.op=op;g.add(m);return m;};
-  const plane=()=>new THREE.PlaneGeometry(1,1).translate(0,0.5,0);
-  const sm=(a,b,x)=>{const t=clamp((x-a)/(b-a));return t*t*(3-2*t);};
-  const band=nlTex((u,v)=>(0.7*Math.exp(-v*6)+0.12*Math.pow(1-v,1.8))*sm(0,0.16,v)*sm(0,0.3,Math.min(u,1-u)),8,256);
-  const spot=nlTex((u,v)=>{const x=(u-0.5)*2;return Math.exp(-x*x*2.6)*(0.9*Math.exp(-v*4.8)+0.18*Math.pow(1-v,2))*sm(0,0.18,v);},64,256);
-  const ray=nlTex((u,v)=>{const x=(u-0.5)*2;return Math.exp(-x*x*4)*Math.pow(1-v,1.0)*sm(0,0.2,v);},32,256);
-  const shadow=nlTex((u,v)=>{const x=(u-0.5)*2;return Math.exp(-x*x*2.2)*Math.pow(1-v,1.1)*Math.min(1,v*5);},64,128);
-  const blob=nlTex((u,v)=>{const x=(u-0.5)*2,y=(v-0.5)*2;return Math.exp(-(x*x+y*y)*2.6);},64,64);
-  const L={g,band:add(plane(),band,0.3,2),spots:[],rays:[],shadows:[]};
-  [-0.86,-0.42,-0.02,0.38,0.8].forEach((x0,i)=>{const sp=add(plane(),spot,0,2);sp.visible=false;sp.userData.x=x0+rnd(-0.05,0.05);sp.userData.w=rnd(0.9,1.3);sp.userData.ph=rnd(0,6);L.spots.push(sp);
-    for(const k of (i%2?[1]:[-1])){const geo=new THREE.PlaneGeometry(1,1,1,8).translate(0,0.5,0),bp=geo.attributes.position;for(let q=0;q<bp.count;q++)bp.setX(q,bp.getX(q)*(1+1.3*bp.getY(q)));
-      const r=add(geo,ray,rnd(0.033,0.058),2);r.userData.x=sp.userData.x;r.userData.a=k*rnd(0.06,0.3);r.userData.w=rnd(0.18,0.32);r.userData.ph=rnd(0,6);L.rays.push(r);}});
-  const casters=[],cl=[];for(const rb of ribbons){let c=cl.find(q=>Math.abs(q.x-rb.m.position.x)<0.45&&Math.abs(q.z-rb.m.position.z)<0.5);if(!c){c={x:0,z:0,n:0,h:0,x0:9,x1:-9};cl.push(c);}
-    c.x+=rb.m.position.x;c.z+=rb.m.position.z;c.n++;c.h=Math.max(c.h,rb.H);c.x0=Math.min(c.x0,rb.m.position.x);c.x1=Math.max(c.x1,rb.m.position.x);}
-  for(const c of cl)casters.push({x:c.x/c.n,z:c.z/c.n,h:c.h*0.7,w:Math.max(0.35,(c.x1-c.x0)+0.3),k:0.55});
-  for(const s2 of BIGROCKS){s2.geometry.computeBoundingSphere();const r=s2.geometry.boundingSphere.radius;casters.push({x:s2.position.x,z:s2.position.z,h:r*0.9,w:r*1.5,k:1,rock:1});}
-  for(const it of ITEMS_ON)casters.push({x:it.position.x,z:it.position.z,h:0.55,w:0.45,k:0.8,rock:1});
-  for(const c of casters){const sh=add(plane(),shadow,0.075*c.k,1,THREE.NormalBlending,0x7a8086);sh.userData.c=c;L.shadows.push(sh);
-    if(c.rock){const fs=add(new THREE.PlaneGeometry(1,1),blob,0.12*c.k,1,THREE.NormalBlending,0x6f757a);fs.rotation.x=-Math.PI/2;fs.userData.f=c;L.shadows.push(fs);}}
-  L.fishSh=add(plane(),shadow,0.16,1,THREE.NormalBlending,0x6f757a);
-  const n=34,pg=new THREE.BufferGeometry(),pos=new Float32Array(n*3),col=new Float32Array(n*3);pg.setAttribute('position',new THREE.BufferAttribute(pos,3));pg.setAttribute('color',new THREE.BufferAttribute(col,3));
-  L.dots=new THREE.Points(pg,new THREE.PointsMaterial({size:0.045,map:blob,vertexColors:true,transparent:true,depthWrite:false,fog:false,blending:THREE.AdditiveBlending}));L.dots.renderOrder=9;g.add(L.dots);
-  L.dd=[];for(let i=0;i<n;i++)L.dd.push({s:i%5,f:rnd(-0.6,0.6),y:rnd(0,1),z:rnd(-1.4,0.4),ph:rnd(0,6),v:rnd(0.02,0.05)});
-  world.add(g);L.env=ENV;return L;}
-function nightTick(dt){const want=lightsOff||TV.t>0.02?0:nightAmt();NIGHTU.uN.value=damp(NIGHTU.uN.value,want,1.2,dt);
-  const breathe=0.95+0.05*Math.sin(T*0.35)*Math.sin(T*0.13+1),N=NIGHTU.uN.value;NIGHTU.uNF.value=B.floor;
+function nightTick(dt){const want=TV.t>0.02?0:!$('#lampMenu').hidden?1:lightsOff?0:nightAmt();
+  {const L=LAMPS[save&&save.lamp]||LAMPS.warm;if(nightTick.lc!==L){nightTick.lc=L;NIGHTU.uLC.value.set(...L.t);document.documentElement.style.setProperty('--lampc',L.c);}}NIGHTU.uN.value=damp(NIGHTU.uN.value,want,1.2,dt);
+  const N=NIGHTU.uN.value;NIGHTU.uNF.value=B.floor;
   const on=N>0.02;document.body.classList.toggle('evening',on);
-  {const w0=WATER[(save.tank&&save.tank.water)||'clear']||WATER.clear;if(scene.fog)scene.fog.color.set(w0).multiplyScalar(1-0.2*N);}// haze matches the dimmer night water, so fish don't fade into a pale glow
-  if(on){const w=WATER[(save.tank&&save.tank.water)||'clear']||WATER.clear,k=1-0.2*N;if(nightTick.w!==w+k.toFixed(2)){nightTick.w=w+k.toFixed(2);const r=document.documentElement.style;
+  {const w0=WATER[(save.tank&&save.tank.water)||'clear']||WATER.clear;if(scene.fog)scene.fog.color.set(w0).multiplyScalar(1-0.3*N);}// haze matches the dimmer night water, so fish don't fade into a pale glow
+  if(on){const w=WATER[(save.tank&&save.tank.water)||'clear']||WATER.clear,k=1-0.3*N;if(nightTick.w!==w+k.toFixed(2)){nightTick.w=w+k.toFixed(2);const r=document.documentElement.style;
     r.setProperty('--nTop',shade(w,k*0.985));r.setProperty('--nMid',shade(w,k));r.setProperty('--nBot',shade(w,k*0.95));}}
-  {const w=WATER[(save.tank&&save.tank.water)||'clear']||WATER.clear,top=on?shade(w,(1-0.2*N)*0.985):null;if(syncTheme.over!==top){syncTheme.over=top;syncTheme();}}// Safari's top bar follows the night water
-  if(NL&&NL.env!==ENV){world.remove(NL.g);NL=null;}
-  if(!on){if(NL)NL.g.visible=false;return;}
-  if(!NL)NL=nlBuild();NL.g.visible=true;const A=N*breathe,F=B.floor,top=(B.top||B.surf)+0.3,HT=top-F;
-  NL.band.material.opacity=A*NL.band.userData.op;NL.band.scale.set(B.hw*2+4,HT,1);NL.band.position.set(0,F-0.12,-1.85);
-  for(const sp of NL.spots){const u=sp.userData;sp.material.opacity=A*u.op*(0.9+0.1*Math.sin(T*0.5+u.ph));sp.scale.set(u.w,HT*0.9,1);sp.position.set(u.x*B.x,F-0.12,-1.8);}
-  for(const r of NL.rays){const u=r.userData;r.material.opacity=A*u.op*(0.6+0.4*Math.sin(T*0.4+u.ph));r.scale.set(u.w,HT*1.08,1);r.rotation.z=u.a+Math.sin(T*0.17+u.ph)*0.02;r.position.set(u.x*B.x,F-0.05,-1.75);}
-  for(const sh of NL.shadows){const u=sh.userData;sh.material.opacity=A*u.op;
-    if(u.c){const c=u.c;let sx=99;for(const q of NL.spots)if(Math.abs(q.position.x-c.x)<Math.abs(sx-c.x))sx=q.position.x;const lean=clamp((c.x-sx)*0.35,-0.4,0.4);
-      sh.scale.set(c.w*0.95,HT+0.2-c.h*0.45,1);sh.position.set(c.x+lean*0.3,F+c.h*0.45,-1.7);sh.rotation.z=-lean*0.6;}
-    else{const c=u.f;sh.scale.set(c.w*1.6,c.w*2.6,1);sh.position.set(c.x,F+0.012,c.z+c.w*1.2);}}
-  {const fs=NL.fishSh,fy=S.pos.y,low=1-clamp((fy-F)/(HT*0.75)),sz=0.434*youth(growStage()).size*1.6;fs.visible=!S.asleep;
-    fs.material.opacity=A*0.1*(0.35+0.65*low);fs.scale.set(sz*(1.2+0.8*(1-low)),Math.max(0.2,top-fy),1);fs.position.set(S.pos.x,fy,-1.68);}
-  const p=NL.dots.geometry.attributes.position,cl=NL.dots.geometry.attributes.color;
-  for(let i=0;i<NL.dd.length;i++){const q=NL.dd[i],sp=NL.spots[q.s];q.y+=q.v*dt*0.25;if(q.y>1)q.y=0;const y=F+0.05+q.y*HT*0.8,x=sp.position.x+q.f*0.8+Math.sin(T*0.3+q.ph)*0.04;
-    p.setXYZ(i,x,y+Math.sin(T*0.6+q.ph)*0.02,q.z);const b=A*Math.exp(-Math.pow((x-sp.position.x)/0.6,2))*Math.exp(-q.y*2.2)*(0.55+0.45*Math.sin(T*2.4+q.ph*3));cl.setXYZ(i,b,b,b);}
-  p.needsUpdate=true;cl.needsUpdate=true;}
+  {const w=WATER[(save.tank&&save.tank.water)||'clear']||WATER.clear,top=on?shade(w,(1-0.3*N)*0.985):null;if(syncTheme.over!==top){syncTheme.over=top;syncTheme();}}// Safari's top bar follows the night water
+  if(on)NIGHTU.uNL.value.set(B.x*1.2,B.floor+((B.top||B.surf)-B.floor)*0.42,0.5,2.9);}
 function frame(){requestAnimationFrame(frame);const nowF=performance.now(),busy=ptr.down||toy||foods.length||T-(S.lastTouch||-9)<4||(TV.t>0&&TV.t<1),minF=busy?0:(lightsOff&&S.asleep?62:30);
   if(nowF-(frame.last||0)<minF)return;frame.last=nowF;const dt=Math.min(clock.getDelta(),0.07);T+=dt;
   needs(dt);behave(dt);physics(dt);animate(dt);keepAboveFloor();if(FRIENDS.length)friendsTick(dt);updateFoods(dt);updateToy(dt);updateRocks(dt);updateFX(dt);updateSay(dt);sunTick(dt);nightTick(dt);
