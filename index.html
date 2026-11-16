@@ -1857,7 +1857,7 @@ function iactTarget(f,dt){const I=IACT;if(!I||I.f!==f)return null;const fw=new V
   // boop: come to the mouth, touch noses, then dart off
   const side=Math.sign(f.pos.x-S.pos.x)||1,mo=R.mouth.x*R.g.scale.x;
   if(!I.done){const p=new V3(S.pos.x+side*(mo+0.12),S.pos.y+0.03,S.pos.z);if(f.pos.distanceTo(p)<0.08){I.done=true;I.t=Math.min(I.t,1.6);f.wig=1.2;
-      for(let i=0;i<4;i++)setTimeout(()=>bubble(new V3(S.pos.x+side*mo*0.9,S.pos.y+0.08,S.pos.z)),i*120);say('♡',1.4);}return {p,v:0.55};}
+      for(let i=0;i<4;i++)setTimeout(()=>bubble(new V3(S.pos.x+side*mo*0.9,S.pos.y+0.08,S.pos.z)),i*120);}return {p,v:0.55};}
   return {p:f.pos.clone().add(new V3(side*0.8,0.15,0)),v:0.9};}
 function friendsTick(dt){iactT-=dt;if(IACT){IACT.t-=dt;if(IACT.t<=0){IACT=null;iactT=rnd(14,26);}}else if(iactT<=0){iactPick();if(!IACT)iactT=4;}
   const food=foods.length?foods[0]:null,night=lightsOff;
