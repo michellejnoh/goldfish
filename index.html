@@ -527,6 +527,7 @@ function passTime(p,away,night){away=Math.min(Math.max(0,away||0),48*3600);for(c
   if(night)p.s.energy=clamp(p.s.energy+RATE.energy*away/60+away*1.2,0,100);p.last=Date.now();}
 function normalizeSave(sv){if(!sv||!sv.pets)sv={pets:{}};for(const k in sv.pets)if(k!=='fish')delete sv.pets[k];
   if(!sv.pets.fish)sv.pets.fish={name:DEF,s:{food:70,clean:80,energy:75,fun:60},born:Date.now(),last:Date.now()};
+  {const f=sv.pets.fish;f.s=Object.assign({food:70,clean:80,energy:75,fun:60},f.s||{});f.last=f.last||Date.now();f.born=f.born||Date.now();}
   passTime(sv.pets.fish,(Date.now()-sv.pets.fish.last)/1000,sv.night);
   sv.cur='fish';if(sv.sound===undefined)sv.sound=true;
   const t=sv.tank=Object.assign({water:'clear',pebbles:null,items:[],owned:{}},sv.tank||{});if(!Array.isArray(t.items))t.items=[];t.owned=t.owned||{};return sv;}
@@ -1588,8 +1589,9 @@ function cloudWrite(keep,who){if(!cloudDirty||who!==USER||UTS[who]===undefined)r
 function pull(){if(!DB||!USER||cloudDirty||VISIT)return;const who=USER;cloudGet(who).then(c=>{if(!c||USER!==who)return;takeMerged(c);if((PROG.total||0)>((c.prog&&c.prog.total)||0)||(PROG.spent||0)>((c.prog&&c.prog.spent)||0)){cloudDirty=true;cloudPut();}},()=>{});}
 function restoreGrant(){if(USER!=='michelle'||!PROG||!save)return false;let ch=false;
   // set to level 23 once (as earned or spent xp, so it syncs like any other progress)
-  if(!PROG.ach._lv23){PROG.ach._lv23=dayKey();let W=0;for(let L=1;L<23;L++)W+=need(L);const d=W-walletOf(PROG);
-    if(d>0)PROG.ea.grant=(PROG.ea.grant||0)+d;else if(d<0)PROG.sp.grant=(PROG.sp.grant||0)-d;PROG.total=sumO(PROG.ea);PROG.spent=sumO(PROG.sp);levelFrom(PROG,PROG.total-PROG.spent);growStage();ch=true;persist();}
+  // only once this copy has been merged with the online one, so it's measured against the real progress
+  if(!PROG.ach._lv23b&&(cloudReady||!DB)){PROG.ach._lv23b=dayKey();let W=0;for(let L=1;L<23;L++)W+=need(L);const d=W-walletOf(PROG);
+    if(d>0)PROG.ea.grant23=(PROG.ea.grant23||0)+d;else if(d<0)PROG.sp.grant23=(PROG.sp.grant23||0)-d;PROG.total=sumO(PROG.ea);PROG.spent=sumO(PROG.sp);levelFrom(PROG,PROG.total-PROG.spent);growStage();ch=true;persist();}
   if(PROG.ach._w1)return ch;PROG.ach._w1=dayKey();const t=save.tank;
   SHOP.forEach((d,i)=>{if(!t.owned[d.id]){t.owned[d.id]=1;if(!t.items.some(q=>q.id===d.id))t.items.push({id:d.id,x:+(-0.85+i*1.7/Math.max(1,SHOP.length-1)).toFixed(3),z:+rnd(-0.4,0.4).toFixed(2),r:+rnd(-0.6,0.6).toFixed(2)});}});persist();return true;}
 function adopt(rec){save=normalizeSave(rec&&rec.save);setTimeout(spawnFriends,0);if(save.lang&&save.lang!==LANG&&!langPicked)setLang(save.lang);PROG=normProg(rec&&rec.prog);ensureDaily();restoreGrant();
@@ -1638,7 +1640,7 @@ $('#misClose').onclick=()=>{$('#missions').hidden=true;};
 /* ---- start-up: last keeper on this device loads instantly, then the online copy if it's newer ---- */
 {const last=(()=>{try{return localStorage.getItem('goldfish-user')}catch(e){return null}})();
   if(last&&NAME_RE.test(last)){USER=last;const local=mergeRec(readLocal(last),readBest(last));save=normalizeSave(local&&local.save);PROG=normProg(local&&local.prog);lastChange=(local&&(local.changed||local.updated))||0;setTimeout(()=>{if(restoreGrant()&&ENV&&!VISIT)rebuildTank();},0);
-    cloudGet(last).then(c=>{cloudReady=true;setTimeout(checkGifts,2500);if(c)takeMerged(c);if(!c||(PROG.total||0)>((c.prog&&c.prog.total)||0)||(PROG.spent||0)>((c.prog&&c.prog.spent)||0)||lastChange>(c.updated||0)+500){cloudDirty=true;cloudPut();}},()=>{setTimeout(()=>{cloudReady=true;},20000);});}
+    cloudGet(last).then(c=>{cloudReady=true;setTimeout(checkGifts,2500);if(c)takeMerged(c);if(restoreGrant()&&ENV&&!VISIT){rebuildTank();updateStats();}if(!c||(PROG.total||0)>((c.prog&&c.prog.total)||0)||(PROG.spent||0)>((c.prog&&c.prog.spent)||0)||lastChange>(c.updated||0)+500){cloudDirty=true;cloudPut();}},()=>{setTimeout(()=>{cloudReady=true;},20000);});}
   else{PROG=null;}}
 setInterval(()=>{if(cloudDirty)cloudPut();else if(!document.hidden)pull();},30000);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)pull();});
