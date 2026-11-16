@@ -197,8 +197,8 @@ body.visiting .ui,body.visiting #say{display:none}
 .lookgrid button.off img{opacity:.3}
 /* docked menus cover only part of the screen, so a change shows in the tank right away */
 .sheet.dock{background:transparent;align-items:flex-end;padding:0}
-#lampRow{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin:10px 0 4px}#lampRow button{display:flex;flex-direction:column;align-items:center;gap:6px;background:none;border:0;padding:6px 0;font:inherit;font-size:13px;color:inherit;opacity:.65}
-#lampRow button[aria-pressed=true]{opacity:1;font-weight:600}#lampRow i{width:34px;height:34px;border-radius:50%;box-shadow:0 0 0 1px rgba(0,0,0,.18),0 0 14px 4px var(--lc);background:var(--lc)}#lampRow button[aria-pressed=true] i{box-shadow:0 0 0 2px #222,0 0 16px 6px var(--lc)}
+#lampRow,#waterRow{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin:10px 0 4px}.swatch button{display:flex;flex-direction:column;align-items:center;gap:6px;background:none;border:0;padding:6px 0;font:inherit;font-size:13px;color:inherit;opacity:.65}
+#waterRow{grid-template-columns:repeat(3,1fr)}.swatch button[aria-pressed=true]{opacity:1;font-weight:600}.swatch i{width:34px;height:34px;border-radius:50%;box-shadow:0 0 0 1px rgba(0,0,0,.18),0 0 14px 4px var(--lc);background:var(--lc)}.swatch button[aria-pressed=true] i{box-shadow:0 0 0 2px #222,0 0 16px 6px var(--lc)}
 .sheet.dock .card{max-width:none;background:rgba(255,255,255,.97);border-radius:22px 22px 0 0;padding:20px max(24px,env(safe-area-inset-right,0px)) calc(16px + env(safe-area-inset-bottom,0px)) max(24px,env(safe-area-inset-left,0px));
   max-height:58vh;box-shadow:0 -8px 28px rgba(0,0,0,.07);animation:dockUp .28s ease-out}
 .sheet.dock.top{align-items:flex-start}
@@ -319,22 +319,22 @@ body.lookdock #viewArrows{display:flex}
     <div class="row2 topclose"><span></span><button type="button" class="go" id="friendsClose">back</button></div>
   </div>
 </div>
-<div class="sheet" id="waterMenu" hidden>
+<div class="sheet dock" id="waterMenu" hidden>
   <div class="card">
     <h2>water</h2>
-    <div id="waterRow">
-    <button type="button" class="mrow" data-w="clear"><span class="mi"><svg viewBox="0 0 24 24" width="28" height="28" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="#ffffff" stroke="#bbb" stroke-width="1"/></svg></span><span class="mt"><b>clear</b><small>bright and plain</small></span></button>
-    <button type="button" class="mrow" data-w="blue"><span class="mi"><svg viewBox="0 0 24 24" width="28" height="28" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="#bcd2dc" stroke="#9fb3bc" stroke-width="1"/></svg></span><span class="mt"><b>blue</b><small>a cool, soft tint</small></span></button>
-    <button type="button" class="mrow" data-w="green"><span class="mi"><svg viewBox="0 0 24 24" width="28" height="28" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="#c8d6bc" stroke="#a7b59b" stroke-width="1"/></svg></span><span class="mt"><b>green</b><small>a little mossy</small></span></button>
+    <div id="waterRow" class="swatch">
+    <button type="button" data-w="clear"><i style="--lc:#ffffff"></i><span>clear</span></button>
+    <button type="button" data-w="blue"><i style="--lc:#bcd2dc"></i><span>blue</span></button>
+    <button type="button" data-w="green"><i style="--lc:#c8d6bc"></i><span>green</span></button>
     </div>
-    <div class="row2"><span></span><button type="button" class="go" data-back>back</button></div>
+    <div class="row2 topclose"><span></span><button type="button" class="go" data-back>back</button></div>
   </div>
 </div>
 <div class="sheet dock" id="lampMenu" hidden>
   <div class="card">
     <h2>night lamp</h2>
     <p class="small">a mood lamp beside the tank, on from 9 pm to 5 am</p>
-    <div id="lampRow"></div>
+    <div id="lampRow" class="swatch"></div>
     <div class="row2 topclose"><span></span><button type="button" class="go" id="lampClose">back</button></div>
   </div>
 </div>
@@ -1457,9 +1457,8 @@ $('#namingForm').addEventListener('submit',e=>{e.preventDefault();const v=$('#fi
   if(v){pet().name=v;persist();renderUI();toast('hello, '+v+'.',2.4);}$('#naming').hidden=true;if(openNaming.first)maybeTour();});
 $('#namingSkip').onclick=()=>{$('#naming').hidden=true;if(openNaming.first)maybeTour();};
 const TOUR=[['#t-hand','hand · drag to lead your fish, tap to call it, tap the fish to say hi'],
-  ['#t-wash','clean · when the glass gets dirty, rub it clean'],['#t-sleep','sleep · turns the lights off so your fish can rest'],
-  ['#misBtn','missions · three goals a day for xp. your fish grows every 5 levels'],['#editBtn','edit · your fish’s color and pattern, the water, decorations, and the night lamp'],
-  ['#tvBtn','tank view · see your tank on its table in a little room, and turn it around'],['#visitBtn','visit · type a friend’s username to visit their tank and send gifts. fish you’re sent swim with yours'],['#who','your keeper name · tap to switch keepers']];
+  ['#misBtn','missions · three goals a day for xp. your fish grows every 5 levels'],
+  ['#tvBtn','tank view · see your tank on its table in a little room, and turn it around'],['#visitBtn','visit · type a friend’s username to visit their tank and send gifts. fish you’re sent swim with yours']];
 let tourI=-1;
 function maybeTour(){if(!USER||(save.tut&&save.tut.tour))return;save.tut=save.tut||{};save.tut.tour=1;persist();setTimeout(()=>{tourI=0;$('#tour').hidden=false;tourShow();},500);}
 function tourShow(){const st=TOUR[tourI],el=$(st[0]);if(!el||!el.offsetParent){tourNext();return;}const r=el.getBoundingClientRect(),tip=$('#tour .tip');
