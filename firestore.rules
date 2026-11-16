@@ -27,6 +27,21 @@ service cloud.firestore {
         && d.updated is timestamp;
     }
 
+    // Gift boxes: anyone can leave a small gift for a keeper (a snack, a sticker or a decoration id).
+    // The keeper's game reads the box and clears it after opening the gifts. Gifts can't be edited.
+    match /gifts/{to}/box/{id} {
+      allow read, delete: if to.matches('^[a-z0-9_]{2,16}$');
+      allow create: if to.matches('^[a-z0-9_]{2,16}$')
+        && request.resource.data.keys().hasOnly(['from', 'kind', 'item', 'at'])
+        && request.resource.data.keys().hasAll(['from', 'kind', 'item', 'at'])
+        && request.resource.data.from is string && request.resource.data.from.matches('^[a-z0-9_]{2,16}$')
+        && request.resource.data.from != to
+        && request.resource.data.kind in ['snack', 'sticker', 'deco']
+        && request.resource.data.item is string && request.resource.data.item.size() <= 24
+        && request.resource.data.at is timestamp;
+      allow update: if false;
+    }
+
     // Everything else stays closed.
     match /{document=**} {
       allow read, write: if false;

@@ -78,6 +78,16 @@ body.night #say{color:#e0e0e0}
 body.editing .ui,body.editing #say{display:none}
 body.viewing .ui,body.viewing #say{display:none}
 body.photo .ui,body.photo #say{display:none}
+body.visiting .ui,body.visiting #say{display:none}
+#visitBar{position:fixed;left:0;right:0;top:0;z-index:4;display:flex;align-items:center;gap:16px;
+  padding-top:calc(env(safe-area-inset-top,0px) + 12px);padding-left:max(20px,env(safe-area-inset-left,0px));padding-right:max(20px,env(safe-area-inset-right,0px))}
+#visitTitle{margin:0;flex:1;font-size:19px;line-height:1.2;color:var(--ink)}
+.giftrow{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:4px}
+.gbtn{display:flex;align-items:center;gap:8px;padding:6px 10px;border:1px solid #e3e3e3;border-radius:12px;font-size:17px;color:#111;cursor:pointer}
+.gbtn:disabled{opacity:.35;cursor:default}
+.gi svg{display:block}
+.gift-line{display:flex;align-items:center;gap:12px;padding:6px 0;font-size:19px;color:#111}
+.gift-line img{width:40px;height:40px}
 #polaroid{position:fixed;inset:0;z-index:8;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.35)}
 #polaroid .pol{background:#fff;padding:10px 10px 6px;width:min(58vw,230px);box-shadow:0 10px 28px rgba(0,0,0,.18),0 1px 3px rgba(0,0,0,.12);transform:rotate(-4deg);animation:polIn .55s cubic-bezier(.2,1.4,.4,1) both}
 #polaroid img{display:block;width:100%;aspect-ratio:1;object-fit:contain;background:var(--polbg,#eef1f2)}
@@ -171,6 +181,36 @@ body.photo .ui,body.photo #say{display:none}
   <button type="button" class="go" id="photoClose">close</button><button type="button" id="shutter" aria-label="Take picture"></button></div>
 <div id="polaroid" hidden><div class="pol"><img id="polImg" alt=""><p id="polText"></p></div></div>
 <div id="tour" hidden><div class="ring"></div><div class="tip"><p id="tourText"></p><div class="row2"><button type="button" class="link" id="tourSkip">skip</button><span id="tourStep"></span></div></div></div>
+<div id="visitBar" hidden><p id="visitTitle"></p><button type="button" class="go" id="giftBtn">send a gift</button><button type="button" class="go" id="visitHome">home</button></div>
+<div class="sheet" id="visitAsk" hidden>
+  <div class="card">
+    <h2>visit a keeper</h2>
+    <p class="small">type the username of the keeper you want to visit</p>
+    <form id="visitForm" autocomplete="off"><input id="visitName" placeholder="username" maxlength="16" autocapitalize="none" spellcheck="false" aria-label="Username">
+    <p class="small" id="visitErr"></p>
+    <div class="row2"><button type="button" class="link" id="visitCancel">cancel</button><button type="submit" class="go">visit</button></div></form>
+  </div>
+</div>
+<div class="sheet" id="giftOut" hidden>
+  <div class="card">
+    <h2 id="giftTitle">send a gift</h2>
+    <p class="small">snack</p>
+    <div class="giftrow"><button type="button" class="gbtn" id="sendSnack"><span class="gi"><svg viewBox="0 0 24 24" width="32" height="32" aria-hidden="true"><path d="M5 9l7-4 7 4-2 9H7z" fill="#f4b06a" stroke="#c97e3a" stroke-width="1.4" stroke-linejoin="round"/><path d="M9 11.5h6M9.5 14.5h5" stroke="#c97e3a" stroke-width="1.4" stroke-linecap="round"/></svg></span><span id="snackLeft"></span></button></div>
+    <p class="small">sticker</p>
+    <div class="giftrow" id="stickerRow"></div>
+    <p class="small">decoration · paid with your xp</p>
+    <div class="shopgrid" id="giftDeco"></div>
+    <p class="small" id="giftMsg"></p>
+    <div class="row2"><span></span><button type="button" class="go" id="giftClose">close</button></div>
+  </div>
+</div>
+<div class="sheet" id="giftIn" hidden>
+  <div class="card">
+    <h2>you got gifts</h2>
+    <div id="giftInList"></div>
+    <div class="row2"><span></span><button type="button" class="go" id="giftInClose">thanks</button></div>
+  </div>
+</div>
 <div id="viewBar" hidden><p id="viewHint">drag to turn · pinch to zoom</p><span class="zoombtns"><button type="button" class="icon" id="tvOut" aria-label="Zoom out">−</button><button type="button" class="icon" id="tvIn" aria-label="Zoom in">+</button></span><button type="button" class="go" id="viewDone">done</button></div>
 <div id="editBar" hidden><nav aria-label="Edit tools"><button type="button" data-e="add">add pebbles</button><button type="button" data-e="remove">remove pebbles</button><button type="button" data-e="arrange">move decorations</button><button type="button" class="done" id="editDone">done</button></nav><p id="editHint"></p><div id="turnRow" hidden><button type="button" data-turn="1">turn left</button><button type="button" data-turn="-1">turn right</button></div></div>
 <div id="say" aria-live="polite"></div>
@@ -179,7 +219,7 @@ body.photo .ui,body.photo #say{display:none}
     <input id="name" maxlength="14" aria-label="Fish name" spellcheck="false" autocomplete="off" readonly>
     <div class="stats" id="stats"></div>
   </div>
-  <div class="side"><button class="mini" id="who">keeper</button><button class="icon" id="misBtn" aria-label="Missions"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 21V3.5"/><path d="M6 4.5h11.5l-2.4 4 2.4 4H6"/></svg></button><button class="icon" id="snd" aria-label="Sound on"></button><button class="icon" id="tvBtn" aria-label="Tank view"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 8.5h12.5v11.5H3.5z"/><path d="M3.5 8.5L7.5 4.5h12.5v11.5l-4 4"/><path d="M16 8.5l4-4"/><path d="M3.5 13c2.1 1 4.2 1 6.3 0s4.1-1 6.2 0"/></svg></button><button class="icon" id="editBtn" aria-label="Edit your tank"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20l4.2-1 10.4-10.4a2 2 0 0 0 0-2.8l-.4-.4a2 2 0 0 0-2.8 0L5 15.8 4 20z"/><path d="M13.5 6.5l4 4"/></svg></button><button class="icon" id="captureBtn" aria-label="Capture the tank"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8.5h3.2L8.8 6h6.4l1.6 2.5H20v10H4z"/><circle cx="12" cy="13.2" r="3.3"/></svg></button></div>
+  <div class="side"><button class="mini" id="who">keeper</button><button class="icon" id="misBtn" aria-label="Missions"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 21V3.5"/><path d="M6 4.5h11.5l-2.4 4 2.4 4H6"/></svg></button><button class="icon" id="snd" aria-label="Sound on"></button><button class="icon" id="visitBtn" aria-label="Visit a keeper"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 11.5L12 5l8 6.5"/><path d="M6 10v9h12v-9"/><path d="M9.2 15.2c1-1.3 2.4-1.9 3.8-1.2l1.6-1.2v3.6l-1.6-1.2c-1.4.7-2.8.1-3.8-1.2z"/></svg></button><button class="icon" id="tvBtn" aria-label="Tank view"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 8.5h12.5v11.5H3.5z"/><path d="M3.5 8.5L7.5 4.5h12.5v11.5l-4 4"/><path d="M16 8.5l4-4"/><path d="M3.5 13c2.1 1 4.2 1 6.3 0s4.1-1 6.2 0"/></svg></button><button class="icon" id="editBtn" aria-label="Edit your tank"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20l4.2-1 10.4-10.4a2 2 0 0 0 0-2.8l-.4-.4a2 2 0 0 0-2.8 0L5 15.8 4 20z"/><path d="M13.5 6.5l4 4"/></svg></button><button class="icon" id="captureBtn" aria-label="Capture the tank"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8.5h3.2L8.8 6h6.4l1.6 2.5H20v10H4z"/><circle cx="12" cy="13.2" r="3.3"/></svg></button></div>
 </div>
 <div class="ui bottom">
   <p id="cap" aria-live="polite"></p>
@@ -349,7 +389,11 @@ const KO={
 'what’s your fish called?':'금붕어 이름이 뭐예요?',"what's your fish called?":'금붕어 이름이 뭐예요?',"who's keeping this fish?":'누가 이 금붕어를 키우나요?',
 'winter shop':'겨울 상점','your fish':'내 금붕어','add':'놓기','remove':'치우기','missions':'미션',
 'Capture the tank':'수조 찍기','Edit tools':'편집 도구','Edit your tank':'수조 편집','Fish name':'금붕어 이름','Missions':'미션',
-'Picture of your tank':'수조 사진','Tools':'도구','Username':'사용자 이름','username':'사용자 이름','Fish colour':'금붕어 색','Fish pattern':'금붕어 무늬','Shop':'상점','skin':'스킨','special looks, like christmas':'크리스마스 같은 특별한 모습','a skin is worn over your colour and pattern · tap it again to reshuffle':'스킨은 색과 무늬 위에 입혀져요 · 한 번 더 누르면 모양이 바뀌어요','none':'없음','christmas':'크리스마스','at least 20 stones stay in the tank':'어항에는 돌이 최소 20개 남아 있어야 해요','skip':'건너뛰기',
+'Picture of your tank':'수조 사진','Tools':'도구','Username':'사용자 이름','username':'사용자 이름','Fish colour':'금붕어 색','Fish pattern':'금붕어 무늬','Shop':'상점','Visit a keeper':'다른 키퍼 방문','visit a keeper':'다른 키퍼 방문하기','type the username of the keeper you want to visit':'방문하고 싶은 키퍼의 사용자 이름을 입력하세요',
+'cancel':'취소','visit':'방문','looking…':'찾는 중…','that’s your own tank':'내 어항이에요','send a gift':'선물 보내기','home':'집으로','snack':'간식','sticker':'스티커',
+'decoration · paid with your xp':'장식 · 내 xp로 결제','none left today':'오늘은 다 보냈어요','sending…':'보내는 중…','you got gifts':'선물이 왔어요','thanks':'고마워요',
+'gifts need the new database rules (see the guide)':'선물을 보내려면 새 저장 서버 규칙이 필요해요','visiting needs the online save':'방문하려면 온라인 저장이 필요해요',
+'heart':'하트','star':'별','wave':'손 흔들기','bubbles':'방울','skin':'스킨','special looks, like christmas':'크리스마스 같은 특별한 모습','a skin is worn over your colour and pattern · tap it again to reshuffle':'스킨은 색과 무늬 위에 입혀져요 · 한 번 더 누르면 모양이 바뀌어요','none':'없음','christmas':'크리스마스','at least 20 stones stay in the tank':'어항에는 돌이 최소 20개 남아 있어야 해요','skip':'건너뛰기',
 'hand · drag to lead your fish, tap to call it, tap the fish to say hi':'손 · 끌어서 금붕어를 데려가고, 탭해서 부르고, 금붕어를 탭하면 인사해요',
 'food · tap the water to sprinkle flakes':'먹이 · 물을 탭해서 먹이를 뿌려요','clean · when the glass gets dirty, rub it clean':'청소 · 유리가 더러워지면 문질러서 닦아요',
 'toy · drag the lure and let your fish chase it':'장난감 · 미끼를 끌면 금붕어가 쫓아와요','sleep · turns the lights off so your fish can rest':'재우기 · 불을 꺼서 금붕어를 쉬게 해요',
@@ -371,7 +415,10 @@ const KO_RX=[
 [/^let (.+) add (\d+) pebbles to its heap$/,'자갈 더미에 자갈 $2개 쌓게 두기'],[/^let (.+) sleep for at least a minute$/,'1분 이상 재우기'],
 [/^“(.+)” already keeps a fish: (.+), level (\d+)\. Load it\?$/,'“$1” 이름으로 키우는 금붕어가 이미 있어요: $2, 레벨 $3. 불러올까요?'],
 [/^There’s no fish under “(.+)” yet\. Start a new one\?$/,'“$1” 이름의 금붕어가 아직 없어요. 새로 시작할까요?'],
-[/^(\d+) \/ (\d+) xp to level (\d+)$/,'$3레벨까지 $1 / $2 xp'],[/^level (\d+)$/,'레벨 $1'],[/^level (\d+) · max$/,'레벨 $1 · 최고'],[/^lv (\d+)$/,'Lv $1'],[/^grown! · lv (\d+)$/,'성장! · Lv $1'],[/^(\d+) \/ (\d+) · tap to continue$/,'$1 / $2 · 탭해서 계속'],
+[/^(\d+) \/ (\d+) xp to level (\d+)$/,'$3레벨까지 $1 / $2 xp'],[/^level (\d+)$/,'레벨 $1'],[/^level (\d+) · max$/,'레벨 $1 · 최고'],[/^lv (\d+)$/,'Lv $1'],[/^no keeper called “(.+)” yet$/,'“$1” 키퍼가 아직 없어요'],[/^@(.+)’s tank · (.+) · lv (\d+)$/,'@$1의 어항 · $2 · Lv $3'],
+[/^send a gift to @(.+)$/,'@$1에게 선물 보내기'],[/^(\d+) left today$/,'오늘 $1번 남았어요'],[/^send · (\d+) xp$/,'보내기 · $1 xp'],[/^sent to @(.+)!$/,'@$1에게 보냈어요!'],[/^(.+) sent to @(.+)!$/,'$1, @$2에게 보냈어요!'],
+[/^@(.+) sent a snack$/,'@$1님이 간식을 보냈어요'],[/^@(.+) sent a (.+) \(you had one, so \+(\d+) xp\)$/,'@$1님이 $2을(를) 보냈어요 (이미 있어서 +$3 xp)'],[/^@(.+) sent a (.+)$/,'@$1님이 $2을(를) 보냈어요'],
+[/^couldn’t send \(error (\d+)\)$/,'보내지 못했어요 (오류 $1)'],[/^grown! · lv (\d+)$/,'성장! · Lv $1'],[/^(\d+) \/ (\d+) · tap to continue$/,'$1 / $2 · 탭해서 계속'],
 [/^(\d+) days? in a row · new missions at midnight$/,'$1일 연속 · 자정에 새 미션'],
 [/^level (\d+) · (\d+) xp to spend · buying uses up xp, so your level can go down$/,'레벨 $1 · 쓸 수 있는 xp $2 · 사면 xp가 줄어 레벨이 내려갈 수 있어요'],
 [/^buy · (\d+) xp \(to lv (\d+)\)$/,'사기 · $1 xp (Lv $2로)'],[/^buy · (\d+) xp$/,'사기 · $1 xp'],
@@ -490,7 +537,7 @@ const LOOK_COLORS={orange:'#ff7a3c',tangerine:'#ff9a3d',gold:'#f9a62b',yellow:'#
   violet:'#8a78cf',sky:'#82b9e6',blue:'#3554a8',navy:'#26325c',teal:'#2b9a93',mint:'#8fd3b6',olive:'#9b9a4b',chocolate:'#8b4a2b',
   silver:'#b9bdc2',white:'#f3ede2',black:'#33302e'};
 const LOOK_PATTERNS=['plain','fade','dark fins','patches'];
-const lookOf=()=>{const p=pet();if(!p.look)p.look={c:'orange',p:'plain',seed:Math.floor(Math.random()*1000)};if(!LOOK_PATTERNS.includes(p.look.p))p.look.p='plain';if(!LOOK_COLORS[p.look.c])p.look.c='orange';return p.look;};
+const lookOf=()=>{if(VISIT)return VISIT.look;const p=pet();if(!p.look)p.look={c:'orange',p:'plain',seed:Math.floor(Math.random()*1000)};if(!LOOK_PATTERNS.includes(p.look.p))p.look.p='plain';if(!LOOK_COLORS[p.look.c])p.look.c='orange';return p.look;};
 function lookNoise(x,y,z,sd,f){const a=sd*0.37,b=sd*0.71,c=sd*1.13;
   return 0.5*Math.sin(x*f*1.0+y*f*0.6+z*f*0.8+a)+0.35*Math.sin(x*f*1.7-y*f*1.3+z*f*0.5+b)+0.3*Math.sin(y*f*2.1+z*f*1.4-x*f*0.9+c);}
 const _lc=new THREE.Color(),_lw=new THREE.Color('#f6f1e8'),_lk=new THREE.Color('#2a2827'),_lm=new THREE.Color();
@@ -1306,10 +1353,10 @@ function addXP(n){if(!PROG||n<=0||PROG.level>=MAXL)return;PROG.exp+=n;PROG.total
 function showPolaroid(st){const box=$('#polaroid');$('#polImg').src=fishThumb(lookOf(),st,true);box.style.setProperty('--polbg',getComputedStyle(document.body).backgroundColor);
   $('#polText').textContent='grown! · lv '+st*5;box.classList.remove('out');box.hidden=false;snd.pop&&snd.pop();clearTimeout(showPolaroid.t);
   const close=()=>{box.classList.add('out');setTimeout(()=>{box.hidden=true;box.classList.remove('out');},360);};box.onclick=close;showPolaroid.t=setTimeout(close,3600);}
-function growStage(){if(!PROG)return 0;const st=Math.min(10,Math.floor(PROG.level/5));if(st>(PROG.grow||0))PROG.grow=st;return PROG.grow||0;}
+function growStage(){if(VISIT)return VISIT.stage;if(!PROG)return 0;const st=Math.min(10,Math.floor(PROG.level/5));if(st>(PROG.grow||0))PROG.grow=st;return PROG.grow||0;}
 function levelUp(){const g0=PROG.grow||0,g1=growStage();if(g1>g0){showPolaroid(g1);if(S&&R)for(let i=0;i<14;i++)bubble(mouthWorld().add(new V3(rnd(-0.25,0.25),rnd(-0.1,0.15),0)),rnd(0.02,0.05));}else toast(fill('{n} reached level ')+PROG.level+'!',3.6);if(S&&R){squish(4);for(let i=0;i<8;i++)bubble(mouthWorld().add(new V3(rnd(-0.15,0.15),rnd(0,0.1),0)),rnd(0.02,0.04));if(S.sayCD<=0)say('!',1.2);snd.blub();}}
 function checkAch(ty,val){for(const a of ACH){if(a.ty!==ty||PROG.ach[a.id])continue;if(val>=a.g){PROG.ach[a.id]=dayKey();addXP(a.xp);toast('achievement: '+a.t+' +'+a.xp+' xp');}}}
-function track(ty,n=1){if(!PROG||!USER)return;ensureDaily();
+function track(ty,n=1){if(!PROG||!USER||VISIT)return;ensureDaily();
   PROG.life[ty]=(PROG.life[ty]||0)+n;
   if(ty==='lead'){S.leadAcc=(S.leadAcc||0)+n;if(S.leadAcc>=10){S.leadAcc-=10;addXP(1);}}else if(PASSIVE[ty])addXP(PASSIVE[ty]);
   const d=PROG.daily;for(const id of d.ids){const m=MISSIONS.find(x=>x.id===id);if(!m||m.ty!==ty||d.done[id])continue;
@@ -1319,7 +1366,7 @@ function track(ty,n=1){if(!PROG||!USER)return;ensureDaily();
 /* ---- local copy (instant) and online copy (any device) ---- */
 const LKEY=n=>'goldfish-p-'+n;
 function readLocal(n){try{return JSON.parse(localStorage.getItem(LKEY(n)))}catch(e){return null}}
-function persistLocal(){if(!USER)return;serializeTank();rememberBest();const rec={updated:Date.now(),changed:lastChange,save,prog:PROG};try{localStorage.setItem(LKEY(USER),JSON.stringify(rec));localStorage.setItem('goldfish-user',USER);}catch(e){}}
+function persistLocal(){if(!USER||VISIT)return;serializeTank();rememberBest();const rec={updated:Date.now(),changed:lastChange,save,prog:PROG};try{localStorage.setItem(LKEY(USER),JSON.stringify(rec));localStorage.setItem('goldfish-user',USER);}catch(e){}}
 /* Two copies of a keeper (this device, online) are merged rather than one simply replacing the other:
    progress comes from whichever has earned more xp in total (achievements, counters and growth combined from both),
    and the tank/fish settings come from whichever was changed more recently. So opening the game somewhere else never loses progress. */
@@ -1342,12 +1389,12 @@ const BKEY=n=>'goldfish-best-'+n;
 function rememberBest(){if(!USER||!PROG)return;try{const b=JSON.parse(localStorage.getItem(BKEY(USER))||'null');
   if(!b||(PROG.total||0)>=((b.prog&&b.prog.total)||0))localStorage.setItem(BKEY(USER),JSON.stringify({updated:lastChange,save,prog:PROG}));}catch(e){}}
 function readBest(n){try{return JSON.parse(localStorage.getItem(BKEY(n))||'null');}catch(e){return null;}}
-function persist(){if(!USER)return;lastChange=Date.now();persistLocal();cloudDirty=true;clearTimeout(pushT);pushT=setTimeout(()=>cloudPut(),4000);}
+function persist(){if(!USER||VISIT)return;lastChange=Date.now();persistLocal();cloudDirty=true;clearTimeout(pushT);pushT=setTimeout(()=>cloudPut(),4000);}
 const docURL=n=>'https://firestore.googleapis.com/v1/projects/'+DB.projectId+'/databases/(default)/documents/players/'+n+'?key='+DB.apiKey;
 const UTS={};
 function cloudGet(n){if(!DB)return Promise.resolve(null);return fetch(docURL(n),{cache:'no-store'}).then(r=>{if(r.status===404){UTS[n]='none';SYNC.ok=SYNC.ok===false?false:true;return null;}if(!r.ok){SYNC={ok:false,msg:'couldn\u2019t read the online save (error '+r.status+')',t:Date.now()};return Promise.reject(r.status);}return r.json();})
   .then(j=>{if(!j||!j.fields)return null;UTS[n]=j.updateTime;try{return JSON.parse(j.fields.data.stringValue);}catch(e){return null;}});}
-function cloudPut(keep){if(!DB||!USER||!cloudDirty||!cloudReady)return;const who=USER;
+function cloudPut(keep){if(!DB||!USER||!cloudDirty||!cloudReady||VISIT)return;const who=USER;
   // read the online copy first and merge, so a device with older progress can never overwrite newer progress
   if(!keep){cloudDirty=false;cloudGet(who).then(c=>{if(USER!==who)return;if(c)takeMerged(c);cloudDirty=true;cloudWrite(false,who);},()=>{if(USER===who)cloudDirty=true;});return;}
   cloudWrite(true,who);}
@@ -1367,10 +1414,10 @@ function cloudWrite(keep,who){if(!cloudDirty||who!==USER||UTS[who]===undefined)r
       {cloudDirty=true;return r.text().then(t=>{SYNC={ok:false,msg:'online save refused (error '+r.status+')'+(r.status===403?': check the Firestore rules':r.status===404?': is the Firestore database created?':''),t:Date.now()};console.warn('Goldfish save:',r.status,t);});}})
     .catch(()=>{if(who===USER)cloudDirty=true;SYNC={ok:false,msg:'offline: will save online when connected',t:Date.now()};});}
 // take the online copy when another device changed things more recently than this one
-function pull(){if(!DB||!USER||cloudDirty)return;const who=USER;cloudGet(who).then(c=>{if(!c||USER!==who)return;takeMerged(c);if((PROG.total||0)>((c.prog&&c.prog.total)||0)){cloudDirty=true;cloudPut();}},()=>{});}
+function pull(){if(!DB||!USER||cloudDirty||VISIT)return;const who=USER;cloudGet(who).then(c=>{if(!c||USER!==who)return;takeMerged(c);if((PROG.total||0)>((c.prog&&c.prog.total)||0)){cloudDirty=true;cloudPut();}},()=>{});}
 function adopt(rec){save=normalizeSave(rec&&rec.save);if(save.lang&&save.lang!==LANG&&!langPicked)setLang(save.lang);PROG=normProg(rec&&rec.prog);ensureDaily();
   if(typeof lightsOff!=='undefined'&&S){rebuildTank();lightsOff=!!save.night;document.body.classList.toggle('night',lightsOff);S.asleep=lightsOff;renderUI();}}
-function signIn(n,rec){USER=n;cloudReady=true;adopt(rec);if(langPicked||!save.lang)save.lang=LANG;langPicked=false;lastChange=(rec&&rec.updated)||Date.now();persist();cloudPut();$('#who').textContent='@'+n;$('#login').hidden=true;
+function signIn(n,rec){USER=n;cloudReady=true;setTimeout(checkGifts,3000);adopt(rec);if(langPicked||!save.lang)save.lang=LANG;langPicked=false;lastChange=(rec&&rec.updated)||Date.now();persist();cloudPut();$('#who').textContent='@'+n;$('#login').hidden=true;
   if(PROG.total)toast(fill('welcome back. {n} missed you.'));else setTimeout(openNaming,300);}
 /* ---- the username sheet ---- */
 let pending=null;
@@ -1414,7 +1461,7 @@ $('#misClose').onclick=()=>{$('#missions').hidden=true;};
 /* ---- start-up: last keeper on this device loads instantly, then the online copy if it's newer ---- */
 {const last=(()=>{try{return localStorage.getItem('goldfish-user')}catch(e){return null}})();
   if(last&&NAME_RE.test(last)){USER=last;const local=mergeRec(readLocal(last),readBest(last));save=normalizeSave(local&&local.save);PROG=normProg(local&&local.prog);lastChange=(local&&(local.changed||local.updated))||0;
-    cloudGet(last).then(c=>{cloudReady=true;if(c)takeMerged(c);if(!c||(PROG.total||0)>((c.prog&&c.prog.total)||0)||lastChange>(c.updated||0)+500){cloudDirty=true;cloudPut();}},()=>{setTimeout(()=>{cloudReady=true;},20000);});}
+    cloudGet(last).then(c=>{cloudReady=true;setTimeout(checkGifts,2500);if(c)takeMerged(c);if(!c||(PROG.total||0)>((c.prog&&c.prog.total)||0)||lastChange>(c.updated||0)+500){cloudDirty=true;cloudPut();}},()=>{setTimeout(()=>{cloudReady=true;},20000);});}
   else{PROG=null;}}
 setInterval(()=>{if(cloudDirty)cloudPut();else if(!document.hidden)pull();},30000);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)pull();});
@@ -1546,6 +1593,65 @@ function drawMarks(){const all=[...MARKS.values(),...FADING];if(!all.length&&!dr
 
 /* ================= loop ================= */
 let uiT=0,saveT=0,algT=0;const clock=new THREE.Clock();
+/* ================= visiting other keepers and sending gifts ================= */
+/* A visit shows another keeper's tank and fish (read only: nothing here is saved to your own keeper).
+   Gifts are small records left in the other keeper's gift box online; they open them next time they play. */
+const STICKERS={heart:'<svg viewBox="0 0 24 24" width="{W}" height="{W}" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z" fill="#ef6f86" stroke="#d24a64"/></svg>',star:'<svg viewBox="0 0 24 24" width="{W}" height="{W}" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><path d="M12 3.5l2.6 5.4 5.9.8-4.3 4.1 1 5.8L12 16.8l-5.2 2.8 1-5.8-4.3-4.1 5.9-.8z" fill="#ffd34d" stroke="#e0a91f"/></svg>',wave:'<svg viewBox="0 0 24 24" width="{W}" height="{W}" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><path d="M8.5 12.5V6.8a1.3 1.3 0 0 1 2.6 0V11m0-1.2V5.6a1.3 1.3 0 0 1 2.6 0V11m0-4a1.3 1.3 0 0 1 2.6 0v6.5c0 3.6-2.4 6.5-5.8 6.5-2.5 0-4.1-1.4-5.4-3.6l-1.7-2.9a1.3 1.3 0 0 1 2.2-1.3l1.9 2.3" fill="#ffd9b8" stroke="#c98d5f"/></svg>',bubbles:'<svg viewBox="0 0 24 24" width="{W}" height="{W}" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><circle cx="9" cy="14" r="4.5" fill="#cfe6f3" stroke="#7fb2cf"/><circle cx="16" cy="8" r="3" fill="#cfe6f3" stroke="#7fb2cf"/><circle cx="17.5" cy="15.5" r="1.8" fill="#cfe6f3" stroke="#7fb2cf"/></svg>'},stk=(k,w)=>STICKERS[k].split('{W}').join(w||36);
+const SNACK_SVG='<svg viewBox="0 0 24 24" width="32" height="32" aria-hidden="true"><path d="M5 9l7-4 7 4-2 9H7z" fill="#f4b06a" stroke="#c97e3a" stroke-width="1.4" stroke-linejoin="round"/><path d="M9 11.5h6M9.5 14.5h5" stroke="#c97e3a" stroke-width="1.4" stroke-linecap="round"/></svg>';
+let VISIT=null;
+const GBOX=to=>'https://firestore.googleapis.com/v1/projects/'+DB.projectId+'/databases/(default)/documents/gifts/'+to+'/box';
+function openVisit(){if(!DB){toast('visiting needs the online save');return;}$('#visitErr').textContent='';$('#visitName').value='';$('#visitAsk').hidden=false;setTimeout(()=>$('#visitName').focus(),60);}
+$('#visitBtn').onclick=openVisit;$('#visitCancel').onclick=()=>{$('#visitAsk').hidden=true;};
+$('#visitForm').addEventListener('submit',e=>{e.preventDefault();const n=$('#visitName').value.trim().toLowerCase();
+  if(!NAME_RE.test(n)){$('#visitErr').textContent='use 2 to 16 letters, numbers or _';return;}if(n===USER){$('#visitErr').textContent='that’s your own tank';return;}
+  $('#visitErr').textContent='looking…';cloudGet(n).then(rec=>{if(!rec||!rec.save){$('#visitErr').textContent='no keeper called “'+n+'” yet';return;}$('#visitAsk').hidden=true;enterVisit(n,rec);},
+    ()=>{$('#visitErr').textContent='couldn’t reach the online save';});});
+function enterVisit(n,rec){if(TV.on)setTankView(false);if(toy)endToy(true);persistLocal();
+  const f=(rec.save.pets&&rec.save.pets.fish)||{},pr=normProg(rec.prog);
+  VISIT={n,mine:save.tank,look:Object.assign({c:'orange',p:'plain',seed:1},f.look||{}),stage:Math.min(10,Math.max(pr.grow||0,Math.floor(pr.level/5))),fish:f.name||DEF,level:pr.level};
+  save.tank=JSON.parse(JSON.stringify(rec.save.tank||{}));rebuildTank();R.lookStage=null;S.grow=VISIT.stage/10;applyLook();
+  document.body.classList.add('visiting');$('#visitBar').hidden=false;$('#visitTitle').textContent='@'+n+'’s tank · '+VISIT.fish+' · lv '+VISIT.level;say('');}
+function leaveVisit(){if(!VISIT)return;save.tank=VISIT.mine;VISIT=null;rebuildTank();R.lookStage=null;S.grow=growStage()/10;applyLook();
+  document.body.classList.remove('visiting');$('#visitBar').hidden=true;$('#giftOut').hidden=true;persistLocal();if(cloudDirty)cloudPut();}
+$('#visitHome').onclick=leaveVisit;
+// sending
+function giftDay(){if(!PROG.gday||PROG.gday.d!==dayKey())PROG.gday={d:dayKey(),snack:0};return PROG.gday;}
+function giftMsg(t){$('#giftMsg').textContent=t;}
+function sendGift(kind,item,done){if(!VISIT||!DB||!USER)return;giftMsg('sending…');
+  const body={fields:{from:{stringValue:USER},kind:{stringValue:kind},item:{stringValue:item},at:{timestampValue:new Date().toISOString()}}};
+  fetch(GBOX(VISIT.n)+'?key='+DB.apiKey,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})
+    .then(r=>{if(r.ok){giftMsg('sent to @'+VISIT.n+'!');snd.pop&&snd.pop();done&&done();}else giftMsg(r.status===403?'gifts need the new database rules (see the guide)':'couldn’t send (error '+r.status+')');})
+    .catch(()=>giftMsg('couldn’t reach the online save'));}
+function openGiftOut(){if(!VISIT)return;$('#giftTitle').textContent='send a gift to @'+VISIT.n;giftMsg('');
+  const left=3-giftDay().snack;$('#snackLeft').textContent=left>0?left+' left today':'none left today';$('#sendSnack').disabled=left<=0;
+  const sr=$('#stickerRow');sr.textContent='';for(const k in STICKERS){const b=document.createElement('button');b.type='button';b.className='gbtn';b.setAttribute('aria-label',k);b.innerHTML=stk(k,32);
+    b.onclick=()=>{if(T-(openGiftOut.t||-9)<2)return;openGiftOut.t=T;sendGift('sticker',k);};sr.appendChild(b);}
+  const th=makeThumbs(),gd=$('#giftDeco');gd.textContent='';const w=wallet();
+  for(const d of SHOP){const it=document.createElement('div');it.className='item';const im=document.createElement('img');im.src=th[d.id];im.alt='';const nb=document.createElement('b');nb.textContent=d.name;
+    const bt=document.createElement('button');bt.type='button';bt.textContent='send · '+d.price+' xp';bt.disabled=w<d.price;
+    bt.onclick=()=>{if(wallet()<d.price)return;sendGift('deco',d.id,()=>{spendXP(d.price);persist();openGiftOut();giftMsg(d.name+' sent to @'+VISIT.n+'!');});};it.append(im,nb,bt);gd.appendChild(it);}
+  $('#giftOut').hidden=false;}
+$('#giftBtn').onclick=openGiftOut;$('#giftClose').onclick=()=>{$('#giftOut').hidden=true;};
+$('#sendSnack').onclick=()=>{const g=giftDay();if(g.snack>=3)return;sendGift('snack','flakes',()=>{g.snack++;persist();openGiftOut();});};
+// receiving
+const SEEN_GIFTS=new Set();
+function checkGifts(){if(!DB||!USER||VISIT||!cloudReady)return;const me=USER;
+  fetch(GBOX(me)+'?key='+DB.apiKey+'&pageSize=50',{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{if(!j||!j.documents||USER!==me||VISIT)return;const got=[];
+    for(const d of j.documents){if(SEEN_GIFTS.has(d.name))continue;SEEN_GIFTS.add(d.name);const F=d.fields||{},g={from:F.from&&F.from.stringValue,kind:F.kind&&F.kind.stringValue,item:F.item&&F.item.stringValue};
+      if(!g.from||!g.kind)continue;got.push(g);fetch('https://firestore.googleapis.com/v1/'+d.name+'?key='+DB.apiKey,{method:'DELETE'}).catch(()=>{});}
+    if(got.length)openGifts(got);}).catch(()=>{});}
+function openGifts(list){const el=$('#giftInList');el.textContent='';const p=pet();
+  for(const g of list){const row=document.createElement('div');row.className='gift-line';let pic='',txt='';
+    if(g.kind==='snack'){p.s.food=Math.min(100,p.s.food+15);p.s.fun=Math.min(100,p.s.fun+10);pic=SNACK_SVG;txt='@'+g.from+' sent a snack';}
+    else if(g.kind==='sticker'&&STICKERS[g.item]){pic=stk(g.item,40);txt='@'+g.from+' sent a '+g.item;}
+    else if(g.kind==='deco'){const d=SHOP.find(x=>x.id===g.item);if(!d)continue;const th=makeThumbs();pic='<img alt="" src="'+th[d.id]+'">';
+      if(save.tank.owned[d.id]){addXP(Math.round(d.price/2));txt='@'+g.from+' sent a '+d.name+' (you had one, so +'+Math.round(d.price/2)+' xp)';}else{save.tank.owned[d.id]=1;txt='@'+g.from+' sent a '+d.name;}}
+    else continue;
+    row.innerHTML=pic;const t=document.createElement('span');t.textContent=txt;row.appendChild(t);el.appendChild(row);}
+  if(!el.childElementCount)return;renderUI();persist();$('#giftIn').hidden=false;snd.pop&&snd.pop();}
+$('#giftInClose').onclick=()=>{$('#giftIn').hidden=true;};
+setInterval(checkGifts,60000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)setTimeout(checkGifts,1500);});
+
 /* ---- tank view: pull back to see the whole tank as a small glass box in the middle, and turn it by dragging ---- */
 const TV={on:false,t:0,yaw:0.6,pitch:0.32,zoom:1,zs:1,pts:new Map(),pinch:0,box:null,c:new V3(),D:6,fogN:0,fogF:0,drag:null};
 function buildTankBox(){if(TV.box)world.remove(TV.box);const F=B.floor,W=B.hw,y0=F-0.32,y1=B.surf+0.04,z0=-2.0,z1=1.02,g=new THREE.Group();
