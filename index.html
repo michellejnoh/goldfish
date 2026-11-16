@@ -584,7 +584,7 @@ if(uN>0.001){float h=clamp((vSunP.y-uNF)/2.6,0.,1.);
    float back=clamp((-vSunP.z+0.4)/2.0,0.,1.),lit=pow(1.-h,1.6);
    float f=(1.-uN*0.16*(0.4+0.6*h))+uN*lit*0.24*(0.65+0.35*back);
    float upN=dot(vSunN,vSunN)>0.0001?normalize(vSunN).y:0.;f-=uN*0.075*smoothstep(0.75,0.95,upN)*(1.-smoothstep(0.,0.5,vSunP.y-uNF));// the sand floor stays a shade under the glowing water so the line between them still reads
-   gl_FragColor.rgb=min(gl_FragColor.rgb*f,vec3(1.));}
+   vec3 cN=min(gl_FragColor.rgb*f,vec3(1.));float lmN=dot(cN,vec3(0.299,0.587,0.114));gl_FragColor.rgb=clamp(mix(vec3(lmN),cN,1.+0.35*uN),0.,1.);}// colours keep their strength in the dimmer light
 #include <tonemapping_fragment>`);}
 function flatMat(o){o=Object.assign({},o);['roughness','metalness','envMap','envMapIntensity','bumpMap','bumpScale','emissive'].forEach(k=>delete o[k]);const m=new THREE.MeshBasicMaterial(o);m.onBeforeCompile=sunPatch;return m;}
 const FISH_COL=0xff7a3c,FIN_COL=0xff8d4f;
@@ -1484,17 +1484,30 @@ const ACH=[
 const PASSIVE={eat:1,hello:1,trick:2,catch:2,smudge:2,pebble:1};
 let USER=null,PROG=null,cloudT=0,cloudDirty=false,lastChange=0,pushT=0,SYNC={ok:null,msg:'',t:0};
 const dayKey=(d=new Date())=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
-function newProg(){return {level:1,exp:0,total:0,spent:0,daily:null,life:{},ach:{},streak:{last:null,n:0}};}
-function normProg(p){p=Object.assign(newProg(),p||{});p.level=clamp(Math.floor(p.level)||1,1,MAXL);p.life=p.life||{};p.ach=p.ach||{};p.streak=p.streak||{last:null,n:0};return p;}
+function newProg(){return {level:1,exp:0,total:0,spent:0,ea:{},sp:{},daily:null,life:{},ach:{},streak:{last:null,n:0}};}
+/* xp earned and spent are kept as one running count per device (merged by taking each device's highest count, then adding them up),
+   so no purchase or earning made on one device can be undone or double-counted by a copy from another device. Level and xp are then
+   worked out from earned minus spent. */
+const DEV=(()=>{try{let d=localStorage.getItem('goldfish-dev');if(!d){d=Math.random().toString(36).slice(2,8);localStorage.setItem('goldfish-dev',d);}return d;}catch(e){return 'x'+Math.random().toString(36).slice(2,7);}})();
+const sumO=o=>{let t=0;for(const k in o||{})t+=Math.max(0,+o[k]||0);return t;};
+const walletOf=P=>{let w=P.exp||0;for(let L=1;L<P.level;L++)w+=need(L);return w;};
+function levelFrom(P,W){W=Math.max(0,Math.floor(W));let L=1;while(L<MAXL&&W>=need(L)){W-=need(L);L++;}P.level=L;P.exp=L>=MAXL?0:W;}
+function normProg(p){p=Object.assign(newProg(),p||{});p.level=clamp(Math.floor(p.level)||1,1,MAXL);p.life=p.life||{};p.ach=p.ach||{};p.streak=p.streak||{last:null,n:0};
+  p.ea=Object.assign({},p.ea||{});p.sp=Object.assign({},p.sp||{});p.exp=Math.max(0,+p.exp||0);
+  // older saves: everything earned so far counts as one block, and anything spent before spending was recorded is worked out from the level
+  const e0=sumO(p.ea);if((p.total||0)>e0)p.ea._=(p.ea._||0)+(p.total-e0);p.total=sumO(p.ea);
+  const s0=sumO(p.sp),imp=Math.max(p.spent||0,p.total-walletOf(p));if(imp>s0)p.sp._=(p.sp._||0)+(imp-s0);p.spent=sumO(p.sp);
+  if(walletOf(p)>p.total-p.spent)levelFrom(p,p.total-p.spent);// xp that came back after being spent is taken off again
+  return p;}
 function seeded(str){let h=2166136261;for(let i=0;i<str.length;i++){h^=str.charCodeAt(i);h=Math.imul(h,16777619);}return ()=>{h^=h<<13;h^=h>>>17;h^=h<<5;return ((h>>>0)%100000)/100000;};}
 function ensureDaily(){if(!PROG)return;const today=dayKey();if(PROG.daily&&PROG.daily.day===today)return;
   const y=new Date();y.setDate(y.getDate()-1);PROG.streak.n=PROG.streak.last===dayKey(y)?PROG.streak.n+1:1;PROG.streak.last=today;
   const r=seeded(today+'|'+(USER||'')),pool=MISSIONS.slice(),ids=[];while(ids.length<3){ids.push(pool.splice(Math.floor(r()*pool.length),1)[0].id);}
   PROG.daily={day:today,ids,prog:{},done:{},bonus:false};checkAch('streak',PROG.streak.n);persist();}
 function toast(t,d=3.2){if(S){S.toast=t;S.toastT=d;}updateCap&&updateCap();}
-function addXP(n){if(!PROG||n<=0||PROG.level>=MAXL)return;PROG.exp+=n;PROG.total+=n;
+function addXP(n){if(!PROG||n<=0||PROG.level>=MAXL)return;PROG.exp+=n;let used=n;
   while(PROG.level<MAXL&&PROG.exp>=need(PROG.level)){PROG.exp-=need(PROG.level);PROG.level++;levelUp();}
-  if(PROG.level>=MAXL)PROG.exp=0;updateStats();persist();}
+  if(PROG.level>=MAXL){used-=PROG.exp;PROG.exp=0;}PROG.ea[DEV]=(PROG.ea[DEV]||0)+used;PROG.total=sumO(PROG.ea);updateStats();persist();}
 /* a little polaroid of the fish pops up in the middle whenever it grows */
 function showPolaroid(st){const box=$('#polaroid');$('#polImg').src=fishThumb(lookOf(),st,true);box.style.setProperty('--polbg',getComputedStyle(document.body).backgroundColor);
   $('#polText').textContent='grown! · lv '+st*5;box.classList.remove('out');box.hidden=false;snd.pop&&snd.pop();clearTimeout(showPolaroid.t);
@@ -1513,16 +1526,14 @@ function track(ty,n=1){if(!PROG||!USER||VISIT)return;ensureDaily();
 /* ---- local copy (instant) and online copy (any device) ---- */
 const LKEY=n=>'goldfish-p-'+n;
 function readLocal(n){try{return JSON.parse(localStorage.getItem(LKEY(n)))}catch(e){return null}}
-function persistLocal(){if(!USER||VISIT)return;serializeTank();rememberBest();const rec={updated:Date.now(),changed:lastChange,save,prog:PROG};try{localStorage.setItem(LKEY(USER),JSON.stringify(rec));localStorage.setItem('goldfish-user',USER);}catch(e){}}
+function persistLocal(){if(!USER)return;if(VISIT){const cur=save.tank;save.tank=VISIT.mine;try{rememberBest();localStorage.setItem(LKEY(USER),JSON.stringify({updated:Date.now(),changed:lastChange,save,prog:PROG}));}catch(e){}save.tank=cur;return;}serializeTank();rememberBest();const rec={updated:Date.now(),changed:lastChange,save,prog:PROG};try{localStorage.setItem(LKEY(USER),JSON.stringify(rec));localStorage.setItem('goldfish-user',USER);}catch(e){}}
 /* Two copies of a keeper (this device, online) are merged rather than one simply replacing the other:
    progress comes from whichever has earned more xp in total (achievements, counters and growth combined from both),
    and the tank/fish settings come from whichever was changed more recently. So opening the game somewhere else never loses progress. */
 function mergeProg(a,b){if(!a)return b;if(!b)return a;a=normProg(JSON.parse(JSON.stringify(a)));b=normProg(JSON.parse(JSON.stringify(b)));
-  // the copy that has earned more wins; with the same earnings, the one that has spent more is the later one (never simply the higher level,
-  // which would undo a purchase); then any spending only the other copy knows about is applied too
-  const ta=a.total||0,tb=b.total||0,sa=a.spent||0,sb=b.spent||0;
-  const hi=tb>ta||(tb===ta&&(sb>sa||(sb===sa&&b.level>a.level)))?b:a,lo=hi===a?b:a;
-  const ds=(lo.spent||0)-(hi.spent||0);if(ds>0){takeXP(hi,ds);hi.spent=(hi.spent||0)+ds;}
+  const hi=(b.total||0)>(a.total||0)?b:a,lo=hi===a?b:a;
+  for(const k in lo.ea)hi.ea[k]=Math.max(hi.ea[k]||0,lo.ea[k]||0);for(const k in lo.sp)hi.sp[k]=Math.max(hi.sp[k]||0,lo.sp[k]||0);
+  hi.total=sumO(hi.ea);hi.spent=sumO(hi.sp);levelFrom(hi,hi.total-hi.spent);
   for(const k in lo.ach)if(!hi.ach[k])hi.ach[k]=lo.ach[k];
   for(const k in lo.life)hi.life[k]=Math.max(hi.life[k]||0,lo.life[k]||0);
   hi.grow=Math.max(hi.grow||0,lo.grow||0);
@@ -1534,6 +1545,9 @@ function friendKeys(list){const n={};return (list||[]).map(f=>{if(!f)return '';i
 function mergeFriends(win,lose){const out=(win||[]).filter(Boolean),keys=new Set(friendKeys(out)),lk=friendKeys(lose);(lose||[]).forEach((f,i)=>{if(f&&!keys.has(lk[i])){out.push(f);keys.add(lk[i]);}});return out.slice(-6);}
 function mergeRec(a,b){if(!a)return b;if(!b)return a;const ua=a.changed||a.updated||0,ub=b.changed||b.updated||0,w=ub>ua?b:a,l=ub>ua?a:b;
   let sv=w.save;if(sv&&l.save&&((l.save.friends||[]).length||(sv.friends||[]).length)){sv=Object.assign({},sv,{friends:mergeFriends(sv.friends,l.save.friends)});}
+  // decorations owned on either copy stay owned; one the newer copy has never had keeps its spot from the other copy
+  if(sv&&l.save&&l.save.tank){const st=sv.tank||{},lt=l.save.tank,mo=st.owned||{},own=Object.assign({},lt.owned||{},mo),items=(st.items||[]).slice();
+    for(const it of lt.items||[])if(it&&!mo[it.id]&&!items.some(i=>i.id===it.id))items.push(it);sv=Object.assign({},sv,{tank:Object.assign({},st,{owned:own,items})});}
   return {updated:Math.max(ua,ub),save:sv,prog:mergeProg(a.prog,b.prog)};}
 const curRec=()=>({updated:lastChange,save,prog:PROG});
 // bring a merged copy into the running game only if it actually adds something
@@ -1541,12 +1555,12 @@ function takeMerged(c){if(!c)return false;const m=mergeRec(curRec(),c),more=(m.p
   if(more){lastChange=m.updated;adopt(m);persistLocal();}return more;}
 let cloudReady=false;
 const BKEY=n=>'goldfish-best-'+n;
-function rememberBest(){if(!USER||!PROG)return;try{const b=JSON.parse(localStorage.getItem(BKEY(USER))||'null');
+function rememberBest(){if(!USER||!PROG||(VISIT&&save.tank!==VISIT.mine))return;try{const b=JSON.parse(localStorage.getItem(BKEY(USER))||'null');
   if(!b||(PROG.total||0)>((b.prog&&b.prog.total)||0)||((PROG.total||0)===((b.prog&&b.prog.total)||0)&&(PROG.spent||0)>=((b.prog&&b.prog.spent)||0)))localStorage.setItem(BKEY(USER),JSON.stringify({updated:lastChange,save,prog:PROG}));}catch(e){}}
 function readBest(n){try{return JSON.parse(localStorage.getItem(BKEY(n))||'null');}catch(e){return null;}}
-function persist(){if(!USER||VISIT)return;lastChange=Date.now();persistLocal();cloudDirty=true;clearTimeout(pushT);pushT=setTimeout(()=>cloudPut(),4000);}
+function persist(){if(!USER)return;lastChange=Date.now();persistLocal();cloudDirty=true;if(VISIT)return;clearTimeout(pushT);pushT=setTimeout(()=>cloudPut(),4000);}
 const docURL=n=>'https://firestore.googleapis.com/v1/projects/'+DB.projectId+'/databases/(default)/documents/players/'+n+'?key='+DB.apiKey;
-const UTS={},APP_V=4;
+const UTS={},APP_V=5;
 // an open copy of an older version of the game reloads itself as soon as it sees that a newer version has saved this keeper
 function checkAppVersion(rec){if(rec&&(rec.app||0)>APP_V){try{if(sessionStorage.getItem('gf-reloaded')===String(rec.app))return;sessionStorage.setItem('gf-reloaded',String(rec.app));}catch(e){}location.reload();}}
 function cloudGet(n){if(!DB)return Promise.resolve(null);return fetch(docURL(n),{cache:'no-store'}).then(r=>{if(r.status===404){UTS[n]='none';SYNC.ok=SYNC.ok===false?false:true;return null;}if(!r.ok){SYNC={ok:false,msg:'couldn\u2019t read the online save (error '+r.status+')',t:Date.now()};return Promise.reject(r.status);}return r.json();})
@@ -1572,7 +1586,9 @@ function cloudWrite(keep,who){if(!cloudDirty||who!==USER||UTS[who]===undefined)r
     .catch(()=>{if(who===USER)cloudDirty=true;SYNC={ok:false,msg:'offline: will save online when connected',t:Date.now()};});}
 // take the online copy when another device changed things more recently than this one
 function pull(){if(!DB||!USER||cloudDirty||VISIT)return;const who=USER;cloudGet(who).then(c=>{if(!c||USER!==who)return;takeMerged(c);if((PROG.total||0)>((c.prog&&c.prog.total)||0)||(PROG.spent||0)>((c.prog&&c.prog.spent)||0)){cloudDirty=true;cloudPut();}},()=>{});}
-function adopt(rec){save=normalizeSave(rec&&rec.save);setTimeout(spawnFriends,0);if(save.lang&&save.lang!==LANG&&!langPicked)setLang(save.lang);PROG=normProg(rec&&rec.prog);ensureDaily();
+function restoreGrant(){if(USER!=='michelle'||!PROG||!save||PROG.ach._w1)return false;PROG.ach._w1=dayKey();const t=save.tank;
+  SHOP.forEach((d,i)=>{if(!t.owned[d.id]){t.owned[d.id]=1;if(!t.items.some(q=>q.id===d.id))t.items.push({id:d.id,x:+(-0.85+i*1.7/Math.max(1,SHOP.length-1)).toFixed(3),z:+rnd(-0.4,0.4).toFixed(2),r:+rnd(-0.6,0.6).toFixed(2)});}});persist();return true;}
+function adopt(rec){save=normalizeSave(rec&&rec.save);setTimeout(spawnFriends,0);if(save.lang&&save.lang!==LANG&&!langPicked)setLang(save.lang);PROG=normProg(rec&&rec.prog);ensureDaily();restoreGrant();
   if(typeof lightsOff!=='undefined'&&S){rebuildTank();lightsOff=!!save.night;document.body.classList.toggle('night',lightsOff);S.asleep=lightsOff;renderUI();}}
 function signIn(n,rec){USER=n;cloudReady=true;setTimeout(checkGifts,3000);adopt(rec);if(langPicked||!save.lang)save.lang=LANG;langPicked=false;lastChange=(rec&&rec.updated)||Date.now();persist();cloudPut();$('#who').textContent='@'+n;$('#login').hidden=true;
   if(PROG.total)toast(fill('welcome back. {n} missed you.'));else setTimeout(()=>openNaming(true),300);}
@@ -1617,7 +1633,7 @@ $('#misBtn').onclick=()=>{renderMissions();$('#missions').hidden=false;};
 $('#misClose').onclick=()=>{$('#missions').hidden=true;};
 /* ---- start-up: last keeper on this device loads instantly, then the online copy if it's newer ---- */
 {const last=(()=>{try{return localStorage.getItem('goldfish-user')}catch(e){return null}})();
-  if(last&&NAME_RE.test(last)){USER=last;const local=mergeRec(readLocal(last),readBest(last));save=normalizeSave(local&&local.save);PROG=normProg(local&&local.prog);lastChange=(local&&(local.changed||local.updated))||0;
+  if(last&&NAME_RE.test(last)){USER=last;const local=mergeRec(readLocal(last),readBest(last));save=normalizeSave(local&&local.save);PROG=normProg(local&&local.prog);lastChange=(local&&(local.changed||local.updated))||0;setTimeout(()=>{if(restoreGrant()&&ENV&&!VISIT)rebuildTank();},0);
     cloudGet(last).then(c=>{cloudReady=true;setTimeout(checkGifts,2500);if(c)takeMerged(c);if(!c||(PROG.total||0)>((c.prog&&c.prog.total)||0)||(PROG.spent||0)>((c.prog&&c.prog.spent)||0)||lastChange>(c.updated||0)+500){cloudDirty=true;cloudPut();}},()=>{setTimeout(()=>{cloudReady=true;},20000);});}
   else{PROG=null;}}
 setInterval(()=>{if(cloudDirty)cloudPut();else if(!document.hidden)pull();},30000);
@@ -1626,7 +1642,7 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden)pull();});
 /* ================= tank sheet ================= */
 const wallet=()=>{if(!PROG)return 0;let w=PROG.exp;for(let L=1;L<PROG.level;L++)w+=need(L);return w;};
 function takeXP(P,n){P.exp-=n;while(P.exp<0&&P.level>1){P.level--;P.exp+=need(P.level);}P.exp=Math.max(0,P.exp);}
-function spendXP(n){if(!PROG||wallet()<n)return false;PROG.spent=(PROG.spent||0)+n;PROG.exp-=n;while(PROG.exp<0&&PROG.level>1){PROG.level--;PROG.exp+=need(PROG.level);}PROG.exp=Math.max(0,PROG.exp);updateStats();return true;}
+function spendXP(n){if(!PROG||wallet()<n)return false;PROG.sp[DEV]=(PROG.sp[DEV]||0)+n;PROG.spent=sumO(PROG.sp);PROG.exp-=n;while(PROG.exp<0&&PROG.level>1){PROG.level--;PROG.exp+=need(PROG.level);}PROG.exp=Math.max(0,PROG.exp);updateStats();return true;}
 function lookPick(list,key,label,onPick){const el=$(list);el.textContent='';const lk=lookOf();
   for(const k of key){const b=document.createElement('button');b.type='button';const im=document.createElement('img');im.alt='';im.src=fishThumb(label(k));
     const t=document.createElement('span');t.textContent=k;b.append(im,t);b.setAttribute('aria-pressed',k===(list==='#colorList'?lk.c:lk.p));b.onclick=()=>{onPick(k);showFishChange(list==='#colorList'?k:k==='plain'?'plain':k);};el.appendChild(b);}}
@@ -2363,6 +2379,7 @@ function nlBuild(){const g=new THREE.Group(),add=(geo,tex,op,ro,blend,col)=>{con
 function nightTick(dt){const want=lightsOff||TV.t>0.02?0:nightAmt();NIGHTU.uN.value=damp(NIGHTU.uN.value,want,1.2,dt);
   const breathe=0.95+0.05*Math.sin(T*0.35)*Math.sin(T*0.13+1),N=NIGHTU.uN.value;NIGHTU.uNF.value=B.floor;
   const on=N>0.02;document.body.classList.toggle('evening',on);
+  {const w0=WATER[(save.tank&&save.tank.water)||'clear']||WATER.clear;if(scene.fog)scene.fog.color.set(w0).multiplyScalar(1-0.11*N);}// haze matches the dimmer night water, so fish don't fade into a pale glow
   if(on){const w=WATER[(save.tank&&save.tank.water)||'clear']||WATER.clear,k=1-0.11*N;if(nightTick.w!==w+k.toFixed(2)){nightTick.w=w+k.toFixed(2);const r=document.documentElement.style;
     r.setProperty('--nTop',shade(w,k*0.985));r.setProperty('--nMid',shade(w,k));r.setProperty('--nBot',shade(w,k*0.95));}}
   if(NL&&NL.env!==ENV){world.remove(NL.g);NL=null;}
