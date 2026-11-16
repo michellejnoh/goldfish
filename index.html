@@ -1472,6 +1472,7 @@ function addXP(n){if(!PROG||n<=0||PROG.level>=MAXL)return;PROG.exp+=n;PROG.total
 function showPolaroid(st){const box=$('#polaroid');$('#polImg').src=fishThumb(lookOf(),st,true);box.style.setProperty('--polbg',getComputedStyle(document.body).backgroundColor);
   $('#polText').textContent='grown! · lv '+st*5;box.classList.remove('out');box.hidden=false;snd.pop&&snd.pop();clearTimeout(showPolaroid.t);
   const close=()=>{box.classList.add('out');setTimeout(()=>{box.hidden=true;box.classList.remove('out');},360);};box.onclick=close;showPolaroid.t=setTimeout(close,3600);}
+function myStage(){if(!PROG)return 0;return Math.min(10,Math.max(PROG.grow||0,Math.floor(PROG.level/5)));}
 function growStage(){if(VISIT)return VISIT.stage;if(!PROG)return 0;const st=Math.min(10,Math.floor(PROG.level/5));if(st>(PROG.grow||0))PROG.grow=st;return PROG.grow||0;}
 function levelUp(){const g0=PROG.grow||0,g1=growStage();if(g1>g0){showPolaroid(g1);if(S&&R)for(let i=0;i<14;i++)bubble(mouthWorld().add(new V3(rnd(-0.25,0.25),rnd(-0.1,0.15),0)),rnd(0.02,0.05));}else toast(fill('{n} reached level ')+PROG.level+'!',3.6);if(S&&R){squish(4);for(let i=0;i<8;i++)bubble(mouthWorld().add(new V3(rnd(-0.15,0.15),rnd(0,0.1),0)),rnd(0.02,0.04));if(S.sayCD<=0)say('!',1.2);snd.blub();}}
 function checkAch(ty,val){for(const a of ACH){if(a.ty!==ty||PROG.ach[a.id])continue;if(val>=a.g){PROG.ach[a.id]=dayKey();addXP(a.xp);toast('achievement: '+a.t+' +'+a.xp+' xp');}}}
@@ -1853,8 +1854,8 @@ function openGiftOut(){if(!VISIT)return;$('#giftTitle').textContent='send a gift
   const w0=wallet(),snr=$('#snackRow');snr.textContent='';
   for(const k in SNACKS){const b=document.createElement('button');b.type='button';b.className='gpic';b.innerHTML=snk(k,44)+'<span>'+SNACKS[k].name+' · 5 xp</span>';b.disabled=w0<5;
     b.onclick=()=>{if(wallet()<5)return;const im=b.querySelector('img');sendGift('snack',k,()=>{spendXP(5);persist();$('#giftOut').hidden=true;giftFly('',null,SNACKS[k].name+' sent to @'+VISIT.n+'!');dropSnack(k,true);});};snr.appendChild(b);}
-  {const myLook=pet().look||{c:'orange',p:'plain',seed:1};$('#giftFishImg').src=fthumb(myLook,growStage());$('#sendFish').disabled=w0<50;
-    $('#sendFish').onclick=()=>{if(wallet()<50)return;const st=growStage();sendGift('fish',packLook(myLook,st),()=>{spendXP(50);persist();$('#giftOut').hidden=true;giftFly('',null,'a little fish swam off to @'+VISIT.n+'!');
+  {const myLook=pet().look||{c:'orange',p:'plain',seed:1};$('#giftFishImg').src=fthumb(myLook,myStage());$('#sendFish').disabled=w0<50;
+    $('#sendFish').onclick=()=>{if(wallet()<50)return;const st=myStage();sendGift('fish',packLook(myLook,st),()=>{spendXP(50);persist();$('#giftOut').hidden=true;giftFly('',null,'a little fish swam off to @'+VISIT.n+'!');
       VISIT.friends=(VISIT.friends||[]).concat([{from:USER,look:unpackLook(packLook(myLook)),stage:st}]).slice(-6);spawnFriends();});};}
   const th=makeThumbs(),gd=$('#giftDeco');gd.textContent='';const w=wallet();
   for(const d of SHOP){const it=document.createElement('div');it.className='item';const im=document.createElement('img');im.src=th[d.id];im.alt='';const nb=document.createElement('b');nb.textContent=d.name;
