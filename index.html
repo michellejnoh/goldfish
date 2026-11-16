@@ -99,7 +99,9 @@ body.visiting .ui,body.visiting #say{display:none}
 @keyframes polIn{from{transform:rotate(8deg) scale(.4) translateY(40px);opacity:0}to{transform:rotate(-4deg) scale(1);opacity:1}}
 #polaroid.out .pol{transition:transform .35s,opacity .35s;transform:rotate(-10deg) scale(.7) translateY(-30px);opacity:0}
 #tour{position:fixed;inset:0;z-index:9}
-#tour .ring{position:fixed;border:2px solid var(--ink);border-radius:14px;box-shadow:0 0 0 9999px rgba(255,255,255,.62);transition:all .35s ease;pointer-events:none}
+#tour .arrow{position:fixed;left:0;top:0;width:0;height:0;transition:transform .35s ease;pointer-events:none}
+#tour .arrow svg{position:absolute;left:-44px;top:-12px;animation:tourNudge 1s ease-in-out infinite}
+@keyframes tourNudge{0%,100%{transform:translateX(-6px)}50%{transform:translateX(0)}}
 #tour .tip{position:fixed;left:50%;transform:translateX(-50%);width:min(86vw,320px);background:#fff;border:1px solid #e3e3e3;border-radius:14px;padding:12px 16px 8px;box-shadow:0 6px 20px rgba(0,0,0,.08);transition:top .35s ease}
 #tourText{margin:0 0 6px;font-size:20px;line-height:1.25;color:#111}
 #tourStep{font-size:15px;color:var(--soft)}
@@ -182,6 +184,7 @@ body.visiting .ui,body.visiting #say{display:none}
 .sheet.peek{background-color:rgba(255,255,255,0);pointer-events:none}.sheet.peek .card{opacity:.22;transform:translateY(14px) scale(.98)}
 .fx-fly{position:fixed;pointer-events:none;z-index:21;object-fit:contain}
 .fx-sent{position:fixed;left:50%;top:calc(42% + 64px);font-size:24px;color:#111;pointer-events:none;z-index:21;white-space:nowrap;max-width:92vw;overflow:hidden;text-overflow:ellipsis}
+.fx-glow{position:fixed;border-radius:50%;pointer-events:none;z-index:7;background:radial-gradient(circle,rgba(255,244,214,.85) 0%,rgba(255,236,190,.45) 38%,rgba(255,236,190,0) 70%);mix-blend-mode:screen}
 .fx-note{position:fixed;font-size:22px;color:#111;pointer-events:none;z-index:21;white-space:nowrap;transform:translate(-50%,-100%)}
 </style>
 </head>
@@ -193,7 +196,7 @@ body.visiting .ui,body.visiting #say{display:none}
 <div id="photoBar" hidden><div class="vf" aria-hidden="true"><i></i><i></i><i></i><i></i></div><div id="flash"></div>
   <button type="button" class="go" id="photoClose">close</button><button type="button" id="shutter" aria-label="Take picture"></button></div>
 <div id="polaroid" hidden><div class="pol"><img id="polImg" alt=""><p id="polText"></p></div></div>
-<div id="tour" hidden><div class="ring"></div><div class="tip"><p id="tourText"></p><div class="row2"><button type="button" class="link" id="tourSkip">skip</button><span id="tourStep"></span></div></div></div>
+<div id="tour" hidden><div class="arrow"><svg viewBox="0 0 44 24" width="44" height="24" fill="none" stroke="#111" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12h36M31 5l8 7-8 7"/></svg></div><div class="tip"><p id="tourText"></p><div class="row2"><button type="button" class="link" id="tourSkip">skip</button><span id="tourStep"></span></div></div></div>
 <div id="visitBar" hidden><p id="visitTitle"></p><button type="button" class="go" id="giftBtn">send a gift</button><button type="button" class="go" id="visitHome">home</button></div>
 <div class="sheet" id="visitAsk" hidden>
   <div class="card">
@@ -1378,10 +1381,12 @@ const TOUR=[['#t-hand','hand · drag to lead your fish, tap to call it, tap the 
   ['#tvBtn','tank view · see the whole tank and turn it around'],['#visitBtn','visit · type a friend’s username to visit their tank and send gifts'],['#who','your keeper name · tap to switch keepers']];
 let tourI=-1;
 function maybeTour(){if(!USER||(save.tut&&save.tut.tour))return;save.tut=save.tut||{};save.tut.tour=1;persist();setTimeout(()=>{tourI=0;$('#tour').hidden=false;tourShow();},500);}
-function tourShow(){const st=TOUR[tourI],el=$(st[0]);if(!el||!el.offsetParent){tourNext();return;}const r=el.getBoundingClientRect(),pad=6,ring=$('#tour .ring'),tip=$('#tour .tip');
-  ring.style.left=(r.left-pad)+'px';ring.style.top=(r.top-pad)+'px';ring.style.width=(r.width+pad*2)+'px';ring.style.height=(r.height+pad*2)+'px';
+function tourShow(){const st=TOUR[tourI],el=$(st[0]);if(!el||!el.offsetParent){tourNext();return;}const r=el.getBoundingClientRect(),tip=$('#tour .tip');
+  const cx=r.left+r.width/2,cy=r.top+r.height/2,side=cx>innerWidth*0.72||cx<innerWidth*0.28&&cy<innerHeight*0.7;
+  {let dx=side?(cx>innerWidth/2?-1:1):0,dy=side?0:(cy>innerHeight/2?-1:1);
+   const off=(side?r.width:r.height)/2+4,px=cx+dx*off,py=cy+dy*off;$('#tour .arrow').style.transform='translate('+px+'px,'+py+'px) rotate('+Math.atan2(-dy,-dx)+'rad)';}
   $('#tourText').textContent=st[1];$('#tourStep').textContent=(tourI+1)+' / '+TOUR.length+' · tap to continue';
-  const below=r.top<innerHeight/2;tip.style.top=below?(r.bottom+18)+'px':'';tip.style.bottom=below?'':(innerHeight-r.top+18)+'px';}
+  const below=r.top<innerHeight/2,gap=side?18:64;tip.style.top=below?(r.bottom+gap)+'px':'';tip.style.bottom=below?'':(innerHeight-r.top+gap)+'px';}
 function tourNext(){tourI++;if(tourI>=TOUR.length){$('#tour').hidden=true;tourI=-1;return;}tourShow();}
 $('#tour').addEventListener('click',e=>{if(e.target.id==='tourSkip'){$('#tour').hidden=true;tourI=-1;return;}tourNext();});
 addEventListener('resize',()=>{if(tourI>=0)tourShow();});
@@ -1561,7 +1566,7 @@ function openFriends(){friendsFix();const el=$('#friendList');el.textContent='';
   (save.friends||[]).forEach((f,i)=>{const b=document.createElement('button');b.type='button';if(f.hide)b.classList.add('off');const im=document.createElement('img');im.alt='';im.src=fthumb(f.look,fstage(f));
     const t=document.createElement('span');t.textContent='@'+f.from+(f.hide?' · hidden':' · shown');b.append(im,t);
     b.onclick=()=>{f.hide=!f.hide;persist();spawnFriends();openFriends();friendsLabel();
-      peekTank('#friendsSheet',()=>{const fr=FRIENDS.find(x=>x.src===f);fxNote('@'+f.from+(f.hide?' hidden':' is back'),fr?toScreen(fr.g,0.12):{x:innerWidth/2,y:innerHeight*0.5});});};el.appendChild(b);});}
+      peekTank('#friendsSheet',()=>{const fr=FRIENDS.find(x=>x.src===f);if(fr)fxGlow(toScreen(fr.g,0.02),40);});};el.appendChild(b);});}
 $('#friendsBtn').onclick=()=>{if(!(save.friends||[]).length)return;$('#fishMenu').hidden=true;openFriends();$('#friendsSheet').hidden=false;};
 $('#friendsClose').onclick=()=>{$('#friendsSheet').hidden=true;openSub('fishMenu');};$('#skinsClose').onclick=()=>{$('#skins').hidden=true;$('#fishMenu').hidden=false;};
 $('#colorBtn').onclick=openColors;$('#patBtn').onclick=openPatterns;
@@ -1613,8 +1618,8 @@ $('#shopList').addEventListener('click',e=>{const d=e.target.dataset||{};
   else if(d.on)placeItem(d.on);
   else if(d.off){save.tank.items=save.tank.items.filter(i=>i.id!==d.off);rebuildTank();persist();}
   renderShop();const id=d.buy||d.on||d.off,def=id&&SHOP.find(x=>x.id===id);if(!def)return;
-  if(d.off)peekTank('#shop',()=>fxNote(def.name+' put away',{x:innerWidth/2,y:innerHeight*0.55}));
-  else{const g=ITEMS_ON[ITEMS_ON.length-1];peekTank('#shop',()=>{growIn(g);if(g)fxNote(def.name,toScreen(g,0.5));});}});
+  if(d.off)peekTank('#shop');
+  else{const g=ITEMS_ON[ITEMS_ON.length-1];peekTank('#shop',()=>{growIn(g);if(g)fxGlow(toScreen(g,0.25),80);});}});
 const FLOOR=new THREE.Plane(new V3(0,1,0),0);
 function floorPoint(){FLOOR.constant=-B.floor;const p=new V3();return ray.ray.intersectPlane(FLOOR,p)?p:null;}
 let lastPeb=null;
@@ -1751,7 +1756,7 @@ let FRIENDS=[];
 // gifted fish: a fifth of an adult's size, in the sender's colours; they just potter about and can't be played with
 function spawnFriends(){for(const f of FRIENDS)world.remove(f.g);FRIENDS=[];const list=(VISIT?VISIT.friends:save.friends)||[];
   if(!VISIT)friendsFix();
-  for(const it of list){if(it.hide)continue;const st=fstage(it),F=buildFish();poseYouth(F,st,true);applyLook(F,it.look,st);F.g.scale.setScalar(0.434*0.2*(0.6+0.4*youth(st).size));
+  for(const it of list){if(it.hide)continue;const st=fstage(it),F=buildFish();poseYouth(F,st,true);applyLook(F,it.look,st);F.g.scale.setScalar(0.434*0.2*(0.8+0.2*youth(st).size));
     F.g.traverse(o=>{if(o.userData&&o.userData.proxy)o.visible=false;});
     const piv=[];for(const m of F.tails||[]){const p=new THREE.Group();p.position.x=-0.66;F.inner.add(p);F.inner.remove(m);m.position.x+=0.66;p.add(m);piv.push(p);}
     const pos=new V3(rnd(-B.x*0.8,B.x*0.8),rnd(B.ymin,B.ymax-0.3),rnd(-1.2,0.5));F.g.position.copy(pos);world.add(F.g);
@@ -1769,6 +1774,8 @@ function giftFly(src,from,label){if(!src)return;const W=110,im=document.createEl
   if(label){const t=document.createElement('div');t.className='fx-sent';t.textContent=label;document.body.appendChild(t);
     t.animate(K.map(k=>({opacity:k.opacity,offset:k.offset,transform:'translate(-50%,'+k.y+'px)'})),D).onfinish=()=>t.remove();}}
 function toScreen(o,dy){const v=new V3();o.getWorldPosition(v);if(dy)v.y+=dy;v.project(camera);return {x:(v.x+1)/2*innerWidth,y:(1-v.y)/2*innerHeight};}
+function fxGlow(p,r){r=r||70;const d=document.createElement('div');d.className='fx-glow';d.style.cssText='left:'+(p.x-r)+'px;top:'+(p.y-r)+'px;width:'+(2*r)+'px;height:'+(2*r)+'px';document.body.appendChild(d);
+  d.animate([{opacity:0,transform:'scale(.6)'},{opacity:1,transform:'scale(1)',offset:.35},{opacity:0,transform:'scale(1.15)'}],{duration:1400,easing:'ease-out'}).onfinish=()=>d.remove();}
 function fxNote(text,p){const t=document.createElement('div');t.className='fx-note';t.textContent=text;const x=clamp(p.x,90,innerWidth-90),y=clamp(p.y,90,innerHeight-120);
   t.style.left=x+'px';t.style.top=y+'px';document.body.appendChild(t);
   t.animate([{opacity:0,marginTop:'6px'},{opacity:1,marginTop:'0px',offset:.2},{opacity:1,offset:.75},{opacity:0,marginTop:'-6px'}],{duration:1600,easing:'ease-out'}).onfinish=()=>t.remove();}
@@ -1777,7 +1784,7 @@ function peekTank(sel,show){const sh=$(sel);if(!sh||sh.hidden)return;clearTimeou
   sh.classList.add('peek');peekTank.t1=setTimeout(()=>{show&&show();},280);peekTank.t2=setTimeout(()=>sh.classList.remove('peek'),1900);}
 function growIn(g){if(!g)return;const s1=g.scale.x,t0=performance.now();g.scale.setScalar(s1*0.01);
   const f=()=>{const u=Math.min(1,(performance.now()-t0)/450),e=1-Math.pow(1-u,3);g.scale.setScalar(s1*Math.max(0.01,e));if(u<1)requestAnimationFrame(f);};requestAnimationFrame(f);}
-function showFishChange(text){peekTank(['#colors','#patterns','#skins'].find(k=>!$(k).hidden),()=>fxNote(text,toScreen(R.g,0.32)));}
+function showFishChange(){peekTank(['#colors','#patterns','#skins'].find(k=>!$(k).hidden),()=>fxGlow(toScreen(R.g,0),60+50*youth(S.grow*10).size));}
 function refreshFriendLooks(list,done){if(!DB||!list||!list.length)return;refreshFriendLooks.t=Date.now();const names=[...new Set(list.map(f=>f.from).filter(n=>NAME_RE.test(n||'')))];let changed=false,left=names.length;
   names.forEach(n=>fetch(docURL(n),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{if(!j||!j.fields||!j.fields.data)return;let rec;try{rec=JSON.parse(j.fields.data.stringValue);}catch(e){return;}
     const lk=rec&&rec.save&&rec.save.pets&&rec.save.pets.fish&&rec.save.pets.fish.look;if(!lk)return;const nl=unpackLook(packLook(lk)),st=recStage(rec);
@@ -1858,9 +1865,23 @@ cv.addEventListener('pointermove',e=>{if(!TV.on)return;e.stopImmediatePropagatio
   const r=[...TV.pts.values()][0];TV.drag=r?{x:r.x,y:r.y}:null;e.stopImmediatePropagation();},true));
 cv.addEventListener('wheel',e=>{if(!TV.on)return;e.preventDefault();tvZoom(TV.zoom*Math.exp(e.deltaY*0.0015));},{passive:false});
 $('#tvIn').onclick=()=>tvZoom(TV.zoom/1.35);$('#tvOut').onclick=()=>tvZoom(TV.zoom*1.35);
+/* sunlight: soft shafts from the surface that lean with the sun through the day (from the left in the morning, the right in the evening) and fade at night */
+let SUN=null;
+function sunTex(){const c=document.createElement('canvas');c.width=64;c.height=256;const x=c.getContext('2d'),im=x.createImageData(64,256);
+  for(let j=0;j<256;j++)for(let i=0;i<64;i++){const u=(i-31.5)/32,v=j/255,a=Math.exp(-u*u*5)*Math.pow(1-v,1.4)*Math.min(1,v*12+0.3);const k=(j*64+i)*4;im.data[k]=im.data[k+1]=im.data[k+2]=255;im.data[k+3]=Math.round(a*255);}
+  x.putImageData(im,0,0);const t=new THREE.CanvasTexture(c);return t;}
+function sunTick(dt){if(!SUN){const tex=sunTex();SUN={g:new THREE.Group(),s:[]};
+    for(let i=0;i<6;i++){const m=new THREE.Mesh(new THREE.PlaneGeometry(1,1).translate(0,-0.5,0),new THREE.MeshBasicMaterial({map:tex,color:0xfff3d6,transparent:true,opacity:0,depthWrite:false,fog:false}));
+      m.renderOrder=3;SUN.g.add(m);SUN.s.push({m,ph:rnd(0,6),w:rnd(0.25,0.6),x:(i/5-0.5)*1.8+rnd(-0.1,0.1),z:rnd(-1.3,-0.3)});}world.add(SUN.g);}
+  const d=new Date(),h=d.getHours()+d.getMinutes()/60,u=(h-6.3)/12.6,day=u>0&&u<1,alt=day?Math.sin(Math.PI*u):0,tilt=(0.5-clamp(u))*0.95;
+  const want=lightsOff||TV.t>0.02?0:0.7*clamp(alt*1.7);SUN.a=damp(SUN.a||0,want,0.8,dt);SUN.g.visible=SUN.a>0.005;if(!SUN.g.visible)return;
+  const warm=1-clamp(alt*1.8),H=(B.surf-B.floor)*1.35;
+  for(const o of SUN.s){const m=o.m;m.material.color.setRGB(1,0.88-0.12*warm,0.62-0.3*warm);m.material.opacity=SUN.a*(0.65+0.35*Math.sin(T*0.5+o.ph))*(0.8+0.2*Math.sin(T*1.3+o.ph*2));
+    m.scale.set(o.w*(0.9+0.1*Math.sin(T*0.4+o.ph)),H,1);m.rotation.z=tilt+Math.sin(T*0.2+o.ph)*0.03;
+    m.position.set(o.x*B.x-tilt*H*0.5+Math.sin(T*0.12+o.ph)*0.08,B.surf+0.05,o.z);}}
 function frame(){requestAnimationFrame(frame);const nowF=performance.now(),busy=ptr.down||toy||foods.length||T-(S.lastTouch||-9)<4||(TV.t>0&&TV.t<1),minF=busy?0:(lightsOff&&S.asleep?62:30);
   if(nowF-(frame.last||0)<minF)return;frame.last=nowF;const dt=Math.min(clock.getDelta(),0.07);T+=dt;
-  needs(dt);behave(dt);physics(dt);animate(dt);keepAboveFloor();if(FRIENDS.length)friendsTick(dt);updateFoods(dt);updateToy(dt);updateRocks(dt);updateFX(dt);updateSay(dt);
+  needs(dt);behave(dt);physics(dt);animate(dt);keepAboveFloor();if(FRIENDS.length)friendsTick(dt);updateFoods(dt);updateToy(dt);updateRocks(dt);updateFX(dt);updateSay(dt);sunTick(dt);
   const lt=lightsOff?0.35:1;hemi.intensity=damp(hemi.intensity,0.85*lt,2,dt);keyL.intensity=damp(keyL.intensity,0.7*lt,2,dt);
   if(!tankViewCam(dt)){const d=camera.position.distanceTo(camLook);scene.fog.far=damp(scene.fog.far,d+lerp(3,40,pet().s.clean/100),2,dt);
   camera.position.x=camBase.x+Math.sin(T*0.17)*0.05;camera.position.y=camBase.y+Math.sin(T*0.23)*0.03;camera.lookAt(camLook);}
