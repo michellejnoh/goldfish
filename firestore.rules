@@ -5,24 +5,29 @@ service cloud.firestore {
     // One record per keeper, named by their username.
     // Anyone can open a username (that's how username-only sign-in works),
     // but a record must look like a Goldfish save, must come from the current version of the game,
-    // and can never lower the keeper's lifetime xp ("total"). So an old browser tab, or a device
-    // holding older progress, can no longer overwrite newer progress.
+    // and can never go backwards: lifetime xp earned ("total") can't drop, and with the same total,
+    // xp spent ("spent") can't drop either (that would undo a purchase). So an old browser tab, or a
+    // device holding older progress, can no longer overwrite newer progress.
     match /players/{name} {
       allow read: if name.matches('^[a-z0-9_]{2,16}$');
       allow create: if valid(name);
-      allow update: if valid(name) && request.resource.data.total >= resource.data.get('total', 0);
+      allow update: if valid(name) && (
+        request.resource.data.total > resource.data.get('total', 0) ||
+        (request.resource.data.total == resource.data.get('total', 0) &&
+         request.resource.data.get('spent', 0) >= resource.data.get('spent', 0)));
       allow delete: if false;
     }
 
     function valid(name) {
       let d = request.resource.data;
       return name.matches('^[a-z0-9_]{2,16}$')
-        && d.keys().hasOnly(['name', 'level', 'data', 'updated', 'total', 'v'])
+        && d.keys().hasOnly(['name', 'level', 'data', 'updated', 'total', 'v', 'spent'])
         && d.keys().hasAll(['name', 'level', 'data', 'updated', 'total', 'v'])
         && d.name == name
         && d.level is int && d.level >= 1 && d.level <= 200
         && d.total is int && d.total >= 0
-        && d.v is int && d.v >= 3
+        && d.v is int && d.v >= 4
+        && d.get('spent', 0) is int && d.get('spent', 0) >= 0
         && d.data is string && d.data.size() < 200000
         && d.updated is timestamp;
     }

@@ -146,8 +146,12 @@ body.visiting .ui,body.visiting #say{display:none}
 .card input:focus{outline:none}
 .langrow{display:flex;gap:16px;align-items:baseline;justify-content:flex-start;margin:2px 0 -4px}
 .langrow .link[aria-pressed="true"]{color:#111;text-decoration-thickness:2px}
-.growrow{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));align-items:end;gap:6px 4px;margin-top:-2px}
-.growrow span{display:flex;flex-direction:column;align-items:center;gap:2px;font-size:12px;color:#9a9a9a;flex:1;min-width:0;white-space:nowrap}
+.card{position:relative}
+.row2.topclose{position:absolute;top:20px;right:22px;margin:0;width:auto}
+.sheet.dock.top .row2.topclose{top:calc(16px + env(safe-area-inset-top,0px))}
+.card h2{padding-right:64px}
+.growrow{display:grid;grid-template-columns:repeat(11,minmax(0,1fr));align-items:end;gap:2px;margin-top:-2px}
+.growrow span{display:flex;flex-direction:column;align-items:center;gap:1px;font-size:11px;color:#9a9a9a;flex:1;min-width:0;white-space:nowrap}
 .growrow img{display:block;height:auto}
 .growrow span.no img{opacity:.35;filter:grayscale(1)}
 .growrow span.now{color:#111}
@@ -160,6 +164,7 @@ body.visiting .ui,body.visiting #say{display:none}
 .mrow[aria-pressed="true"] b{text-decoration:underline;text-decoration-thickness:1.5px;text-underline-offset:4px}
 .lookgrid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:4px 6px;margin:4px 0 8px}
 .lookgrid.pat{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px 10px}
+#colorList{grid-template-columns:repeat(7,minmax(0,1fr));gap:2px 2px}#colorList button{font-size:11px;padding:2px 0 3px}
 .lookgrid button{display:flex;flex-direction:column;align-items:center;gap:0;padding:2px 0 4px;border-radius:10px;font-size:13px;color:#7a7a7a;cursor:pointer}
 .lookgrid.pat button{font-size:15px}
 .lookgrid img{width:100%;aspect-ratio:7/5;display:block}
@@ -167,22 +172,24 @@ body.visiting .ui,body.visiting #say{display:none}
 .row2{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
 .go{font-size:24px;color:#111;padding:6px 0}
 .link{font-size:16px;color:#6b6b6b;text-decoration:underline;text-underline-offset:4px;padding:6px 0}
-.mis{display:grid;grid-template-columns:1fr auto;gap:4px 12px;align-items:baseline;font-size:17px}
+.mis{display:grid;grid-template-columns:1fr auto;gap:2px 12px;align-items:baseline;font-size:16px;line-height:1.2}
+#achList{grid-template-columns:1fr auto 1fr auto;gap:3px 8px;font-size:14px}#achList em{font-size:13px}
+#missions .card{padding-top:18px;padding-bottom:16px}#missions p.small{margin:4px 0 2px;line-height:1.25}#missions #misXp{margin:0 0 2px}#missions .row2{margin:0;gap:10px;align-items:baseline}#missions .row2 p.small{flex:1;margin:0}#missions h2{margin-bottom:2px}#missions .growrow{margin:0 0 2px}
 .mis span{color:#111}.mis em{font-style:normal;color:#6b6b6b;font-size:15px;font-variant-numeric:tabular-nums;text-align:right}
 .mis button{font:inherit;font-size:15px;color:#111;text-decoration:underline;text-underline-offset:3px;padding:0;text-align:right}
 .row2 .link[aria-pressed="true"]{color:#111;text-decoration-thickness:2px}
 .mis .done{color:#a3a3a3;text-decoration:line-through}
 .small{font-size:14px;color:#8a8a8a}
-.shopgrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px 8px}
+.shopgrid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px 4px}
 #shop .card{max-width:440px}
 @media (max-height:700px){.shopgrid{grid-template-columns:repeat(5,minmax(0,1fr))}}
 .item{display:flex;flex-direction:column;gap:1px;min-width:0;align-items:center;text-align:center}
-.item img{width:100%;max-width:84px;aspect-ratio:1;display:block}
-.item b{font-weight:500;font-size:14px;line-height:1.1;color:#111}
-.item em{font-style:normal;color:#8a8a8a;font-size:13px}
-.item button{font:inherit;font-size:13px;color:#111;text-decoration:underline;text-underline-offset:3px;text-align:center;padding:2px 0}
+.item img{width:100%;max-width:58px;aspect-ratio:1;display:block}
+.item b{font-weight:500;font-size:13px;line-height:1.05;color:#111}
+.item em{font-style:normal;color:#8a8a8a;font-size:12px;line-height:1.1}
+.item button{font:inherit;font-size:12px;line-height:1.1;color:#111;text-decoration:underline;text-underline-offset:3px;text-align:center;padding:2px 0}
 .item.locked img{opacity:.55}
-.item small.need{font-size:12px;color:#a3a3a3;line-height:1.1}
+.item small.need{font-size:11px;color:#a3a3a3;line-height:1.05}
 @keyframes giftIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 .gift-line{animation:giftIn .4s ease-out both}
 .lookgrid button.off img{opacity:.3}
@@ -237,7 +244,7 @@ body.lookdock #viewArrows{display:flex}
     <p class="small">decoration · paid with your xp</p>
     <div class="shopgrid" id="giftDeco"></div>
     <p class="small" id="giftMsg"></p>
-    <div class="row2"><span></span><button type="button" class="go" id="giftClose">close</button></div>
+    <div class="row2 topclose"><span></span><button type="button" class="go" id="giftClose">close</button></div>
   </div>
 </div>
 <div class="sheet" id="giftIn" hidden>
@@ -304,7 +311,7 @@ body.lookdock #viewArrows{display:flex}
     <h2>friends’ fish</h2>
     <p class="small">tap a fish to show or hide it in your tank</p>
     <div class="lookgrid pat" id="friendList"></div>
-    <div class="row2"><span></span><button type="button" class="go" id="friendsClose">back</button></div>
+    <div class="row2 topclose"><span></span><button type="button" class="go" id="friendsClose">back</button></div>
   </div>
 </div>
 <div class="sheet" id="waterMenu" hidden>
@@ -332,7 +339,7 @@ body.lookdock #viewArrows{display:flex}
   <div class="card">
     <h2>fish color</h2>
     <div class="lookgrid" id="colorList"></div>
-    <div class="row2"><span></span><button type="button" class="go" id="colorsClose">back</button></div>
+    <div class="row2 topclose"><span></span><button type="button" class="go" id="colorsClose">back</button></div>
   </div>
 </div>
 <div class="sheet dock" id="skins" hidden>
@@ -340,7 +347,7 @@ body.lookdock #viewArrows{display:flex}
     <h2>skin</h2>
     <p class="small">a skin is worn over your color and pattern · tap it again to reshuffle</p>
     <div class="lookgrid pat" id="skinList"></div>
-    <div class="row2"><span></span><button type="button" class="go" id="skinsClose">back</button></div>
+    <div class="row2 topclose"><span></span><button type="button" class="go" id="skinsClose">back</button></div>
   </div>
 </div>
 <div class="sheet dock" id="patterns" hidden>
@@ -348,7 +355,7 @@ body.lookdock #viewArrows{display:flex}
     <h2>pattern</h2>
     <p class="small">tap a pattern again to reshuffle it</p>
     <div class="lookgrid pat" id="patList"></div>
-    <div class="row2"><span></span><button type="button" class="go" id="patternsClose">back</button></div>
+    <div class="row2 topclose"><span></span><button type="button" class="go" id="patternsClose">back</button></div>
   </div>
 </div>
 <div class="sheet dock top" id="shop" hidden>
@@ -356,7 +363,7 @@ body.lookdock #viewArrows{display:flex}
     <h2>winter shop</h2>
     <p class="small" id="wallet"></p>
     <div class="shopgrid" id="shopList"></div>
-    <div class="row2"><span></span><button type="button" class="go" id="shopClose">back</button></div>
+    <div class="row2 topclose"><span></span><button type="button" class="go" id="shopClose">back</button></div>
   </div>
 </div>
 <div class="sheet" id="shot" hidden>
@@ -378,7 +385,7 @@ body.lookdock #viewArrows{display:flex}
     <div class="row2"><p class="small" id="syncInfo"></p><button type="button" class="link" id="syncNow">sync now</button></div>
     <p class="small">achievements</p>
     <div class="mis" id="achList"></div>
-    <div class="row2"><span></span><button type="button" class="go" id="misClose">close</button></div>
+    <div class="row2 topclose"><span></span><button type="button" class="go" id="misClose">close</button></div>
   </div>
 </div>
 <script>window.GOLDFISH_DB={apiKey:"AIzaSyCQNpsLEEAa2q6woKbcn-HrOUpjk2vd-Dg",projectId:"goldfish-tank-f99a7"};</script>
@@ -1491,7 +1498,11 @@ function persistLocal(){if(!USER||VISIT)return;serializeTank();rememberBest();co
    progress comes from whichever has earned more xp in total (achievements, counters and growth combined from both),
    and the tank/fish settings come from whichever was changed more recently. So opening the game somewhere else never loses progress. */
 function mergeProg(a,b){if(!a)return b;if(!b)return a;a=normProg(JSON.parse(JSON.stringify(a)));b=normProg(JSON.parse(JSON.stringify(b)));
-  const hi=(b.total||0)>(a.total||0)||((b.total||0)===(a.total||0)&&b.level>a.level)?b:a,lo=hi===a?b:a;
+  // the copy that has earned more wins; with the same earnings, the one that has spent more is the later one (never simply the higher level,
+  // which would undo a purchase); then any spending only the other copy knows about is applied too
+  const ta=a.total||0,tb=b.total||0,sa=a.spent||0,sb=b.spent||0;
+  const hi=tb>ta||(tb===ta&&(sb>sa||(sb===sa&&b.level>a.level)))?b:a,lo=hi===a?b:a;
+  const ds=(lo.spent||0)-(hi.spent||0);if(ds>0){takeXP(hi,ds);hi.spent=(hi.spent||0)+ds;}
   for(const k in lo.ach)if(!hi.ach[k])hi.ach[k]=lo.ach[k];
   for(const k in lo.life)hi.life[k]=Math.max(hi.life[k]||0,lo.life[k]||0);
   hi.grow=Math.max(hi.grow||0,lo.grow||0);
@@ -1506,26 +1517,28 @@ function mergeRec(a,b){if(!a)return b;if(!b)return a;const ua=a.changed||a.updat
   return {updated:Math.max(ua,ub),save:sv,prog:mergeProg(a.prog,b.prog)};}
 const curRec=()=>({updated:lastChange,save,prog:PROG});
 // bring a merged copy into the running game only if it actually adds something
-function takeMerged(c){if(!c)return false;const m=mergeRec(curRec(),c),more=(m.prog&&PROG&&(m.prog.total||0)>(PROG.total||0))||(c.updated||0)>lastChange+500||(m.prog&&PROG&&(m.prog.grow||0)>(PROG.grow||0));
+function takeMerged(c){if(!c)return false;const m=mergeRec(curRec(),c),more=(m.prog&&PROG&&(m.prog.total||0)>(PROG.total||0))||(m.prog&&PROG&&(m.prog.spent||0)>(PROG.spent||0))||(c.updated||0)>lastChange+500||(m.prog&&PROG&&(m.prog.grow||0)>(PROG.grow||0));
   if(more){lastChange=m.updated;adopt(m);persistLocal();}return more;}
 let cloudReady=false;
 const BKEY=n=>'goldfish-best-'+n;
 function rememberBest(){if(!USER||!PROG)return;try{const b=JSON.parse(localStorage.getItem(BKEY(USER))||'null');
-  if(!b||(PROG.total||0)>=((b.prog&&b.prog.total)||0))localStorage.setItem(BKEY(USER),JSON.stringify({updated:lastChange,save,prog:PROG}));}catch(e){}}
+  if(!b||(PROG.total||0)>((b.prog&&b.prog.total)||0)||((PROG.total||0)===((b.prog&&b.prog.total)||0)&&(PROG.spent||0)>=((b.prog&&b.prog.spent)||0)))localStorage.setItem(BKEY(USER),JSON.stringify({updated:lastChange,save,prog:PROG}));}catch(e){}}
 function readBest(n){try{return JSON.parse(localStorage.getItem(BKEY(n))||'null');}catch(e){return null;}}
 function persist(){if(!USER||VISIT)return;lastChange=Date.now();persistLocal();cloudDirty=true;clearTimeout(pushT);pushT=setTimeout(()=>cloudPut(),4000);}
 const docURL=n=>'https://firestore.googleapis.com/v1/projects/'+DB.projectId+'/databases/(default)/documents/players/'+n+'?key='+DB.apiKey;
-const UTS={};
+const UTS={},APP_V=4;
+// an open copy of an older version of the game reloads itself as soon as it sees that a newer version has saved this keeper
+function checkAppVersion(rec){if(rec&&(rec.app||0)>APP_V){try{if(sessionStorage.getItem('gf-reloaded')===String(rec.app))return;sessionStorage.setItem('gf-reloaded',String(rec.app));}catch(e){}location.reload();}}
 function cloudGet(n){if(!DB)return Promise.resolve(null);return fetch(docURL(n),{cache:'no-store'}).then(r=>{if(r.status===404){UTS[n]='none';SYNC.ok=SYNC.ok===false?false:true;return null;}if(!r.ok){SYNC={ok:false,msg:'couldn\u2019t read the online save (error '+r.status+')',t:Date.now()};return Promise.reject(r.status);}return r.json();})
-  .then(j=>{if(!j||!j.fields)return null;UTS[n]=j.updateTime;try{return JSON.parse(j.fields.data.stringValue);}catch(e){return null;}});}
+  .then(j=>{if(!j||!j.fields)return null;UTS[n]=j.updateTime;let rec=null;try{rec=JSON.parse(j.fields.data.stringValue);}catch(e){return null;}if(n===USER)checkAppVersion(rec);return rec;});}
 function cloudPut(keep){if(!DB||!USER||!cloudDirty||!cloudReady||VISIT)return;const who=USER;
   // read the online copy first and merge, so a device with older progress can never overwrite newer progress
   if(!keep){cloudDirty=false;cloudGet(who).then(c=>{if(USER!==who)return;if(c)takeMerged(c);cloudDirty=true;cloudWrite(false,who);},()=>{if(USER===who)cloudDirty=true;});return;}
   cloudWrite(true,who);}
-function cloudWrite(keep,who){if(!cloudDirty||who!==USER||UTS[who]===undefined)return;cloudDirty=false;rememberBest();const rec={updated:lastChange||Date.now(),save,prog:PROG};
+function cloudWrite(keep,who){if(!cloudDirty||who!==USER||UTS[who]===undefined)return;cloudDirty=false;rememberBest();const rec={updated:lastChange||Date.now(),save,prog:PROG,app:APP_V};
   const body={fields:{name:{stringValue:USER},level:{integerValue:String(PROG.level)},data:{stringValue:JSON.stringify(rec)},updated:{timestampValue:new Date().toISOString()}}};
   // total xp ever earned and a format version go alongside, so the database rules can refuse any save that would go backwards (or comes from an old copy of the game)
-  if(!cloudWrite.legacy){body.fields.total={integerValue:String(Math.floor(PROG.total||0))};body.fields.v={integerValue:'3'};}
+  if(!cloudWrite.legacy){body.fields.total={integerValue:String(Math.floor(PROG.total||0))};body.fields.v={integerValue:cloudWrite.noSpent?'3':String(APP_V)};if(!cloudWrite.noSpent)body.fields.spent={integerValue:String(Math.floor(PROG.spent||0))};}
   // only write if the online copy is still the one we last read; if another device saved meanwhile, merge again first
   const ut=UTS[who],pre=cloudWrite.loose?'':ut==='none'?'&currentDocument.exists=false':ut?'&currentDocument.updateTime='+encodeURIComponent(ut):'';cloudWrite.loose=false;
   fetch(docURL(who)+pre,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify(body),keepalive:!!keep})
@@ -1534,11 +1547,11 @@ function cloudWrite(keep,who){if(!cloudDirty||who!==USER||UTS[who]===undefined)r
         cloudDirty=true;clearTimeout(pushT);pushT=setTimeout(()=>cloudPut(),1500);return;}
       if(r.status===403&&who===USER&&(cloudWrite.f403=(cloudWrite.f403||0)+1)<4){cloudDirty=true;
         // refused: first merge with the online copy and try again; if the database still uses the older rules, fall back to the older save format
-        if(cloudWrite.f403===2)cloudWrite.legacy=true;clearTimeout(pushT);pushT=setTimeout(()=>cloudPut(),1200);return;}
+        if(cloudWrite.f403===1)cloudWrite.noSpent=true;if(cloudWrite.f403===3)cloudWrite.legacy=true;clearTimeout(pushT);pushT=setTimeout(()=>cloudPut(),1200);return;}
       {cloudDirty=true;return r.text().then(t=>{SYNC={ok:false,msg:'online save refused (error '+r.status+')'+(r.status===403?': check the Firestore rules':r.status===404?': is the Firestore database created?':''),t:Date.now()};console.warn('Goldfish save:',r.status,t);});}})
     .catch(()=>{if(who===USER)cloudDirty=true;SYNC={ok:false,msg:'offline: will save online when connected',t:Date.now()};});}
 // take the online copy when another device changed things more recently than this one
-function pull(){if(!DB||!USER||cloudDirty||VISIT)return;const who=USER;cloudGet(who).then(c=>{if(!c||USER!==who)return;takeMerged(c);if((PROG.total||0)>((c.prog&&c.prog.total)||0)){cloudDirty=true;cloudPut();}},()=>{});}
+function pull(){if(!DB||!USER||cloudDirty||VISIT)return;const who=USER;cloudGet(who).then(c=>{if(!c||USER!==who)return;takeMerged(c);if((PROG.total||0)>((c.prog&&c.prog.total)||0)||(PROG.spent||0)>((c.prog&&c.prog.spent)||0)){cloudDirty=true;cloudPut();}},()=>{});}
 function adopt(rec){save=normalizeSave(rec&&rec.save);setTimeout(spawnFriends,0);if(save.lang&&save.lang!==LANG&&!langPicked)setLang(save.lang);PROG=normProg(rec&&rec.prog);ensureDaily();
   if(typeof lightsOff!=='undefined'&&S){rebuildTank();lightsOff=!!save.night;document.body.classList.toggle('night',lightsOff);S.asleep=lightsOff;renderUI();}}
 function signIn(n,rec){USER=n;cloudReady=true;setTimeout(checkGifts,3000);adopt(rec);if(langPicked||!save.lang)save.lang=LANG;langPicked=false;lastChange=(rec&&rec.updated)||Date.now();persist();cloudPut();$('#who').textContent='@'+n;$('#login').hidden=true;
@@ -1585,14 +1598,15 @@ $('#misClose').onclick=()=>{$('#missions').hidden=true;};
 /* ---- start-up: last keeper on this device loads instantly, then the online copy if it's newer ---- */
 {const last=(()=>{try{return localStorage.getItem('goldfish-user')}catch(e){return null}})();
   if(last&&NAME_RE.test(last)){USER=last;const local=mergeRec(readLocal(last),readBest(last));save=normalizeSave(local&&local.save);PROG=normProg(local&&local.prog);lastChange=(local&&(local.changed||local.updated))||0;
-    cloudGet(last).then(c=>{cloudReady=true;setTimeout(checkGifts,2500);if(c)takeMerged(c);if(!c||(PROG.total||0)>((c.prog&&c.prog.total)||0)||lastChange>(c.updated||0)+500){cloudDirty=true;cloudPut();}},()=>{setTimeout(()=>{cloudReady=true;},20000);});}
+    cloudGet(last).then(c=>{cloudReady=true;setTimeout(checkGifts,2500);if(c)takeMerged(c);if(!c||(PROG.total||0)>((c.prog&&c.prog.total)||0)||(PROG.spent||0)>((c.prog&&c.prog.spent)||0)||lastChange>(c.updated||0)+500){cloudDirty=true;cloudPut();}},()=>{setTimeout(()=>{cloudReady=true;},20000);});}
   else{PROG=null;}}
 setInterval(()=>{if(cloudDirty)cloudPut();else if(!document.hidden)pull();},30000);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)pull();});
 
 /* ================= tank sheet ================= */
 const wallet=()=>{if(!PROG)return 0;let w=PROG.exp;for(let L=1;L<PROG.level;L++)w+=need(L);return w;};
-function spendXP(n){if(!PROG||wallet()<n)return false;PROG.exp-=n;while(PROG.exp<0&&PROG.level>1){PROG.level--;PROG.exp+=need(PROG.level);}PROG.exp=Math.max(0,PROG.exp);updateStats();return true;}
+function takeXP(P,n){P.exp-=n;while(P.exp<0&&P.level>1){P.level--;P.exp+=need(P.level);}P.exp=Math.max(0,P.exp);}
+function spendXP(n){if(!PROG||wallet()<n)return false;PROG.spent=(PROG.spent||0)+n;PROG.exp-=n;while(PROG.exp<0&&PROG.level>1){PROG.level--;PROG.exp+=need(PROG.level);}PROG.exp=Math.max(0,PROG.exp);updateStats();return true;}
 function lookPick(list,key,label,onPick){const el=$(list);el.textContent='';const lk=lookOf();
   for(const k of key){const b=document.createElement('button');b.type='button';const im=document.createElement('img');im.alt='';im.src=fishThumb(label(k));
     const t=document.createElement('span');t.textContent=k;b.append(im,t);b.setAttribute('aria-pressed',k===(list==='#colorList'?lk.c:lk.p));b.onclick=()=>{onPick(k);showFishChange(list==='#colorList'?k:k==='plain'?'plain':k);};el.appendChild(b);}}
@@ -1807,7 +1821,7 @@ let FRIENDS=[];
 // gifted fish: a fifth of an adult's size, in the sender's colors; they just potter about and can't be played with
 function spawnFriends(){for(const f of FRIENDS)world.remove(f.g);FRIENDS=[];const list=(VISIT?VISIT.friends:save.friends)||[];
   if(!VISIT)friendsFix();
-  for(const it of list){if(it.hide)continue;const st=fstage(it),F=buildFish();poseYouth(F,st,true);applyLook(F,it.look,st);F.g.scale.setScalar(0.434*0.2*(0.8+0.2*youth(st).size));
+  for(const it of list){if(it.hide)continue;const st=fstage(it),F=buildFish();poseYouth(F,st,true);applyLook(F,it.look,st);F.g.scale.setScalar(0.434*0.2*(0.96+0.04*youth(st).size));
     F.g.traverse(o=>{if(o.userData&&o.userData.proxy)o.visible=false;});
     const piv=[];for(const m of F.tails||[]){const p=new THREE.Group();p.position.x=-0.66;F.inner.add(p);F.inner.remove(m);m.position.x+=0.66;p.add(m);piv.push(p);}
     const pos=new V3(rnd(-B.x*0.8,B.x*0.8),rnd(B.ymin,B.ymax-0.3),rnd(-1.2,0.5));F.g.position.copy(pos);world.add(F.g);
