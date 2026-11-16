@@ -446,7 +446,7 @@ const KO={
 'food · tap the water to sprinkle flakes':'먹이 · 물을 탭해서 먹이를 뿌려요','clean · when the glass gets dirty, rub it clean':'청소 · 유리가 더러워지면 문질러서 닦아요',
 'toy · drag the lure and let your fish chase it':'장난감 · 미끼를 끌면 금붕어가 쫓아와요','sleep · turns the lights off so your fish can rest':'재우기 · 불을 꺼서 금붕어를 쉬게 해요',
 'missions · three goals a day for xp. your fish grows every 5 levels':'미션 · 하루 세 가지 목표로 xp를 모아요. 5레벨마다 금붕어가 자라요',
-'edit · your fish’s color and pattern, the water, and decorations':'편집 · 금붕어 색과 무늬, 물 색, 장식을 바꿔요','tank view · see the whole tank and turn it around':'어항 보기 · 어항 전체를 보고 돌려 봐요',
+'edit · your fish’s color and pattern, the water, and decorations':'편집 · 금붕어 색과 무늬, 물 색, 장식을 바꿔요','tank view · see your tank on its table in a little room, and turn it around':'어항 보기 · 작은 방 탁자 위의 어항을 보고 돌려 봐요',
 'camera · take a picture of your tank':'카메라 · 어항 사진을 찍어요','your keeper name · tap to switch keepers':'키퍼 이름 · 탭하면 다른 키퍼로 바꿔요','growth':'성장','drag it where you like · twist or use the arrows to turn it':'원하는 곳으로 끌어 놓고, 비틀거나 화살표로 돌려요','send':'보내기','cancel':'취소','turn your fish':'물고기 돌리기','language':'언어','growth · by level':'성장 · 레벨별','Take picture':'사진 찍기','Sound on':'소리 켜짐','Sound off':'소리 꺼짐','Tank view':'어항 보기','drag to turn · pinch to zoom':'끌어서 돌리기 · 두 손가락으로 확대','Zoom in':'확대','Zoom out':'축소','Goldfish tank. Tap, drag and feed to interact.':'금붕어 수조. 탭하고 끌고 먹이를 주며 놀아 주세요.',
 ': check the Firestore rules':': Firestore 규칙을 확인해 주세요',': is the Firestore database created?':': Firestore 데이터베이스가 만들어졌는지 확인해 주세요'};
 const KO_RX=[
@@ -544,7 +544,7 @@ const LOWRES=0.8; // render below screen resolution for a soft, low-res look
 const renderer=new THREE.WebGLRenderer({canvas:cv,antialias:true,alpha:true});
 renderer.setClearColor(0xffffff,0);
 const scene=new THREE.Scene();
-const camera=new THREE.PerspectiveCamera(38,1,0.1,80);
+const camera=new THREE.PerspectiveCamera(38,1,0.1,400);
 const hemi=new THREE.HemisphereLight(0xffffff,0xece6df,0.9);scene.add(hemi);
 const keyL=new THREE.DirectionalLight(0xffffff,0.7);keyL.position.set(2,5,4);scene.add(keyL);
 const rimL=new THREE.DirectionalLight(0xffffff,0.35);rimL.position.set(-2,3,-4);scene.add(rimL);
@@ -1418,7 +1418,7 @@ $('#namingSkip').onclick=()=>{$('#naming').hidden=true;if(openNaming.first)maybe
 const TOUR=[['#t-hand','hand · drag to lead your fish, tap to call it, tap the fish to say hi'],
   ['#t-wash','clean · when the glass gets dirty, rub it clean'],['#t-sleep','sleep · turns the lights off so your fish can rest'],
   ['#misBtn','missions · three goals a day for xp. your fish grows every 5 levels'],['#editBtn','edit · your fish’s color and pattern, the water, and decorations'],
-  ['#tvBtn','tank view · see the whole tank and turn it around'],['#visitBtn','visit · type a friend’s username to visit their tank and send gifts'],['#who','your keeper name · tap to switch keepers']];
+  ['#tvBtn','tank view · see your tank on its table in a little room, and turn it around'],['#visitBtn','visit · type a friend’s username to visit their tank and send gifts'],['#who','your keeper name · tap to switch keepers']];
 let tourI=-1;
 function maybeTour(){if(!USER||(save.tut&&save.tut.tour))return;save.tut=save.tut||{};save.tut.tour=1;persist();setTimeout(()=>{tourI=0;$('#tour').hidden=false;tourShow();},500);}
 function tourShow(){const st=TOUR[tourI],el=$(st[0]);if(!el||!el.offsetParent){tourNext();return;}const r=el.getBoundingClientRect(),tip=$('#tour .tip');
@@ -1886,6 +1886,7 @@ $('#giftInClose').onclick=()=>{$('#giftIn').hidden=true;};
 setInterval(checkGifts,60000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)setTimeout(checkGifts,1500);});
 
 /* ---- tank view: pull back to see the whole tank as a small glass box in the middle, and turn it by dragging ---- */
+const TVCLIP=[];
 const TV={on:false,t:0,yaw:0.6,pitch:0.32,zoom:1,zs:1,pts:new Map(),pinch:0,box:null,c:new V3(),D:6,fogN:0,fogF:0,drag:null};
 function buildTankBox(){if(TV.box)world.remove(TV.box);const F=B.floor,W=B.hw,y0=F-0.32,y1=B.surf+0.04,z0=-2.0,z1=1.02,g=new THREE.Group();
   const water=new THREE.Color(getComputedStyle(document.body).backgroundColor);
@@ -1895,21 +1896,74 @@ function buildTankBox(){if(TV.box)world.remove(TV.box);const F=B.floor,W=B.hw,y0
   const sub=new THREE.Mesh(new THREE.BoxGeometry(2*W-0.004,F-0.02-y0,z1-z0-0.004),flatMat({color:0xdcdcdc}));sub.position.set(0,(y0+F-0.02)/2,(z0+z1)/2);g.add(sub);
   const top=new THREE.Mesh(new THREE.PlaneGeometry(2*W,z1-z0),new THREE.MeshBasicMaterial({color:0xb9c9d0,transparent:true,opacity:0.12,depthWrite:false,side:THREE.DoubleSide}));
   top.rotation.x=-Math.PI/2;top.position.set(0,B.surf,(z0+z1)/2);g.add(top);
+  g.add(buildRoom(F,W,y0,y1,z0,z1));
   g.visible=false;world.add(g);TV.box=g;world.updateMatrixWorld(true);
   TV.c.set(0,(y0+y1)/2,(z0+z1)/2);world.localToWorld(TV.c);
   const m=0.012;TV.planes=[[1,0,0,W+m],[-1,0,0,W+m],[0,1,0,-y0+m],[0,-1,0,y1+m],[0,0,1,-z0+m],[0,0,-1,z1+m]].map(p=>new THREE.Plane(new V3(p[0],p[1],p[2]),p[3]).applyMatrix4(world.matrixWorld));
   const rB=0.5*Math.hypot(2*W,y1-y0,z1-z0),fv=camera.fov*Math.PI/180,fh=2*Math.atan(Math.tan(fv/2)*camera.aspect);TV.D=rB/Math.sin(Math.min(fv,fh)/2)/0.62;}
-function setTankView(on){if(on===TV.on)return;TV.on=on;if(on){TV.zoom=TV.zs=1;if(toy)endToy(true);buildTankBox();TV.box.visible=true;renderer.clippingPlanes=TV.planes;TV.fogN=scene.fog.near;TV.fogF=scene.fog.far;
+function clipTank(on){TVCLIP.length=0;if(!on)return;TVCLIP.push(...TV.planes);renderer.localClippingEnabled=true;
+  world.traverse(o=>{if(!o.material||o.userData.room)return;(Array.isArray(o.material)?o.material:[o.material]).forEach(m=>{if(m.clippingPlanes!==TVCLIP){m.clippingPlanes=TVCLIP;m.needsUpdate=true;}});});}
+/* a small grey 2000s room around the tank in tank view: the tank sits on a table on a rug, with a window and blinds, a boxy CRT TV on a cabinet,
+   a band poster, a wall clock, a floor lamp, a beanbag and a potted plant. The walls only show from inside, so whichever wall is nearer
+   to you drops away like a dollhouse as you turn the view. */
+function buildRoom(F,W,y0,y1,z0,z1){const g=new THREE.Group(),M=(c,o)=>new THREE.MeshBasicMaterial(Object.assign({color:c},o||{})),zc=(z0+z1)/2,
+    box=(w,h,d,c,x,y,z)=>{const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),M(c));m.position.set(x,y,z);g.add(m);return m;},
+    pl=(w,h,c,x,y,z,ry,o)=>{const m=new THREE.Mesh(new THREE.PlaneGeometry(w,h),M(c,o));m.position.set(x,y,z);m.rotation.y=ry||0;g.add(m);return m;},
+    cyl=(rt,rb,h,c,x,y,z,seg)=>{const m=new THREE.Mesh(new THREE.CylinderGeometry(rt,rb,h,seg||24),M(c));m.position.set(x,y,z);g.add(m);return m;};
+  const tt=0.16,top=y0-0.004,yF=y0-2.5,Rw=W+3.6,Rd=(z1-z0)/2+3.4,Hr=y1-yF+1.7,tw=2*W+0.9,td=z1-z0+0.8;
+  // room shell (inside faces only) and floorboards
+  const shell=new THREE.Mesh(new THREE.BoxGeometry(2*Rw,Hr,2*Rd),M(0xdfdfdf,{side:THREE.BackSide}));shell.position.set(0,yF+Hr/2,zc);g.add(shell);
+  const fc=document.createElement('canvas');fc.width=256;fc.height=256;const fx=fc.getContext('2d');fx.fillStyle='#c9c9c9';fx.fillRect(0,0,256,256);fx.strokeStyle='#b6b6b6';fx.lineWidth=2;
+  for(let i=0;i<8;i++){fx.beginPath();fx.moveTo(0,i*32+1);fx.lineTo(256,i*32+1);fx.stroke();const o=(i*97)%256;fx.beginPath();fx.moveTo(o,i*32);fx.lineTo(o,i*32+32);fx.stroke();}
+  const ft=new THREE.CanvasTexture(fc);ft.wrapS=ft.wrapT=THREE.RepeatWrapping;ft.repeat.set(Rw/1.6,Rd/1.6);
+  const floor=new THREE.Mesh(new THREE.PlaneGeometry(2*Rw,2*Rd),M(0xffffff,{map:ft}));floor.rotation.x=-Math.PI/2;floor.position.set(0,yF+0.003,zc);g.add(floor);
+  // skirting along the walls
+  for(const [w,x,z,ry] of [[2*Rw,0,zc-Rd+0.01,0],[2*Rd,-Rw+0.01,zc,Math.PI/2],[2*Rd,Rw-0.01,zc,-Math.PI/2],[2*Rw,0,zc+Rd-0.01,Math.PI]])pl(w,0.22,0xc9c9c9,x,yF+0.11,z,ry);
+  // rug and the table's soft shadow
+  const rug=new THREE.Mesh(new THREE.CircleGeometry(1,48),M(0xbebebe));rug.rotation.x=-Math.PI/2;rug.scale.set(tw*0.78,td*0.9,1);rug.position.set(0,yF+0.006,zc);g.add(rug);
+  const sh=new THREE.Mesh(new THREE.CircleGeometry(1,40),M(0x000000,{transparent:true,opacity:0.1,depthWrite:false}));sh.rotation.x=-Math.PI/2;sh.scale.set(tw*0.55,td*0.6,1);sh.position.set(0,yF+0.009,zc);g.add(sh);
+  // table
+  box(tw,tt,td,0x9d9d9d,0,top-tt/2,zc);box(tw-0.1,0.05,td-0.1,0x8a8a8a,0,top-tt-0.025,zc);
+  for(const sx of [-1,1])for(const sz of [-1,1])box(0.16,top-tt-yF,0.16,0x7c7c7c,sx*(tw/2-0.25),(top-tt+yF)/2,zc+sz*(td/2-0.25));
+  // back wall: window with blinds
+  const bz=zc-Rd+0.02,wx=-Rw*0.42,wy=yF+Hr*0.58;pl(2.5,2.1,0x9a9a9a,wx,wy,bz);pl(2.25,1.85,0xf8f8f8,wx,wy,bz+0.01);
+  for(let i=0;i<9;i++)pl(2.25,0.07,0xd8d8d8,wx,wy+0.86-i*0.2,bz+0.02);pl(0.05,1.85,0xbdbdbd,wx,wy,bz+0.03);pl(2.7,0.12,0xa8a8a8,wx,wy-1.1,bz+0.04);
+  // back right corner: CRT TV on a low cabinet, antenna on top
+  const cx=Rw-1.15,cz=zc-Rd+0.75;box(1.7,0.85,1.0,0x9b9b9b,cx,yF+0.425,cz);pl(1.5,0.012,0x7d7d7d,cx,yF+0.45,cz+0.505);
+  box(1.25,1.0,1.0,0x666666,cx,yF+1.35,cz-0.05);box(0.9,0.72,0.06,0x8a8a8a,cx,yF+1.38,cz+0.46);pl(0.78,0.6,0x3e3e3e,cx-0.04,yF+1.38,cz+0.5);
+  cyl(0.05,0.05,0.06,0xb0b0b0,cx+0.5,yF+1.06,cz+0.47,12).rotation.x=Math.PI/2;
+  for(const a of [-0.45,0.45]){const an=cyl(0.012,0.012,0.75,0x6a6a6a,cx+Math.sin(a)*0.3,yF+2.15,cz-0.05,8);an.rotation.z=a;}
+  // right wall: band poster
+  const rx=Rw-0.02;pl(1.25,1.7,0x8c8c8c,rx,yF+Hr*0.58,zc-0.4,-Math.PI/2);pl(1.0,0.75,0xd4d4d4,rx-0.01,yF+Hr*0.58+0.25,zc-0.4,-Math.PI/2);
+  const disc=new THREE.Mesh(new THREE.CircleGeometry(0.26,32),M(0x6a6a6a));disc.position.set(rx-0.02,yF+Hr*0.58+0.25,zc-0.4);disc.rotation.y=-Math.PI/2;g.add(disc);
+  pl(0.8,0.08,0xd4d4d4,rx-0.01,yF+Hr*0.58-0.42,zc-0.4,-Math.PI/2);pl(0.55,0.06,0xbcbcbc,rx-0.01,yF+Hr*0.58-0.58,zc-0.4,-Math.PI/2);
+  // left wall: round clock
+  const lx=-Rw+0.02,ck=new THREE.Mesh(new THREE.CircleGeometry(0.42,40),M(0xa5a5a5));ck.position.set(lx,yF+Hr*0.66,zc+0.6);ck.rotation.y=Math.PI/2;g.add(ck);
+  const cf=new THREE.Mesh(new THREE.CircleGeometry(0.36,40),M(0xf3f3f3));cf.position.set(lx+0.01,yF+Hr*0.66,zc+0.6);cf.rotation.y=Math.PI/2;g.add(cf);
+  pl(0.035,0.26,0x555555,lx+0.02,yF+Hr*0.66+0.11,zc+0.6,Math.PI/2);const hh=pl(0.035,0.2,0x555555,lx+0.02,yF+Hr*0.66,zc+0.6+0.08,Math.PI/2);hh.rotation.z=1.1;
+  // front wall: door
+  const fz=zc+Rd-0.02;pl(1.5,3.3,0xcdcdcd,Rw*0.45,yF+1.65,fz,Math.PI);pl(1.3,1.35,0xc2c2c2,Rw*0.45,yF+2.35,fz-0.01,Math.PI);pl(1.3,1.25,0xc2c2c2,Rw*0.45,yF+0.85,fz-0.01,Math.PI);
+  cyl(0.07,0.07,0.08,0x8a8a8a,Rw*0.45-0.55,yF+1.6,fz-0.04,16).rotation.x=Math.PI/2;
+  // back left corner: floor lamp
+  const lpx=-Rw+0.7,lpz=zc-Rd+0.7;cyl(0.32,0.36,0.06,0x7a7a7a,lpx,yF+0.03,lpz);cyl(0.035,0.035,3.1,0x7a7a7a,lpx,yF+1.6,lpz,10);
+  const shade=new THREE.Mesh(new THREE.CylinderGeometry(0.3,0.55,0.6,28,1,true),M(0xdedede,{side:THREE.DoubleSide}));shade.position.set(lpx,yF+3.25,lpz);g.add(shade);
+  // front right: beanbag; front left: potted plant
+  const bb=new THREE.Mesh(new THREE.SphereGeometry(0.75,28,18),M(0xb3b3b3));bb.scale.set(1.15,0.62,1.05);bb.position.set(Rw-1.3,yF+0.45,zc+Rd-1.4);g.add(bb);
+  const bt=new THREE.Mesh(new THREE.SphereGeometry(0.5,24,14),M(0xa6a6a6));bt.scale.set(1,0.5,0.9);bt.position.set(Rw-1.45,yF+0.86,zc+Rd-1.15);g.add(bt);
+  const ppx=-Rw+0.8,ppz=zc+Rd-0.9;cyl(0.32,0.25,0.6,0x8d8d8d,ppx,yF+0.3,ppz);
+  [[0,1.05,0,0.42,0x7f7f7f],[0.25,0.85,0.12,0.32,0x8f8f8f],[-0.22,0.9,-0.1,0.3,0x737373],[0.05,1.35,0.08,0.26,0x8a8a8a]].forEach(([x,y,z,r,c])=>{const l=new THREE.Mesh(new THREE.SphereGeometry(r,18,12),M(c));l.position.set(ppx+x,yF+y,ppz+z);g.add(l);});
+  g.traverse(o=>{o.userData.room=1;});return g;}
+function setTankView(on){if(on===TV.on)return;TV.on=on;if(on){TV.zoom=TV.zs=1.35;if(toy)endToy(true);buildTankBox();TV.box.visible=true;clipTank(true);TV.fogN=scene.fog.near;TV.fogF=scene.fog.far;
     document.body.classList.add('viewing');$('#viewBar').hidden=false;say('');}
   else{document.body.classList.remove('viewing');$('#viewBar').hidden=true;TV.pts.clear();}S.lastTouch=T;}
 function tankViewCam(dt){TV.t=clamp(TV.t+(TV.on?1:-1)*dt/0.75);TV.zs=damp(TV.zs,TV.zoom,10,dt);const e=TV.t*TV.t*(3-2*TV.t);
-  if(TV.t<=0&&!TV.on){if(TV.box&&TV.box.visible){TV.box.visible=false;renderer.clippingPlanes=[];scene.fog.near=TV.fogN;}return false;}
+  if(TV.t<=0&&!TV.on){if(TV.box&&TV.box.visible){TV.box.visible=false;clipTank(false);scene.fog.near=TV.fogN;}return false;}
   scene.fog.near=lerp(TV.fogN,200,e);scene.fog.far=lerp(TV.fogF,400,e);
   const o=new V3(Math.sin(TV.yaw)*Math.cos(TV.pitch),Math.sin(TV.pitch),Math.cos(TV.yaw)*Math.cos(TV.pitch)).multiplyScalar(TV.D*TV.zs).add(TV.c);
   camera.position.lerpVectors(camBase,o,e);camera.lookAt(new V3().lerpVectors(camLook,TV.c,e));return true;}
 $('#tvBtn').onclick=()=>setTankView(true);$('#viewDone').onclick=()=>setTankView(false);
 // one finger turns the tank; two fingers pinch to zoom; on a computer, scroll to zoom
-const tvZoom=z=>{TV.zoom=clamp(z,0.28,1.6);S.lastTouch=T;};
+const tvZoom=z=>{TV.zoom=clamp(z,0.28,2.3);S.lastTouch=T;};
 cv.addEventListener('pointerdown',e=>{if(!TV.on)return;TV.pts.set(e.pointerId,{x:e.clientX,y:e.clientY});
   if(TV.pts.size===2){const [a,b]=[...TV.pts.values()];TV.pinch=Math.hypot(a.x-b.x,a.y-b.y);TV.drag=null;}else TV.drag={x:e.clientX,y:e.clientY};S.lastTouch=T;e.stopImmediatePropagation();},true);
 cv.addEventListener('pointermove',e=>{if(!TV.on)return;e.stopImmediatePropagation();if(!TV.pts.has(e.pointerId))return;TV.pts.set(e.pointerId,{x:e.clientX,y:e.clientY});S.lastTouch=T;
