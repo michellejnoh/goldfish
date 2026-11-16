@@ -63,7 +63,7 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
 .card .icon{padding:6px 0 6px 12px}
 .mini{font-size:15px;color:var(--soft);padding:6px 0;letter-spacing:.02em}
 .bottom{bottom:0;padding-bottom:calc(env(safe-area-inset-bottom,0px) + 8px);display:flex;flex-direction:column;align-items:center;gap:2px}
-#cap{pointer-events:none;margin:0;font-size:16px;color:var(--soft);text-align:center;min-height:1.3em;max-width:34ch;letter-spacing:.01em}
+#cap{pointer-events:none;margin:0;text-wrap:balance;font-size:16px;color:var(--soft);text-align:center;min-height:1.3em;max-width:34ch;letter-spacing:.01em}
 .tools{display:flex;justify-content:space-between;width:100%;max-width:440px}
 .tools button.nudge{position:relative}
 .tools button.nudge::after{content:"";position:absolute;top:6px;right:-2px;width:7px;height:7px;border-radius:50%;background:var(--ink);animation:nudge 1.4s ease-in-out infinite}
@@ -139,7 +139,7 @@ body.visiting .ui,body.visiting #say{display:none}
 .langrow{display:flex;gap:18px;justify-content:flex-end;margin-bottom:-6px}
 .langrow .link[aria-pressed="true"]{color:#111;text-decoration-thickness:2px}
 .growrow{display:flex;align-items:flex-end;justify-content:space-between;gap:2px;margin-top:-4px}
-.growrow span{display:flex;flex-direction:column;align-items:center;gap:2px;font-size:12px;color:#9a9a9a;flex:1}
+.growrow span{display:flex;flex-direction:column;align-items:center;gap:2px;font-size:12px;color:#9a9a9a;flex:1;min-width:0;white-space:nowrap}
 .growrow img{display:block;height:auto}
 .growrow span.no img{opacity:.22;filter:grayscale(1)}
 .growrow span.now{color:#111}
@@ -257,7 +257,7 @@ body.visiting .ui,body.visiting #say{display:none}
 <div class="sheet" id="tank" hidden>
   <div class="card">
     <h2>edit</h2>
-    <button type="button" class="mrow" id="fishMenuBtn"><span class="mi"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.8 12c2.6-4.2 7.4-5.6 11.4-3.4L19.5 5v14l-5.3-3.6C10.2 17.6 5.4 16.2 2.8 12z"/><circle cx="7.6" cy="11.2" r=".9" fill="currentColor"/></svg></span><span class="mt"><b>your fish</b><small>colour &amp; pattern</small></span></button>
+    <button type="button" class="mrow" id="fishMenuBtn"><span class="mi"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.8 12c2.6-4.2 7.4-5.6 11.4-3.4L19.5 5v14l-5.3-3.6C10.2 17.6 5.4 16.2 2.8 12z"/><circle cx="7.6" cy="11.2" r=".9" fill="currentColor"/></svg></span><span class="mt"><b>your fish</b><small>colour, pattern, skin &amp; friends</small></span></button>
     <button type="button" class="mrow" id="waterMenuBtn"><span class="mi"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.5c3.2 3.8 6 7.4 6 10.6a6 6 0 0 1-12 0c0-3.2 2.8-6.8 6-10.6z"/><path d="M9 14.5a3 3 0 0 0 2.5 2.8"/></svg></span><span class="mt"><b>water</b><small>clear, blue or green</small></span></button>
     <button type="button" class="mrow" id="decorMenuBtn"><span class="mi"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 20h14"/><path d="M12 20v-7"/><path d="M12 13c0-3.2-2.2-5.4-5.6-5.4 0 3.2 2.2 5.4 5.6 5.4z"/><path d="M12 11c0-3.4 2.3-5.8 5.8-5.8 0 3.4-2.3 5.8-5.8 5.8z"/></svg></span><span class="mt"><b>decorations</b><small>shop, move &amp; pebbles</small></span></button>
     <div class="row2"><span></span><button type="button" class="go" id="tankClose">close</button></div>
@@ -344,7 +344,7 @@ body.visiting .ui,body.visiting #say{display:none}
   <div class="card">
     <h2 id="misTitle">level 1</h2>
     <p id="misXp"></p>
-    <p class="small">growth</p>
+    <p class="small">growth · by level</p>
     <div class="growrow" id="growRow"></div>
     <p class="small">today</p>
     <div class="mis" id="misList"></div>
@@ -400,7 +400,7 @@ const KO={
 '25 shades to choose from':'25가지 색 중에서 골라요','On iPhone, touch and hold the picture, then choose Save to Photos.':'아이폰에서는 사진을 길게 누른 뒤 ‘사진 앱에 저장’을 고르세요.',
 'a cool, soft tint':'시원하고 은은한 푸른빛','a little mossy':'살짝 이끼 낀 느낌','bright and plain':'맑고 깨끗하게',
 'achievements':'업적','add pebbles':'자갈 놓기','remove pebbles':'자갈 치우기','back':'뒤로','close':'닫기','done':'완료','download':'다운로드',
-'buy winter decorations with xp':'경험치로 겨울 장식 사기','clear, blue or green':'투명, 파랑, 초록','colour':'색','colour & pattern':'색과 무늬',
+'buy winter decorations with xp':'경험치로 겨울 장식 사기','clear, blue or green':'투명, 파랑, 초록','colour':'색','colour & pattern':'색과 무늬','colour, pattern, skin & friends':'색, 무늬, 스킨, 친구 물고기',
 'decorations':'장식','drag them, twist to rotate':'끌어서 옮기고 비틀어 돌리기','edit':'편집','fish colour':'금붕어 색','keep it':'이 이름으로 할게요',
 'keeper':'키퍼','move & turn':'옮기기 · 돌리기','move decorations':'장식 옮기기','pattern':'무늬','pick another':'다른 이름 고르기',
 'rub over them to pick up':'문질러서 줍기','save':'저장','shop':'상점','shop, move & pebbles':'상점, 옮기기, 자갈','fade, dark fins & patches':'그러데이션, 진한 지느러미, 얼룩',
@@ -421,7 +421,7 @@ const KO={
 'toy · drag the lure and let your fish chase it':'장난감 · 미끼를 끌면 금붕어가 쫓아와요','sleep · turns the lights off so your fish can rest':'재우기 · 불을 꺼서 금붕어를 쉬게 해요',
 'missions · three goals a day for xp. your fish grows every 5 levels':'미션 · 하루 세 가지 목표로 xp를 모아요. 5레벨마다 금붕어가 자라요',
 'edit · your fish’s colour and pattern, the water, and decorations':'편집 · 금붕어 색과 무늬, 물 색, 장식을 바꿔요','tank view · see the whole tank and turn it around':'어항 보기 · 어항 전체를 보고 돌려 봐요',
-'camera · take a picture of your tank':'카메라 · 어항 사진을 찍어요','your keeper name · tap to switch keepers':'키퍼 이름 · 탭하면 다른 키퍼로 바꿔요','growth':'성장','Take picture':'사진 찍기','Sound on':'소리 켜짐','Sound off':'소리 꺼짐','Tank view':'어항 보기','drag to turn · pinch to zoom':'끌어서 돌리기 · 두 손가락으로 확대','Zoom in':'확대','Zoom out':'축소','Goldfish tank. Tap, drag and feed to interact.':'금붕어 수조. 탭하고 끌고 먹이를 주며 놀아 주세요.',
+'camera · take a picture of your tank':'카메라 · 어항 사진을 찍어요','your keeper name · tap to switch keepers':'키퍼 이름 · 탭하면 다른 키퍼로 바꿔요','growth':'성장','growth · by level':'성장 · 레벨별','Take picture':'사진 찍기','Sound on':'소리 켜짐','Sound off':'소리 꺼짐','Tank view':'어항 보기','drag to turn · pinch to zoom':'끌어서 돌리기 · 두 손가락으로 확대','Zoom in':'확대','Zoom out':'축소','Goldfish tank. Tap, drag and feed to interact.':'금붕어 수조. 탭하고 끌고 먹이를 주며 놀아 주세요.',
 ': check the Firestore rules':': Firestore 규칙을 확인해 주세요',': is the Firestore database created?':': Firestore 데이터베이스가 만들어졌는지 확인해 주세요'};
 const KO_RX=[
 [/^(.+) is nosing at the surface\.$/,'$1, 수면에서 뻐끔거리고 있어요.'],[/^(.+) is drifting low\.$/,'$1, 바닥 가까이 떠 있어요.'],
@@ -1513,7 +1513,7 @@ $('#who').onclick=()=>{persistLocal();cloudPut();openLogin();};
 function renderMissions(){if(!PROG)return;ensureDaily();const d=PROG.daily;
   {const g=growStage(),el=$('#growRow');el.textContent='';
     for(let k=0;k<=10;k++){const sp=document.createElement('span');sp.className=k<=g?(k===g?'now':''):'no';const im=document.createElement('img');im.src=fishThumb(lookOf(),k);im.alt='';
-      im.style.width='100%';const t=document.createElement('i');t.style.fontStyle='normal';t.textContent='lv '+k*5;sp.append(im,t);el.appendChild(sp);}}
+      im.style.width='100%';const t=document.createElement('i');t.style.fontStyle='normal';t.textContent=String(k*5);sp.append(im,t);el.appendChild(sp);}}
   $('#misTitle').textContent='level '+PROG.level+(PROG.level>=MAXL?' · max':'');
   $('#misXp').textContent=PROG.level>=MAXL?'Every level reached.':(PROG.exp+' / '+need(PROG.level)+' xp to level '+(PROG.level+1));
   const row=(txt,right,done)=>'<span class="'+(done?'done':'')+'">'+txt+'</span><em>'+right+'</em>';
@@ -1758,9 +1758,10 @@ function friendsTick(dt){for(const f of FRIENDS){f.t-=dt;if(f.t<=0||f.pos.distan
 /* quiet feedback: a gift image that rises and fades with a short line of text, and a peek at the tank after a change made in a menu */
 function giftFly(src,from,label){if(!src)return;const W=110,im=document.createElement('img');im.className='fx-fly';im.src=src;im.alt='';
   im.style.cssText='left:'+(innerWidth/2-W/2)+'px;top:'+(innerHeight*0.42-W/2)+'px;width:'+W+'px;height:'+W+'px';document.body.appendChild(im);
-  im.animate([{opacity:0,transform:'translateY(14px)'},{opacity:1,transform:'translateY(0)',offset:.2},{opacity:1,transform:'translateY(-6px)',offset:.65},{opacity:0,transform:'translateY(-40px)'}],{duration:1800,easing:'ease-out'}).onfinish=()=>im.remove();
+  const K=[{opacity:0,y:8,offset:0},{opacity:1,y:0,offset:.18},{opacity:1,y:-4,offset:.72},{opacity:0,y:-14,offset:1}],D={duration:2000,easing:'ease-out'};
+  im.animate(K.map(k=>({opacity:k.opacity,offset:k.offset,transform:'translateY('+k.y+'px)'})),D).onfinish=()=>im.remove();
   if(label){const t=document.createElement('div');t.className='fx-sent';t.textContent=label;document.body.appendChild(t);
-    t.animate([{opacity:0,transform:'translate(-50%,6px)'},{opacity:1,transform:'translate(-50%,0)',offset:.2},{opacity:1,offset:.75},{opacity:0}],{duration:2000,easing:'ease-out'}).onfinish=()=>t.remove();}}
+    t.animate(K.map(k=>({opacity:k.opacity,offset:k.offset,transform:'translate(-50%,'+k.y+'px)'})),D).onfinish=()=>t.remove();}}
 function toScreen(o,dy){const v=new V3();o.getWorldPosition(v);if(dy)v.y+=dy;v.project(camera);return {x:(v.x+1)/2*innerWidth,y:(1-v.y)/2*innerHeight};}
 function fxNote(text,p){const t=document.createElement('div');t.className='fx-note';t.textContent=text;const x=clamp(p.x,90,innerWidth-90),y=clamp(p.y,90,innerHeight-120);
   t.style.left=x+'px';t.style.top=y+'px';document.body.appendChild(t);
