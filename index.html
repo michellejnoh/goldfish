@@ -1992,7 +1992,7 @@ function buildRoom(F,W,y0,yG,z0,z1){
     s.moveTo(-iw/2+cr,-ih/2);s.lineTo(iw/2-cr,-ih/2);s.quadraticCurveTo(iw/2,-ih/2,iw/2,-ih/2+cr);s.lineTo(iw/2,ih/2-cr);s.quadraticCurveTo(iw/2,ih/2,iw/2-cr,ih/2);s.lineTo(-iw/2+cr,ih/2);s.quadraticCurveTo(-iw/2,ih/2,-iw/2,ih/2-cr);s.lineTo(-iw/2,-ih/2+cr);s.quadraticCurveTo(-iw/2,-ih/2,-iw/2+cr,-ih/2);
     const g=new THREE.ExtrudeGeometry(s,{depth:Math.max(0.01,d-2*r),bevelEnabled:true,bevelThickness:r,bevelSize:r,bevelSegments:4,curveSegments:6});g.translate(0,0,-(d-2*r)/2);return mk(g,c,p,x,y,z);};
   const soft=(m,k)=>{const g=m.geometry;if(!g.attributes.normal)g.computeVertexNormals();const n=g.attributes.normal,col=[],L=new V3(0.3,0.85,0.45).normalize();
-    for(let i=0;i<n.count;i++){const d=Math.max(0,n.getX(i)*L.x+n.getY(i)*L.y+n.getZ(i)*L.z),v=1-k*(1-d);col.push(v,v,v);}g.setAttribute('color',new THREE.Float32BufferAttribute(col,3));
+    for(let i=0;i<n.count;i++){const dd=n.getX(i)*L.x+n.getY(i)*L.y+n.getZ(i)*L.z,d=m.material.side===THREE.DoubleSide?Math.abs(dd):Math.max(0,dd),v=1-k*(1-d);col.push(v,v,v);}g.setAttribute('color',new THREE.Float32BufferAttribute(col,3));
     const mm=m.material.clone();mm.vertexColors=true;m.material=mm;return m;};
   const lumpy=(m,amp,f,seed)=>{const g=m.geometry;g.computeBoundingBox();const bb=g.boundingBox,c=bb.getCenter(new V3()),h=bb.getSize(new V3()).multiplyScalar(0.5),p=g.attributes.position,o=seed||0;
     for(let i=0;i<p.count;i++){const x=p.getX(i),y=p.getY(i),z=p.getZ(i),dx=(x-c.x)/(h.x||1),dy=(y-c.y)/(h.y||1),dz=(z-c.z)/(h.z||1),L=Math.hypot(dx,dy,dz)||1;
@@ -2099,7 +2099,7 @@ cyl(w,0.6,0.6,1.5,0x777777,42,196,1.8,8).rotation.x=Math.PI/2;}
     for(let r=0;r<4;r++)for(let c=0;c<3;c++)pl(ph,0.9,0.6,0xa5a5a5,(c-1)*1.2,1.25,0.6+r*0.9).rotation.x=-Math.PI/2;
     box(D,12.5,1,14,0xc9c9c9,-50,75.5,26).rotation.y=0.2;
     // mesh office chair: five arms on casters, gas lift, padded seat, mesh back, armrests
-    const ch=grp(D,8,0,52,0.25);for(let i=0;i<5;i++){const a=i/5*Math.PI*2,leg=box(ch,26,2.4,3.6,0x4f4f4f,Math.cos(a)*13,6.5,Math.sin(a)*13);leg.rotation.y=-a;
+    const ch=grp(D,8,0,66,Math.PI+0.25);for(let i=0;i<5;i++){const a=i/5*Math.PI*2,leg=box(ch,26,2.4,3.6,0x4f4f4f,Math.cos(a)*13,6.5,Math.sin(a)*13);leg.rotation.y=-a;
       const cs=grp(ch,Math.cos(a)*26,2.6,Math.sin(a)*26,-a);cyl(cs,2.4,2.4,2.4,0x333333,0,0,0,14).rotation.x=Math.PI/2;box(cs,1,4,3,0x4f4f4f,0,2.5,0);}
     cyl(ch,2.8,2.8,6,0x4f4f4f,0,9,0,14);cyl(ch,1.6,1.6,28,0x8f8f8f,0,24,0,14);box(ch,20,3,20,0x4f4f4f,0,38.5,0);rbox(ch,48,7,46,3,0x6a6a6a,0,43,0);
     const mesh=tex(128,128,(x,w,h)=>{x.fillStyle='#6a6a6a';x.fillRect(0,0,w,h);x.strokeStyle='#878787';x.lineWidth=1;for(let i=0;i<w;i+=6){x.beginPath();x.moveTo(i,0);x.lineTo(i,h);x.stroke();x.beginPath();x.moveTo(0,i);x.lineTo(w,i);x.stroke();}});
@@ -2121,29 +2121,41 @@ cyl(w,0.6,0.6,1.5,0x777777,42,196,1.8,8).rotation.x=Math.PI/2;}
     for(let s=0;s<5;s++){const sy=4+s*35;box(bk,76,2,29,0xa6a6a6,0,sy,0);if(s===4)continue;let xx=-36;const seed=s*7;
       while(xx<34){const bw=2+((xx*13+seed*7)&3)*0.9,bh=20+((xx*7+seed)%9),lean=xx>24&&s===1;const b2=box(bk,bw,bh,20,[0xd7d7d7,0x6b6b6b,0xb0b0b0,0x8e8e8e,0xc4c4c4,0x7b7b7b][Math.abs(Math.round(xx*3+seed))%6],xx+bw/2,sy+1+bh/2,2);
         if(lean){b2.rotation.z=-0.35;b2.position.x+=3;b2.position.y-=1.5;}pl(bk,bw*0.7,1.2,0xe8e8e8,xx+bw/2,sy+1+bh*0.75,12.2);xx+=bw+0.4;if(lean)break;}}
-    // trailing pothos on top of the bookcase
-    cyl(bk,6,4.5,9,0x8d8d8d,22,184.5,0,16);const leaf=new THREE.Shape();leaf.moveTo(0,0);leaf.bezierCurveTo(-3,1,-3.4,4,0,6.5);leaf.bezierCurveTo(3.4,4,3,1,0,0);
-    const LG=new THREE.ShapeGeometry(leaf,8);for(let v=0;v<5;v++){let px=22+(v-2)*2.5,py=189,pz=(v%2)*2;for(let k=0;k<7;k++){const lf=mk(LG,M(k%2?0x7a7a7a:0x8a8a8a,{side:THREE.DoubleSide}),bk,px,py,pz+6);
-      lf.rotation.set(-0.6+Math.random()*0.4,(v-2)*0.3,Math.PI+((k%2)?0.6:-0.6));py-=k===0?2:7;px+=(v-2)*1.2;pz+=1.2;}}
-    box(bk,14,10,10,0x9e9e9e,-20,185,0);pl(bk,12,8,0x555555,-20,185,5.2);}
+    // two shoeboxes stacked on top of the bookcase, set back from the edge
+    for(const [yy,ww,dd,ry,c] of [[180,34,20,0.06,0x9e9e9e],[192,30,18,-0.1,0xb4b4b4]]){const sb=grp(bk,-8,yy,-2,ry);box(sb,ww,10,dd,c,0,5,0);box(sb,ww+1,3,dd+1,c-0x0c0c0c,0,9.6,0);pl(sb,8,4,0xe6e6e6,ww*0.25,5,dd/2+0.6);}}
   // ---------- bed: frame, slatted headboard, rounded mattress, a duvet that drapes over the sides, two pillows, a teddy bear ----------
   // ---------- bed: low frame, a rumpled white duvet hanging over the sides and foot, rectangular pillows, plush toys slumped against them ----------
   {const bd=grp(root,hx-54,0,30);rbox(bd,104,16,206,2,0x8f8f8f,0,14,0);for(const sx of [-1,1])for(const sz of [-1,1])cyl(bd,2.6,2.2,7,0x7a7a7a,sx*47,3.5,sz*97,12);
     lumpy(rbox(bd,100,22,200,5,0xd9d9d9,0,33,0),0.5,0.07,1);
-    // duvet: one cloth over the mattress, draping down both long sides and the foot, with soft wrinkles
-    {const Wt=100,Lt=150,Hs=22,Hf=20,nx=56,nz=60,pos=[],idx=[];
-      for(let j=0;j<=nz;j++)for(let i=0;i<=nx;i++){const sx=-(Wt/2+Hs)+i/nx*(Wt+2*Hs),tz=-Lt/2+j/nz*(Lt+Hf);let x=sx,y=0,z=tz;
-        const ex=Math.abs(sx)-Wt/2;if(ex>0){const r=Math.min(ex,5);x=Math.sign(sx)*(Wt/2+Math.sin(r/5*Math.PI/2)*5+Math.max(0,ex-5)*0.12);y=-(ex>5?5*(1-Math.cos(Math.PI/2))+ex-5+ (5-5*Math.cos(r/5*Math.PI/2)):5-5*Math.cos(r/5*Math.PI/2));}
-        const ez=tz-Lt/2;if(ez>0){const r=Math.min(ez,5);z=Lt/2+Math.sin(r/5*Math.PI/2)*5+Math.max(0,ez-5)*0.1;y-=ez>5?ez:5-5*Math.cos(r/5*Math.PI/2);}
-        const w=1.6*Math.sin(sx*0.09+tz*0.03)*Math.sin(tz*0.07)+1.1*Math.sin(sx*0.21-tz*0.05+1)+0.7*Math.sin(tz*0.19+sx*0.04)+(Math.abs(sx)<Wt/2&&tz<Lt/2?2.2*Math.cos(sx/Wt*Math.PI)*Math.sin((tz+Lt/2)/Lt*Math.PI):0);
-        pos.push(x,y+w*(ex>0||ez>0?0.55:1),z);}
+    // duvet: one cloth over the mattress, draping down both long sides and the foot, with soft wrinkles;
+    // its head end is turned down in one continuous piece (a soft curl and a band lying back on top), not a separate roll
+    {const Wt=100,Lt=150,Hs=22,Hf=20,R=5,rho=1.8,Fd=24,nx=60,nz=80,pos=[],idx=[];
+      const base=(sx,tz)=>{let x=sx,y=0,z=tz,nX=0,nY=1,nZ=0;const ex=Math.abs(sx)-Wt/2,sg=Math.sign(sx);
+        if(ex>0){const r=Math.min(ex,R),th=r/R*Math.PI/2;x=sg*(Wt/2+Math.sin(th)*R+Math.max(0,ex-R)*0.12);y=-(R-R*Math.cos(th))-Math.max(0,ex-R);nX=sg*Math.sin(th);nY=Math.cos(th);}
+        const ez=tz-Lt/2;if(ez>0){const r=Math.min(ez,R),th=r/R*Math.PI/2;z=Lt/2+Math.sin(th)*R+Math.max(0,ez-R)*0.1;y-=(R-R*Math.cos(th))+Math.max(0,ez-R);nZ=Math.sin(th);nY*=Math.cos(th);}
+        return [x,y,z,nX,nY,nZ];};
+      const WV=[[0.07,0.03,0,1.1],[-0.05,0.08,1.3,0.9],[0.13,-0.11,2.1,0.55],[0.04,0.17,4.2,0.45],[-0.19,0.06,0.7,0.35],[0.23,0.21,3.3,0.25],[-0.31,0.27,5.1,0.15]];
+      const wr=(sx,tz)=>{let v=0;for(const [a2,b2,p,am] of WV){const q=Math.sin(sx*a2+tz*b2+p+0.6*Math.sin(sx*0.05-tz*0.04+p));v+=am*q*Math.abs(q);}return v*1.6+0.5*Math.sin(sx*0.02+tz*0.015)*Math.sin(tz*0.05+1)
+        +(Math.abs(sx)<Wt/2&&tz<Lt/2?2*Math.cos(sx/Wt*Math.PI)*Math.sin((tz+Lt/2)/Lt*Math.PI):0);};
+      for(let j=0;j<=nz;j++)for(let i=0;i<=nx;i++){const sx=-(Wt/2+Hs)+i/nx*(Wt+2*Hs),tp=-Lt/2-Fd+j/nz*(Lt+Hf+Fd);let P,lift=0,k=1,tz=tp;
+        if(tp<-Lt/2){const s2=-Lt/2-tp;if(s2<Math.PI*rho){const a2=s2/rho;tz=-Lt/2-rho*Math.sin(a2);lift=rho*(1-Math.cos(a2));}else{tz=-Lt/2+(s2-Math.PI*rho);lift=2*rho;}k=0.45;
+          const ex=Math.abs(sx)-Wt/2;if(ex>12){P=base(Math.sign(sx)*(Wt/2+12),tz);}}
+        P=P||base(sx,tz);const ex=Math.abs(sx)-Wt/2,ez=tz-Lt/2;let w0=wr(sx,tp)*k*(ex>0||ez>0?0.55:1);if(ex<=0&&ez<=0&&w0<0)w0*=0.25;const w=w0+lift;
+        pos.push(P[0]+P[3]*w,P[1]+P[4]*w,P[2]+P[5]*w);}
       for(let j=0;j<nz;j++)for(let i=0;i<nx;i++){const a2=j*(nx+1)+i,b2=a2+nx+1;idx.push(a2,b2,a2+1,b2,b2+1,a2+1);}
       const dg=new THREE.BufferGeometry();dg.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));dg.setIndex(idx);
-      dg.computeVertexNormals();soft(mk(dg,M(0xf6f6f6,{side:THREE.DoubleSide}),bd,0,46,25),0.28);
-      const roll=mk(new THREE.CylinderGeometry(4,4,104,24,8),0xf7f7f7,bd,0,48,-50);roll.rotation.z=Math.PI/2;lumpy(roll,0.9,0.15,3);}
-    // two rectangular pillows, one slightly on top of the other
-    lumpy(rbox(bd,60,12,38,5.5,0xf5f5f5,-12,52,-80),1.3,0.12,5).rotation.set(0.04,0.06,0.03);
-    const p2=lumpy(rbox(bd,58,11,36,5,0xeeeeee,14,57,-76),1.2,0.13,9);p2.rotation.set(-0.32,-0.12,-0.06);
+      dg.computeVertexNormals();soft(mk(dg,M(0xf6f6f6,{side:THREE.DoubleSide}),bd,0,46.5,25),0.28);}
+    // pillows in pillowcases: stuffed in the middle, flattening to a sewn edge with pinched corners, the open end of the case lying flat
+    const pillow=(w,d,H,c,x,y,z,ry,seed)=>{const nu=40,nv=24,fl=0.16,pos=[],idx=[],C=nu+1;
+      for(const sd of [1,-1])for(let j=0;j<=nv;j++)for(let i=0;i<=nu;i++){const u=-1+i/nu*(2+fl),v=-1+j/nv*2,uu=Math.min(Math.abs(u),1),
+          b=Math.pow(Math.max(0,1-Math.pow(uu,4)),0.55)*Math.pow(Math.max(0,1-Math.pow(Math.abs(v),4)),0.55),
+          wk=(Math.sin(u*9+seed)*Math.sin(v*7+seed*2)*0.1+Math.sin(u*17+v*5+seed)*0.05+Math.sin(u*31-v*13+seed)*0.025)*b;
+        let yy=sd*(H*b*(sd>0?1:0.8)+H*wk);if(u>1){const f=(u-1)/fl;yy=sd*0.12+0.5*Math.sin(v*8+seed)*f;}
+        pos.push(u*w/2*(1-0.045*(1-v*v)*(u<=1?1:0)),yy+H*0.8,v*d/2*(1-0.07*(1-uu*uu)));}
+      for(let L=0;L<2;L++)for(let j=0;j<nv;j++)for(let i=0;i<nu;i++){const o=L*(nv+1)*C,a2=o+j*C+i,b2=a2+C;if(L)idx.push(a2,a2+1,b2,b2,a2+1,b2+1);else idx.push(a2,b2,a2+1,b2,b2+1,a2+1);}
+      const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));g.setIndex(idx);g.computeVertexNormals();
+      const m=soft(mk(g,M(c,{side:THREE.DoubleSide}),bd,x,y,z),0.3);m.rotation.y=ry;return m;};
+    pillow(44,30,6,0xf6f6f6,-24,44.2,-80,0.05,1);pillow(44,30,6,0xededed,24,44.2,-81,-0.04,4).scale.x=-1;
     // teddy bear slumped against the pillows, head tipped, legs out in front
     const tb=grp(bd,-26,46.5,-60,0.5),fur=0xcdcdcd;tb.rotation.x=-0.38;tb.rotation.z=0.12;
     lumpy(sph(tb,8,fur,0,7,0,1.05,1.05,0.9),0.35,0.5,2);const hd=grp(tb,1.2,18.6,0.6);hd.rotation.z=-0.32;hd.rotation.x=0.18;
@@ -2218,12 +2230,20 @@ cyl(w,0.6,0.6,1.5,0x777777,42,196,1.8,8).rotation.x=Math.PI/2;}
     line(B2,[[-10,22.6,12.8],[10,22.6,12.8]],0x3e3e3e);rbox(B2,5,4,0.8,0.6,0x4a4a4a,0,9,13.4);line(B2,[[-8,31,11.6],[8,31,11.6]],0x3e3e3e);for(const xx of [10,8]){box(B2,1,3.5,0.6,0xb0b0b0,xx,20.5,13.2);}
     const hdl=mk(new THREE.TorusGeometry(4,0.8,6,16,Math.PI),0x555555,B2,0,41,0);for(const sx of [-8,8]){curve(B2,[[sx,38,-9],[sx*1.2,24,-12],[sx,6,-10]],1.2,0x5a5a5a);}
     curve(B2,[[11,21,13],[12,17,14],[11.5,13,14.5]],0.25,0xa0a0a0);sph(B2,1.8,0xd0d0d0,11.5,11.5,14.6);sph(B2,1.4,0x8a8a8a,9,13,14.4,1,1,0.6);}
-  for(const sx of [-6,6]){const sl=grp(root,8+sx,0,hz-44,0.12+sx*0.01);rbox(sl,10,2.2,24,1,0x9a9a9a,0,1.1,0);sph(sl,5.2,0xd6d6d6,0,3.4,-4,0.95,0.55,1.25);mk(new THREE.TorusGeometry(4.2,1.6,8,20),0xe4e4e4,sl,0,4.4,1.5).rotation.x=Math.PI/2;}
+  {const sole=new THREE.Shape();sole.moveTo(0,-12);sole.bezierCurveTo(4.6,-12,5,-6,4.4,-1);sole.bezierCurveTo(4,4,5.4,8,4.2,11);sole.bezierCurveTo(3,13.6,-3,13.6,-4.2,11);
+    sole.bezierCurveTo(-5,8,-3.6,4,-3.8,-1);sole.bezierCurveTo(-4.4,-6,-4.6,-12,0,-12);const SG2=new THREE.ExtrudeGeometry(sole,{depth:1.6,bevelEnabled:true,bevelThickness:0.6,bevelSize:0.6,bevelSegments:3,curveSegments:20});
+    const up=new THREE.SphereGeometry(1,28,14,0,Math.PI,0,Math.PI/2);
+    [[-7,0.15,1],[6,-0.35,-1]].forEach(([dx,ry,mir])=>{const sl=grp(root,8+dx,0,hz-44+(mir<0?4:0),ry);sl.scale.x=mir;
+      const so=mk(SG2,0x8c8c8c,sl,0,0.6,0);so.rotation.x=-Math.PI/2;
+      const u2=mk(up.clone(),M(0xdedede,{side:THREE.DoubleSide}),sl,0.2,2.6,6);u2.scale.set(5.2,5,7.8);u2.rotation.y=Math.PI/2;lumpy(u2,0.25,1.6,dx);
+      for(let i=0;i<14;i++){const a3=i/13*Math.PI;sph(sl,1,0xe8e8e8,Math.cos(a3)*5.1,2.6+Math.sin(i*1.7)*0.3,6+Math.sin(a3)*-0.2-0.2,1,1,1);}});}
   {const mg=tex(128,170,(x,w,h)=>{x.fillStyle='#d2d2d2';x.fillRect(0,0,w,h);x.fillStyle='#8a8a8a';x.fillRect(0,0,w,34);x.fillStyle='#f0f0f0';x.font='bold 22px sans-serif';x.fillText('TEEN BEAT',8,26);x.fillStyle='#a8a8a8';x.fillRect(16,50,96,90);x.fillStyle='#7a7a7a';x.fillRect(16,148,70,8);});
     for(let i=0;i<3;i++){const m=mk(new THREE.BoxGeometry(21,0.8,28),[M(0xdddddd),M(0xdddddd),M(0xffffff,{map:mg}),M(0xdddddd),M(0xdddddd),M(0xdddddd)],root,-8+i*2,0.4+i*0.85,hz-110);m.rotation.y=0.4-i*0.35;}}
   {const star=new THREE.Shape();for(let i=0;i<10;i++){const a=i/10*Math.PI*2-Math.PI/2,r=i%2?1.6:4;star.lineTo(Math.cos(a)*r,Math.sin(a)*r);}const SG=new THREE.ShapeGeometry(star),gm=M(0xeef0ea);
-    for(let i=0;i<26;i++){const st=mk(SG,gm,root,40+((i*53)%110),RH-0.4,-90+((i*97)%210));st.rotation.x=Math.PI/2;st.rotation.z=i;st.scale.setScalar(0.6+((i*29)%7)/10);}
-    const moon=new THREE.Shape();moon.absarc(0,0,7,0.6,Math.PI*2-0.6,false);moon.absarc(4,0,5.4,Math.PI*2-1.1,1.1,true);const mn=mk(new THREE.ShapeGeometry(moon,16),gm,root,95,RH-0.4,30);mn.rotation.x=Math.PI/2;}
+    let sd=7;const rn=()=>(sd=(sd*16807)%2147483647)/2147483647,pts=[];
+    while(pts.length<30){const x=20+rn()*135,z=-110+rn()*240;if(pts.some(q=>Math.hypot(q[0]-x,q[1]-z)<14))continue;pts.push([x,z]);}
+    pts.forEach(([x,z],i)=>{const st=mk(SG,gm,root,x,RH-0.4-i*0.01,z);st.rotation.x=Math.PI/2;st.rotation.z=rn()*6.28;st.scale.setScalar(0.5+rn()*0.8);});
+    const moon=new THREE.Shape();moon.absarc(0,0,7,0.6,Math.PI*2-0.6,false);moon.absarc(4,0,5.4,Math.PI*2-1.1,1.1,true);const mn=mk(new THREE.ShapeGeometry(moon,16),gm,root,70,RH-0.5,-40);mn.rotation.x=Math.PI/2;mn.rotation.z=0.6;}
   const walls={b:wall.b,f:wall.f,l:wall.l,r:wall.r,root,hx,hz};
   root.traverse(o=>{o.userData.room=1;});const g=new THREE.Group();g.add(root);g.userData.room=1;TV.walls=walls;return g;}
 function setTankView(on){if(on===TV.on)return;TV.on=on;if(on){TV.zoom=TV.zs=4;if(toy)endToy(true);buildTankBox();TV.box.visible=true;clipTank(true);TV.fogN=scene.fog.near;TV.fogF=scene.fog.far;
