@@ -1920,19 +1920,19 @@ const TVCLIP=[];
 const TV={on:false,t:0,yaw:0.6,pitch:0.32,zoom:1,zs:1,pts:new Map(),pinch:0,box:null,c:new V3(),D:6,fogN:0,fogF:0,drag:null};
 function buildTankBox(){if(TV.box)world.remove(TV.box);const F=B.floor,W=B.hw,y0=F-0.32,y1=B.surf+0.04,yG=B.surf+0.5,z0=-2.0,z1=1.02,g=new THREE.Group();
   const water=new THREE.Color(getComputedStyle(document.body).backgroundColor);
-  const glass=new THREE.Mesh(new THREE.BoxGeometry(2*W,yG-y0,z1-z0),new THREE.MeshBasicMaterial({color:water.clone().lerp(new THREE.Color(0x9fb4bd),0.35),transparent:true,opacity:0.05,depthWrite:false,side:THREE.DoubleSide}));
+  const glass=new THREE.Mesh(new THREE.BoxGeometry(2*W,yG-y0,z1-z0),new THREE.MeshBasicMaterial({color:0xd6d6d6,transparent:true,opacity:0.05,depthWrite:false,side:THREE.DoubleSide}));
   glass.position.set(0,(y0+yG)/2,(z0+z1)/2);glass.renderOrder=6;g.add(glass);
   // the water itself: a faint tint up to the waterline, and the waterline drawn round the glass
-  const wv=new THREE.Mesh(new THREE.BoxGeometry(2*W-0.01,B.surf-y0,z1-z0-0.01),new THREE.MeshBasicMaterial({color:0xa9c3cc,transparent:true,opacity:0.05,depthWrite:false,side:THREE.BackSide}));
+  const wv=new THREE.Mesh(new THREE.BoxGeometry(2*W-0.01,B.surf-y0,z1-z0-0.01),new THREE.MeshBasicMaterial({color:0xcfcfcf,transparent:true,opacity:0.05,depthWrite:false,side:THREE.BackSide}));
   wv.position.set(0,(y0+B.surf)/2,(z0+z1)/2);wv.renderOrder=5;g.add(wv);
-  const wl=new THREE.LineLoop(new THREE.BufferGeometry().setFromPoints([new V3(-W,B.surf,z0),new V3(W,B.surf,z0),new V3(W,B.surf,z1),new V3(-W,B.surf,z1)]),new THREE.LineBasicMaterial({color:0x6c8a96}));g.add(wl);
-  const rim=new THREE.Group(),rm=new THREE.MeshBasicMaterial({color:0x8a9196}),zc0=(z0+z1)/2,D0=z1-z0;
+  const wl=new THREE.LineLoop(new THREE.BufferGeometry().setFromPoints([new V3(-W,B.surf,z0),new V3(W,B.surf,z0),new V3(W,B.surf,z1),new V3(-W,B.surf,z1)]),new THREE.LineBasicMaterial({color:0x9a9a9a}));g.add(wl);
+  const rim=new THREE.Group(),rm=new THREE.MeshBasicMaterial({color:0x8a8a8a}),zc0=(z0+z1)/2,D0=z1-z0;
   for(const [w,d,x,z] of [[2*W+0.06,0.05,0,z0],[2*W+0.06,0.05,0,z1],[0.05,D0,-W,zc0],[0.05,D0,W,zc0]]){const bar=new THREE.Mesh(new THREE.BoxGeometry(w,0.05,d),rm);bar.position.set(x,yG,z);rim.add(bar);}g.add(rim);
   for(const o of [glass,wv,wl,rim,...rim.children])o.userData.room=1;
-  const edges=new THREE.LineSegments(new THREE.EdgesGeometry(glass.geometry),new THREE.LineBasicMaterial({color:0x8d979c}));edges.position.copy(glass.position);edges.userData.room=1;g.add(edges);
+  const edges=new THREE.LineSegments(new THREE.EdgesGeometry(glass.geometry),new THREE.LineBasicMaterial({color:0x8c8c8c}));edges.position.copy(glass.position);edges.userData.room=1;g.add(edges);
   const sub=new THREE.Mesh(new THREE.BoxGeometry(2*W-0.004,F-0.02-y0,z1-z0-0.004),flatMat({color:0xdcdcdc}));sub.position.set(0,(y0+F-0.02)/2,(z0+z1)/2);g.add(sub);
   const top=new THREE.Mesh(new THREE.PlaneGeometry(2*W,z1-z0),new THREE.MeshBasicMaterial({color:0xb9c9d0,transparent:true,opacity:0.12,depthWrite:false,side:THREE.DoubleSide}));
-  top.material.opacity=0.08;top.material.color.set(0xc2d4db);top.rotation.x=-Math.PI/2;top.position.set(0,B.surf,(z0+z1)/2);g.add(top);
+  top.material.opacity=0.08;top.material.color.set(0xd2d2d2);top.rotation.x=-Math.PI/2;top.position.set(0,B.surf,(z0+z1)/2);g.add(top);
   g.add(buildRoom(F,W,y0,yG,z0,z1));
   g.visible=false;world.add(g);TV.box=g;world.updateMatrixWorld(true);
   TV.c.set(0,(y0+y1)/2,(z0+z1)/2);world.localToWorld(TV.c);
@@ -1995,7 +1995,12 @@ function buildRoom(F,W,y0,yG,z0,z1){
       x.font='15px sans-serif';const days='SMTWTFS';for(let c=0;c<7;c++){x.fillStyle='#8a8a8a';x.fillText(days[c],30+c*45,320);}
       for(let r=0;r<5;r++)for(let c=0;c<7;c++){const d=r*7+c-1;x.strokeStyle='#d0d0d0';x.strokeRect(18+c*46,330+r*34,46,34);if(d>=1&&d<=30){x.fillStyle=d===17?'#333':'#888';x.fillText(String(d),24+c*46,348+r*34);}}
       x.strokeStyle='#555';x.lineWidth=2.5;x.beginPath();x.arc(18+3*46+23,330+2*34+17,15,0,Math.PI*2);x.stroke();});
-    pl(w,48,70,M(0xffffff,{map:cal}),42,160,1.6);cyl(w,0.6,0.6,1.5,0x777777,42,196,1.8,8).rotation.x=Math.PI/2;}
+    pl(w,48,70,M(0xffffff,{map:cal}),42,160,1.6);
+    const ck=grp(w,98,178,1);mk(new THREE.TorusGeometry(15,1.6,10,40),0x8f8f8f,ck,0,0,1.0);mk(new THREE.CircleGeometry(15,40),0xf3f3f3,ck,0,0,0.5);
+    for(let i=0;i<12;i++){const a=i/12*Math.PI*2,tk=pl(ck,i%3?0.6:1.2,i%3?2:3.2,0x666666,Math.sin(a)*12.4,Math.cos(a)*12.4,0.9);tk.rotation.z=-a;}
+    const hr=pl(ck,1.3,7.5,0x444444,0,0,1.3);hr.geometry.translate(0,3.2,0);hr.rotation.z=-0.9;const mn=pl(ck,0.9,11,0x444444,0,0,1.7);mn.geometry.translate(0,4.8,0);mn.rotation.z=-3.3;
+    const sc=pl(ck,0.35,12,0x9a9a9a,0,0,2.1);sc.geometry.translate(0,4.4,0);sc.rotation.z=-2.1;mk(new THREE.CircleGeometry(0.9,16),0x444444,ck,0,0,2.5);
+cyl(w,0.6,0.6,1.5,0x777777,42,196,1.8,8).rotation.x=Math.PI/2;}
   // ---------- back right corner: TV stand, CRT TV, VCR, console, controller, tapes ----------
   {const s=grp(root,hx-62,0,-hz+30);box(s,96,4,46,0x9b9b9b,0,48,0);box(s,96,4,46,0x9b9b9b,0,4,0);for(const sx of [-1,1])box(s,4,48,46,0x8e8e8e,sx*46,26,0);box(s,96,44,2,0x8a8a8a,0,26,-22);box(s,88,2.5,42,0x9b9b9b,0,26,1);
     box(s,42,8,30,0x5c5c5c,-18,10.5,2);pl(s,18,1.6,0x9a9a9a,-24,11,17.4);pl(s,8,2.6,0x3d3d3d,-6,11,17.4);
@@ -2048,8 +2053,9 @@ function buildRoom(F,W,y0,yG,z0,z1){
     for(const [yy,r] of [[13,1.8],[19,1.2],[24,1.5]])sph(lv,r,0x9c9c9c,0.3,yy,0.3,1,1.3,1);
     // portable CD player with headphones resting on the desk
     const cdp=grp(D,-26,75,12);cyl(cdp,7,7,2,0xb8b8b8,0,1,0,32);mk(new THREE.CircleGeometry(5.5,32),0xcdcdcd,cdp,0,2.05,0).rotation.x=-Math.PI/2;mk(new THREE.CircleGeometry(1.2,16),0x888888,cdp,0,2.1,0).rotation.x=-Math.PI/2;
-    const hp=grp(D,-6,75,18,0.3);mk(new THREE.TorusGeometry(8.5,0.8,10,30,Math.PI),0x5c5c5c,hp,0,8.5,0).rotation.x=0;const pad=mk(new THREE.TorusGeometry(8.5,1.2,10,30,Math.PI*0.6),0x6e6e6e,hp,0,8.5,0);pad.rotation.z=Math.PI*0.2;
-    for(const sx of [-1,1]){const cup=cyl(hp,3.6,3.6,2.6,0x555555,sx*8.6,3.6,0,22);cup.rotation.z=Math.PI/2;const cu=mk(new THREE.TorusGeometry(3.2,1.1,10,22),0x777777,hp,sx*7.2,3.6,0);cu.rotation.y=Math.PI/2;}
+    const hp=grp(D,-6,75.6,18,0.3);{const band=new THREE.CatmullRomCurve3([new V3(-7,2.6,0),new V3(-6,1.6,-5),new V3(0,1.2,-8),new V3(6,1.6,-5),new V3(7,2.6,0)]);mk(new THREE.TubeGeometry(band,30,0.55,8,false),0x4a4a4a,hp,0,0,0);
+      for(const sx of [-1,1]){const cup=cyl(hp,3.2,3.2,1.8,0x5a5a5a,sx*7.6,2.6,0.6,24);cup.rotation.z=Math.PI/2;const pad=mk(new THREE.TorusGeometry(2.6,1.0,10,24),0x8a8a8a,hp,sx*6.4,2.6,0.6);pad.rotation.y=Math.PI/2;
+        mk(new THREE.CircleGeometry(2.2,20),0x777777,hp,sx*8.6,2.6,0.6).rotation.y=sx*Math.PI/2;}}
     curve(D,[[-14,78,18],[-20,76,14],[-24,76,13],[-26,77,12]],0.2,0x444444);
     // flip phone, open, and a CD case
     const ph=grp(D,52,75.4,20,0.3);rbox(ph,5,1.2,9,0.4,0x7a7a7a,0,0.6,0);const lid=grp(ph,0,1,-4.4);lid.rotation.x=-1.9;rbox(lid,5,1,9,0.4,0x7a7a7a,0,0,-4.4);pl(lid,3.6,4.6,0x3e3e3e,0,0.55,-5).rotation.x=-Math.PI/2;
@@ -2062,8 +2068,11 @@ function buildRoom(F,W,y0,yG,z0,z1){
     const mesh=tex(128,128,(x,w,h)=>{x.fillStyle='#6a6a6a';x.fillRect(0,0,w,h);x.strokeStyle='#878787';x.lineWidth=1;for(let i=0;i<w;i+=6){x.beginPath();x.moveTo(i,0);x.lineTo(i,h);x.stroke();x.beginPath();x.moveTo(0,i);x.lineTo(w,i);x.stroke();}});
     box(ch,4,26,4,0x4f4f4f,0,58,-22);const back=new THREE.Shape();back.moveTo(-20,0);back.bezierCurveTo(-23,20,-22,40,-17,52);back.lineTo(17,52);back.bezierCurveTo(22,40,23,20,20,0);back.lineTo(-20,0);
     const bk=mk(new THREE.ExtrudeGeometry(back,{depth:2,bevelEnabled:true,bevelThickness:1,bevelSize:1,bevelSegments:2}),0x4f4f4f,ch,0,58,-26);bk.rotation.x=0.12;
-    const bm=mk(new THREE.ShapeGeometry(back),M(0xffffff,{map:mesh}),ch,0,58,-23.4);bm.rotation.x=0.12;bm.scale.set(0.9,0.92,1);bm.position.y=60;
+    const bm=rbox(ch,40,44,6,3,0x3f3f3f,0,82,-22.6);bm.rotation.x=0.12;
     for(const sx of [-1,1]){box(ch,2.6,16,2.6,0x4f4f4f,sx*23,52,-4);rbox(ch,6,3,24,1.4,0x4f4f4f,sx*23,61,-2);}
+    // a CD tower beside the desk
+    {const ct=grp(root,-hx+12,0,-128);box(ct,16,90,2,0x8f8f8f,0,45,-7);for(const sx of [-1,1])box(ct,1.5,90,16,0x9a9a9a,sx*7.5,45,0);box(ct,16,2,16,0x8a8a8a,0,1,0);
+      for(let i=0;i<26;i++)box(ct,13,1.1,12.5,[0x6e6e6e,0xb0b0b0,0x8a8a8a,0xc6c6c6,0x7d7d7d][i*7%5],0,5+i*3.2,0.5);}
     // waste basket, clear of the desk
     mk(new THREE.CylinderGeometry(13,10,30,24,1,true),M(0xa0a0a0,{side:THREE.DoubleSide}),root,-hx+24,15,46);mk(new THREE.CircleGeometry(10,24),0x8a8a8a,root,-hx+24,0.6,46).rotation.x=-Math.PI/2;
     for(let i=0;i<24;i++){const a=i/24*Math.PI*2;const s2=box(root,0.6,30,0.6,0x8d8d8d,-hx+24+Math.cos(a)*11.6,15,46+Math.sin(a)*11.6);s2.rotation.x=Math.sin(a)*0.1;s2.rotation.z=-Math.cos(a)*0.1;}
@@ -2071,10 +2080,6 @@ function buildRoom(F,W,y0,yG,z0,z1){
   {const w=wall.l;// corkboard above the desk, clock between it and the bookcase
     box(w,100,62,2.5,0x8c8c8c,50,140,1.3);pl(w,94,56,0xb0b0b0,50,140,3.2);
     [[22,152,-0.12],[46,150,0.08],[72,154,-0.05],[34,128,0.1],[62,126,-0.1],[84,132,0.06]].forEach(([x,y,r],i)=>{const pg=grp(w,x,y,3.6+i*0.25);pg.rotation.z=r;pl(pg,16,19,0xf7f7f7,0,0,0);pl(pg,13.5,13,[0x8f8f8f,0xa3a3a3,0x7d7d7d,0x9b9b9b,0xb0b0b0,0x888888][i],0,1.6,0.3);sph(pg,1,[0x555555,0x777777][i%2],0,8,0.8);});
-    const ck=grp(w,-18,170,1);mk(new THREE.TorusGeometry(15,1.6,10,40),0x8f8f8f,ck,0,0,1.0);mk(new THREE.CircleGeometry(15,40),0xf3f3f3,ck,0,0,0.5);
-    for(let i=0;i<12;i++){const a=i/12*Math.PI*2,tk=pl(ck,i%3?0.6:1.2,i%3?2:3.2,0x666666,Math.sin(a)*12.4,Math.cos(a)*12.4,0.9);tk.rotation.z=-a;}
-    const hr=pl(ck,1.3,7.5,0x444444,0,0,1.3);hr.geometry.translate(0,3.2,0);hr.rotation.z=-0.9;const mn=pl(ck,0.9,11,0x444444,0,0,1.7);mn.geometry.translate(0,4.8,0);mn.rotation.z=-3.3;
-    const sc=pl(ck,0.35,12,0x9a9a9a,0,0,2.1);sc.geometry.translate(0,4.4,0);sc.rotation.z=-2.1;mk(new THREE.CircleGeometry(0.9,16),0x444444,ck,0,0,2.5);
     const bk=grp(w,-100,0,16);box(bk,80,180,1.5,0x8f8f8f,0,90,-15);for(const sx of [-1,1])box(bk,2,180,30,0x9a9a9a,sx*39,90,0);box(bk,80,2,30,0x9a9a9a,0,179,0);
     for(let s=0;s<5;s++){const sy=4+s*35;box(bk,76,2,29,0xa6a6a6,0,sy,0);if(s===4)continue;let xx=-36;const seed=s*7;
       while(xx<34){const bw=2+((xx*13+seed*7)&3)*0.9,bh=20+((xx*7+seed)%9),lean=xx>24&&s===1;const b2=box(bk,bw,bh,20,[0xd7d7d7,0x6b6b6b,0xb0b0b0,0x8e8e8e,0xc4c4c4,0x7b7b7b][Math.abs(Math.round(xx*3+seed))%6],xx+bw/2,sy+1+bh/2,2);
@@ -2087,7 +2092,10 @@ function buildRoom(F,W,y0,yG,z0,z1){
   // ---------- bed: frame, slatted headboard, rounded mattress, a duvet that drapes over the sides, two pillows, a teddy bear ----------
   {const bd=grp(root,hx-54,0,30);rbox(bd,104,20,206,2,0x8f8f8f,0,18,0);for(const sx of [-1,1])for(const sz of [-1,1])cyl(bd,2.6,2.2,9,0x7a7a7a,sx*47,4.5,sz*97,12);
     rbox(bd,100,22,200,5,0xededed,0,39,0);
-    rbox(bd,108,7,150,3,0xc6c6c6,0,52,28);for(const sx of [-1,1])rbox(bd,3,24,150,1.5,0xc6c6c6,sx*53,41,28);rbox(bd,108,7,26,3.5,0xb5b5b5,0,53,-50);
+    {const qt=tex(512,512,(x,w,h)=>{x.fillStyle='#c9c9c9';x.fillRect(0,0,w,h);x.strokeStyle='rgba(0,0,0,.08)';x.lineWidth=2;for(let i=0;i<=w;i+=64){x.beginPath();x.moveTo(i,0);x.lineTo(i,h);x.stroke();x.beginPath();x.moveTo(0,i);x.lineTo(w,i);x.stroke();}
+      const daisy=(cx,cy,r)=>{x.fillStyle='#ededed';for(let k=0;k<10;k++){x.save();x.translate(cx,cy);x.rotate(k/10*Math.PI*2);x.beginPath();x.ellipse(0,-r*0.55,r*0.18,r*0.5,0,0,7);x.fill();x.restore();}x.fillStyle='#8f8f8f';x.beginPath();x.arc(cx,cy,r*0.22,0,7);x.fill();};
+      [[90,100,70],[330,70,52],[210,250,86],[420,300,60],[80,380,58],[300,440,70],[470,480,40]].forEach(q=>daisy(...q));});qt.wrapS=qt.wrapT=THREE.RepeatWrapping;
+    const qm=M(0xffffff,{map:qt});const top=rbox(bd,108,7,150,3,qm,0,52,28);for(const sx of [-1,1])rbox(bd,3,24,150,1.5,qm,sx*53,41,28);}rbox(bd,108,7,26,3.5,0xb5b5b5,0,53,-50);
     for(let i=0;i<5;i++)box(bd,108.2,0.4,1,0xb9b9b9,0,55.6,0+i*24);
     for(const sx of [-25,25]){const pw=rbox(bd,44,12,28,6,0xf6f6f6,sx,56,-82);pw.rotation.x=-0.25;pw.scale.set(1,0.85,1);}
     rbox(bd,104,90,5,1.5,0x868686,0,48,-104);for(let i=0;i<7;i++)rbox(bd,7,58,2.4,1,0x9a9a9a,-42+i*14,48,-101);rbox(bd,108,7,7,2.5,0x7c7c7c,0,94,-104);
@@ -2095,12 +2103,20 @@ function buildRoom(F,W,y0,yG,z0,z1){
     sph(tb,0.75,0x333333,-2.2,22,5.6);sph(tb,0.75,0x333333,2.2,22,5.6);for(const sx of [-1,1]){sph(tb,2.4,fur,sx*5,25.2,0,1,1,0.6);sph(tb,1.3,0xe2e2e2,sx*5,25.2,0.9,1,1,0.4);
       const arm=sph(tb,2.4,fur,sx*7.5,9,2.5,1,1.9,1);arm.rotation.z=sx*0.5;sph(tb,2.8,fur,sx*4,1.6,5,1,0.8,1.6);}
     sph(tb,3.5,0xe2e2e2,0,7,5.8,1,1.1,0.4);
+    for(const [px,pz,c] of [[-8,-74,0xb0b0b0],[14,-70,0x9a9a9a]]){const bb=grp(bd,px,51,pz,px*0.05);sph(bb,4.5,c,0,4,0,1.3,0.75,1);sph(bb,3.2,c,0,8.5,3.5);for(const sx of [-1,1])sph(bb,1.1,c,sx*2.2,11.4,3.5,1,1,0.6);
+      sph(bb,0.5,0x333333,-1.1,9,6.4);sph(bb,0.5,0x333333,1.1,9,6.4);const tag=new THREE.Shape();tag.moveTo(0,0);tag.bezierCurveTo(-2,2,-2,3.2,-1,3.4);tag.bezierCurveTo(-0.4,3.5,0,3,0,2.6);tag.bezierCurveTo(0,3,0.4,3.5,1,3.4);tag.bezierCurveTo(2,3.2,2,2,0,0);
+      mk(new THREE.ShapeGeometry(tag),M(0xe0e0e0,{side:THREE.DoubleSide}),bb,2.8,7,4).rotation.y=0.4;}
     for(let i=0;i<4;i++){const b2=box(root,26-i*2,4,19,[0x9c9c9c,0xd0d0d0,0x7a7a7a,0xbababa][i],hx-125,2+i*4.2,-80);b2.rotation.y=0.15*(i%2?1:-1);}}
   {const w=wall.r;// shelf with CDs, a speaker and a small figure; three framed things; the poster
     box(w,90,2.5,20,0xa0a0a0,30,150,10);for(const sx of [-38,38])box(w,2,10,16,0x8a8a8a,30+sx,144,8);
     for(let i=0;i<14;i++)box(w,1.1,14,12.5,[0x6e6e6e,0x9a9a9a,0xbdbdbd,0x858585,0xa8a8a8][i%5],-8+i*1.3,158.5,10);
-    const cd=box(w,14,14,1.2,0x8f8f8f,20,158,8);cd.rotation.z=0.05;rbox(w,8,12,8,1,0x7a7a7a,58,157,10);cyl(w,2.4,2.4,0.4,0x555555,58,158,14.2,16).rotation.x=Math.PI/2;
+    const cd=box(w,14,14,1.2,0x8f8f8f,20,158,8);cd.rotation.z=0.05;
+    {const bx=grp(w,60,151.3,10);rbox(bx,32,16,12,5,0x8a8a8a,0,8,0);for(const sx of [-9,9]){cyl(bx,4.6,4.6,0.6,0x5a5a5a,sx,7.5,6.1,24).rotation.x=Math.PI/2;cyl(bx,1.6,1.6,0.8,0x777777,sx,7.5,6.4,16).rotation.x=Math.PI/2;}
+      rbox(bx,9,5,1,0.6,0x6e6e6e,0,9,6.2);pl(bx,6,1.4,0x3e3e3e,0,13.4,6.2);const hd2=mk(new THREE.TorusGeometry(10,0.8,6,20,Math.PI),0x6e6e6e,bx,0,16,0);for(let i=0;i<4;i++)cyl(bx,0.6,0.6,0.8,0x555555,-3+i*2,14.4,5.9,8).rotation.x=Math.PI/2;}
     sph(w,3.2,0xcfcfcf,70,155,10);sph(w,2.4,0xcfcfcf,70,160.5,10);
+    {const star=new THREE.Shape();for(let i=0;i<10;i++){const a=i/10*Math.PI*2-Math.PI/2,r=i%2?1.6:4;star.lineTo(Math.cos(a)*r,Math.sin(a)*r);}const SG=new THREE.ShapeGeometry(star);
+      [[-60,200,1],[-40,212,0.7],[-15,196,1.2],[10,214,0.8],[-30,186,0.6],[25,198,1],[-75,214,0.7],[45,210,0.6],[-50,226,0.9],[5,228,0.6]].forEach(([x,y,s2],i)=>{const st=mk(SG,M(0xeef0ea),w,x,y,0.6+i*0.02);st.scale.setScalar(s2);st.rotation.z=i;});
+      const moon=new THREE.Shape();moon.absarc(0,0,6,0.6,Math.PI*2-0.6,false);moon.absarc(3.5,0,4.6,Math.PI*2-1.1,1.1,true);mk(new THREE.ShapeGeometry(moon,16),M(0xeef0ea),w,-90,222,0.7);}
     // framed: a photo-booth strip, a CD cover of a made-up band, a skate-video cover
     const frame=(x,y,ww,hh,t)=>{box(w,ww,hh,1.6,0x6f6f6f,x,y,0.9);pl(w,ww-4,hh-4,M(0xffffff,{map:t}),x,y,2.1);};
     frame(64,112,16,40,tex(96,256,(x,ww,hh)=>{x.fillStyle='#f2f2f2';x.fillRect(0,0,ww,hh);for(let i=0;i<4;i++){x.fillStyle=['#9a9a9a','#8a8a8a','#a5a5a5','#7f7f7f'][i];x.fillRect(10,10+i*60,76,52);
@@ -2110,11 +2126,15 @@ function buildRoom(F,W,y0,yG,z0,z1){
     frame(36,114,24,32,tex(192,256,(x,ww,hh)=>{x.fillStyle='#b5b5b5';x.fillRect(0,0,ww,hh);x.fillStyle='#4a4a4a';x.fillRect(0,0,ww,40);x.fillStyle='#ececec';x.font='bold 26px sans-serif';x.textAlign='center';x.fillText('SKATE CAMP',96,30);
       x.fillStyle='#7a7a7a';x.beginPath();x.moveTo(0,256);x.lineTo(0,170);x.quadraticCurveTo(40,240,96,250);x.quadraticCurveTo(152,240,192,170);x.lineTo(192,256);x.fill();x.fillStyle='#3a3a3a';x.save();x.translate(120,120);x.rotate(0.5);
       x.fillRect(-26,10,52,6);x.beginPath();x.arc(0,-26,9,0,7);x.fill();x.fillRect(-4,-18,8,28);x.restore();x.fillStyle='#4a4a4a';x.font='bold 22px sans-serif';x.fillText("VOL. '03",96,236);}));
-    // Tyler, the Creator poster: an original lettering design (no likeness or real artwork)
-    const ps=tex(360,500,(x,ww,hh)=>{x.fillStyle='#e7e7e7';x.fillRect(0,0,ww,hh);x.fillStyle='#bdbdbd';for(let i=0;i<14;i++)for(let j=0;j<20;j++){x.beginPath();x.arc(14+i*26,14+j*26,(i+j)%3?3:6,0,7);x.fill();}
-      x.fillStyle='#2b2b2b';x.fillRect(24,96,312,190);x.fillStyle='#e7e7e7';x.textAlign='center';x.font='900 76px sans-serif';x.fillText('TYLER,',180,168);x.font='900 26px sans-serif';x.fillText('— THE —',180,206);x.font='900 64px sans-serif';x.fillText('CREATOR',180,266);
-      x.fillStyle='#2b2b2b';x.font='bold 26px sans-serif';x.fillText('LIVE IN CONCERT',180,340);x.fillStyle='#6a6a6a';x.font='20px sans-serif';x.fillText('ONE NIGHT ONLY · ALL AGES',180,374);
-      x.strokeStyle='#2b2b2b';x.lineWidth=3;x.strokeRect(70,400,220,54);x.font='bold 22px sans-serif';x.fillStyle='#2b2b2b';x.fillText('DOORS 8PM',180,436);});
+    // a band poster torn from a teen magazine: a made-up pop-punk band jumping against a burst background
+    const ps=tex(360,500,(x,ww,hh)=>{x.fillStyle='#d6d6d6';x.fillRect(0,0,ww,hh);x.save();x.translate(180,230);for(let i=0;i<24;i++){x.rotate(Math.PI/12);x.fillStyle=i%2?'#bdbdbd':'#cfcfcf';x.beginPath();x.moveTo(0,0);x.lineTo(400,-40);x.lineTo(400,40);x.fill();}x.restore();
+      x.fillStyle='#3a3a3a';const fig=(cx,cy,s2,lean)=>{x.save();x.translate(cx,cy);x.rotate(lean);x.beginPath();x.arc(0,-60*s2,16*s2,0,7);x.fill();x.fillRect(-14*s2,-44*s2,28*s2,52*s2);
+        x.save();x.translate(-14*s2,-40*s2);x.rotate(-0.9);x.fillRect(-6*s2,-40*s2,10*s2,42*s2);x.restore();x.save();x.translate(14*s2,-40*s2);x.rotate(0.9);x.fillRect(-4*s2,-40*s2,10*s2,42*s2);x.restore();
+        x.save();x.translate(-8*s2,8*s2);x.rotate(0.5);x.fillRect(-5*s2,0,11*s2,46*s2);x.restore();x.save();x.translate(8*s2,8*s2);x.rotate(-0.7);x.fillRect(-5*s2,0,11*s2,46*s2);x.restore();x.restore();};
+      fig(110,290,1.1,-0.2);fig(190,260,1.25,0.1);fig(268,296,1.05,0.25);
+      x.fillStyle='#2b2b2b';x.fillRect(0,0,ww,92);x.fillStyle='#ececec';x.textAlign='center';x.font='900 52px sans-serif';x.fillText('THE GLOSSIES',180,64);
+      x.fillStyle='#2b2b2b';x.fillRect(0,hh-80,ww,80);x.fillStyle='#ececec';x.font='bold 24px sans-serif';x.fillText('SUMMER TOUR 2003',180,hh-46);x.font='16px sans-serif';x.fillText('+ special guests',180,hh-20);
+      x.fillStyle='rgba(255,255,255,.55)';x.beginPath();x.moveTo(0,hh-110);for(let i=0;i<=12;i++)x.lineTo(i*30,hh-110+(i%2?8:-6));x.lineTo(ww,hh-80);x.lineTo(0,hh-80);x.fill();});
     pl(w,52,72,M(0xffffff,{map:ps}),-100,150,1.2);for(const [sx,sy] of [[-1,1],[1,1],[-1,-1],[1,-1]])pl(w,5,2.2,0xeeeeee,-100+sx*24,150+sy*34,1.8).rotation.z=sx*sy*0.7;}
   // ---------- front wall: door with panels, knob and hinges; dartboard; light switch; skateboard leaning on the wall ----------
   {const w=wall.f,dx2=-20;box(w,96,214,3,0xb8b8b8,dx2,107,1.5);box(w,84,204,4,0xd0d0d0,dx2,102,3);
@@ -2136,19 +2156,23 @@ function buildRoom(F,W,y0,yG,z0,z1){
     const gpl=mk(new THREE.ShapeGeometry(deckS,16),M(0xffffff,{map:dg}),sk,0,2,1.0);const uv=gpl.geometry.attributes.uv,ps2=gpl.geometry.attributes.position;for(let i=0;i<uv.count;i++)uv.setXY(i,(ps2.getX(i)+10)/20,ps2.getY(i)/81);
     for(const yy of [18,62]){box(sk,14,2,3,0xa8a8a8,0,yy+2,-2.6);for(const sx of [-1,1]){const wh=cyl(sk,2.8,2.8,3,0xe0e0e0,sx*8,yy+2,-4.6,16);wh.rotation.z=Math.PI/2;}}}
   // ---------- floor things: torchiere lamp, snake plant, beanbag, backpack, slippers, magazines ----------
-  {const L=grp(root,-hx+26,0,-hz+26);cyl(L,13,15,2.5,0x6f6f6f,0,1.25,0,28);cyl(L,1.2,1.2,168,0x7a7a7a,0,85,0,10);cyl(L,1.8,1.8,6,0x6a6a6a,0,120,0,10);
-    mk(new THREE.CylinderGeometry(20,4,14,32,1,true),M(0x9a9a9a,{side:THREE.DoubleSide}),L,0,175,0);mk(new THREE.CircleGeometry(19.5,32),0xf6f6f6,L,0,181.5,0).rotation.x=-Math.PI/2;
-    mk(new THREE.TorusGeometry(20,0.6,6,32),0x8a8a8a,L,0,182,0).rotation.x=Math.PI/2;}
-  {const P=grp(root,-hx+26,0,hz-26);cyl(P,16,12,32,0x8d8d8d,0,16,0,28);mk(new THREE.TorusGeometry(16,1.6,8,28),0x9b9b9b,P,0,32,0).rotation.x=Math.PI/2;cyl(P,15,15,1,0x5f5f5f,0,31.5,0,24);
+  {const L=grp(root,-hx+26,0,-hz+26);for(let i=0;i<3;i++){const a=i/3*Math.PI*2,lg=cyl(L,0.9,0.9,62,0x777777,Math.cos(a)*9,30,Math.sin(a)*9,8);lg.rotation.z=Math.cos(a)*0.28;lg.rotation.x=-Math.sin(a)*0.28;}
+    cyl(L,1,1,70,0x777777,0,92,0,8);const lan=new THREE.LatheGeometry([...Array(17)].map((_,i)=>{const t=i/16,a=t*Math.PI;return new THREE.Vector2(Math.max(1.5,Math.sin(a)*26),-Math.cos(a)*30);}),32);
+    const lt=tex(64,256,(x,w,h)=>{x.fillStyle='#f4f4f4';x.fillRect(0,0,w,h);x.strokeStyle='#d9d9d9';x.lineWidth=2;for(let i=0;i<h;i+=12){x.beginPath();x.moveTo(0,i);x.lineTo(w,i);x.stroke();}});
+    mk(lan,M(0xffffff,{map:lt,side:THREE.DoubleSide}),L,0,157,0);cyl(L,6,6,2,0xcfcfcf,0,187,0,16);cyl(L,6,6,2,0xcfcfcf,0,127,0,16);}
+  {const P=grp(root,-hx+26,0,hz-26);mk(new THREE.CylinderGeometry(16,12,32,28,1,true),M(0x8d8d8d,{side:THREE.DoubleSide}),P,0,16,0);mk(new THREE.CircleGeometry(12,28),0x8d8d8d,P,0,0.3,0).rotation.x=-Math.PI/2;mk(new THREE.TorusGeometry(16,1.6,8,28),0x9b9b9b,P,0,32,0).rotation.x=Math.PI/2;mk(new THREE.CircleGeometry(15,28),0x5f5f5f,P,0,28,0).rotation.x=-Math.PI/2;
     const blade=new THREE.Shape();blade.moveTo(-3,0);blade.bezierCurveTo(-4,30,-3.5,60,0,80);blade.bezierCurveTo(3.5,60,4,30,3,0);const BG=new THREE.ShapeGeometry(blade,10);
     const bpos=BG.attributes.position;for(let i=0;i<bpos.count;i++){const y=bpos.getY(i),x=bpos.getX(i);bpos.setZ(i,-Math.abs(x)*0.6+Math.sin(y*0.05)*1.5);}
     const bands=tex(64,256,(x,w,h)=>{x.fillStyle='#7f7f7f';x.fillRect(0,0,w,h);for(let i=0;i<22;i++){x.fillStyle=i%2?'#6a6a6a':'#909090';x.beginPath();x.ellipse(32,i*12+6,40,3,0.15,0,7);x.fill();}x.fillStyle='#bdbdbd';x.fillRect(0,0,4,h);x.fillRect(w-4,0,4,h);});
-    const bm2=M(0xffffff,{map:bands,side:THREE.DoubleSide});for(let i=0;i<9;i++){const a=i/9*Math.PI*2+i*0.4,s=0.55+((i*37)%40)/100,lf=mk(BG,bm2,P,Math.cos(a)*4,31,Math.sin(a)*4);lf.scale.set(1,s,1);lf.rotation.set(Math.sin(a)*0.18,-a,Math.cos(a)*0.18);}}
-  {const bb=mk(new THREE.SphereGeometry(40,36,24),0xb3b3b3,root,-60,26,hz-60);const bp=bb.geometry.attributes.position;for(let i=0;i<bp.count;i++){const x=bp.getX(i),y=bp.getY(i),z=bp.getZ(i);const k=1+0.05*Math.sin(x*0.25+z*0.2)*Math.cos(y*0.3);bp.setXYZ(i,x*k,y<0?y*0.68:y*k*(1-0.3*Math.max(0,-z)/40),z*k);}
-    bb.scale.set(1.05,0.75,1);const bt=mk(new THREE.SphereGeometry(22,28,16),0xa9a9a9,root,-60,46,hz-50);bt.scale.set(1.25,0.42,1.05);
-    for(let i=0;i<6;i++){const a=i/6*Math.PI*2;line(root,[[-60+Math.cos(a)*10,52,hz-50+Math.sin(a)*8],[-60+Math.cos(a)*30,30,hz-50+Math.sin(a)*30]],0x9c9c9c);}}
+    const bm2=M(0xffffff,{map:bands,side:THREE.DoubleSide});for(let i=0;i<9;i++){const a=i/9*Math.PI*2+i*0.4,s=0.55+((i*37)%40)/100,lf=mk(BG,bm2,P,Math.cos(a)*4,27.5,Math.sin(a)*4);lf.scale.set(1,s,1);lf.rotation.set(Math.sin(a)*0.18,-a,Math.cos(a)*0.18);}}
+  {const IC=grp(root,-62,0,hz-62,0.5),ic=M(0xc2c2c2,{transparent:true,opacity:0.62}),ie=M(0xa9a9a9,{transparent:true,opacity:0.75});
+    const tube=(R0,r,y,sc)=>{const t=mk(new THREE.TorusGeometry(R0,r,16,40),ic,IC,0,y,0);t.rotation.x=Math.PI/2;t.scale.set(1,sc||1,1);return t;};
+    tube(26,12,12);tube(26,11,34);const bk=mk(new THREE.TorusGeometry(22,10,16,40,Math.PI),ic,IC,0,52,-14);bk.rotation.x=-0.25;
+    for(const sx of [-1,1]){const arm=mk(new THREE.TorusGeometry(14,8,14,30,Math.PI),ic,IC,sx*26,40,4);arm.rotation.y=Math.PI/2;arm.rotation.z=0;}
+    const seat=mk(new THREE.CircleGeometry(24,32),ie,IC,0,26,0);seat.rotation.x=-Math.PI/2;
+    const valve=cyl(IC,1.2,1.2,1.5,0x8f8f8f,22,12,12,10);valve.rotation.x=Math.PI/2;}
   {const B2=grp(root,90,0,hz-18,-0.25);rbox(B2,32,40,18,7,0x6e6e6e,0,21,0);rbox(B2,24,17,7,4,0x606060,0,14,9.5);rbox(B2,18,7,5,2.5,0x5a5a5a,0,30,9);
-    line(B2,[[-10,22.6,12.8],[10,22.6,12.8]],0x3e3e3e);line(B2,[[-8,31,11.6],[8,31,11.6]],0x3e3e3e);for(const xx of [10,8]){box(B2,1,3.5,0.6,0xb0b0b0,xx,20.5,13.2);}
+    line(B2,[[-10,22.6,12.8],[10,22.6,12.8]],0x3e3e3e);rbox(B2,5,4,0.8,0.6,0x4a4a4a,0,9,13.4);line(B2,[[-8,31,11.6],[8,31,11.6]],0x3e3e3e);for(const xx of [10,8]){box(B2,1,3.5,0.6,0xb0b0b0,xx,20.5,13.2);}
     const hdl=mk(new THREE.TorusGeometry(4,0.8,6,16,Math.PI),0x555555,B2,0,41,0);for(const sx of [-8,8]){curve(B2,[[sx,38,-9],[sx*1.2,24,-12],[sx,6,-10]],1.2,0x5a5a5a);}
     curve(B2,[[11,21,13],[12,17,14],[11.5,13,14.5]],0.25,0xa0a0a0);sph(B2,1.8,0xd0d0d0,11.5,11.5,14.6);sph(B2,1.4,0x8a8a8a,9,13,14.4,1,1,0.6);}
   for(const sx of [-6,6]){const sl=grp(root,8+sx,0,hz-44,0.12+sx*0.01);rbox(sl,10,2.2,24,1,0x9a9a9a,0,1.1,0);sph(sl,5.2,0xd6d6d6,0,3.4,-4,0.95,0.55,1.25);mk(new THREE.TorusGeometry(4.2,1.6,8,20),0xe4e4e4,sl,0,4.4,1.5).rotation.x=Math.PI/2;}
