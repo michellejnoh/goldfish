@@ -252,7 +252,7 @@ body.photo .ui,body.photo #say{display:none}
 <div class="sheet" id="skins" hidden>
   <div class="card">
     <h2>skin</h2>
-    <p class="small">a skin is worn over your colour and pattern</p>
+    <p class="small">a skin is worn over your colour and pattern · tap it again to reshuffle</p>
     <div class="lookgrid pat" id="skinList"></div>
     <div class="row2"><span></span><button type="button" class="go" id="skinsClose">done</button></div>
   </div>
@@ -349,7 +349,7 @@ const KO={
 'what’s your fish called?':'금붕어 이름이 뭐예요?',"what's your fish called?":'금붕어 이름이 뭐예요?',"who's keeping this fish?":'누가 이 금붕어를 키우나요?',
 'winter shop':'겨울 상점','your fish':'내 금붕어','add':'놓기','remove':'치우기','missions':'미션',
 'Capture the tank':'수조 찍기','Edit tools':'편집 도구','Edit your tank':'수조 편집','Fish name':'금붕어 이름','Missions':'미션',
-'Picture of your tank':'수조 사진','Tools':'도구','Username':'사용자 이름','username':'사용자 이름','Fish colour':'금붕어 색','Fish pattern':'금붕어 무늬','Shop':'상점','skin':'스킨','special looks, like christmas':'크리스마스 같은 특별한 모습','a skin is worn over your colour and pattern':'스킨은 색과 무늬 위에 입혀져요','none':'없음','christmas':'크리스마스','at least 20 stones stay in the tank':'어항에는 돌이 최소 20개 남아 있어야 해요','skip':'건너뛰기',
+'Picture of your tank':'수조 사진','Tools':'도구','Username':'사용자 이름','username':'사용자 이름','Fish colour':'금붕어 색','Fish pattern':'금붕어 무늬','Shop':'상점','skin':'스킨','special looks, like christmas':'크리스마스 같은 특별한 모습','a skin is worn over your colour and pattern · tap it again to reshuffle':'스킨은 색과 무늬 위에 입혀져요 · 한 번 더 누르면 모양이 바뀌어요','none':'없음','christmas':'크리스마스','at least 20 stones stay in the tank':'어항에는 돌이 최소 20개 남아 있어야 해요','skip':'건너뛰기',
 'hand · drag to lead your fish, tap to call it, tap the fish to say hi':'손 · 끌어서 금붕어를 데려가고, 탭해서 부르고, 금붕어를 탭하면 인사해요',
 'food · tap the water to sprinkle flakes':'먹이 · 물을 탭해서 먹이를 뿌려요','clean · when the glass gets dirty, rub it clean':'청소 · 유리가 더러워지면 문질러서 닦아요',
 'toy · drag the lure and let your fish chase it':'장난감 · 미끼를 끌면 금붕어가 쫓아와요','sleep · turns the lights off so your fish can rest':'재우기 · 불을 꺼서 금붕어를 쉬게 해요',
@@ -517,10 +517,14 @@ function speckle(x,y,z,sd,v,bias){
 const _hsl={h:0,s:0,l:0},_lt=new THREE.Color(),_dk=new THREE.Color(),_cr=new THREE.Color('#f7efe2');
 /* v = how high the point sits on the body at that spot (0 belly .. 1 back), q = how far out along a fin (0 root .. 1 tip) */
 const _xr=new THREE.Color('#d42f2f'),_xw=new THREE.Color('#fbf7f0'),_xg=new THREE.Color('#2f7d4f');
-function skinColor(x,y,z,fin,lk,v,q){const c=_lc;
-  if(fin){// candy-cane stripes running across the fins, with a green tip
-    const w=Math.sin((x*0.8+y)*13);c.copy(_xr).lerp(_xw,ss(-0.15,0.15,w));if(q>0.86)c.copy(_xg);return c;}
-  c.copy(_xr).lerp(_xw,ss(0.42,0.18,v));if(v>0.3&&vnoise(x*22,y*22,z*22,93)>0.8)c.copy(_xw);return c;}
+/* christmas skin: festive colours laid out the way a bred goldfish's pigment really falls:
+   big irregular red patches on white (like a sarasa), the odd green patch, a paler belly, and colour that runs from the body
+   out into the fins and fades toward their see-through tips */
+function skinColor(x,y,z,fin,lk,v,q){const c=_lc,sd=(lk.seed||0)+500;
+  const fb=(a,b,e,k)=>0.62*vnoise(a*k,b*k,e*k,sd)+0.38*vnoise(a*k*2.1+3.3,b*k*2.1+1.7,e*k*2.1,sd+1);
+  const red=fb(x,y,z,2.6)-0.12*(1-(v||0.5))+(fin?0.04:0),green=fb(x+7,y,z,3.4);
+  c.copy(_xw).lerp(_xr,ss(0.44,0.5,red));if(green>0.69)c.lerp(_xg,ss(0.69,0.73,green));
+  if(fin)c.lerp(_xw,0.55*ss(0.35,1,q));return c;}
 function lookColor(x,y,z,fin,lk,v,q){if(lk.skin==='christmas')return skinColor(x,y,z,fin,lk,v,q);const main=_lm.set(LOOK_COLORS[lk.c]||LOOK_COLORS.orange),sd=lk.seed||0;main.getHSL(_hsl);
   const lightTone=_lt.setHSL(_hsl.h,_hsl.s*0.8,_hsl.l+(1-_hsl.l)*0.62);
   // spots are a deeper shade of the fish's own colour; very pale fish get a soft warm charcoal, very dark fish get pale flecks
@@ -552,13 +556,6 @@ function applyLook(F,lk,st){F=F||R;if(!F)return;lk=lk||lookOf();if(st===undefine
       for(let i=0;i<src.length;i+=3){v.set(src[i],src[i+1],src[i+2]).applyMatrix4(m);rest[i]=v.x;rest[i+1]=v.y;rest[i+2]=v.z;}g.userData.rest=rest;}
     geos.push([g,o.material===MAT_FIN]);});
   const P=bodyProfile(F);
-  if(lk.skin==='christmas'&&!F.hat){const g=new THREE.Group(),red=flatMat({color:0xa81c26}),wht=flatMat({color:0xfbf7f0});
-    const cone=new THREE.Mesh(new THREE.ConeGeometry(0.17,0.42,28),red);cone.position.y=0.22;g.add(cone);
-    const brim=new THREE.Mesh(new THREE.TorusGeometry(0.17,0.06,12,32),wht);brim.rotation.x=Math.PI/2;brim.position.y=0.02;g.add(brim);
-    const pom=new THREE.Mesh(new THREE.SphereGeometry(0.07,16,12),wht);pom.position.set(0,0.45,0);g.add(pom);
-    const k=Math.round(clamp((0.4-P.x0)/(P.x1-P.x0))*P.N);g.position.set(0.36,P.hi[k]+0.0,0);g.rotation.z=0.38;g.traverse(o=>{if(o.isMesh)o.userData.part='head';});
-    F.inner.add(g);F.hat=g;}
-  if(F.hat)F.hat.visible=lk.skin==='christmas';
   for(const [g,fin] of geos){const r=g.userData.rest,fl=g.userData.flex,col=new Float32Array(r.length);
     for(let i=0,n=0;i<r.length;i+=3,n++){const vv=vOf(P,r[i],r[i+1]),c=youthColor(lookColor(r[i],r[i+1],r[i+2],fin,lk,vv,fl?fl[n]:(fin?0.6:0)),r[i],r[i+1],r[i+2],fin,vv,Yc);col[i]=c.r;col[i+1]=c.g;col[i+2]=c.b;}
     g.setAttribute('color',new THREE.Float32BufferAttribute(col,3));}
@@ -1436,7 +1433,7 @@ const LOOK_SKINS=['none','christmas'];
 function openSkins(){$('#fishMenu').hidden=true;$('#skins').hidden=false;const el=$('#skinList');el.textContent='';const lk=lookOf();
   for(const k of LOOK_SKINS){const b=document.createElement('button');b.type='button';const im=document.createElement('img');im.alt='';im.src=fishThumb(Object.assign({},lk,{skin:k==='none'?'':k}));
     const t=document.createElement('span');t.textContent=k;b.append(im,t);b.setAttribute('aria-pressed',(lk.skin||'none')===k);
-    b.onclick=()=>{lookOf().skin=k==='none'?'':k;applyLook();persist();openSkins();};el.appendChild(b);}}
+    b.onclick=()=>{const l=lookOf();if(k==='christmas'&&l.skin==='christmas')l.seed=Math.floor(Math.random()*1000);l.skin=k==='none'?'':k;applyLook();persist();openSkins();};el.appendChild(b);}}
 $('#skinBtn').onclick=openSkins;$('#skinsClose').onclick=()=>{$('#skins').hidden=true;$('#fishMenu').hidden=false;};
 $('#colorBtn').onclick=openColors;$('#patBtn').onclick=openPatterns;
 $('#colorsClose').onclick=()=>{$('#colors').hidden=true;$('#fishMenu').hidden=false;};
