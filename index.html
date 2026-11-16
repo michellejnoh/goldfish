@@ -82,6 +82,9 @@ body.editing .ui,body.editing #say{display:none}
 body.viewing .ui,body.viewing #say{display:none}
 body.photo .ui,body.photo #say{display:none}
 body.visiting .ui,body.visiting #say{display:none}
+#giftPlaceBar{position:fixed;left:0;right:0;top:0;z-index:4;padding:calc(12px + env(safe-area-inset-top,0px)) 22px 10px;background:linear-gradient(var(--bg) 70%,transparent);text-align:center}
+#giftPlaceBar #gpTitle{font-size:26px;margin:0}#giftPlaceBar .small{margin:2px 0 6px}
+#giftPlaceBar .gprow{display:flex;gap:18px;align-items:center;justify-content:center}#giftPlaceBar .gprow span{flex:1;max-width:40px}#giftPlaceBar [data-gpturn]{font-size:30px;line-height:1}
 #visitBar{position:fixed;left:0;right:0;top:0;z-index:4;display:flex;align-items:center;gap:16px;
   padding-top:calc(env(safe-area-inset-top,0px) + 12px);padding-left:max(20px,env(safe-area-inset-left,0px));padding-right:max(20px,env(safe-area-inset-right,0px))}
 #visitTitle{margin:0;flex:1;font-size:19px;line-height:1.2;color:var(--ink)}
@@ -192,6 +195,10 @@ body.visiting .ui,body.visiting #say{display:none}
 @keyframes dockUp{from{transform:translateY(40px);opacity:0}to{transform:none;opacity:1}}
 @keyframes dockDown{from{transform:translateY(-40px);opacity:0}to{transform:none;opacity:1}}
 .ui{transition:opacity .25s}body.docked .ui{opacity:0}
+#viewArrows{position:fixed;left:0;right:0;top:calc(30vh - 23px);display:none;justify-content:space-between;padding:0 18px;z-index:7;pointer-events:none}
+body.lookdock #viewArrows{display:flex}
+#viewArrows button{pointer-events:auto;width:46px;height:46px;border-radius:50%;border:0;background:rgba(255,255,255,.72);color:var(--ink);display:grid;place-items:center;padding:0;cursor:pointer}
+#viewArrows button:active{transform:scale(.92)}
 .fx-fly{position:fixed;pointer-events:none;z-index:21;object-fit:contain}
 .fx-sent{position:fixed;left:50%;top:calc(42% + 64px);font-size:24px;color:#111;pointer-events:none;z-index:21;white-space:nowrap;max-width:92vw;overflow:hidden;text-overflow:ellipsis}
 .fx-glow{position:fixed;border-radius:50%;pointer-events:none;z-index:7;background:radial-gradient(circle,rgba(255,244,214,.85) 0%,rgba(255,236,190,.45) 38%,rgba(255,236,190,0) 70%);mix-blend-mode:screen}
@@ -207,6 +214,8 @@ body.visiting .ui,body.visiting #say{display:none}
   <button type="button" class="go" id="photoClose">close</button><button type="button" id="shutter" aria-label="Take picture"></button></div>
 <div id="polaroid" hidden><div class="pol"><img id="polImg" alt=""><p id="polText"></p></div></div>
 <div id="tour" hidden><div class="arrow"><svg viewBox="0 0 44 24" width="44" height="24" fill="none" stroke="#111" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12h36M31 5l8 7-8 7"/></svg></div><div class="tip"><p id="tourText"></p><div class="row2"><button type="button" class="link" id="tourSkip">skip</button><span id="tourStep"></span></div></div></div>
+<div id="giftPlaceBar" hidden><p id="gpTitle"></p><p class="small">drag it where you like · twist or use the arrows to turn it</p>
+  <div class="gprow"><button type="button" class="go" data-gpturn="1" aria-label="turn left">‹</button><button type="button" class="go" data-gpturn="-1" aria-label="turn right">›</button><span></span><button type="button" class="go" id="gpCancel">cancel</button><button type="button" class="go" id="gpSend">send</button></div></div>
 <div id="visitBar" hidden><p id="visitTitle"></p><button type="button" class="go" id="giftBtn">send a gift</button><button type="button" class="go" id="visitHome">home</button></div>
 <div class="sheet" id="visitAsk" hidden>
   <div class="card">
@@ -246,7 +255,7 @@ body.visiting .ui,body.visiting #say{display:none}
     <input id="name" maxlength="14" aria-label="Fish name" spellcheck="false" autocomplete="off" readonly>
     <div class="stats" id="stats"></div>
   </div>
-  <div class="side"><button class="mini" id="who">keeper</button><button class="icon" id="misBtn" aria-label="Missions"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 21V3.5"/><path d="M6 4.5h11.5l-2.4 4 2.4 4H6"/></svg></button><button class="icon" id="snd" aria-label="Sound on"></button><button class="icon" id="visitBtn" aria-label="Visit a keeper"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 11.5L12 5l8 6.5"/><path d="M6 10v9h12v-9"/><path d="M9.2 15.2c1-1.3 2.4-1.9 3.8-1.2l1.6-1.2v3.6l-1.6-1.2c-1.4.7-2.8.1-3.8-1.2z"/></svg></button><button class="icon" id="tvBtn" aria-label="Tank view"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 8.5h12.5v11.5H3.5z"/><path d="M3.5 8.5L7.5 4.5h12.5v11.5l-4 4"/><path d="M16 8.5l4-4"/><path d="M3.5 13c2.1 1 4.2 1 6.3 0s4.1-1 6.2 0"/></svg></button><button class="icon" id="editBtn" aria-label="Edit your tank"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20l4.2-1 10.4-10.4a2 2 0 0 0 0-2.8l-.4-.4a2 2 0 0 0-2.8 0L5 15.8 4 20z"/><path d="M13.5 6.5l4 4"/></svg></button><button class="icon" id="captureBtn" aria-label="Capture the tank"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8.5h3.2L8.8 6h6.4l1.6 2.5H20v10H4z"/><circle cx="12" cy="13.2" r="3.3"/></svg></button></div>
+  <div class="side"><button class="mini" id="who">keeper</button><button class="icon" id="misBtn" aria-label="Missions"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 21V3.5"/><path d="M6 4.5h11.5l-2.4 4 2.4 4H6"/></svg></button><button class="icon" id="snd" aria-label="Sound on"></button><button class="icon" id="visitBtn" aria-label="Visit a keeper"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 11.5L12 5l8 6.5"/><path d="M6 10v9h12v-9"/></svg></button><button class="icon" id="tvBtn" aria-label="Tank view"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 8.5h12.5v11.5H3.5z"/><path d="M3.5 8.5L7.5 4.5h12.5v11.5l-4 4"/><path d="M16 8.5l4-4"/><path d="M3.5 13c2.1 1 4.2 1 6.3 0s4.1-1 6.2 0"/></svg></button><button class="icon" id="editBtn" aria-label="Edit your tank"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20l4.2-1 10.4-10.4a2 2 0 0 0 0-2.8l-.4-.4a2 2 0 0 0-2.8 0L5 15.8 4 20z"/><path d="M13.5 6.5l4 4"/></svg></button><button class="icon" id="captureBtn" aria-label="Capture the tank"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8.5h3.2L8.8 6h6.4l1.6 2.5H20v10H4z"/><circle cx="12" cy="13.2" r="3.3"/></svg></button></div>
 </div>
 <div class="ui bottom">
   <p id="cap" aria-live="polite"></p>
@@ -289,6 +298,7 @@ body.visiting .ui,body.visiting #say{display:none}
     <div class="row2"><span></span><button type="button" class="go" data-back>back</button></div>
   </div>
 </div>
+<div id="viewArrows" aria-label="turn your fish"><button type="button" id="viewL" aria-label="turn left"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.5 6l-6 6 6 6"/></svg></button><button type="button" id="viewR" aria-label="turn right"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.5 6l6 6-6 6"/></svg></button></div>
 <div class="sheet dock" id="friendsSheet" hidden>
   <div class="card">
     <h2>friends’ fish</h2>
@@ -437,7 +447,7 @@ const KO={
 'toy · drag the lure and let your fish chase it':'장난감 · 미끼를 끌면 금붕어가 쫓아와요','sleep · turns the lights off so your fish can rest':'재우기 · 불을 꺼서 금붕어를 쉬게 해요',
 'missions · three goals a day for xp. your fish grows every 5 levels':'미션 · 하루 세 가지 목표로 xp를 모아요. 5레벨마다 금붕어가 자라요',
 'edit · your fish’s color and pattern, the water, and decorations':'편집 · 금붕어 색과 무늬, 물 색, 장식을 바꿔요','tank view · see the whole tank and turn it around':'어항 보기 · 어항 전체를 보고 돌려 봐요',
-'camera · take a picture of your tank':'카메라 · 어항 사진을 찍어요','your keeper name · tap to switch keepers':'키퍼 이름 · 탭하면 다른 키퍼로 바꿔요','growth':'성장','language':'언어','growth · by level':'성장 · 레벨별','Take picture':'사진 찍기','Sound on':'소리 켜짐','Sound off':'소리 꺼짐','Tank view':'어항 보기','drag to turn · pinch to zoom':'끌어서 돌리기 · 두 손가락으로 확대','Zoom in':'확대','Zoom out':'축소','Goldfish tank. Tap, drag and feed to interact.':'금붕어 수조. 탭하고 끌고 먹이를 주며 놀아 주세요.',
+'camera · take a picture of your tank':'카메라 · 어항 사진을 찍어요','your keeper name · tap to switch keepers':'키퍼 이름 · 탭하면 다른 키퍼로 바꿔요','growth':'성장','drag it where you like · twist or use the arrows to turn it':'원하는 곳으로 끌어 놓고, 비틀거나 화살표로 돌려요','send':'보내기','cancel':'취소','turn your fish':'물고기 돌리기','language':'언어','growth · by level':'성장 · 레벨별','Take picture':'사진 찍기','Sound on':'소리 켜짐','Sound off':'소리 꺼짐','Tank view':'어항 보기','drag to turn · pinch to zoom':'끌어서 돌리기 · 두 손가락으로 확대','Zoom in':'확대','Zoom out':'축소','Goldfish tank. Tap, drag and feed to interact.':'금붕어 수조. 탭하고 끌고 먹이를 주며 놀아 주세요.',
 ': check the Firestore rules':': Firestore 규칙을 확인해 주세요',': is the Firestore database created?':': Firestore 데이터베이스가 만들어졌는지 확인해 주세요'};
 const KO_RX=[
 [/^(.+) is nosing at the surface\.$/,'$1, 수면에서 뻐끔거리고 있어요.'],[/^(.+) is drifting low\.$/,'$1, 바닥 가까이 떠 있어요.'],
@@ -456,7 +466,7 @@ const KO_RX=[
 [/^(\d+) \/ (\d+) xp to level (\d+)$/,'$3레벨까지 $1 / $2 xp'],[/^level (\d+)$/,'레벨 $1'],[/^level (\d+) · max$/,'레벨 $1 · 최고'],[/^lv (\d+)$/,'Lv $1'],[/^no keeper called “(.+)” yet$/,'“$1” 키퍼가 아직 없어요'],[/^@(.+)’s tank · (.+) · lv (\d+)$/,'@$1의 어항 · $2 · Lv $3'],
 [/^send a gift to @(.+)$/,'@$1에게 선물 보내기'],[/^(\d+) left today$/,'오늘 $1번 남았어요'],[/^send · (\d+) xp$/,'보내기 · $1 xp'],[/^sent to @(.+)!$/,'@$1에게 보냈어요!'],[/^(.+) sent to @(.+)!$/,'$1, @$2에게 보냈어요!'],
 [/^@(.+) sent a snack$/,'@$1님이 간식을 보냈어요'],[/^@(.+) sent a little fish$/,'@$1님이 작은 물고기를 보냈어요'],[/^(.+) · 5 xp$/,'$1 · 5 xp'],
-[/^a little fish swam off to @(.+)!$/,'작은 물고기가 @$1에게 헤엄쳐 갔어요!'],[/^(\d+) of (\d+) shown · tap to choose$/,'$2마리 중 $1마리 보임 · 탭해서 고르기'],[/^@(.+) · hidden$/,'@$1 · 숨김'],[/^@(.+) · shown$/,'@$1 · 보임'],[/^@(.+) hidden$/,'@$1 숨김'],[/^@(.+) is back$/,'@$1 다시 보여요'],[/^(.+) put away$/,'$1 치움'],[/^(\d+) xp more$/,'$1 xp 더 필요'],[/^hidden · tap to show (\d+)$/,'숨김 · 탭하면 $1마리 보여요'],[/^shown · tap to hide (\d+)$/,'보임 · 탭하면 $1마리 숨겨요'],[/^@(.+) sent a (.+) \(you had one, so \+(\d+) xp\)$/,'@$1님이 $2을(를) 보냈어요 (이미 있어서 +$3 xp)'],[/^@(.+) sent a (.+)$/,'@$1님이 $2을(를) 보냈어요'],
+[/^a little fish swam off to @(.+)!$/,'작은 물고기가 @$1에게 헤엄쳐 갔어요!'],[/^(\d+) of (\d+) shown · tap to choose$/,'$2마리 중 $1마리 보임 · 탭해서 고르기'],[/^@(.+) · hidden$/,'@$1 · 숨김'],[/^@(.+) · shown$/,'@$1 · 보임'],[/^@(.+) hidden$/,'@$1 숨김'],[/^@(.+) is back$/,'@$1 다시 보여요'],[/^(.+) put away$/,'$1 치움'],[/^@(\S+) sent a (.+) and placed it in your tank$/,'@$1님이 $2을(를) 보내서 어항에 놓아 줬어요'],[/^(.+) · (\d+) xp$/,'$1 · $2 xp'],[/^(\d+) xp more$/,'$1 xp 더 필요'],[/^hidden · tap to show (\d+)$/,'숨김 · 탭하면 $1마리 보여요'],[/^shown · tap to hide (\d+)$/,'보임 · 탭하면 $1마리 숨겨요'],[/^@(.+) sent a (.+) \(you had one, so \+(\d+) xp\)$/,'@$1님이 $2을(를) 보냈어요 (이미 있어서 +$3 xp)'],[/^@(.+) sent a (.+)$/,'@$1님이 $2을(를) 보냈어요'],
 [/^couldn’t send \(error (\d+)\)$/,'보내지 못했어요 (오류 $1)'],[/^grown! · lv (\d+)$/,'성장! · Lv $1'],[/^(\d+) \/ (\d+) · tap to continue$/,'$1 / $2 · 탭해서 계속'],
 [/^(\d+) days? in a row · new missions at midnight$/,'$1일 연속 · 자정에 새 미션'],
 [/^level (\d+) · (\d+) xp to spend · buying uses up xp, so your level can go down$/,'레벨 $1 · 쓸 수 있는 xp $2 · 사면 xp가 줄어 레벨이 내려갈 수 있어요'],
@@ -1060,7 +1070,7 @@ function removeFood(f){world.remove(f.m);foods.splice(foods.indexOf(f),1);}
 /* a gifted snack: a slice made of wedges that sinks into the tank; the fish eats it a bite (a wedge) at a time */
 const SNACK_LOOK={cucumber:[0x4f7c4c,0xc8dfa4,0xe2efc9,0xf3f7e4,6],zucchini:[0x41633b,0xf1ebc4,0xf7f2d9,0xddd08e,6],banana:[0xe6d18c,0xf6edc8,0xf6edc8,0xb48f58,5]};
 const SNACK_Q=[];
-function dropSnack(kind){const L=SNACK_LOOK[kind]||SNACK_LOOK.cucumber,[rim,face,core,seed,n]=L,Rr=0.11,th=0.032,g=new THREE.Group(),inner=new THREE.Group(),pieces=[];
+function dropSnack(kind,float){const L=SNACK_LOOK[kind]||SNACK_LOOK.cucumber,[rim,face,core,seed,n]=L,Rr=0.11,th=0.032,g=new THREE.Group(),inner=new THREE.Group(),pieces=[];
   inner.rotation.x=Math.PI/2;g.add(inner);const order=[];
   for(let i=0;i<n;i++){const a0=i/n*Math.PI*2,da=Math.PI*2/n,w=new THREE.Group();
     w.add(new THREE.Mesh(new THREE.CylinderGeometry(Rr,Rr,th,8,1,false,a0,da),[flatMat({color:rim,side:THREE.DoubleSide}),flatMat({color:face}),flatMat({color:face})]));
@@ -1070,7 +1080,7 @@ function dropSnack(kind){const L=SNACK_LOOK[kind]||SNACK_LOOK.cucumber,[rim,face
   // eat the wedges around the slice in turn, starting from a random one
   const st=Math.floor(Math.random()*n);for(let i=0;i<n;i++)order.push(pieces[(st+i)%n]);
   g.position.set(rnd(-B.x*0.5,B.x*0.5),(B.top||B.surf)+0.1,rnd(-0.1,0.3));g.rotation.set(rnd(-0.3,0.3),rnd(-0.5,0.5),rnd(-0.4,0.4));world.add(g);
-  foods.push({m:g,pos:g.position,age:0,snack:{kind,order,col:[face,core,rim],bite:0.35,kick:0}});snd.pop();}
+  foods.push({m:g,pos:g.position,age:0,snack:{kind,order,col:[face,core,rim],bite:0.35,kick:0,float:!!float}});snd.pop();}
 function snackBite(f,dt){const sn=f.snack,m=mouthWorld();S.faceT=f.pos;
   const want=m.clone().add(new V3(0,-0.01,0));if(f.pos.distanceTo(want)>0.09)f.pos.lerp(want,1-Math.exp(-3*dt));
   sn.kick=Math.max(0,sn.kick-dt*3);f.m.rotation.z=Math.sin(T*3)*0.08+Math.sin(T*24)*0.12*sn.kick;f.m.rotation.y+=Math.sin(T*1.3)*dt*0.3;
@@ -1085,6 +1095,7 @@ function snackBite(f,dt){const sn=f.snack,m=mouthWorld();S.faceT=f.pos;
 function updateFoods(dt){updateRipples(dt);
   if(SNACK_Q.length&&!VISIT&&!lightsOff&&$('#giftIn').hidden&&(updateFoods.snT=(updateFoods.snT||0)-dt)<=0){updateFoods.snT=1.6;dropSnack(SNACK_Q.shift());}
   for(const f of foods.slice()){f.age+=dt;
+  if(f.snack&&f.snack.float){const ty=B.surf-0.12;f.pos.y=f.pos.y>ty+0.01?f.pos.y-dt*0.5:ty+Math.sin(T*1.3+f.age)*0.02;f.m.rotation.z=Math.sin(T*1.1+f.age)*0.18;f.m.rotation.x=Math.sin(T*0.8+f.age)*0.12;if(!VISIT)removeFood(f);continue;}
   if(f.snack){if(f.eating){snackBite(f,dt);continue;}if(f.pos.y>B.floor+0.2){f.pos.y-=dt*(f.pos.y>B.surf?0.5:f.pos.y>B.surf-0.8?0.3:0.16);f.pos.x+=Math.sin(T*1.4+f.age)*0.1*dt;f.m.rotation.z=Math.sin(T*1.6+f.age)*0.35;f.m.rotation.x=Math.sin(T*1.1+f.age)*0.25;}continue;}
   // eating: the flakes are sucked into the mouth one after another, each with a little gulp
   if(f.eating){f.t+=dt;const m=mouthWorld(),ks=f.m.children,lm=f.m.worldToLocal(m.clone());
@@ -1099,7 +1110,7 @@ function updateFoods(dt){updateRipples(dt);
     k.position.set(u.base.x+u.dir.x*sp+Math.sin(w*0.5)*0.012,u.base.y+u.dir.y*sp+Math.sin(w)*0.008,u.base.z+u.dir.z*sp);
     if(sink){k.rotation.x=Math.sin(w)*0.7;k.rotation.z=Math.cos(w*0.8)*0.6;}else{k.rotation.x*=0.95;k.rotation.z*=0.95;}}
   if(f.age>28&&!f.eating){f.m.scale.setScalar(Math.max(0.01,1-(f.age-28)/2));if(f.age>30)removeFood(f);}}}
-function nearestFood(){let b=null,bd=1e9;for(const f of foods){const d=f.pos.distanceTo(S.pos);if(d<bd){bd=d;b=f;}}return b;}
+function nearestFood(){let b=null,bd=1e9;for(const f of foods){if(f.snack&&f.snack.float)continue;const d=f.pos.distanceTo(S.pos);if(d<bd){bd=d;b=f;}}return b;}
 function toyTarget(p){return p?new V3(clamp(p.x,-B.x,B.x),clamp(p.y,B.ymin,B.ymax),0.3):null;}
 function startToy(){if(lightsOff)return;const t=toyTarget(ptr.world);if(!t)return;endToy(true);
   const g=new THREE.Group();g.add(new THREE.Mesh(new THREE.SphereGeometry(0.06,20,16),flatMat({color:0xe53b3b,roughness:0.22,metalness:0.2})));
@@ -1190,7 +1201,7 @@ function behave(dt){const s=pet().s;S.faceT=null;
   if(toy){if(s.energy>4){chase(dt);return;}tired(dt);return;}
   const f=nearestFood();if(f){if(s.food<99||f.snack){eat(f,dt);return;}if(!f.refused){f.refused=true;react('refuse');toast(fill('{n} is full right now.'),2.4);return;}}
   if(ptr.down&&tool==='hand'&&ptr.moved>10&&ptr.world){S.faceT=ptr.world;track('lead',dt);const p=standPoint(ptr.world,R.reach);move(p.x,p.y,p.z,1.8,dt);add('fun',dt*0.6);if(Math.random()<dt*1.5)bubble(mouthWorld());return;}
-  if(S.hold&&!lightsOff){const d=move(S.hold.x,S.hold.y,S.hold.z,1.3,dt);if(d<0.2)brake(dt);return;}
+  if(S.hold&&!lightsOff){const d=move(S.hold.x,S.hold.y,S.hold.z,1.3,dt);if(d<0.2){brake(dt);S.faceT=null;if(S.viewH===undefined)S.viewH=Math.cos(S.heading)>=0?0:Math.PI;S.wantH=S.viewH;}return;}
   if(S.call){const d=move(S.call.x,S.call.y,S.call.z,1.6,dt);if(d<0.15){S.call=null;S.think=rnd(2,4);talk();}return;}
   auto(dt);}
 function sleepB(dt){const spot=new V3(-B.x*0.5,B.ymin+0.05,-0.4);
@@ -1393,8 +1404,8 @@ function updateStats(){const s=pet().s;for(const [k] of STATS){const b=$('#b-'+k
 function toggleLights(){lightsOff=!lightsOff;save.night=lightsOff;if(lightsOff)S.sleptAt=T;else if(S.sleptAt!==undefined&&T-S.sleptAt>=60)track('sleep');persist();document.body.classList.toggle('night',lightsOff);
   if(lightsOff){S.call=null;endToy(true);}else if(S.asleep){S.asleep=false;react('wake');}renderUI();}
 $('#snd').onclick=()=>{save.sound=!save.sound;snd.ac();persist();renderUI();};
-function openNaming(){const f=$('#fishName');f.value=pet().name;$('#naming').hidden=false;setTimeout(()=>{try{f.focus();f.select();}catch(e){}},250);}
-$('#name').addEventListener('click',openNaming);
+function openNaming(first){openNaming.first=!!first;const f=$('#fishName');f.value=pet().name;$('#naming').hidden=false;setTimeout(()=>{try{f.focus();f.select();}catch(e){}},250);}
+$('#name').addEventListener('click',()=>openNaming(false));
 /* shrink the name's font so a long name always fits on one line */
 let nameCtx=null;
 function fitName(){nameCtx=nameCtx||document.createElement('canvas').getContext('2d');const el=$('#name'),base=innerWidth>=700?46:40,cs=getComputedStyle(el);el.style.fontSize=base+'px';
@@ -1402,8 +1413,8 @@ function fitName(){nameCtx=nameCtx||document.createElement('canvas').getContext(
   if(avail>0&&w>avail)el.style.fontSize=Math.max(16,Math.floor(base*avail/w))+'px';}
 addEventListener('resize',fitName);if(document.fonts)document.fonts.ready.then(fitName);
 $('#namingForm').addEventListener('submit',e=>{e.preventDefault();const v=$('#fishName').value.replace(/[\u0000-\u001f<>]/g,'').trim().slice(0,14);
-  if(v){pet().name=v;persist();renderUI();toast('hello, '+v+'.',2.4);}$('#naming').hidden=true;maybeTour();});
-$('#namingSkip').onclick=()=>{$('#naming').hidden=true;maybeTour();};
+  if(v){pet().name=v;persist();renderUI();toast('hello, '+v+'.',2.4);}$('#naming').hidden=true;if(openNaming.first)maybeTour();});
+$('#namingSkip').onclick=()=>{$('#naming').hidden=true;if(openNaming.first)maybeTour();};
 const TOUR=[['#t-hand','hand · drag to lead your fish, tap to call it, tap the fish to say hi'],
   ['#t-wash','clean · when the glass gets dirty, rub it clean'],['#t-sleep','sleep · turns the lights off so your fish can rest'],
   ['#misBtn','missions · three goals a day for xp. your fish grows every 5 levels'],['#editBtn','edit · your fish’s color and pattern, the water, and decorations'],
@@ -1525,7 +1536,7 @@ function pull(){if(!DB||!USER||cloudDirty||VISIT)return;const who=USER;cloudGet(
 function adopt(rec){save=normalizeSave(rec&&rec.save);setTimeout(spawnFriends,0);if(save.lang&&save.lang!==LANG&&!langPicked)setLang(save.lang);PROG=normProg(rec&&rec.prog);ensureDaily();
   if(typeof lightsOff!=='undefined'&&S){rebuildTank();lightsOff=!!save.night;document.body.classList.toggle('night',lightsOff);S.asleep=lightsOff;renderUI();}}
 function signIn(n,rec){USER=n;cloudReady=true;setTimeout(checkGifts,3000);adopt(rec);if(langPicked||!save.lang)save.lang=LANG;langPicked=false;lastChange=(rec&&rec.updated)||Date.now();persist();cloudPut();$('#who').textContent='@'+n;$('#login').hidden=true;
-  if(PROG.total)toast(fill('welcome back. {n} missed you.'));else setTimeout(openNaming,300);}
+  if(PROG.total)toast(fill('welcome back. {n} missed you.'));else setTimeout(()=>openNaming(true),300);}
 /* ---- the username sheet ---- */
 let pending=null;
 document.querySelectorAll('[data-lang]').forEach(b=>b.onclick=()=>{langPicked=true;setLang(b.dataset.lang);});
@@ -1596,6 +1607,12 @@ function openFriends(){friendsFix();const el=$('#friendList');el.textContent='';
     const t=document.createElement('span');t.textContent='@'+f.from+(f.hide?' · hidden':' · shown');b.append(im,t);
     b.onclick=()=>{f.hide=!f.hide;persist();spawnFriends();openFriends();friendsLabel();
 };el.appendChild(b);});}
+$('#viewL').onclick=()=>{S.viewH=(S.viewH===undefined?S.heading:S.viewH)+Math.PI/4;};
+$('#viewR').onclick=()=>{S.viewH=(S.viewH===undefined?S.heading:S.viewH)-Math.PI/4;};
+document.querySelectorAll('[data-gpturn]').forEach(b=>b.onclick=()=>{const o=GPLACE&&ITEMS_ON.find(x=>x.userData.item===GPLACE.it);if(!o)return;turnItem(o,+b.dataset.gpturn*Math.PI/8);o.userData.item.r=+o.rotation.y.toFixed(2);computeObst();});
+$('#gpCancel').onclick=()=>endGiftPlace(false);
+$('#gpSend').onclick=()=>{if(!GPLACE)return;const {d,it}=GPLACE;if(wallet()<d.price){endGiftPlace(false);return;}const b=$('#gpSend');b.disabled=true;
+  sendGift('deco',giftPlaceCode(it),()=>{spendXP(d.price);persist();giftFly('',null,d.name+' sent to @'+VISIT.n+'!');endGiftPlace(true);});setTimeout(()=>{b.disabled=false;},1500);};
 $('#friendsBtn').onclick=()=>{if(!(save.friends||[]).length)return;$('#fishMenu').hidden=true;openFriends();$('#friendsSheet').hidden=false;};
 $('#friendsClose').onclick=()=>{$('#friendsSheet').hidden=true;openSub('fishMenu');};$('#skinsClose').onclick=()=>{$('#skins').hidden=true;$('#fishMenu').hidden=false;};
 $('#colorBtn').onclick=openColors;$('#patBtn').onclick=openPatterns;
@@ -1665,7 +1682,7 @@ function pebbleBrush(start){const fp=floorPoint();if(!fp)return;
   if(n){save.tank.deco=DECOS.map(d=>d.q);snd.pop();pebDirty=true;}
   else if(!left()&&start&&!pebbleBrush.told){pebbleBrush.told=1;toast('at least 20 stones stay in the tank',2.6);}}
 let dragItem=null;
-function hitItem(){const hs=ray.intersectObjects(ITEMS_ON,true);if(!hs.length)return null;let o=hs[0].object;while(o&&!o.userData.item)o=o.parent;return o;}
+function hitItem(){const list=GPLACE?ITEMS_ON.filter(o=>o.userData.item===GPLACE.it):ITEMS_ON;const hs=ray.intersectObjects(list,true);if(!hs.length)return null;let o=hs[0].object;while(o&&!o.userData.item)o=o.parent;return o;}
 /* ---- capture just the tank as a picture ---- */
 function captureTank(){const w=innerWidth,h=innerHeight,pr=Math.min(2,(devicePixelRatio||1));renderer.setPixelRatio(pr);renderer.setSize(w,h,false);renderer.render(scene,camera);
   const c=document.createElement('canvas');c.width=renderer.domElement.width;c.height=renderer.domElement.height;const x=c.getContext('2d');
@@ -1772,7 +1789,7 @@ function enterVisit(n,rec){if(TV.on)setTankView(false);if(toy)endToy(true);persi
   VISIT={n,mine:save.tank,look:Object.assign({c:'orange',p:'plain',seed:1},f.look||{}),stage:Math.min(10,Math.max(pr.grow||0,Math.floor(pr.level/5))),fish:f.name||DEF,level:pr.level};
   VISIT.friends=(rec.save.friends||[]).slice(0,6);{const vf=VISIT.friends,vn=n;refreshFriendLooks(vf,()=>{if(VISIT&&VISIT.n===vn)spawnFriends();});}save.tank=JSON.parse(JSON.stringify(rec.save.tank||{}));rebuildTank();spawnFriends();R.lookStage=null;S.grow=VISIT.stage/10;applyLook();
   document.body.classList.add('visiting');$('#visitBar').hidden=false;$('#visitTitle').textContent='@'+n+'’s tank · '+VISIT.fish+' · lv '+VISIT.level;say('');}
-function leaveVisit(){if(!VISIT)return;save.tank=VISIT.mine;VISIT=null;rebuildTank();spawnFriends();R.lookStage=null;S.grow=growStage()/10;applyLook();
+function leaveVisit(){if(!VISIT)return;if(GPLACE)endGiftPlace(false);save.tank=VISIT.mine;VISIT=null;rebuildTank();spawnFriends();R.lookStage=null;S.grow=growStage()/10;applyLook();
   document.body.classList.remove('visiting');$('#visitBar').hidden=true;$('#giftOut').hidden=true;persistLocal();if(cloudDirty)cloudPut();}
 $('#visitHome').onclick=leaveVisit;
 // sending
@@ -1795,10 +1812,10 @@ function friendsTick(dt){for(const f of FRIENDS){f.t-=dt;if(f.t<=0||f.pos.distan
     f.ph+=dt*(4+sp*14);f.g.position.copy(f.pos);f.g.position.y+=Math.sin(f.ph*0.3)*0.01;f.g.rotation.set(0,f.head+Math.sin(f.ph)*0.08,clamp(f.vel.y*1.5,-0.5,0.5));
     for(const p of f.piv)p.rotation.y=Math.sin(f.ph+0.6)*0.35;}}
 /* quiet feedback: a gift image that rises and fades with a short line of text, and a peek at the tank after a change made in a menu */
-function giftFly(src,from,label){if(!src)return;const W=110,im=document.createElement('img');im.className='fx-fly';im.src=src;im.alt='';
+function giftFly(src,from,label){const K=[{opacity:0,y:8,offset:0},{opacity:1,y:0,offset:.18},{opacity:1,y:-4,offset:.72},{opacity:0,y:-14,offset:1}],D={duration:2000,easing:'ease-out'};
+  if(src){const W=110,im=document.createElement('img');im.className='fx-fly';im.src=src;im.alt='';
   im.style.cssText='left:'+(innerWidth/2-W/2)+'px;top:'+(innerHeight*0.42-W/2)+'px;width:'+W+'px;height:'+W+'px';document.body.appendChild(im);
-  const K=[{opacity:0,y:8,offset:0},{opacity:1,y:0,offset:.18},{opacity:1,y:-4,offset:.72},{opacity:0,y:-14,offset:1}],D={duration:2000,easing:'ease-out'};
-  im.animate(K.map(k=>({opacity:k.opacity,offset:k.offset,transform:'translateY('+k.y+'px)'})),D).onfinish=()=>im.remove();
+  im.animate(K.map(k=>({opacity:k.opacity,offset:k.offset,transform:'translateY('+k.y+'px)'})),D).onfinish=()=>im.remove();}
   if(label){const t=document.createElement('div');t.className='fx-sent';t.textContent=label;document.body.appendChild(t);
     t.animate(K.map(k=>({opacity:k.opacity,offset:k.offset,transform:'translate(-50%,'+k.y+'px)'})),D).onfinish=()=>t.remove();}}
 function toScreen(o,dy){const v=new V3();o.getWorldPosition(v);if(dy)v.y+=dy;v.project(camera);return {x:(v.x+1)/2*innerWidth,y:(1-v.y)/2*innerHeight};}
@@ -1818,7 +1835,14 @@ function refreshFriendLooks(list,done){if(!DB||!list||!list.length)return;refres
     const lk=rec&&rec.save&&rec.save.pets&&rec.save.pets.fish&&rec.save.pets.fish.look;if(!lk)return;const nl=unpackLook(packLook(lk)),st=recStage(rec);
     for(const f of list)if(f.from===n&&(packLook(f.look||{})!==packLook(nl)||fstage(f)!==st)){f.look=nl;f.stage=st;changed=true;}}).catch(()=>{}).finally(()=>{if(--left===0&&changed)done&&done();}));}
 function giftDay(){if(!PROG.gday||PROG.gday.d!==dayKey())PROG.gday={d:dayKey(),snack:0};return PROG.gday;}
-function giftMsg(t){$('#giftMsg').textContent=t;}
+function giftMsg(t){$('#giftMsg').textContent=t;if($('#giftOut').hidden&&t&&t!=='sending…'&&!/^sent to/.test(t))toast(t,3);}
+/* placing a decoration gift: it appears in your friend's tank, you drag it where you like (twist or the arrows turn it), then send */
+let GPLACE=null;
+function startGiftPlace(d){if(!VISIT)return;$('#giftOut').hidden=true;const it={id:d.id,x:0,z:0.1,r:0};save.tank.items=(save.tank.items||[]).filter(i=>i.id!==d.id).concat([it]);rebuildTank();
+  GPLACE={d,it};tool='arrange';selItem=ITEMS_ON.find(o=>o.userData.item===it)||null;growIn(selItem);$('#visitBar').hidden=true;$('#giftPlaceBar').hidden=false;$('#gpTitle').textContent=d.name+' · '+d.price+' xp';}
+function endGiftPlace(keep){if(!GPLACE)return;if(!keep){save.tank.items=save.tank.items.filter(i=>i!==GPLACE.it);rebuildTank();}GPLACE=null;tool='hand';selItem=null;$('#giftPlaceBar').hidden=true;if(VISIT)$('#visitBar').hidden=false;}
+function giftPlaceCode(it){return it.id+'@'+Math.round(it.x*100)+','+Math.round(it.z*100)+','+(((Math.round((it.r||0)*57.2958)%360)+360)%360);}
+function parseDecoItem(s){const [id,p]=String(s||'').split('@');if(!p)return {id};const [x,z,r]=p.split(',').map(Number);return {id,x:clamp((x||0)/100,-1,1),z:clamp((z||0)/100,-1.3,0.7),r:(r||0)/57.2958};}
 function sendGift(kind,item,done){if(!VISIT||!DB||!USER)return;giftMsg('sending…');
   const body={fields:{from:{stringValue:USER},kind:{stringValue:kind},item:{stringValue:item},at:{timestampValue:new Date().toISOString()}}};
   fetch(GBOX(VISIT.n)+'?key='+DB.apiKey,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})
@@ -1827,13 +1851,14 @@ function sendGift(kind,item,done){if(!VISIT||!DB||!USER)return;giftMsg('sending�
 function openGiftOut(){if(!VISIT)return;$('#giftTitle').textContent='send a gift to @'+VISIT.n;giftMsg('');
   const w0=wallet(),snr=$('#snackRow');snr.textContent='';
   for(const k in SNACKS){const b=document.createElement('button');b.type='button';b.className='gpic';b.innerHTML=snk(k,44)+'<span>'+SNACKS[k].name+' · 5 xp</span>';b.disabled=w0<5;
-    b.onclick=()=>{if(wallet()<5)return;const im=b.querySelector('img');sendGift('snack',k,()=>{giftFly(im.src,im,SNACKS[k].name+' sent to @'+VISIT.n+'!');spendXP(5);persist();openGiftOut();giftMsg(SNACKS[k].name+' sent to @'+VISIT.n+'!');});};snr.appendChild(b);}
+    b.onclick=()=>{if(wallet()<5)return;const im=b.querySelector('img');sendGift('snack',k,()=>{spendXP(5);persist();$('#giftOut').hidden=true;giftFly('',null,SNACKS[k].name+' sent to @'+VISIT.n+'!');dropSnack(k,true);});};snr.appendChild(b);}
   {const myLook=pet().look||{c:'orange',p:'plain',seed:1};$('#giftFishImg').src=fthumb(myLook,growStage());$('#sendFish').disabled=w0<50;
-    $('#sendFish').onclick=()=>{if(wallet()<50)return;sendGift('fish',packLook(myLook,growStage()),()=>{giftFly($('#giftFishImg').src,$('#giftFishImg'),'a little fish swam off to @'+VISIT.n+'!');spendXP(50);persist();openGiftOut();giftMsg('a little fish swam off to @'+VISIT.n+'!');});};}
+    $('#sendFish').onclick=()=>{if(wallet()<50)return;const st=growStage();sendGift('fish',packLook(myLook,st),()=>{spendXP(50);persist();$('#giftOut').hidden=true;giftFly('',null,'a little fish swam off to @'+VISIT.n+'!');
+      VISIT.friends=(VISIT.friends||[]).concat([{from:USER,look:unpackLook(packLook(myLook)),stage:st}]).slice(-6);spawnFriends();});};}
   const th=makeThumbs(),gd=$('#giftDeco');gd.textContent='';const w=wallet();
   for(const d of SHOP){const it=document.createElement('div');it.className='item';const im=document.createElement('img');im.src=th[d.id];im.alt='';const nb=document.createElement('b');nb.textContent=d.name;
     const bt=document.createElement('button');bt.type='button';bt.textContent='send · '+d.price+' xp';bt.disabled=w<d.price;
-    bt.onclick=()=>{if(wallet()<d.price)return;sendGift('deco',d.id,()=>{giftFly(im.src,im,d.name+' sent to @'+VISIT.n+'!');spendXP(d.price);persist();openGiftOut();giftMsg(d.name+' sent to @'+VISIT.n+'!');});};it.append(im,nb,bt);gd.appendChild(it);}
+    bt.onclick=()=>{if(wallet()<d.price)return;startGiftPlace(d);};it.append(im,nb,bt);gd.appendChild(it);}
   $('#giftOut').hidden=false;}
 $('#giftBtn').onclick=openGiftOut;$('#giftClose').onclick=()=>{$('#giftOut').hidden=true;};
 $('#sendSnack').onclick=()=>{const g=giftDay();if(g.snack>=3)return;sendGift('snack','flakes',()=>{g.snack++;persist();openGiftOut();});};
@@ -1845,17 +1870,18 @@ function checkGifts(){if(!DB||!USER||VISIT||!cloudReady)return;const me=USER;
     for(const d of j.documents){if(SEEN_GIFTS.has(d.name))continue;SEEN_GIFTS.add(d.name);const F=d.fields||{},g={from:F.from&&F.from.stringValue,kind:F.kind&&F.kind.stringValue,item:F.item&&F.item.stringValue};
       if(!g.from||!g.kind)continue;got.push(g);fetch('https://firestore.googleapis.com/v1/'+d.name+'?key='+DB.apiKey,{method:'DELETE'}).catch(()=>{});}
     if(got.length)openGifts(got);}).catch(()=>{});}
-function openGifts(list){const el=$('#giftInList');el.textContent='';const p=pet();
+function openGifts(list){const el=$('#giftInList');el.textContent='';const p=pet();let placedGift=false;
   for(const g of list){const row=document.createElement('div');row.className='gift-line';let pic='',txt='';
     if(g.kind==='snack'){p.s.food=Math.min(100,p.s.food+15);p.s.fun=Math.min(100,p.s.fun+10);const k=SNACKS[g.item]?g.item:'cucumber';pic=snk(k,40);SNACK_Q.push(k);txt='@'+g.from+' sent a '+SNACKS[k].name;}
     else if(g.kind==='fish'){const lk=unpackLook(g.item),pst=String(g.item).split('.')[4],st=pst===undefined||pst===''?10:clamp(+pst||0,0,10);save.friends=(save.friends||[]).concat([{from:g.from,look:lk,stage:st}]).slice(-6);const img=fthumb(lk,st);
       pic='<img alt="" src="'+img+'" style="width:56px;height:40px">';txt='@'+g.from+' sent a little fish';setTimeout(spawnFriends,50);}
     else if(g.kind==='sticker'&&STICKERS[g.item]){pic=stk(g.item,40);txt='@'+g.from+' sent a '+g.item;}
-    else if(g.kind==='deco'){const d=SHOP.find(x=>x.id===g.item);if(!d)continue;const th=makeThumbs();pic='<img alt="" src="'+th[d.id]+'">';
-      if(save.tank.owned[d.id]){addXP(Math.round(d.price/2));txt='@'+g.from+' sent a '+d.name+' (you had one, so +'+Math.round(d.price/2)+' xp)';}else{save.tank.owned[d.id]=1;txt='@'+g.from+' sent a '+d.name;}}
+    else if(g.kind==='deco'){const pd=parseDecoItem(g.item),d=SHOP.find(x=>x.id===pd.id);if(!d)continue;const th=makeThumbs();pic='<img alt="" src="'+th[d.id]+'">';
+      if(save.tank.owned[d.id]){addXP(Math.round(d.price/2));txt='@'+g.from+' sent a '+d.name+' (you had one, so +'+Math.round(d.price/2)+' xp)';}else{save.tank.owned[d.id]=1;txt='@'+g.from+' sent a '+d.name;
+        if(pd.x!==undefined&&!save.tank.items.some(i=>i.id===d.id)){save.tank.items.push({id:d.id,x:+pd.x.toFixed(3),z:+pd.z.toFixed(2),r:+pd.r.toFixed(2)});placedGift=true;txt+=' and placed it in your tank';}}}
     else continue;
     row.innerHTML=pic;const t=document.createElement('span');t.textContent=txt;row.appendChild(t);el.appendChild(row);}
-  if(!el.childElementCount)return;renderUI();persist();$('#giftIn').hidden=false;snd.pop&&snd.pop();el.querySelectorAll('.gift-line').forEach((r,i)=>r.style.animationDelay=(i*0.12)+'s');}
+  if(placedGift)rebuildTank();if(!el.childElementCount)return;renderUI();persist();$('#giftIn').hidden=false;snd.pop&&snd.pop();el.querySelectorAll('.gift-line').forEach((r,i)=>r.style.animationDelay=(i*0.12)+'s');}
 $('#giftInClose').onclick=()=>{$('#giftIn').hidden=true;};
 setInterval(checkGifts,60000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)setTimeout(checkGifts,1500);});
 
@@ -1919,7 +1945,7 @@ function sunAt(px,py){if(!SUN||!SUN.a||!SUN.s[0].hw)return 0;let best=0;
   for(const o of SUN.s){const t=clamp((o.y0-py)/o.L),cx=o.x0+Math.tan(o.ang)*(o.y0-py),hw=o.hw*(1+0.35*t),d=Math.abs(px-cx)/hw;best=Math.max(best,(1-ss(0.5,1,d))*o.k*o.fl*(1-0.5*t));}
   return best*SUN.a;}
 function sunTick(dt){if(!SUN){const tex=rayTex(),glow=glowTex();SUN={g:new THREE.Group(),s:[]};
-    SUN.veil=new THREE.Mesh(new THREE.PlaneGeometry(1,1),new THREE.MeshBasicMaterial({color:0x4f5d66,transparent:true,opacity:0,depthWrite:false,fog:false}));SUN.veil.renderOrder=4;SUN.g.add(SUN.veil);
+    SUN.veil=new THREE.Mesh(new THREE.PlaneGeometry(1,1),new THREE.MeshBasicMaterial({color:0x5c5c5c,transparent:true,opacity:0,depthWrite:false,fog:false}));SUN.veil.renderOrder=4;SUN.g.add(SUN.veil);
     // beams widen a little as they fall; each has a faint twin drawn in front so plants and stones inside it look lit too
     const bg=new THREE.PlaneGeometry(1,1,1,16).translate(0,-0.5,0),bp=bg.attributes.position;for(let i=0;i<bp.count;i++){const y=bp.getY(i);bp.setX(i,bp.getX(i)*(1+0.35*-y));}
     const WS=[0.95,0.55,1.0,0.6,0.88,0.5],KS=[1,0.78,0.95,0.8,0.92,0.7],XS=[-1.0,-0.5,0.05,0.5,0.95,-0.22],ZS=[-1.5,0.25,-1.0,-0.3,-1.7,-1.95];
@@ -1960,7 +1986,8 @@ function frame(){requestAnimationFrame(frame);const nowF=performance.now(),busy=
   camera.position.x=camBase.x+Math.sin(T*0.17)*0.05;camera.position.y=camBase.y+Math.sin(T*0.23)*0.03;camera.lookAt(camLook);}
   if((algT+=dt)>1){algT=0;syncAlgae();}
   if((uiT+=dt)>0.3){uiT=0;syncTheme();{let up=false,any=false;document.querySelectorAll('.sheet.dock').forEach(sh=>{if(!sh.hidden){any=true;if(!sh.classList.contains('top'))up=true;}});
-    document.body.classList.toggle('docked',any);S.hold=up?new V3(0,B.surf-(B.surf-B.floor)*0.2,0.8):null;}updateStats();updateCap();if(PROG){ensureDaily();const n=pet().s,ok=n.food>60&&n.clean>60&&n.energy>60&&n.fun>60;if(ok&&!S.happyNow)track('needs');S.happyNow=ok;}}
+    document.body.classList.toggle('docked',any);S.hold=up?new V3(0,B.surf-(B.surf-B.floor)*0.2,0.8):null;if(!up)S.viewH=undefined;
+    const look=['#colors','#patterns','#skins'].some(k=>!$(k).hidden);document.body.classList.toggle('lookdock',look);}updateStats();updateCap();if(PROG){ensureDaily();const n=pet().s,ok=n.food>60&&n.clean>60&&n.energy>60&&n.fun>60;if(ok&&!S.happyNow)track('needs');S.happyNow=ok;}}
   if(S.toastT>0)S.toastT-=dt;
   if((saveT+=dt)>5){saveT=0;persistLocal();}
   renderer.render(scene,camera);}
