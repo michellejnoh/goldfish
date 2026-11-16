@@ -74,7 +74,7 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
 .tools button{font-size:24px;letter-spacing:.005em;color:var(--dim);padding:12px 6px;min-width:44px}
 .tools button[aria-pressed="true"]{color:var(--ink);text-decoration:underline;text-decoration-thickness:1.5px;text-underline-offset:6px}
 button:focus-visible,#name:focus-visible{outline:1.5px solid var(--ink);outline-offset:3px}
-body.evening{background:radial-gradient(ellipse 95% 55% at 102% 58%,rgba(var(--lampc,255,236,206),.62),rgba(var(--lampc,255,236,206),.26) 45%,rgba(var(--lampc,255,236,206),0) 75%),linear-gradient(to top,var(--nBot) 0%,var(--nMid) 30%,var(--nTop) 75%)!important;transition:background .6s}
+body.evening{background:radial-gradient(ellipse 95% 55% at 102% 58%,rgba(var(--lampc,255,236,206),.62),rgba(var(--lampc,255,236,206),.26) 45%,rgba(var(--lampc,255,236,206),0) 75%),var(--nMid)!important;transition:background .6s}
 body.night{--ink:#ededed;--dim:#7d7d7d;--soft:#b3b3b3;--track:#4a4a4a}
 body.night #say{color:#e0e0e0}
 @media (min-width:700px){#name{font-size:46px}}
@@ -1659,7 +1659,7 @@ setInterval(()=>{if(cloudDirty)cloudPut();else if(!document.hidden)pull();},3000
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)pull();});
 /* the home-screen app keeps an old copy of the page open (and iOS caches it), so check for a newer build when it opens or comes back,
    and reload past the cache if there is one */
-const BUILD='20261116184007';
+const BUILD='20261116184146';
 function checkBuild(){fetch('version.json?t='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{if(!j||!j.b||j.b===BUILD)return;
   try{if(sessionStorage.getItem('gf-build')===j.b)return;sessionStorage.setItem('gf-build',j.b);}catch(e){}
   try{persistLocal();}catch(e){}location.replace(location.pathname+'?v='+encodeURIComponent(j.b));}).catch(()=>{});}
@@ -2395,7 +2395,7 @@ function nightTick(dt){const want=TV.t>0.02?0:!$('#lampMenu').hidden?1:lightsOff
   {const w0=WATER[(save.tank&&save.tank.water)||'clear']||WATER.clear;if(scene.fog)scene.fog.color.set(w0).multiplyScalar(1-0.3*N);}// haze matches the dimmer night water, so fish don't fade into a pale glow
   if(on){const w=WATER[(save.tank&&save.tank.water)||'clear']||WATER.clear,k=1-0.3*N;if(nightTick.w!==w+k.toFixed(2)){nightTick.w=w+k.toFixed(2);const r=document.documentElement.style;
     r.setProperty('--nTop',shade(w,k*0.985));r.setProperty('--nMid',shade(w,k));r.setProperty('--nBot',shade(w,k*0.95));}}
-  {const w=WATER[(save.tank&&save.tank.water)||'clear']||WATER.clear,top=on?shade(w,(1-0.3*N)*0.985):null;if(syncTheme.over!==top){syncTheme.over=top;syncTheme();}}// Safari's top bar follows the night water
+  {const w=WATER[(save.tank&&save.tank.water)||'clear']||WATER.clear,top=on?shade(w,1-0.3*N):null;if(syncTheme.over!==top){syncTheme.over=top;syncTheme();document.documentElement.style.background=top||w;}}// one flat colour for the page, Safari's top bar and its bottom bar, so nothing shows a seam// Safari's top bar follows the night water
   if(on)NIGHTU.uNL.value.set(B.x*1.2,B.floor+((B.top||B.surf)-B.floor)*0.42,0.5,2.9);
   lampShadows(N,on);}
 /* the lamp throws soft, faint shadows across the sand, away from it: under the rocks, decorations and the fish */
