@@ -2044,7 +2044,7 @@ function buildRoom(F,W,y0,yG,z0,z1){
   const RW=320,RD=360,RH=240,hx=RW/2,hz=RD/2;
   // shell and a herringbone wood floor
   const shell=mk(new THREE.BoxGeometry(RW,RH,RD),M(0xe2e2e2,{side:THREE.BackSide}),root,0,RH/2,0);
-  const fl=tex(256,256,(x,w,h)=>{x.fillStyle='#c9c6c2';x.fillRect(0,0,w,h);for(let i=0;i<9000;i++){const v=Math.random();x.fillStyle=v<0.5?'rgba(255,255,255,.10)':'rgba(0,0,0,.07)';x.fillRect(Math.random()*w,Math.random()*h,1,1.6);}});
+  const fl=tex(256,256,(x,w,h)=>{x.fillStyle='#c7c7c7';x.fillRect(0,0,w,h);for(let i=0;i<9000;i++){const v=Math.random();x.fillStyle=v<0.5?'rgba(255,255,255,.10)':'rgba(0,0,0,.07)';x.fillRect(Math.random()*w,Math.random()*h,1,1.6);}});
   fl.wrapS=fl.wrapT=THREE.RepeatWrapping;fl.repeat.set(RW/40,RD/40);
   const floor=mk(new THREE.PlaneGeometry(RW,RD),M(0xffffff,{map:fl}),root,0,0.2,0);floor.rotation.x=-Math.PI/2;
   const wall={b:grp(root,0,0,-hz,0),f:grp(root,0,0,hz,Math.PI),l:grp(root,-hx,0,0,Math.PI/2),r:grp(root,hx,0,0,-Math.PI/2)};
@@ -2287,7 +2287,7 @@ cyl(w,0.6,0.6,1.5,0x777777,42,196,1.8,8).rotation.x=Math.PI/2;}
       lumpy(mk(up.clone(),M(0xdedede,{side:THREE.DoubleSide}),sl,0,2.7,-1.5),0.3,1.4,dx);});}
   {const mg=tex(128,170,(x,w,h)=>{x.fillStyle='#d2d2d2';x.fillRect(0,0,w,h);x.fillStyle='#8a8a8a';x.fillRect(0,0,w,34);x.fillStyle='#f0f0f0';x.font='bold 22px sans-serif';x.fillText('TEEN BEAT',8,26);x.fillStyle='#a8a8a8';x.fillRect(16,50,96,90);x.fillStyle='#7a7a7a';x.fillRect(16,148,70,8);});
     for(let i=0;i<3;i++){const m=mk(new THREE.BoxGeometry(21,0.8,28),[M(0xdddddd),M(0xdddddd),M(0xffffff,{map:mg}),M(0xdddddd),M(0xdddddd),M(0xdddddd)],root,-8+i*2,0.4+i*0.85,hz-110);m.rotation.y=0.4-i*0.35;}}
-  {const star=new THREE.Shape();for(let i=0;i<10;i++){const a=i/10*Math.PI*2-Math.PI/2,r=i%2?1.6:4;star.lineTo(Math.cos(a)*r,Math.sin(a)*r);}const SG=new THREE.ShapeGeometry(star),gm=M(0xeef0ea);
+  {const star=new THREE.Shape();for(let i=0;i<10;i++){const a=i/10*Math.PI*2-Math.PI/2,r=i%2?1.6:4;star.lineTo(Math.cos(a)*r,Math.sin(a)*r);}const SG=new THREE.ShapeGeometry(star),gm=M(0xeeeeee);
     let sd=7;const rn=()=>(sd=(sd*16807)%2147483647)/2147483647,pts=[];
     while(pts.length<30){const x=20+rn()*135,z=-110+rn()*240;if(pts.some(q=>Math.hypot(q[0]-x,q[1]-z)<14))continue;pts.push([x,z]);}
     pts.forEach(([x,z],i)=>{const st=mk(SG,gm,root,x,RH-0.4-i*0.01,z);st.rotation.x=Math.PI/2;st.rotation.z=rn()*6.28;st.scale.setScalar(0.5+rn()*0.8);});
