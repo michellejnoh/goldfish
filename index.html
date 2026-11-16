@@ -577,8 +577,8 @@ let world=new THREE.Group();scene.add(world);
    and a soft moving web of light (projected from above) plays over sand, stones and fish only where the beams fall. At night it does nothing. */
 const SUNU={uA:{value:0},uB:{value:[0,1,2,3,4,5].map(()=>new THREE.Vector4(0,9,0,0))},uK:{value:[0,0,0,0,0,0]},uL:{value:4},uCaus:{value:null},uCo:{value:new THREE.Vector4()},uCol:{value:new THREE.Color(1,1,1)},uZ:{value:[0,0,0,0,0,0]},uF:{value:0},uT:{value:0}};
 const NIGHTU={uN:{value:0},uNF:{value:0},uNL:{value:new THREE.Vector4(2,1,0.4,2.4)},uLC:{value:new THREE.Vector3(1.05,1,0.92)}};
-const LAMPS={warm:{c:'255,236,206',t:[1.05,1,0.92]},white:{c:'255,255,255',t:[1.02,1.02,1.02]},pink:{c:'255,206,222',t:[1.07,0.94,0.99]},
-  blue:{c:'200,222,255',t:[0.93,0.99,1.08]},green:{c:'206,240,206',t:[0.95,1.06,0.95]},purple:{c:'222,206,255',t:[1.0,0.94,1.08]}};
+const LAMPS={warm:{c:'255,236,206',t:[1.07,1,0.89]},white:{c:'255,255,255',t:[1.02,1.02,1.02]},pink:{c:'255,206,222',t:[1.09,0.92,0.98]},
+  blue:{c:'200,222,255',t:[0.91,0.98,1.1]},green:{c:'206,240,206',t:[0.93,1.08,0.93]},purple:{c:'222,206,255',t:[1.0,0.92,1.1]}};
 const SUN_GLSL=`uniform float uN;uniform float uNF;uniform vec4 uNL;uniform vec3 uLC;
 uniform float uA;uniform vec4 uB[6];uniform float uK[6];uniform float uL;uniform sampler2D uCaus;uniform vec4 uCo;uniform vec3 uCol;uniform float uZ[6];uniform float uF;uniform float uT;varying vec3 vSunP;varying vec3 vSunN;
 float sunMask(vec3 p){float m=0.;
@@ -596,7 +596,8 @@ function sunPatch(sh){Object.assign(sh.uniforms,SUNU,NIGHTU);
    gl_FragColor.rgb=min(gl_FragColor.rgb*f*mix(vec3(1.),uCol,m*0.6),vec3(1.));}
 if(uN>0.001){vec3 dl=vSunP-uNL.xyz;float lm=exp(-dot(dl,dl)/(uNL.w*uNL.w));
    // night: the room is dark except for a mood lamp beside the tank; things nearer to it catch its soft, slightly warm light
-   vec3 cN=gl_FragColor.rgb*(1.-uN*0.34+uN*0.62*lm)*mix(vec3(1.),uLC,uN*lm*0.8);cN=min(cN,vec3(1.));
+   vec3 b0=gl_FragColor.rgb;float sat=max(b0.r,max(b0.g,b0.b))-min(b0.r,min(b0.g,b0.b)),tk=uN*lm*(1.25-1.05*smoothstep(0.08,0.35,sat));
+   vec3 cN=b0*(1.-uN*0.34+uN*0.62*lm)*mix(vec3(1.),uLC,tk);cN=min(cN,vec3(1.));
    float lmN=dot(cN,vec3(0.299,0.587,0.114));gl_FragColor.rgb=clamp(mix(vec3(lmN),cN,1.+0.3*uN),0.,1.);}
 #include <tonemapping_fragment>`);}
 function flatMat(o){o=Object.assign({},o);['roughness','metalness','envMap','envMapIntensity','bumpMap','bumpScale','emissive'].forEach(k=>delete o[k]);const m=new THREE.MeshBasicMaterial(o);m.onBeforeCompile=sunPatch;return m;}
@@ -2372,7 +2373,21 @@ function nightTick(dt){const want=TV.t>0.02?0:!$('#lampMenu').hidden?1:lightsOff
   if(on){const w=WATER[(save.tank&&save.tank.water)||'clear']||WATER.clear,k=1-0.3*N;if(nightTick.w!==w+k.toFixed(2)){nightTick.w=w+k.toFixed(2);const r=document.documentElement.style;
     r.setProperty('--nTop',shade(w,k*0.985));r.setProperty('--nMid',shade(w,k));r.setProperty('--nBot',shade(w,k*0.95));}}
   {const w=WATER[(save.tank&&save.tank.water)||'clear']||WATER.clear,top=on?shade(w,(1-0.3*N)*0.985):null;if(syncTheme.over!==top){syncTheme.over=top;syncTheme();}}// Safari's top bar follows the night water
-  if(on)NIGHTU.uNL.value.set(B.x*1.2,B.floor+((B.top||B.surf)-B.floor)*0.42,0.5,2.9);}
+  if(on)NIGHTU.uNL.value.set(B.x*1.2,B.floor+((B.top||B.surf)-B.floor)*0.42,0.5,2.9);
+  lampShadows(N,on);}
+/* the lamp throws soft, faint shadows across the sand, away from it: under the rocks, decorations and the fish */
+let LSH=null;
+function lampShadows(N,on){if(LSH&&LSH.env!==ENV){world.remove(LSH.g);LSH=null;}if(!on){if(LSH)LSH.g.visible=false;return;}
+  const L=NIGHTU.uNL.value,F=B.floor;
+  if(!LSH){const c=document.createElement('canvas');c.width=c.height=64;const x=c.getContext('2d'),g=x.createRadialGradient(32,32,0,32,32,32);g.addColorStop(0,'rgba(0,0,0,1)');g.addColorStop(0.5,'rgba(0,0,0,.45)');g.addColorStop(1,'rgba(0,0,0,0)');x.fillStyle=g;x.fillRect(0,0,64,64);
+    const tx=new THREE.CanvasTexture(c),mkS=()=>{const m=new THREE.Mesh(new THREE.PlaneGeometry(1,1),new THREE.MeshBasicMaterial({map:tx,color:0x2a2a2e,transparent:true,opacity:0,depthWrite:false,fog:false}));m.rotation.x=-Math.PI/2;m.renderOrder=1;LSH.g.add(m);return m;};
+    LSH={g:new THREE.Group(),env:ENV,list:[]};world.add(LSH.g);const bx=new THREE.Box3();
+    for(const o of [...BIGROCKS,...(ITEMS_ON||[])]){bx.setFromObject(o);if(bx.isEmpty())continue;const sz=bx.getSize(new V3()),c2=bx.getCenter(new V3());LSH.list.push({m:mkS(),x:c2.x,z:c2.z,w:Math.max(sz.x,sz.z),h:sz.y});}
+    LSH.fish=mkS();}
+  LSH.g.visible=true;const place=(m,x,z,w,h,k)=>{const dx=x-L.x,len=w*0.6+h*Math.min(1.6,Math.abs(dx)/Math.max(0.4,L.y-F)),off=Math.sign(dx)*len*0.45;
+    m.position.set(x+off,F+0.014,z+0.04);m.scale.set(len*1.3,w*0.75,1);m.material.opacity=N*k;};
+  for(const q of LSH.list)place(q.m,q.x,q.z,q.w,q.h,0.2);
+  const fy=S.pos.y,hf=Math.max(0,fy-F),fw=0.434*youth(growStage()).size*1.1;place(LSH.fish,S.pos.x,S.pos.z,fw,hf*0.5,0.12*clamp(1-hf/2.2));}
 function frame(){requestAnimationFrame(frame);const nowF=performance.now(),busy=ptr.down||toy||foods.length||T-(S.lastTouch||-9)<4||(TV.t>0&&TV.t<1),minF=busy?0:(lightsOff&&S.asleep?62:30);
   if(nowF-(frame.last||0)<minF)return;frame.last=nowF;const dt=Math.min(clock.getDelta(),0.07);T+=dt;
   needs(dt);behave(dt);physics(dt);animate(dt);keepAboveFloor();if(FRIENDS.length)friendsTick(dt);updateFoods(dt);updateToy(dt);updateRocks(dt);updateFX(dt);updateSay(dt);sunTick(dt);nightTick(dt);
