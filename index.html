@@ -1586,7 +1586,11 @@ function cloudWrite(keep,who){if(!cloudDirty||who!==USER||UTS[who]===undefined)r
     .catch(()=>{if(who===USER)cloudDirty=true;SYNC={ok:false,msg:'offline: will save online when connected',t:Date.now()};});}
 // take the online copy when another device changed things more recently than this one
 function pull(){if(!DB||!USER||cloudDirty||VISIT)return;const who=USER;cloudGet(who).then(c=>{if(!c||USER!==who)return;takeMerged(c);if((PROG.total||0)>((c.prog&&c.prog.total)||0)||(PROG.spent||0)>((c.prog&&c.prog.spent)||0)){cloudDirty=true;cloudPut();}},()=>{});}
-function restoreGrant(){if(USER!=='michelle'||!PROG||!save||PROG.ach._w1)return false;PROG.ach._w1=dayKey();const t=save.tank;
+function restoreGrant(){if(USER!=='michelle'||!PROG||!save)return false;let ch=false;
+  // set to level 23 once (as earned or spent xp, so it syncs like any other progress)
+  if(!PROG.ach._lv23){PROG.ach._lv23=dayKey();let W=0;for(let L=1;L<23;L++)W+=need(L);const d=W-walletOf(PROG);
+    if(d>0)PROG.ea.grant=(PROG.ea.grant||0)+d;else if(d<0)PROG.sp.grant=(PROG.sp.grant||0)-d;PROG.total=sumO(PROG.ea);PROG.spent=sumO(PROG.sp);levelFrom(PROG,PROG.total-PROG.spent);growStage();ch=true;persist();}
+  if(PROG.ach._w1)return ch;PROG.ach._w1=dayKey();const t=save.tank;
   SHOP.forEach((d,i)=>{if(!t.owned[d.id]){t.owned[d.id]=1;if(!t.items.some(q=>q.id===d.id))t.items.push({id:d.id,x:+(-0.85+i*1.7/Math.max(1,SHOP.length-1)).toFixed(3),z:+rnd(-0.4,0.4).toFixed(2),r:+rnd(-0.6,0.6).toFixed(2)});}});persist();return true;}
 function adopt(rec){save=normalizeSave(rec&&rec.save);setTimeout(spawnFriends,0);if(save.lang&&save.lang!==LANG&&!langPicked)setLang(save.lang);PROG=normProg(rec&&rec.prog);ensureDaily();restoreGrant();
   if(typeof lightsOff!=='undefined'&&S){rebuildTank();lightsOff=!!save.night;document.body.classList.toggle('night',lightsOff);S.asleep=lightsOff;renderUI();}}
