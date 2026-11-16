@@ -1291,7 +1291,7 @@ function auto(dt){const s=pet().s;S.think-=dt;S.modeT-=dt;
 function physics(dt){S.vyPre=S.vel.y;if(S.vel.y<0&&S.lowGap!==undefined){const cap=-(0.06+Math.max(0,S.lowGap)*2.2);if(S.vel.y<cap)S.vel.y=damp(S.vel.y,cap,14,dt);}S.pos.addScaledVector(S.vel,dt);
   S.pos.x=clamp(S.pos.x,-B.x-0.1,B.x+0.1);{const lo=B.floor+(S.mode==='nibble'||S.mode==='tidy'?0.03:Math.max(0.15,0.34*Math.max(0,-Math.sin(S.pitch)))-0.03);if(S.pos.y<lo){S.pos.y=lo;if(S.vel.y<0)S.vel.y=0;}S.pos.y=Math.min(S.pos.y,B.surf+0.02);}S.pos.z=clamp(S.pos.z,-1.65,0.86);avoidObst();
   const hs=Math.hypot(S.vel.x,S.vel.z);if(S.faceT){const fx=S.faceT.x-S.pos.x,fz=S.faceT.z-S.pos.z;if(Math.hypot(fx,fz)>0.05)S.wantH=Math.atan2(-fz,fx);}else if(hs>0.12)S.wantH=Math.atan2(-S.vel.z,S.vel.x);
-  {const kf=lerp(24,85,clamp((S.flick||0)*1.4)),cf=2*Math.sqrt(kf)*0.95;S.hv=(S.hv||0)+(angDiff(S.heading,S.wantH)*kf-(S.hv||0)*cf)*dt;S.hv=clamp(S.hv,-9,9);S.heading+=S.hv*dt;S.turnRate=S.hv;}S.sayCD-=dt;}
+  {const kf=S.hold&&S.viewH!==undefined?180:lerp(24,85,clamp((S.flick||0)*1.4)),cf=2*Math.sqrt(kf)*0.95;S.hv=(S.hv||0)+(angDiff(S.heading,S.wantH)*kf-(S.hv||0)*cf)*dt;S.hv=clamp(S.hv,S.hold&&S.viewH!==undefined?-20:-9,S.hold&&S.viewH!==undefined?20:9);S.heading+=S.hv*dt;S.turnRate=S.hv;}S.sayCD-=dt;}
 function animate(dt){CUR.mouth=damp(CUR.mouth,0,8,dt);CUR.burst=damp(CUR.burst,0,4,dt);CUR.gulp=damp(CUR.gulp,0,6,dt);S.eatCap-=dt;S.seeCap-=dt;S.tiredCap=(S.tiredCap||0)-dt;S.playCap=(S.playCap||0)-dt;
   {const g=CUR.gulp,yy=(1+(S.sqY||0))*(1+0.12*g),zz=(1+(S.sqZ||0))*(1+0.12*g),f=Math.sqrt(Math.max(0.2,yy*zz));const bx=1/Math.sqrt(1+(S.sqX||0)*0.6);{const Y=S.yShape;R.inner.scale.set(Y?Y.lx:1,yy/f*bx*(Y?Y.ly:1),zz/f*bx*(Y?Y.lz:1));}S.flatDrop=0.09*Math.max(0,1-yy/f*bx)*(S.ground||0);}
   const sp=S.vel.length(),hs=Math.hypot(S.vel.x,S.vel.z);
@@ -1607,8 +1607,8 @@ function openFriends(){friendsFix();const el=$('#friendList');el.textContent='';
     const t=document.createElement('span');t.textContent='@'+f.from+(f.hide?' · hidden':' · shown');b.append(im,t);
     b.onclick=()=>{f.hide=!f.hide;persist();spawnFriends();openFriends();friendsLabel();
 };el.appendChild(b);});}
-$('#viewL').onclick=()=>{S.viewH=(S.viewH===undefined?S.heading:S.viewH)+Math.PI/4;};
-$('#viewR').onclick=()=>{S.viewH=(S.viewH===undefined?S.heading:S.viewH)-Math.PI/4;};
+$('#viewL').onclick=()=>{S.viewH=(S.viewH===undefined?S.heading:S.viewH)+Math.PI/2;};
+$('#viewR').onclick=()=>{S.viewH=(S.viewH===undefined?S.heading:S.viewH)-Math.PI/2;};
 document.querySelectorAll('[data-gpturn]').forEach(b=>b.onclick=()=>{const o=GPLACE&&ITEMS_ON.find(x=>x.userData.item===GPLACE.it);if(!o)return;turnItem(o,+b.dataset.gpturn*Math.PI/8);o.userData.item.r=+o.rotation.y.toFixed(2);computeObst();});
 $('#gpCancel').onclick=()=>endGiftPlace(false);
 $('#gpSend').onclick=()=>{if(!GPLACE)return;const {d,it}=GPLACE;if(wallet()<d.price){endGiftPlace(false);return;}const b=$('#gpSend');b.disabled=true;
@@ -1883,7 +1883,7 @@ function openGifts(list){const el=$('#giftInList');el.textContent='';const p=pet
     row.innerHTML=pic;const t=document.createElement('span');t.textContent=txt;row.appendChild(t);el.appendChild(row);}
   if(placedGift)rebuildTank();if(!el.childElementCount)return;renderUI();persist();$('#giftIn').hidden=false;snd.pop&&snd.pop();el.querySelectorAll('.gift-line').forEach((r,i)=>r.style.animationDelay=(i*0.12)+'s');}
 $('#giftInClose').onclick=()=>{$('#giftIn').hidden=true;};
-setInterval(checkGifts,60000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)setTimeout(checkGifts,1500);});
+setInterval(()=>{if(!document.hidden)checkGifts();},10000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)setTimeout(checkGifts,1500);});
 
 /* ---- tank view: pull back to see the whole tank as a small glass box in the middle, and turn it by dragging ---- */
 const TVCLIP=[];
