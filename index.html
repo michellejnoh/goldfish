@@ -1060,7 +1060,7 @@ function dropFood(p){if(!p||lightsOff||foods.length>8)return;const g=new THREE.G
   for(let i=0;i<3;i++){const k=new THREE.Mesh(new THREE.CylinderGeometry(0.04,0.045,0.006,9),flatMat({color:cols[(i+foods.length)%4],roughness:0.9}));
     k.position.set(rnd(-0.1,0.1),rnd(0,0.04),rnd(-0.07,0.07));k.rotation.set(rnd(-0.4,0.4),0,rnd(-0.4,0.4));g.add(k);}
   g.children.forEach((k,i)=>{k.userData.base=k.position.clone();k.userData.dir=new V3(rnd(-1,1),rnd(-0.3,0.3),rnd(-0.6,0.6)).normalize();k.userData.ph=rnd(0,6);k.userData.fr=rnd(2.2,3.4);});
-  g.position.set(clamp(p.x,-B.x,B.x),(B.top||B.surf)+0.08,rnd(-0.2,0.3));world.add(g);foods.push({m:g,pos:g.position,age:0});snd.pop();
+  g.position.set(clamp(p.x,-B.x,B.x),clamp(p.y,B.floor+0.3,B.surf-0.05),clamp(p.z,-0.2,0.4));g.scale.setScalar(0.01);g.userData.pop=0;world.add(g);foods.push({m:g,pos:g.position,age:0});snd.pop();
 }
 // a ring on the water surface where food lands
 const RIPPLES=[],RIPM=new THREE.MeshBasicMaterial({color:0x8a9599,transparent:true,opacity:0.5,depthWrite:false,side:THREE.DoubleSide});
@@ -1103,6 +1103,7 @@ function updateFoods(dt){updateRipples(dt);
       if(!k.userData.sucked){k.position.lerp(lm,1-Math.exp(-22*dt));k.scale.setScalar(Math.max(0.05,1-u*0.8));k.rotation.y+=dt*14;}});
     CUR.mouth=Math.max(CUR.mouth,0.7+0.25*Math.sin(f.t*40));
     if(f.t>=0.13*(ks.length-1)+0.18)gulp(f);continue;}
+  if(f.m.userData.pop!==undefined&&f.m.userData.pop<1){f.m.userData.pop=Math.min(1,f.m.userData.pop+dt/0.22);const u=f.m.userData.pop;f.m.scale.setScalar(Math.max(0.01,1-Math.pow(1-u,3)));}
   // sinking: the flakes drift apart a little and flutter like leaves, tipping and side-slipping
   const sink=f.pos.y>B.floor+0.12;
   if(sink){const slip=Math.sin(T*1.7+f.age);f.pos.y-=dt*(f.pos.y>B.surf?0.35:0)+dt*(0.13+0.06*Math.abs(Math.cos(T*1.7+f.age)));f.pos.x+=slip*0.12*dt;f.m.rotation.z=slip*0.25;}
