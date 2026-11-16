@@ -174,15 +174,12 @@ body.visiting .ui,body.visiting #say{display:none}
 .item em{font-style:normal;color:#8a8a8a;font-size:13px}
 .item button{font:inherit;font-size:13px;color:#111;text-decoration:underline;text-underline-offset:3px;text-align:center;padding:2px 0}
 .item.locked img{opacity:.55}
-.item,.lookgrid button{position:relative}
-.item.on::after,.lookgrid button[aria-pressed="true"]::after{content:"";position:absolute;top:2px;right:4px;width:20px;height:20px;border-radius:50%;background:#111 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M5.6 10.4l2.9 2.8 5.9-6.2' fill='none' stroke='%23fff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/20px no-repeat}
-.got::after{animation:ckIn .45s cubic-bezier(.3,1.7,.5,1)}
-.got img{animation:got .6s cubic-bezier(.3,1.6,.5,1)}
-@keyframes got{0%{transform:scale(1)}30%{transform:scale(1.2) rotate(-4deg)}55%{transform:scale(.93) rotate(2deg)}100%{transform:scale(1)}}
-@keyframes ckIn{from{transform:scale(0)}to{transform:scale(1)}}
-.fx-dot{position:fixed;border-radius:50%;pointer-events:none;z-index:20}
+@keyframes giftIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.gift-line{animation:giftIn .4s ease-out both}
+.lookgrid button.off img{opacity:.3}
 .fx-fly{position:fixed;pointer-events:none;z-index:21;object-fit:contain}
-.fx-sent{position:fixed;left:50%;top:calc(42% + 76px);font-size:24px;color:#111;pointer-events:none;z-index:21;white-space:nowrap}
+.fx-sent{position:fixed;left:50%;top:calc(42% + 64px);font-size:24px;color:#111;pointer-events:none;z-index:21;white-space:nowrap;max-width:92vw;overflow:hidden;text-overflow:ellipsis}
+.fx-note{position:fixed;font-size:22px;color:#111;pointer-events:none;z-index:21;white-space:nowrap;transform:translate(-50%,-100%)}
 </style>
 </head>
 <body>
@@ -274,6 +271,14 @@ body.visiting .ui,body.visiting #say{display:none}
     <button type="button" class="mrow" id="skinBtn"><span class="mi"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 18.5h14"/><path d="M6.5 18.5L12 5l6.5 13.5"/><circle cx="12" cy="4.2" r="1.5"/><path d="M8 13.5h8"/></svg></span><span class="mt"><b>skin</b><small>special looks, like christmas</small></span></button>
     <button type="button" class="mrow" id="friendsBtn"><span class="mi"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10c1.5-2.4 3.9-3.3 6.2-2.6L12 5.5v8l-2.8-1.9C6.9 12.3 4.5 11.4 3 10z"/><path d="M12 16c1.3-2 3.3-2.8 5.2-2.2L19.5 12v7l-2.3-1.8c-1.9.6-3.9-.2-5.2-2.2z"/></svg></span><span class="mt"><b>friends’ fish</b><small id="friendsTxt"></small></span></button>
     <div class="row2"><span></span><button type="button" class="go" data-back>back</button></div>
+  </div>
+</div>
+<div class="sheet" id="friendsSheet" hidden>
+  <div class="card">
+    <h2>friends’ fish</h2>
+    <p class="small">tap a fish to show or hide it in your tank</p>
+    <div class="lookgrid pat" id="friendList"></div>
+    <div class="row2"><span></span><button type="button" class="go" id="friendsClose">back</button></div>
   </div>
 </div>
 <div class="sheet" id="waterMenu" hidden>
@@ -408,8 +413,8 @@ const KO={
 'cancel':'취소','visit':'방문','looking…':'찾는 중…','that’s your own tank':'내 어항이에요','send a gift':'선물 보내기','home':'집으로','snack':'간식','sticker':'스티커',
 'decoration · paid with your xp':'장식 · 내 xp로 결제','none left today':'오늘은 다 보냈어요','sending…':'보내는 중…','you got gifts':'선물이 왔어요','thanks':'고마워요',
 'gifts need the new database rules (see the guide)':'선물을 보내려면 새 저장 서버 규칙이 필요해요','visiting needs the online save':'방문하려면 온라인 저장이 필요해요',
-'heart':'하트','sparkle':'반짝','fishy':'물고기','bubbles':'방울','cucumber':'오이','zucchini':'애호박','banana':'바나나',
-'a little fish like yours · 50 xp':'내 금붕어를 닮은 작은 물고기 · 50 xp','send · 50 xp':'보내기 · 50 xp','friends’ fish':'친구 물고기','little fish your friends send you swim here':'친구가 보낸 작은 물고기가 여기서 헤엄쳐요',
+'heart':'하트','sparkle':'반짝','fishy':'물고기','bubbles':'방울','cucumber':'오이','yum':'냠','crunch':'아삭','zucchini':'애호박','banana':'바나나',
+'a little fish like yours · 50 xp':'내 금붕어를 닮은 작은 물고기 · 50 xp','send · 50 xp':'보내기 · 50 xp','friends’ fish':'친구 물고기','tap a fish to show or hide it in your tank':'물고기를 탭해서 어항에 보이거나 숨겨요','no skin':'스킨 없음','little fish your friends send you swim here':'친구가 보낸 작은 물고기가 여기서 헤엄쳐요',
 'visit · type a friend’s username to visit their tank and send gifts':'방문 · 친구 사용자 이름을 입력해 어항에 놀러 가고 선물을 보내요','skin':'스킨','special looks, like christmas':'크리스마스 같은 특별한 모습','a skin is worn over your colour and pattern · tap it again to reshuffle':'스킨은 색과 무늬 위에 입혀져요 · 한 번 더 누르면 모양이 바뀌어요','none':'없음','christmas':'크리스마스','at least 20 stones stay in the tank':'어항에는 돌이 최소 20개 남아 있어야 해요','skip':'건너뛰기',
 'hand · drag to lead your fish, tap to call it, tap the fish to say hi':'손 · 끌어서 금붕어를 데려가고, 탭해서 부르고, 금붕어를 탭하면 인사해요',
 'food · tap the water to sprinkle flakes':'먹이 · 물을 탭해서 먹이를 뿌려요','clean · when the glass gets dirty, rub it clean':'청소 · 유리가 더러워지면 문질러서 닦아요',
@@ -435,7 +440,7 @@ const KO_RX=[
 [/^(\d+) \/ (\d+) xp to level (\d+)$/,'$3레벨까지 $1 / $2 xp'],[/^level (\d+)$/,'레벨 $1'],[/^level (\d+) · max$/,'레벨 $1 · 최고'],[/^lv (\d+)$/,'Lv $1'],[/^no keeper called “(.+)” yet$/,'“$1” 키퍼가 아직 없어요'],[/^@(.+)’s tank · (.+) · lv (\d+)$/,'@$1의 어항 · $2 · Lv $3'],
 [/^send a gift to @(.+)$/,'@$1에게 선물 보내기'],[/^(\d+) left today$/,'오늘 $1번 남았어요'],[/^send · (\d+) xp$/,'보내기 · $1 xp'],[/^sent to @(.+)!$/,'@$1에게 보냈어요!'],[/^(.+) sent to @(.+)!$/,'$1, @$2에게 보냈어요!'],
 [/^@(.+) sent a snack$/,'@$1님이 간식을 보냈어요'],[/^@(.+) sent a little fish$/,'@$1님이 작은 물고기를 보냈어요'],[/^(.+) · 5 xp$/,'$1 · 5 xp'],
-[/^a little fish swam off to @(.+)!$/,'작은 물고기가 @$1에게 헤엄쳐 갔어요!'],[/^hidden · tap to show (\d+)$/,'숨김 · 탭하면 $1마리 보여요'],[/^shown · tap to hide (\d+)$/,'보임 · 탭하면 $1마리 숨겨요'],[/^@(.+) sent a (.+) \(you had one, so \+(\d+) xp\)$/,'@$1님이 $2을(를) 보냈어요 (이미 있어서 +$3 xp)'],[/^@(.+) sent a (.+)$/,'@$1님이 $2을(를) 보냈어요'],
+[/^a little fish swam off to @(.+)!$/,'작은 물고기가 @$1에게 헤엄쳐 갔어요!'],[/^(\d+) of (\d+) shown · tap to choose$/,'$2마리 중 $1마리 보임 · 탭해서 고르기'],[/^@(.+) · hidden$/,'@$1 · 숨김'],[/^@(.+) · shown$/,'@$1 · 보임'],[/^@(.+) hidden$/,'@$1 숨김'],[/^@(.+) is back$/,'@$1 다시 보여요'],[/^(.+) put away$/,'$1 치움'],[/^hidden · tap to show (\d+)$/,'숨김 · 탭하면 $1마리 보여요'],[/^shown · tap to hide (\d+)$/,'보임 · 탭하면 $1마리 숨겨요'],[/^@(.+) sent a (.+) \(you had one, so \+(\d+) xp\)$/,'@$1님이 $2을(를) 보냈어요 (이미 있어서 +$3 xp)'],[/^@(.+) sent a (.+)$/,'@$1님이 $2을(를) 보냈어요'],
 [/^couldn’t send \(error (\d+)\)$/,'보내지 못했어요 (오류 $1)'],[/^grown! · lv (\d+)$/,'성장! · Lv $1'],[/^(\d+) \/ (\d+) · tap to continue$/,'$1 / $2 · 탭해서 계속'],
 [/^(\d+) days? in a row · new missions at midnight$/,'$1일 연속 · 자정에 새 미션'],
 [/^level (\d+) · (\d+) xp to spend · buying uses up xp, so your level can go down$/,'레벨 $1 · 쓸 수 있는 xp $2 · 사면 xp가 줄어 레벨이 내려갈 수 있어요'],
@@ -1008,11 +1013,55 @@ function talk(){if(S.sayCD>0)return;S.sayCD=0.8;say(pick(WORDS));snd.blub();}
 function dropFood(p){if(!p||lightsOff||foods.length>8)return;const g=new THREE.Group(),cols=[0xe0502a,0xf2a33a,0xe8c64a,0xd9472f];
   for(let i=0;i<3;i++){const k=new THREE.Mesh(new THREE.CylinderGeometry(0.04,0.045,0.006,9),flatMat({color:cols[(i+foods.length)%4],roughness:0.9}));
     k.position.set(rnd(-0.1,0.1),rnd(0,0.04),rnd(-0.07,0.07));k.rotation.set(rnd(-0.4,0.4),0,rnd(-0.4,0.4));g.add(k);}
-  g.position.set(clamp(p.x,-B.x,B.x),B.surf-0.05,rnd(-0.2,0.3));world.add(g);foods.push({m:g,pos:g.position,age:0});snd.pop();}
+  g.children.forEach((k,i)=>{k.userData.base=k.position.clone();k.userData.dir=new V3(rnd(-1,1),rnd(-0.3,0.3),rnd(-0.6,0.6)).normalize();k.userData.ph=rnd(0,6);k.userData.fr=rnd(2.2,3.4);});
+  g.position.set(clamp(p.x,-B.x,B.x),B.surf-0.05,rnd(-0.2,0.3));world.add(g);foods.push({m:g,pos:g.position,age:0});snd.pop();ripple(g.position);
+  for(let i=0;i<3;i++)spawn({mesh:new THREE.Mesh(BUB,BUBM),vel:new V3(rnd(-0.1,0.1),rnd(0.05,0.2),0),life:rnd(0.5,0.9),s0:rnd(0.01,0.02)}).mesh.position.copy(g.position).add(new V3(rnd(-0.06,0.06),-0.03,0));}
+// a ring on the water surface where food lands
+const RIPPLES=[],RIPM=new THREE.MeshBasicMaterial({color:0x8a9599,transparent:true,opacity:0.5,depthWrite:false,side:THREE.DoubleSide});
+function ripple(p){for(let i=0;i<2;i++){const m=new THREE.Mesh(new THREE.RingGeometry(0.9,1,40),RIPM.clone());m.rotation.x=-Math.PI/2;m.position.set(p.x,B.surf,p.z);m.scale.setScalar(0.02);world.add(m);RIPPLES.push({m,t:-i*0.18});}}
+function updateRipples(dt){for(const r of RIPPLES.slice()){r.t+=dt;if(r.t<0)continue;const k=r.t/0.9;r.m.scale.setScalar(0.03+k*0.28);r.m.material.opacity=0.5*(1-k);if(k>=1){world.remove(r.m);RIPPLES.splice(RIPPLES.indexOf(r),1);}}}
 function removeFood(f){world.remove(f.m);foods.splice(foods.indexOf(f),1);}
-function updateFoods(dt){for(const f of foods.slice()){f.age+=dt;
-  if(f.eating){f.t+=dt;const m=mouthWorld(),k=clamp(f.t/0.32);f.pos.lerp(m,1-Math.exp(-14*dt));f.m.scale.setScalar(Math.max(0.01,1-k));f.m.rotation.y+=dt*9;if(k>=1)gulp(f);continue;}
-  if(f.pos.y>B.floor+0.12){f.pos.y-=dt*0.17;f.pos.x+=Math.sin(T*1.7+f.age)*0.12*dt;f.m.rotation.z=Math.sin(T*2+f.age)*0.4;}
+/* a gifted snack: a slice made of wedges that sinks into the tank; the fish eats it a bite (a wedge) at a time */
+const SNACK_LOOK={cucumber:[0x4f7c4c,0xc8dfa4,0xe2efc9,0xf3f7e4,6],zucchini:[0x41633b,0xf1ebc4,0xf7f2d9,0xddd08e,6],banana:[0xe6d18c,0xf6edc8,0xf6edc8,0xb48f58,5]};
+const SNACK_Q=[];
+function dropSnack(kind){const L=SNACK_LOOK[kind]||SNACK_LOOK.cucumber,[rim,face,core,seed,n]=L,Rr=0.11,th=0.032,g=new THREE.Group(),inner=new THREE.Group(),pieces=[];
+  inner.rotation.x=Math.PI/2;g.add(inner);const order=[];
+  for(let i=0;i<n;i++){const a0=i/n*Math.PI*2,da=Math.PI*2/n,w=new THREE.Group();
+    w.add(new THREE.Mesh(new THREE.CylinderGeometry(Rr,Rr,th,8,1,false,a0,da),[flatMat({color:rim,side:THREE.DoubleSide}),flatMat({color:face}),flatMat({color:face})]));
+    for(const sg of [1]){if(core!==face){const c=new THREE.Mesh(new THREE.CircleGeometry(Rr*0.52,6,a0-Math.PI/2,da),flatMat({color:core}));c.rotation.x=-Math.PI/2*sg;c.position.y=sg*(th/2+0.001);w.add(c);}
+      const am=a0+da/2,sd=part(SPH,seed,Math.sin(am)*Rr*0.33,sg*(th/2+0.002),Math.cos(am)*Rr*0.33,Rr*0.06,0.002,Rr*0.11);sd.rotation.y=am;w.add(sd);}
+    inner.add(w);pieces.push(w);}
+  // eat the wedges around the slice in turn, starting from a random one
+  const st=Math.floor(Math.random()*n);for(let i=0;i<n;i++)order.push(pieces[(st+i)%n]);
+  g.position.set(rnd(-B.x*0.5,B.x*0.5),B.surf-0.05,rnd(-0.1,0.3));g.rotation.set(rnd(-0.3,0.3),rnd(-0.5,0.5),rnd(-0.4,0.4));world.add(g);
+  foods.push({m:g,pos:g.position,age:0,snack:{kind,order,col:[face,core,rim],bite:0.35,kick:0}});snd.pop();}
+function snackBite(f,dt){const sn=f.snack,m=mouthWorld();S.faceT=f.pos;
+  const want=m.clone().add(new V3(0,-0.01,0));if(f.pos.distanceTo(want)>0.09)f.pos.lerp(want,1-Math.exp(-3*dt));
+  sn.kick=Math.max(0,sn.kick-dt*3);f.m.rotation.z=Math.sin(T*3)*0.08+Math.sin(T*24)*0.12*sn.kick;f.m.rotation.y+=Math.sin(T*1.3)*dt*0.3;
+  if(sn.gone){sn.gone.t+=dt;const k=clamp(sn.gone.t/0.2),p=sn.gone.w;p.scale.setScalar(Math.max(0.01,1-k));const wp=new V3();p.getWorldPosition(wp);
+    p.position.add(p.parent.worldToLocal(m.clone()).sub(p.position).multiplyScalar(Math.min(1,dt*14)));if(k>=1){p.parent.remove(p);sn.gone=null;}}
+  sn.bite-=dt;if(sn.bite>0)return;
+  if(!sn.order.length){if(!sn.gone){removeFood(f);track('eat');S.eatCap=2.2;CUR.mouth=0.5;say(pick(['mm','yum','nom nom']),1.2);}return;}
+  const w=sn.order.shift();sn.gone={w,t:0};sn.kick=1;sn.bite=0.55+Math.random()*0.25;
+  squish(-2.6);CUR.gulp=1;CUR.mouth=0.9;snd.blub();if(S.sayCD<=0){S.sayCD=0.7;say(pick(['nom','munch','crunch','nom nom']),1);}
+  for(let i=0;i<5;i++){const o=spawn({mesh:new THREE.Mesh(BUB,flatMat({color:pick(sn.col)})),vel:new V3(rnd(-0.3,0.3),rnd(-0.08,0.22),rnd(-0.18,0.18)),life:rnd(0.6,1.1),s0:rnd(0.008,0.016)});o.mesh.position.copy(m);}
+  if(Math.random()<0.6)bubble(m,0.022);}
+function updateFoods(dt){updateRipples(dt);
+  if(SNACK_Q.length&&!VISIT&&!lightsOff&&$('#giftIn').hidden&&(updateFoods.snT=(updateFoods.snT||0)-dt)<=0){updateFoods.snT=1.6;dropSnack(SNACK_Q.shift());}
+  for(const f of foods.slice()){f.age+=dt;
+  if(f.snack){if(f.eating){snackBite(f,dt);continue;}if(f.pos.y>B.floor+0.2){f.pos.y-=dt*(f.pos.y>B.surf-0.8?0.3:0.16);f.pos.x+=Math.sin(T*1.4+f.age)*0.1*dt;f.m.rotation.z=Math.sin(T*1.6+f.age)*0.35;f.m.rotation.x=Math.sin(T*1.1+f.age)*0.25;}continue;}
+  // eating: the flakes are sucked into the mouth one after another, each with a little gulp
+  if(f.eating){f.t+=dt;const m=mouthWorld(),ks=f.m.children,lm=f.m.worldToLocal(m.clone());
+    ks.forEach((k,i)=>{const t0=i*0.13,u=clamp((f.t-t0)/0.16);if(u<=0)return;if(!k.userData.sucked&&u>=1){k.userData.sucked=1;k.visible=false;squish(-1.1);CUR.mouth=0.95;crumb(m);if(i<ks.length-1)snd.pop();}
+      if(!k.userData.sucked){k.position.lerp(lm,1-Math.exp(-22*dt));k.scale.setScalar(Math.max(0.05,1-u*0.8));k.rotation.y+=dt*14;}});
+    CUR.mouth=Math.max(CUR.mouth,0.7+0.25*Math.sin(f.t*40));
+    if(f.t>=0.13*(ks.length-1)+0.18)gulp(f);continue;}
+  // sinking: the flakes drift apart a little and flutter like leaves, tipping and side-slipping
+  const sink=f.pos.y>B.floor+0.12;
+  if(sink){const slip=Math.sin(T*1.7+f.age);f.pos.y-=dt*(0.13+0.06*Math.abs(Math.cos(T*1.7+f.age)));f.pos.x+=slip*0.12*dt;f.m.rotation.z=slip*0.25;}
+  for(const k of f.m.children){const u=k.userData;if(!u.base)continue;const sp=Math.min(1,f.age/3)*0.06,w=T*u.fr+u.ph;
+    k.position.set(u.base.x+u.dir.x*sp+Math.sin(w*0.5)*0.012,u.base.y+u.dir.y*sp+Math.sin(w)*0.008,u.base.z+u.dir.z*sp);
+    if(sink){k.rotation.x=Math.sin(w)*0.7;k.rotation.z=Math.cos(w*0.8)*0.6;}else{k.rotation.x*=0.95;k.rotation.z*=0.95;}}
   if(f.age>28&&!f.eating){f.m.scale.setScalar(Math.max(0.01,1-(f.age-28)/2));if(f.age>30)removeFood(f);}}}
 function nearestFood(){let b=null,bd=1e9;for(const f of foods){const d=f.pos.distanceTo(S.pos);if(d<bd){bd=d;b=f;}}return b;}
 function toyTarget(p){return p?new V3(clamp(p.x,-B.x,B.x),clamp(p.y,B.ymin,B.ymax),0.3):null;}
@@ -1103,7 +1152,7 @@ function behave(dt){const s=pet().s;S.faceT=null;
   S.asleep=false;
   if(S.react)doReact(dt);
   if(toy){if(s.energy>4){chase(dt);return;}tired(dt);return;}
-  const f=nearestFood();if(f){if(s.food<99){eat(f,dt);return;}if(!f.refused){f.refused=true;react('refuse');toast(fill('{n} is full right now.'),2.4);return;}}
+  const f=nearestFood();if(f){if(s.food<99||f.snack){eat(f,dt);return;}if(!f.refused){f.refused=true;react('refuse');toast(fill('{n} is full right now.'),2.4);return;}}
   if(ptr.down&&tool==='hand'&&ptr.moved>10&&ptr.world){S.faceT=ptr.world;track('lead',dt);const p=standPoint(ptr.world,R.reach);move(p.x,p.y,p.z,1.8,dt);add('fun',dt*0.6);if(Math.random()<dt*1.5)bubble(mouthWorld());return;}
   if(S.call){const d=move(S.call.x,S.call.y,S.call.z,1.6,dt);if(d<0.15){S.call=null;S.think=rnd(2,4);talk();}return;}
   auto(dt);}
@@ -1114,9 +1163,10 @@ function sleepB(dt){const spot=new V3(-B.x*0.5,B.ymin+0.05,-0.4);
 function mouthTarget(p){const side=Math.sign(S.pos.x-p.x)||1,mo=R.mouth.x*R.g.scale.x;return new V3(p.x+side*mo,p.y+0.035,p.z);}
 function faceToward(p){S.wantH=Math.atan2(-(p.z-S.pos.z),p.x-S.pos.x);}
 function eat(f,dt){S.seeCap=0.6;if(S.mode==='tidy'||S.mode==='juggle')S.mode='idle';
-  if(f.eating){brake(dt);S.faceT=f.pos;CUR.mouth=Math.max(CUR.mouth,0.9);return;}
+  if(f.snack&&!f.eating&&f.pos.y>B.surf-0.75){S.faceT=f.pos;const t=new V3(f.pos.x+(Math.sign(S.pos.x-f.pos.x)||1)*0.6,Math.min(f.pos.y-0.3,B.ymax),f.pos.z);move(t.x,t.y,t.z,1.0,dt);return;}
+  if(f.eating){brake(dt);S.faceT=f.pos;if(!f.snack)CUR.mouth=Math.max(CUR.mouth,0.9);return;}
   const m=mouthWorld(),dm=m.distanceTo(f.pos);
-  if(dm<0.24){f.eating=true;f.t=0;CUR.mouth=0.9;snd.pop();return;}
+  if(dm<(f.snack?0.2:0.24)){f.eating=true;f.t=0;CUR.mouth=0.9;snd.pop();return;}
   if(f.side===undefined)f.side=Math.sign(S.pos.x-f.pos.x)||1;
   const mo=R.mouth.x*R.g.scale.x,t=new V3(f.pos.x+f.side*mo,f.pos.y+0.035,f.pos.z),d=move(t.x,t.y,t.z,1.6,dt,B.floor+0.1,B.surf);
   if(d<0.9||dm<0.7)S.faceT=f.pos;}
@@ -1489,7 +1539,7 @@ const wallet=()=>{if(!PROG)return 0;let w=PROG.exp;for(let L=1;L<PROG.level;L++)
 function spendXP(n){if(!PROG||wallet()<n)return false;PROG.exp-=n;while(PROG.exp<0&&PROG.level>1){PROG.level--;PROG.exp+=need(PROG.level);}PROG.exp=Math.max(0,PROG.exp);updateStats();return true;}
 function lookPick(list,key,label,onPick){const el=$(list);el.textContent='';const lk=lookOf();
   for(const k of key){const b=document.createElement('button');b.type='button';const im=document.createElement('img');im.alt='';im.src=fishThumb(label(k));
-    const t=document.createElement('span');t.textContent=k;b.append(im,t);b.setAttribute('aria-pressed',k===(list==='#colorList'?lk.c:lk.p));b.onclick=()=>{onPick(k);celebrate($(list+' [aria-pressed="true"]'));};el.appendChild(b);}}
+    const t=document.createElement('span');t.textContent=k;b.append(im,t);b.setAttribute('aria-pressed',k===(list==='#colorList'?lk.c:lk.p));b.onclick=()=>{onPick(k);showFishChange(list==='#colorList'?k:k==='plain'?'plain':k);};el.appendChild(b);}}
 function openColors(){$('#fishMenu').hidden=true;$('#colors').hidden=false;
   lookPick('#colorList',Object.keys(LOOK_COLORS),k=>Object.assign({},lookOf(),{c:k}),k=>{lookOf().c=k;applyLook();persist();openColors();});}
 function openPatterns(){$('#fishMenu').hidden=true;$('#patterns').hidden=false;
@@ -1498,10 +1548,17 @@ const LOOK_SKINS=['none','christmas'];
 function openSkins(){$('#fishMenu').hidden=true;$('#skins').hidden=false;const el=$('#skinList');el.textContent='';const lk=lookOf();
   for(const k of LOOK_SKINS){const b=document.createElement('button');b.type='button';const im=document.createElement('img');im.alt='';im.src=fishThumb(Object.assign({},lk,{skin:k==='none'?'':k}));
     const t=document.createElement('span');t.textContent=k;b.append(im,t);b.setAttribute('aria-pressed',(lk.skin||'none')===k);
-    b.onclick=()=>{const l=lookOf();if(k==='christmas'&&l.skin==='christmas')l.seed=Math.floor(Math.random()*1000);l.skin=k==='none'?'':k;applyLook();persist();openSkins();celebrate($('#skinList [aria-pressed="true"]'));};el.appendChild(b);}}
+    b.onclick=()=>{const l=lookOf();if(k==='christmas'&&l.skin==='christmas')l.seed=Math.floor(Math.random()*1000);l.skin=k==='none'?'':k;applyLook();persist();openSkins();showFishChange(k==='none'?'no skin':k);};el.appendChild(b);}}
 $('#skinBtn').onclick=openSkins;
-function friendsLabel(){const n=(save.friends||[]).length;$('#friendsTxt').textContent=n?(save.hideFriends?'hidden · tap to show '+n:'shown · tap to hide '+n):'little fish your friends send you swim here';}
-$('#friendsBtn').onclick=()=>{if(!(save.friends||[]).length)return;save.hideFriends=!save.hideFriends;persist();spawnFriends();friendsLabel();};$('#skinsClose').onclick=()=>{$('#skins').hidden=true;$('#fishMenu').hidden=false;};
+function friendsFix(){if(save.hideFriends){(save.friends||[]).forEach(f=>f.hide=true);delete save.hideFriends;}}
+function friendsLabel(){friendsFix();const L=save.friends||[],n=L.length,on=L.filter(f=>!f.hide).length;$('#friendsTxt').textContent=n?on+' of '+n+' shown · tap to choose':'little fish your friends send you swim here';}
+function openFriends(){friendsFix();const el=$('#friendList');el.textContent='';
+  (save.friends||[]).forEach((f,i)=>{const b=document.createElement('button');b.type='button';if(f.hide)b.classList.add('off');const im=document.createElement('img');im.alt='';im.src=fishThumb(f.look,10,true);
+    const t=document.createElement('span');t.textContent='@'+f.from+(f.hide?' · hidden':' · shown');b.append(im,t);
+    b.onclick=()=>{f.hide=!f.hide;persist();spawnFriends();openFriends();friendsLabel();
+      peekTank('#friendsSheet',()=>{const fr=FRIENDS.find(x=>x.src===f);fxNote('@'+f.from+(f.hide?' hidden':' is back'),fr?toScreen(fr.g,0.12):{x:innerWidth/2,y:innerHeight*0.5});});};el.appendChild(b);});}
+$('#friendsBtn').onclick=()=>{if(!(save.friends||[]).length)return;$('#fishMenu').hidden=true;openFriends();$('#friendsSheet').hidden=false;};
+$('#friendsClose').onclick=()=>{$('#friendsSheet').hidden=true;openSub('fishMenu');};$('#skinsClose').onclick=()=>{$('#skins').hidden=true;$('#fishMenu').hidden=false;};
 $('#colorBtn').onclick=openColors;$('#patBtn').onclick=openPatterns;
 $('#colorsClose').onclick=()=>{$('#colors').hidden=true;$('#fishMenu').hidden=false;};
 $('#patternsClose').onclick=()=>{$('#patterns').hidden=true;$('#fishMenu').hidden=false;};
@@ -1520,7 +1577,7 @@ function renderShop(){const t=save.tank,th=makeThumbs();
   $('#shopList').innerHTML=SHOP.map(d=>{const own=t.owned[d.id],on=t.items.some(i=>i.id===d.id),can=PROG&&wallet()>=d.price;
     const after=can?(()=>{let L=PROG.level,e=PROG.exp-d.price;while(e<0&&L>1){L--;e+=need(L);}return L;})():0;
     const act=!own?(can?'<button data-buy="'+d.id+'">buy \u00b7 '+d.price+' xp'+(after<PROG.level?' (to lv '+after+')':'')+'</button>':'<em>'+d.price+' xp</em>'):on?'<button data-off="'+d.id+'">put away</button>':'<button data-on="'+d.id+'">place in tank</button>';
-    return '<div class="item'+(!own&&!can?' locked':'')+(on?' on':'')+'" data-id="'+d.id+'"><img src="'+th[d.id]+'" alt="'+d.name+'"><b>'+d.name+'</b>'+act+'</div>';}).join('');}
+    return '<div class="item'+(!own&&!can?' locked':'')+'" data-id="'+d.id+'"><img src="'+th[d.id]+'" alt="'+d.name+'"><b>'+d.name+'</b>'+act+'</div>';}).join('');}
 $('#shopBtn').onclick=()=>{renderShop();$('#decorMenu').hidden=true;$('#shop').hidden=false;};
 $('#editBtn').onclick=()=>openTank();
 /* tapping anywhere outside a menu's box closes the menu */
@@ -1550,7 +1607,9 @@ $('#shopList').addEventListener('click',e=>{const d=e.target.dataset||{};
   if(d.buy){const it=SHOP.find(x=>x.id===d.buy);const lv0=PROG?PROG.level:1;if(!spendXP(it.price))return;save.tank.owned[it.id]=true;placeItem(it.id);toast(it.name+' added to the tank'+(PROG.level<lv0?' \u00b7 now level '+PROG.level:''));}
   else if(d.on)placeItem(d.on);
   else if(d.off){save.tank.items=save.tank.items.filter(i=>i.id!==d.off);rebuildTank();persist();}
-  renderShop();const id=d.buy||d.on||d.off;if(id){const el=$('#shopList [data-id="'+id+'"]');if(d.off){if(el){el.classList.remove('got');void el.offsetWidth;el.classList.add('got');}}else{celebrate(el);snd.pop&&snd.pop();}}});
+  renderShop();const id=d.buy||d.on||d.off,def=id&&SHOP.find(x=>x.id===id);if(!def)return;
+  if(d.off)peekTank('#shop',()=>fxNote(def.name+' put away',{x:innerWidth/2,y:innerHeight*0.55}));
+  else{const g=ITEMS_ON[ITEMS_ON.length-1];peekTank('#shop',()=>{growIn(g);if(g)fxNote(def.name,toScreen(g,0.5));});}});
 const FLOOR=new THREE.Plane(new V3(0,1,0),0);
 function floorPoint(){FLOOR.constant=-B.floor;const p=new V3();return ray.ray.intersectPlane(FLOOR,p)?p:null;}
 let lastPeb=null;
@@ -1673,7 +1732,7 @@ $('#visitForm').addEventListener('submit',e=>{e.preventDefault();const n=$('#vis
 function enterVisit(n,rec){if(TV.on)setTankView(false);if(toy)endToy(true);persistLocal();
   const f=(rec.save.pets&&rec.save.pets.fish)||{},pr=normProg(rec.prog);
   VISIT={n,mine:save.tank,look:Object.assign({c:'orange',p:'plain',seed:1},f.look||{}),stage:Math.min(10,Math.max(pr.grow||0,Math.floor(pr.level/5))),fish:f.name||DEF,level:pr.level};
-  VISIT.friends=(rec.save.friends||[]).slice(0,6);save.tank=JSON.parse(JSON.stringify(rec.save.tank||{}));rebuildTank();spawnFriends();R.lookStage=null;S.grow=VISIT.stage/10;applyLook();
+  VISIT.friends=(rec.save.friends||[]).slice(0,6);{const vf=VISIT.friends,vn=n;refreshFriendLooks(vf,()=>{if(VISIT&&VISIT.n===vn)spawnFriends();});}save.tank=JSON.parse(JSON.stringify(rec.save.tank||{}));rebuildTank();spawnFriends();R.lookStage=null;S.grow=VISIT.stage/10;applyLook();
   document.body.classList.add('visiting');$('#visitBar').hidden=false;$('#visitTitle').textContent='@'+n+'’s tank · '+VISIT.fish+' · lv '+VISIT.level;say('');}
 function leaveVisit(){if(!VISIT)return;save.tank=VISIT.mine;VISIT=null;rebuildTank();spawnFriends();R.lookStage=null;S.grow=growStage()/10;applyLook();
   document.body.classList.remove('visiting');$('#visitBar').hidden=true;$('#giftOut').hidden=true;persistLocal();if(cloudDirty)cloudPut();}
@@ -1685,35 +1744,39 @@ function unpackLook(s){const [c,p,sd,sk]=String(s||'').split('.'),P=Object.keys(
 let FRIENDS=[];
 // gifted fish: a fifth of an adult's size, in the sender's colours; they just potter about and can't be played with
 function spawnFriends(){for(const f of FRIENDS)world.remove(f.g);FRIENDS=[];const list=(VISIT?VISIT.friends:save.friends)||[];
-  if(!VISIT&&save.hideFriends)return;
-  for(const it of list){const F=buildFish();poseYouth(F,10,true);applyLook(F,it.look,10);F.g.scale.setScalar(0.434*0.2);
+  if(!VISIT)friendsFix();
+  for(const it of list){if(it.hide)continue;const F=buildFish();poseYouth(F,10,true);applyLook(F,it.look,10);F.g.scale.setScalar(0.434*0.2);
     F.g.traverse(o=>{if(o.userData&&o.userData.proxy)o.visible=false;});
     const piv=[];for(const m of F.tails||[]){const p=new THREE.Group();p.position.x=-0.66;F.inner.add(p);F.inner.remove(m);m.position.x+=0.66;p.add(m);piv.push(p);}
     const pos=new V3(rnd(-B.x*0.8,B.x*0.8),rnd(B.ymin,B.ymax-0.3),rnd(-1.2,0.5));F.g.position.copy(pos);world.add(F.g);
-    FRIENDS.push({g:F.g,piv,pos,vel:new V3(),tgt:pos.clone(),head:rnd(0,6),ph:rnd(0,6),t:0});}}
+    FRIENDS.push({src:it,g:F.g,piv,pos,vel:new V3(),tgt:pos.clone(),head:rnd(0,6),ph:rnd(0,6),t:0});}}
 function friendsTick(dt){for(const f of FRIENDS){f.t-=dt;if(f.t<=0||f.pos.distanceTo(f.tgt)<0.1){f.tgt.set(rnd(-B.x*0.85,B.x*0.85),rnd(B.ymin,B.ymax-0.2),rnd(-1.3,0.6));f.t=rnd(3,8);}
     const d=f.tgt.clone().sub(f.pos),L=d.length(),want=d.multiplyScalar(L>0.001?Math.min(0.35,L)/L:0);f.vel.lerp(want,1-Math.exp(-dt*1.6));f.pos.addScaledVector(f.vel,dt);
     const sp=f.vel.length();if(sp>0.02){const h=Math.atan2(-f.vel.z,f.vel.x);let dh=h-f.head;dh=Math.atan2(Math.sin(dh),Math.cos(dh));f.head+=dh*Math.min(1,dt*4);}
     f.ph+=dt*(4+sp*14);f.g.position.copy(f.pos);f.g.position.y+=Math.sin(f.ph*0.3)*0.01;f.g.rotation.set(0,f.head+Math.sin(f.ph)*0.08,clamp(f.vel.y*1.5,-0.5,0.5));
     for(const p of f.piv)p.rotation.y=Math.sin(f.ph+0.6)*0.35;}}
-/* little celebration effects: confetti dots, a bounce + check on whatever just changed, and a gift that flies off */
-const FX_COLS=['#ef8a3c','#d8b25a','#d9675a','#9ec1cf','#5d8566','#e2bb55'];
-function burst(x,y,n,spread){n=n||14;spread=spread||70;for(let i=0;i<n;i++){const d=document.createElement('i');d.className='fx-dot';const z=4+Math.random()*5;
-  d.style.cssText='left:'+(x-z/2)+'px;top:'+(y-z/2)+'px;width:'+z+'px;height:'+z+'px;background:'+FX_COLS[i%FX_COLS.length];document.body.appendChild(d);
-  const a=Math.random()*Math.PI*2,r=spread*(0.5+Math.random()*0.6);
-  d.animate([{transform:'translate(0,0) scale(1)',opacity:1},{transform:'translate('+(Math.cos(a)*r).toFixed(1)+'px,'+(Math.sin(a)*r+18).toFixed(1)+'px) scale(.3)',opacity:0}],{duration:650+Math.random()*350,easing:'cubic-bezier(.2,.7,.3,1)'}).onfinish=()=>d.remove();}}
-function celebrate(el){if(!el)return;el.classList.remove('got');void el.offsetWidth;el.classList.add('got');const r=el.getBoundingClientRect();burst(r.left+r.width/2,r.top+r.height*0.4,12,48);
-  clearTimeout(el._gt);el._gt=setTimeout(()=>el.classList.remove('got'),700);}
-function giftFly(src,from,label){if(!src)return;const r=from&&from.isConnected?from.getBoundingClientRect():{left:innerWidth/2-30,top:innerHeight/2-30,width:60,height:60};
-  const W=Math.max(30,r.width,r.height),im=document.createElement('img');im.className='fx-fly';im.src=src;im.alt='';
-  im.style.cssText='left:'+(r.left+r.width/2-W/2)+'px;top:'+(r.top+r.height/2-W/2)+'px;width:'+W+'px;height:'+W+'px';document.body.appendChild(im);
-  const x0=r.left+r.width/2-W/2,y0=r.top+r.height/2-W/2,cx=innerWidth/2-W/2-x0,cy=innerHeight*0.42-W/2-y0,k=130/W;
-  im.animate([{transform:'translate(0,0) scale(1)'},{transform:'translate('+cx+'px,'+cy+'px) scale('+k+') rotate(-8deg)',offset:.32},{transform:'translate('+cx+'px,'+(cy-8)+'px) scale('+(k*1.08)+') rotate(7deg)',offset:.5},
-    {transform:'translate('+cx+'px,'+cy+'px) scale('+k+') rotate(0)',offset:.62},{transform:'translate('+(cx+innerWidth*0.22)+'px,'+(cy-innerHeight*0.55)+'px) scale('+(k*0.25)+') rotate(24deg)',opacity:0}],
-    {duration:1700,easing:'cubic-bezier(.45,0,.3,1)'}).onfinish=()=>im.remove();
-  setTimeout(()=>burst(innerWidth/2,innerHeight*0.42,22,100),500);
+/* quiet feedback: a gift image that rises and fades with a short line of text, and a peek at the tank after a change made in a menu */
+function giftFly(src,from,label){if(!src)return;const W=110,im=document.createElement('img');im.className='fx-fly';im.src=src;im.alt='';
+  im.style.cssText='left:'+(innerWidth/2-W/2)+'px;top:'+(innerHeight*0.42-W/2)+'px;width:'+W+'px;height:'+W+'px';document.body.appendChild(im);
+  im.animate([{opacity:0,transform:'translateY(14px)'},{opacity:1,transform:'translateY(0)',offset:.2},{opacity:1,transform:'translateY(-6px)',offset:.65},{opacity:0,transform:'translateY(-40px)'}],{duration:1800,easing:'ease-out'}).onfinish=()=>im.remove();
   if(label){const t=document.createElement('div');t.className='fx-sent';t.textContent=label;document.body.appendChild(t);
-    t.animate([{opacity:0,transform:'translate(-50%,10px)'},{opacity:1,transform:'translate(-50%,0)',offset:.3},{opacity:1,offset:.78},{opacity:0,transform:'translate(-50%,-8px)'}],{duration:1900}).onfinish=()=>t.remove();}}
+    t.animate([{opacity:0,transform:'translate(-50%,6px)'},{opacity:1,transform:'translate(-50%,0)',offset:.2},{opacity:1,offset:.75},{opacity:0}],{duration:2000,easing:'ease-out'}).onfinish=()=>t.remove();}}
+function toScreen(o,dy){const v=new V3();o.getWorldPosition(v);if(dy)v.y+=dy;v.project(camera);return {x:(v.x+1)/2*innerWidth,y:(1-v.y)/2*innerHeight};}
+function fxNote(text,p){const t=document.createElement('div');t.className='fx-note';t.textContent=text;const x=clamp(p.x,90,innerWidth-90),y=clamp(p.y,90,innerHeight-120);
+  t.style.left=x+'px';t.style.top=y+'px';document.body.appendChild(t);
+  t.animate([{opacity:0,marginTop:'6px'},{opacity:1,marginTop:'0px',offset:.2},{opacity:1,offset:.75},{opacity:0,marginTop:'-6px'}],{duration:1600,easing:'ease-out'}).onfinish=()=>t.remove();}
+// fade the open menu away for a moment so the change can be seen in the tank, then bring it back
+function peekTank(sel,show){const sh=$(sel);if(!sh||sh.hidden)return;clearTimeout(peekTank.t1);clearTimeout(peekTank.t2);
+  sh.style.transition='opacity .25s';sh.style.opacity='0';sh.style.pointerEvents='none';
+  peekTank.t1=setTimeout(()=>{show&&show();},260);
+  peekTank.t2=setTimeout(()=>{sh.style.opacity='';sh.style.pointerEvents='';setTimeout(()=>{sh.style.transition='';},300);},2000);}
+function growIn(g){if(!g)return;const s1=g.scale.x,t0=performance.now();g.scale.setScalar(s1*0.01);
+  const f=()=>{const u=Math.min(1,(performance.now()-t0)/450),e=1-Math.pow(1-u,3);g.scale.setScalar(s1*Math.max(0.01,e));if(u<1)requestAnimationFrame(f);};requestAnimationFrame(f);}
+function showFishChange(text){peekTank(['#colors','#patterns','#skins'].find(k=>!$(k).hidden),()=>fxNote(text,toScreen(R.g,0.32)));}
+function refreshFriendLooks(list,done){if(!DB||!list||!list.length)return;refreshFriendLooks.t=Date.now();const names=[...new Set(list.map(f=>f.from).filter(n=>NAME_RE.test(n||'')))];let changed=false,left=names.length;
+  names.forEach(n=>fetch(docURL(n),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{if(!j||!j.fields||!j.fields.data)return;let rec;try{rec=JSON.parse(j.fields.data.stringValue);}catch(e){return;}
+    const lk=rec&&rec.save&&rec.save.pets&&rec.save.pets.fish&&rec.save.pets.fish.look;if(!lk)return;const nl=unpackLook(packLook(lk));
+    for(const f of list)if(f.from===n&&packLook(f.look||{})!==packLook(nl)){f.look=nl;changed=true;}}).catch(()=>{}).finally(()=>{if(--left===0&&changed)done&&done();}));}
 function giftDay(){if(!PROG.gday||PROG.gday.d!==dayKey())PROG.gday={d:dayKey(),snack:0};return PROG.gday;}
 function giftMsg(t){$('#giftMsg').textContent=t;}
 function sendGift(kind,item,done){if(!VISIT||!DB||!USER)return;giftMsg('sending…');
@@ -1737,13 +1800,14 @@ $('#sendSnack').onclick=()=>{const g=giftDay();if(g.snack>=3)return;sendGift('sn
 // receiving
 const SEEN_GIFTS=new Set();
 function checkGifts(){if(!DB||!USER||VISIT||!cloudReady)return;const me=USER;
+  if(Date.now()-(refreshFriendLooks.t||0)>180000)refreshFriendLooks(save.friends,()=>{if(USER===me&&!VISIT){persist();spawnFriends();}});
   fetch(GBOX(me)+'?key='+DB.apiKey+'&pageSize=50',{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{if(!j||!j.documents||USER!==me||VISIT)return;const got=[];
     for(const d of j.documents){if(SEEN_GIFTS.has(d.name))continue;SEEN_GIFTS.add(d.name);const F=d.fields||{},g={from:F.from&&F.from.stringValue,kind:F.kind&&F.kind.stringValue,item:F.item&&F.item.stringValue};
       if(!g.from||!g.kind)continue;got.push(g);fetch('https://firestore.googleapis.com/v1/'+d.name+'?key='+DB.apiKey,{method:'DELETE'}).catch(()=>{});}
     if(got.length)openGifts(got);}).catch(()=>{});}
 function openGifts(list){const el=$('#giftInList');el.textContent='';const p=pet();
   for(const g of list){const row=document.createElement('div');row.className='gift-line';let pic='',txt='';
-    if(g.kind==='snack'){p.s.food=Math.min(100,p.s.food+15);p.s.fun=Math.min(100,p.s.fun+10);const k=SNACKS[g.item]?g.item:'cucumber';pic=snk(k,40);txt='@'+g.from+' sent a '+SNACKS[k].name;}
+    if(g.kind==='snack'){p.s.food=Math.min(100,p.s.food+15);p.s.fun=Math.min(100,p.s.fun+10);const k=SNACKS[g.item]?g.item:'cucumber';pic=snk(k,40);SNACK_Q.push(k);txt='@'+g.from+' sent a '+SNACKS[k].name;}
     else if(g.kind==='fish'){const lk=unpackLook(g.item);save.friends=(save.friends||[]).concat([{from:g.from,look:lk}]).slice(-6);const img=fishThumb(lk,10,true);
       pic='<img alt="" src="'+img+'" style="width:56px;height:40px">';txt='@'+g.from+' sent a little fish';setTimeout(spawnFriends,50);}
     else if(g.kind==='sticker'&&STICKERS[g.item]){pic=stk(g.item,40);txt='@'+g.from+' sent a '+g.item;}
@@ -1751,7 +1815,7 @@ function openGifts(list){const el=$('#giftInList');el.textContent='';const p=pet
       if(save.tank.owned[d.id]){addXP(Math.round(d.price/2));txt='@'+g.from+' sent a '+d.name+' (you had one, so +'+Math.round(d.price/2)+' xp)';}else{save.tank.owned[d.id]=1;txt='@'+g.from+' sent a '+d.name;}}
     else continue;
     row.innerHTML=pic;const t=document.createElement('span');t.textContent=txt;row.appendChild(t);el.appendChild(row);}
-  if(!el.childElementCount)return;renderUI();persist();$('#giftIn').hidden=false;snd.pop&&snd.pop();el.querySelectorAll('.gift-line').forEach((r,i)=>setTimeout(()=>celebrate(r),250+i*200));}
+  if(!el.childElementCount)return;renderUI();persist();$('#giftIn').hidden=false;snd.pop&&snd.pop();el.querySelectorAll('.gift-line').forEach((r,i)=>r.style.animationDelay=(i*0.12)+'s');}
 $('#giftInClose').onclick=()=>{$('#giftIn').hidden=true;};
 setInterval(checkGifts,60000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)setTimeout(checkGifts,1500);});
 
