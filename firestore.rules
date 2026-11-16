@@ -36,7 +36,7 @@ service cloud.firestore {
         && request.resource.data.keys().hasAll(['from', 'kind', 'item', 'at'])
         && request.resource.data.from is string && request.resource.data.from.matches('^[a-z0-9_]{2,16}$')
         && request.resource.data.from != to
-        && request.resource.data.kind in ['snack', 'sticker', 'deco']
+        && request.resource.data.kind in ['snack', 'sticker', 'deco', 'fish']
         && request.resource.data.item is string && request.resource.data.item.size() <= 24
         && request.resource.data.at is timestamp;
       allow update: if false;

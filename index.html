@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="referrer" content="no-referrer">
 <meta name="description" content="A tiny goldfish to feed, lead around, play with and put to sleep.">
-<meta name="theme-color" content="#ffffff">
+<meta name="theme-color" content="#f1f2f3">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Goldfish">
 <title>Goldfish</title>
@@ -24,7 +24,7 @@
 @font-face{font-family:"Caveat";font-weight:500;font-display:swap;src:url(fonts/caveat-latin-500-normal.woff2) format("woff2")}
 /* Layout: a full-screen white tank; name + needs float top-left, sound top-right, tools along the bottom. Monotone UI; only the fish and its things carry color. */
 :root{
-  --ink:#111111; --dim:#a3a3a3; --soft:#6b6b6b; --track:#dedede; --bg:#ffffff;
+  --ink:#111111; --dim:#a3a3a3; --soft:#6b6b6b; --track:#dedede; --bg:#f1f2f3;
   --font:"Caveat","Nanum Pen Script","Bradley Hand","Segoe Print",cursive;
   color-scheme:light;
 }
@@ -86,6 +86,10 @@ body.visiting .ui,body.visiting #say{display:none}
 .gbtn{display:flex;align-items:center;gap:8px;padding:6px 10px;border:1px solid #e3e3e3;border-radius:12px;font-size:17px;color:#111;cursor:pointer}
 .gbtn:disabled{opacity:.35;cursor:default}
 .gi svg{display:block}
+.giftrow.bare{gap:14px;align-items:flex-end}
+.gpic{display:flex;flex-direction:column;align-items:center;gap:2px;padding:0;background:none;border:0;cursor:pointer;font-size:14px;color:var(--soft);transition:transform .12s}
+.gpic:active{transform:scale(.9)}.gpic:disabled{opacity:.35}
+.gpic img{width:84px;height:60px;display:block}
 .gift-line{display:flex;align-items:center;gap:12px;padding:6px 0;font-size:19px;color:#111}
 .gift-line img{width:40px;height:40px}
 #polaroid{position:fixed;inset:0;z-index:8;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.35)}
@@ -195,9 +199,12 @@ body.visiting .ui,body.visiting #say{display:none}
   <div class="card">
     <h2 id="giftTitle">send a gift</h2>
     <p class="small">snack</p>
-    <div class="giftrow"><button type="button" class="gbtn" id="sendSnack"><span class="gi"><svg viewBox="0 0 24 24" width="32" height="32" aria-hidden="true"><path d="M5 9l7-4 7 4-2 9H7z" fill="#f4b06a" stroke="#c97e3a" stroke-width="1.4" stroke-linejoin="round"/><path d="M9 11.5h6M9.5 14.5h5" stroke="#c97e3a" stroke-width="1.4" stroke-linecap="round"/></svg></span><span id="snackLeft"></span></button></div>
+    <div class="giftrow bare" id="snackRow"></div>
+    <div hidden><button type="button" class="gbtn" id="sendSnack"><span class="gi"><svg viewBox="0 0 24 24" width="32" height="32" aria-hidden="true"><path d="M5 9l7-4 7 4-2 9H7z" fill="#f4b06a" stroke="#c97e3a" stroke-width="1.4" stroke-linejoin="round"/><path d="M9 11.5h6M9.5 14.5h5" stroke="#c97e3a" stroke-width="1.4" stroke-linecap="round"/></svg></span><span id="snackLeft"></span></button></div>
+    <p class="small">a little fish like yours · 50 xp</p>
+    <div class="giftrow bare"><button type="button" class="gpic" id="sendFish"><img id="giftFishImg" alt=""><span id="giftFishTxt">send · 50 xp</span></button></div>
     <p class="small">sticker</p>
-    <div class="giftrow" id="stickerRow"></div>
+    <div class="giftrow bare" id="stickerRow"></div>
     <p class="small">decoration · paid with your xp</p>
     <div class="shopgrid" id="giftDeco"></div>
     <p class="small" id="giftMsg"></p>
@@ -258,6 +265,7 @@ body.visiting .ui,body.visiting #say{display:none}
     <button type="button" class="mrow" id="colorBtn"><span class="mi"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.2a8.8 8.8 0 1 0 0 17.6c1.3 0 1.9-1 1.4-2-.6-1.2.3-2.3 1.5-2.3h2.3a3.8 3.8 0 0 0 3.8-3.8c0-5.2-4-9.5-9-9.5z"/><circle cx="7.8" cy="11" r="1.1" fill="currentColor"/><circle cx="10.5" cy="7.3" r="1.1" fill="currentColor"/><circle cx="15" cy="7.6" r="1.1" fill="currentColor"/></svg></span><span class="mt"><b>colour</b><small>25 shades to choose from</small></span></button>
     <button type="button" class="mrow" id="patBtn"><span class="mi"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8"/><circle cx="9.5" cy="9.5" r="1.4" fill="currentColor"/><circle cx="14.8" cy="11" r="1.1" fill="currentColor"/><circle cx="10.5" cy="15" r="1.2" fill="currentColor"/><circle cx="15" cy="15.6" r=".8" fill="currentColor"/></svg></span><span class="mt"><b>pattern</b><small>fade, dark fins &amp; patches</small></span></button>
     <button type="button" class="mrow" id="skinBtn"><span class="mi"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 18.5h14"/><path d="M6.5 18.5L12 5l6.5 13.5"/><circle cx="12" cy="4.2" r="1.5"/><path d="M8 13.5h8"/></svg></span><span class="mt"><b>skin</b><small>special looks, like christmas</small></span></button>
+    <button type="button" class="mrow" id="friendsBtn"><span class="mi"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10c1.5-2.4 3.9-3.3 6.2-2.6L12 5.5v8l-2.8-1.9C6.9 12.3 4.5 11.4 3 10z"/><path d="M12 16c1.3-2 3.3-2.8 5.2-2.2L19.5 12v7l-2.3-1.8c-1.9.6-3.9-.2-5.2-2.2z"/></svg></span><span class="mt"><b>friends’ fish</b><small id="friendsTxt"></small></span></button>
     <div class="row2"><span></span><button type="button" class="go" data-back>back</button></div>
   </div>
 </div>
@@ -393,7 +401,9 @@ const KO={
 'cancel':'취소','visit':'방문','looking…':'찾는 중…','that’s your own tank':'내 어항이에요','send a gift':'선물 보내기','home':'집으로','snack':'간식','sticker':'스티커',
 'decoration · paid with your xp':'장식 · 내 xp로 결제','none left today':'오늘은 다 보냈어요','sending…':'보내는 중…','you got gifts':'선물이 왔어요','thanks':'고마워요',
 'gifts need the new database rules (see the guide)':'선물을 보내려면 새 저장 서버 규칙이 필요해요','visiting needs the online save':'방문하려면 온라인 저장이 필요해요',
-'heart':'하트','star':'별','wave':'손 흔들기','bubbles':'방울','skin':'스킨','special looks, like christmas':'크리스마스 같은 특별한 모습','a skin is worn over your colour and pattern · tap it again to reshuffle':'스킨은 색과 무늬 위에 입혀져요 · 한 번 더 누르면 모양이 바뀌어요','none':'없음','christmas':'크리스마스','at least 20 stones stay in the tank':'어항에는 돌이 최소 20개 남아 있어야 해요','skip':'건너뛰기',
+'heart':'하트','sparkle':'반짝','fishy':'물고기','bubbles':'방울','cucumber':'오이','zucchini':'애호박','banana':'바나나',
+'a little fish like yours · 50 xp':'내 금붕어를 닮은 작은 물고기 · 50 xp','send · 50 xp':'보내기 · 50 xp','friends’ fish':'친구 물고기','little fish your friends send you swim here':'친구가 보낸 작은 물고기가 여기서 헤엄쳐요',
+'visit · type a friend’s username to visit their tank and send gifts':'방문 · 친구 사용자 이름을 입력해 어항에 놀러 가고 선물을 보내요','skin':'스킨','special looks, like christmas':'크리스마스 같은 특별한 모습','a skin is worn over your colour and pattern · tap it again to reshuffle':'스킨은 색과 무늬 위에 입혀져요 · 한 번 더 누르면 모양이 바뀌어요','none':'없음','christmas':'크리스마스','at least 20 stones stay in the tank':'어항에는 돌이 최소 20개 남아 있어야 해요','skip':'건너뛰기',
 'hand · drag to lead your fish, tap to call it, tap the fish to say hi':'손 · 끌어서 금붕어를 데려가고, 탭해서 부르고, 금붕어를 탭하면 인사해요',
 'food · tap the water to sprinkle flakes':'먹이 · 물을 탭해서 먹이를 뿌려요','clean · when the glass gets dirty, rub it clean':'청소 · 유리가 더러워지면 문질러서 닦아요',
 'toy · drag the lure and let your fish chase it':'장난감 · 미끼를 끌면 금붕어가 쫓아와요','sleep · turns the lights off so your fish can rest':'재우기 · 불을 꺼서 금붕어를 쉬게 해요',
@@ -417,7 +427,8 @@ const KO_RX=[
 [/^There’s no fish under “(.+)” yet\. Start a new one\?$/,'“$1” 이름의 금붕어가 아직 없어요. 새로 시작할까요?'],
 [/^(\d+) \/ (\d+) xp to level (\d+)$/,'$3레벨까지 $1 / $2 xp'],[/^level (\d+)$/,'레벨 $1'],[/^level (\d+) · max$/,'레벨 $1 · 최고'],[/^lv (\d+)$/,'Lv $1'],[/^no keeper called “(.+)” yet$/,'“$1” 키퍼가 아직 없어요'],[/^@(.+)’s tank · (.+) · lv (\d+)$/,'@$1의 어항 · $2 · Lv $3'],
 [/^send a gift to @(.+)$/,'@$1에게 선물 보내기'],[/^(\d+) left today$/,'오늘 $1번 남았어요'],[/^send · (\d+) xp$/,'보내기 · $1 xp'],[/^sent to @(.+)!$/,'@$1에게 보냈어요!'],[/^(.+) sent to @(.+)!$/,'$1, @$2에게 보냈어요!'],
-[/^@(.+) sent a snack$/,'@$1님이 간식을 보냈어요'],[/^@(.+) sent a (.+) \(you had one, so \+(\d+) xp\)$/,'@$1님이 $2을(를) 보냈어요 (이미 있어서 +$3 xp)'],[/^@(.+) sent a (.+)$/,'@$1님이 $2을(를) 보냈어요'],
+[/^@(.+) sent a snack$/,'@$1님이 간식을 보냈어요'],[/^@(.+) sent a little fish$/,'@$1님이 작은 물고기를 보냈어요'],[/^(.+) · 5 xp$/,'$1 · 5 xp'],
+[/^a little fish swam off to @(.+)!$/,'작은 물고기가 @$1에게 헤엄쳐 갔어요!'],[/^hidden · tap to show (\d+)$/,'숨김 · 탭하면 $1마리 보여요'],[/^shown · tap to hide (\d+)$/,'보임 · 탭하면 $1마리 숨겨요'],[/^@(.+) sent a (.+) \(you had one, so \+(\d+) xp\)$/,'@$1님이 $2을(를) 보냈어요 (이미 있어서 +$3 xp)'],[/^@(.+) sent a (.+)$/,'@$1님이 $2을(를) 보냈어요'],
 [/^couldn’t send \(error (\d+)\)$/,'보내지 못했어요 (오류 $1)'],[/^grown! · lv (\d+)$/,'성장! · Lv $1'],[/^(\d+) \/ (\d+) · tap to continue$/,'$1 / $2 · 탭해서 계속'],
 [/^(\d+) days? in a row · new missions at midnight$/,'$1일 연속 · 자정에 새 미션'],
 [/^level (\d+) · (\d+) xp to spend · buying uses up xp, so your level can go down$/,'레벨 $1 · 쓸 수 있는 xp $2 · 사면 xp가 줄어 레벨이 내려갈 수 있어요'],
@@ -532,7 +543,7 @@ function finGeo(nu,nv,pf,cf,axis){const pos=[],col=[],flex=[],idx=[],uvs=[];
   g.setIndex(idx);g.computeVertexNormals();g.userData.flex=new Float32Array(flex);return g;}
 
 /* ================= the fish's look: colour + pattern ================= */
-const LOOK_COLORS={orange:'#ff7a3c',tangerine:'#ff9a3d',gold:'#f9a62b',yellow:'#ffcf4a',lemon:'#f2e070',cream:'#f6e2bf',
+const LOOK_COLORS={orange:'#ff7a3c',tangerine:'#ff9a3d',gold:'#f9a62b',yellow:'#ffcf4a',lemon:'#f2e070',cream:'#f0d8a8',
   peach:'#f6a585',coral:'#ff6f61',salmon:'#ef8a72',red:'#e5412d',crimson:'#c4243a',rose:'#e5728d',pink:'#f3a7c1',lilac:'#bba5da',
   violet:'#8a78cf',sky:'#82b9e6',blue:'#3554a8',navy:'#26325c',teal:'#2b9a93',mint:'#8fd3b6',olive:'#9b9a4b',chocolate:'#8b4a2b',
   silver:'#b9bdc2',white:'#f3ede2',black:'#33302e'};
@@ -540,7 +551,7 @@ const LOOK_PATTERNS=['plain','fade','dark fins','patches'];
 const lookOf=()=>{if(VISIT)return VISIT.look;const p=pet();if(!p.look)p.look={c:'orange',p:'plain',seed:Math.floor(Math.random()*1000)};if(!LOOK_PATTERNS.includes(p.look.p))p.look.p='plain';if(!LOOK_COLORS[p.look.c])p.look.c='orange';return p.look;};
 function lookNoise(x,y,z,sd,f){const a=sd*0.37,b=sd*0.71,c=sd*1.13;
   return 0.5*Math.sin(x*f*1.0+y*f*0.6+z*f*0.8+a)+0.35*Math.sin(x*f*1.7-y*f*1.3+z*f*0.5+b)+0.3*Math.sin(y*f*2.1+z*f*1.4-x*f*0.9+c);}
-const _lc=new THREE.Color(),_lw=new THREE.Color('#f6f1e8'),_lk=new THREE.Color('#2a2827'),_lm=new THREE.Color();
+const _lc=new THREE.Color(),_lw=new THREE.Color('#efe6d5'),_lk=new THREE.Color('#2a2827'),_lm=new THREE.Color();
 /* round spots: random discs scattered over the side view, each on one side of the fish (fins, being thin, show both) */
 const SPOTS={};
 function spotList(sd){if(SPOTS[sd])return SPOTS[sd];let a=(sd*7919+104729)%233280;const rr=()=>(a=(a*9301+49297)%233280)/233280,L=[],P=R&&R.inner?bodyProfile(R):null;
@@ -561,9 +572,9 @@ function speckle(x,y,z,sd,v,bias){
   const n=0.58*vnoise(x*7.5,y*7.5,z*7.5,sd)+0.28*vnoise(x*15+3.1,y*15+1.7,z*15,sd+1)+0.14*vnoise(x*30,y*30,z*30,sd+2);
   const cluster=vnoise(x*2.2+5,y*2.2,z*2.2,sd+3),th=0.7-0.12*cluster-0.05*(v||0.5)+bias;
   const k=ss(th,th+0.07,n);if(!k)return 0;return k*(0.5+0.5*vnoise(x*4,y*4,z*4,sd+4));}
-const _hsl={h:0,s:0,l:0},_lt=new THREE.Color(),_dk=new THREE.Color(),_cr=new THREE.Color('#f7efe2');
+const _hsl={h:0,s:0,l:0},_lt=new THREE.Color(),_dk=new THREE.Color(),_cr=new THREE.Color('#f0e4ce');
 /* v = how high the point sits on the body at that spot (0 belly .. 1 back), q = how far out along a fin (0 root .. 1 tip) */
-const _xr=new THREE.Color('#d42f2f'),_xw=new THREE.Color('#fbf7f0'),_xg=new THREE.Color('#2f7d4f');
+const _xr=new THREE.Color('#d42f2f'),_xw=new THREE.Color('#f6eee2'),_xg=new THREE.Color('#2f7d4f');
 /* christmas skin: festive colours laid out the way a bred goldfish's pigment really falls:
    big irregular red patches on white (like a sarasa), the odd green patch, a paler belly, and colour that runs from the body
    out into the fins and fades toward their see-through tips */
@@ -816,7 +827,7 @@ const SHOP=[
  {id:'globe',name:'snow globe',price:400,make:()=>{const g=grp(part(CYL,WC.wood,0,0.03,0,0.11,0.06,0.11),part(CONE,WC.pine,0,0.13,0,0.04,0.1,0.04),part(SPH,WC.snow,0.04,0.08,0.02,0.025,0.02,0.025));
    const gl=new THREE.Mesh(SPH,flatMat({color:0xdfeef3,transparent:true,opacity:0.35,depthWrite:false}));gl.scale.setScalar(0.12);gl.position.y=0.16;g.add(gl);
    for(let i=0;i<8;i++)g.add(part(SPH,WC.snow,Math.cos(i*2.4)*0.06,0.12+((i*37)%7)/70,Math.sin(i*2.4)*0.06,0.006,0.006,0.006));return g;}}];
-const WATER={clear:'#ffffff',blue:'#e2eaee',green:'#e5ebe0'};
+const WATER={clear:'#f1f2f3',blue:'#e2eaee',green:'#e5ebe0'};
 const WTINT=new THREE.Color(1,1,1);
 /* the water colour tints everything in the tank (floor, stones, plants, decorations) the same way it tints the background,
    so the floor sits in the water instead of standing out as a white strip. The fish keeps its own colour. */
@@ -939,7 +950,7 @@ function resetState(){S={pos:new V3(0,(B.ymin+B.ymax)/2,0),vel:new V3(),heading:
   asleep:false,swimPh:0,roll:0,pitch:0,rollC:0,catchCD:0,look:null,sayCD:0};CUR={mouth:0,burst:0,gulp:0};S.eatCap=0;S.seeCap=0;}
 function setup(){
   scene.remove(world);world=new THREE.Group();scene.add(world);FX=[];foods=[];toy=null;
-  fit();ENV=buildEnv();world.add(ENV);R=buildFish();world.add(R.g);applyLook();computeObst();
+  fit();ENV=buildEnv();world.add(ENV);R=buildFish();world.add(R.g);applyLook();computeObst();setTimeout(spawnFriends,0);
   if(!S)resetState();else{S.pos.y=clamp(S.pos.y,B.ymin,B.ymax);S.pos.x=clamp(S.pos.x,-B.x,B.x);S.target=null;}
   scene.fog=new THREE.Fog(0xffffff,camera.position.distanceTo(camLook)-1,60);applyWater();
   renderUI();}
@@ -1302,7 +1313,7 @@ $('#namingSkip').onclick=()=>{$('#naming').hidden=true;maybeTour();};
 const TOUR=[['#t-hand','hand · drag to lead your fish, tap to call it, tap the fish to say hi'],
   ['#t-wash','clean · when the glass gets dirty, rub it clean'],['#t-sleep','sleep · turns the lights off so your fish can rest'],
   ['#misBtn','missions · three goals a day for xp. your fish grows every 5 levels'],['#editBtn','edit · your fish’s colour and pattern, the water, and decorations'],
-  ['#tvBtn','tank view · see the whole tank and turn it around'],['#who','your keeper name · tap to switch keepers']];
+  ['#tvBtn','tank view · see the whole tank and turn it around'],['#visitBtn','visit · type a friend’s username to visit their tank and send gifts'],['#who','your keeper name · tap to switch keepers']];
 let tourI=-1;
 function maybeTour(){if(!USER||(save.tut&&save.tut.tour))return;save.tut=save.tut||{};save.tut.tour=1;persist();setTimeout(()=>{tourI=0;$('#tour').hidden=false;tourShow();},500);}
 function tourShow(){const st=TOUR[tourI],el=$(st[0]);if(!el||!el.offsetParent){tourNext();return;}const r=el.getBoundingClientRect(),pad=6,ring=$('#tour .ring'),tip=$('#tour .tip');
@@ -1415,7 +1426,7 @@ function cloudWrite(keep,who){if(!cloudDirty||who!==USER||UTS[who]===undefined)r
     .catch(()=>{if(who===USER)cloudDirty=true;SYNC={ok:false,msg:'offline: will save online when connected',t:Date.now()};});}
 // take the online copy when another device changed things more recently than this one
 function pull(){if(!DB||!USER||cloudDirty||VISIT)return;const who=USER;cloudGet(who).then(c=>{if(!c||USER!==who)return;takeMerged(c);if((PROG.total||0)>((c.prog&&c.prog.total)||0)){cloudDirty=true;cloudPut();}},()=>{});}
-function adopt(rec){save=normalizeSave(rec&&rec.save);if(save.lang&&save.lang!==LANG&&!langPicked)setLang(save.lang);PROG=normProg(rec&&rec.prog);ensureDaily();
+function adopt(rec){save=normalizeSave(rec&&rec.save);setTimeout(spawnFriends,0);if(save.lang&&save.lang!==LANG&&!langPicked)setLang(save.lang);PROG=normProg(rec&&rec.prog);ensureDaily();
   if(typeof lightsOff!=='undefined'&&S){rebuildTank();lightsOff=!!save.night;document.body.classList.toggle('night',lightsOff);S.asleep=lightsOff;renderUI();}}
 function signIn(n,rec){USER=n;cloudReady=true;setTimeout(checkGifts,3000);adopt(rec);if(langPicked||!save.lang)save.lang=LANG;langPicked=false;lastChange=(rec&&rec.updated)||Date.now();persist();cloudPut();$('#who').textContent='@'+n;$('#login').hidden=true;
   if(PROG.total)toast(fill('welcome back. {n} missed you.'));else setTimeout(openNaming,300);}
@@ -1481,7 +1492,9 @@ function openSkins(){$('#fishMenu').hidden=true;$('#skins').hidden=false;const e
   for(const k of LOOK_SKINS){const b=document.createElement('button');b.type='button';const im=document.createElement('img');im.alt='';im.src=fishThumb(Object.assign({},lk,{skin:k==='none'?'':k}));
     const t=document.createElement('span');t.textContent=k;b.append(im,t);b.setAttribute('aria-pressed',(lk.skin||'none')===k);
     b.onclick=()=>{const l=lookOf();if(k==='christmas'&&l.skin==='christmas')l.seed=Math.floor(Math.random()*1000);l.skin=k==='none'?'':k;applyLook();persist();openSkins();};el.appendChild(b);}}
-$('#skinBtn').onclick=openSkins;$('#skinsClose').onclick=()=>{$('#skins').hidden=true;$('#fishMenu').hidden=false;};
+$('#skinBtn').onclick=openSkins;
+function friendsLabel(){const n=(save.friends||[]).length;$('#friendsTxt').textContent=n?(save.hideFriends?'hidden · tap to show '+n:'shown · tap to hide '+n):'little fish your friends send you swim here';}
+$('#friendsBtn').onclick=()=>{if(!(save.friends||[]).length)return;save.hideFriends=!save.hideFriends;persist();spawnFriends();friendsLabel();};$('#skinsClose').onclick=()=>{$('#skins').hidden=true;$('#fishMenu').hidden=false;};
 $('#colorBtn').onclick=openColors;$('#patBtn').onclick=openPatterns;
 $('#colorsClose').onclick=()=>{$('#colors').hidden=true;$('#fishMenu').hidden=false;};
 $('#patternsClose').onclick=()=>{$('#patterns').hidden=true;$('#fishMenu').hidden=false;};
@@ -1510,7 +1523,7 @@ document.querySelectorAll('.sheet').forEach(sh=>sh.addEventListener('click',e=>{
 $('#shopClose').onclick=()=>{$('#shop').hidden=true;openSub('decorMenu');};
 function openTank(){renderTank();$('#tank').hidden=false;}
 const SUBS=['fishMenu','waterMenu','decorMenu'];
-function openSub(id){$('#tank').hidden=true;SUBS.forEach(k=>$('#'+k).hidden=k!==id);renderTank();}
+function openSub(id){$('#tank').hidden=true;SUBS.forEach(k=>$('#'+k).hidden=k!==id);renderTank();friendsLabel();}
 $('#fishMenuBtn').onclick=()=>openSub('fishMenu');$('#waterMenuBtn').onclick=()=>openSub('waterMenu');$('#decorMenuBtn').onclick=()=>openSub('decorMenu');
 document.querySelectorAll('[data-back]').forEach(b=>b.onclick=()=>{SUBS.forEach(k=>$('#'+k).hidden=true);openTank();});
 $('#tankClose').onclick=()=>{$('#tank').hidden=true;};
@@ -1596,8 +1609,16 @@ let uiT=0,saveT=0,algT=0;const clock=new THREE.Clock();
 /* ================= visiting other keepers and sending gifts ================= */
 /* A visit shows another keeper's tank and fish (read only: nothing here is saved to your own keeper).
    Gifts are small records left in the other keeper's gift box online; they open them next time they play. */
-const STICKERS={heart:'<svg viewBox="0 0 24 24" width="{W}" height="{W}" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z" fill="#ef6f86" stroke="#d24a64"/></svg>',star:'<svg viewBox="0 0 24 24" width="{W}" height="{W}" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><path d="M12 3.5l2.6 5.4 5.9.8-4.3 4.1 1 5.8L12 16.8l-5.2 2.8 1-5.8-4.3-4.1 5.9-.8z" fill="#ffd34d" stroke="#e0a91f"/></svg>',wave:'<svg viewBox="0 0 24 24" width="{W}" height="{W}" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><path d="M8.5 12.5V6.8a1.3 1.3 0 0 1 2.6 0V11m0-1.2V5.6a1.3 1.3 0 0 1 2.6 0V11m0-4a1.3 1.3 0 0 1 2.6 0v6.5c0 3.6-2.4 6.5-5.8 6.5-2.5 0-4.1-1.4-5.4-3.6l-1.7-2.9a1.3 1.3 0 0 1 2.2-1.3l1.9 2.3" fill="#ffd9b8" stroke="#c98d5f"/></svg>',bubbles:'<svg viewBox="0 0 24 24" width="{W}" height="{W}" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><circle cx="9" cy="14" r="4.5" fill="#cfe6f3" stroke="#7fb2cf"/><circle cx="16" cy="8" r="3" fill="#cfe6f3" stroke="#7fb2cf"/><circle cx="17.5" cy="15.5" r="1.8" fill="#cfe6f3" stroke="#7fb2cf"/></svg>'},stk=(k,w)=>STICKERS[k].split('{W}').join(w||36);
-const SNACK_SVG='<svg viewBox="0 0 24 24" width="32" height="32" aria-hidden="true"><path d="M5 9l7-4 7 4-2 9H7z" fill="#f4b06a" stroke="#c97e3a" stroke-width="1.4" stroke-linejoin="round"/><path d="M9 11.5h6M9.5 14.5h5" stroke="#c97e3a" stroke-width="1.4" stroke-linecap="round"/></svg>';
+// flat, slightly wobbly shapes in the fish's warm palette, no outlines, like the rest of the tank
+const STICKERS={
+ heart:'<svg viewBox="0 0 48 48" width="{W}" height="{W}" aria-hidden="true"><path d="M24 41c-1.2-.9-15.5-9.6-16.8-19.3C6.2 14.6 10.6 9 16.4 9c3.6 0 6 2.2 7.6 4.9C25.6 11.2 28 9 31.6 9c5.8 0 10.2 5.6 9.2 12.7C39.5 31.4 25.2 40.1 24 41z" fill="#ff7a3c"/><path d="M14.5 15.5c1.6-1.6 3.8-1.9 5.2-1" fill="none" stroke="#ffb48a" stroke-width="2.6" stroke-linecap="round"/></svg>',
+ sparkle:'<svg viewBox="0 0 48 48" width="{W}" height="{W}" aria-hidden="true"><path d="M24 5c1.4 9.3 4.6 12.8 14 14.6-9.4 1.9-12.6 5.3-14 14.9-1.4-9.6-4.6-13-14-14.9C19.4 17.8 22.6 14.3 24 5z" fill="#ffc94a"/><path d="M37.5 30c.6 3.7 1.9 5.1 5.5 5.8-3.6.7-4.9 2.1-5.5 5.9-.6-3.8-1.9-5.2-5.5-5.9 3.6-.7 4.9-2.1 5.5-5.8z" fill="#ff9a3d"/></svg>',
+ fishy:'<svg viewBox="0 0 48 48" width="{W}" height="{W}" aria-hidden="true"><path d="M8 24c3.5-7.3 10.7-10.6 17.6-9.4 4.7.8 8.2 3.4 9.9 6.2L42.5 15c1.2-.9 2.4.1 2.1 1.4L42.6 24l2 7.6c.3 1.3-.9 2.3-2.1 1.4l-7 -5.8c-1.7 2.8-5.2 5.4-9.9 6.2C18.7 34.6 11.5 31.3 8 24z" fill="#ff7a3c"/><path d="M27 17.5c2.8-3.6 6.8-4.6 9.5-3.5-1.2 2.7-3.6 4.6-6.6 5.3z" fill="#ff8d4f"/><circle cx="15.5" cy="22.6" r="2.1" fill="#1d1d1d"/></svg>',
+ bubbles:'<svg viewBox="0 0 48 48" width="{W}" height="{W}" aria-hidden="true"><circle cx="19" cy="29" r="11" fill="#cfe3ec"/><circle cx="33.5" cy="15.5" r="6.5" fill="#cfe3ec"/><circle cx="36" cy="32" r="3.6" fill="#cfe3ec"/><path d="M13.5 24.5c1.4-2.6 3.6-4 6-4.2M30.5 12.4c.8-1.2 2-1.9 3.2-2" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round"/></svg>'},stk=(k,w)=>STICKERS[k].split('{W}').join(w||36);
+const SNACKS={
+ cucumber:{name:'cucumber',svg:'<svg viewBox="0 0 48 48" width="{W}" height="{W}" aria-hidden="true"><circle cx="24" cy="24" r="17" fill="#3f8f4f"/><circle cx="24" cy="24" r="14.2" fill="#cfe7b0"/><circle cx="24" cy="24" r="8.5" fill="#e3f1cc"/><g fill="#f4f8e8"><ellipse cx="24" cy="18.6" rx="1.3" ry="2.2"/><ellipse cx="24" cy="29.4" rx="1.3" ry="2.2"/><ellipse cx="18.8" cy="24" rx="2.2" ry="1.3"/><ellipse cx="29.2" cy="24" rx="2.2" ry="1.3"/><ellipse cx="20.3" cy="20.3" rx="1.2" ry="2" transform="rotate(-45 20.3 20.3)"/><ellipse cx="27.7" cy="27.7" rx="1.2" ry="2" transform="rotate(-45 27.7 27.7)"/></g></svg>'},
+ zucchini:{name:'zucchini',svg:'<svg viewBox="0 0 48 48" width="{W}" height="{W}" aria-hidden="true"><ellipse cx="24" cy="24" rx="17" ry="16" fill="#9cc46a"/><ellipse cx="24" cy="24" rx="14.4" ry="13.5" fill="#f3efc9"/><g fill="#e5dfae"><circle cx="24" cy="18.5" r="1.5"/><circle cx="24" cy="29.5" r="1.5"/><circle cx="18.7" cy="22" r="1.5"/><circle cx="29.3" cy="22" r="1.5"/><circle cx="20" cy="27.6" r="1.4"/><circle cx="28" cy="27.6" r="1.4"/></g></svg>'},
+ banana:{name:'banana',svg:'<svg viewBox="0 0 48 48" width="{W}" height="{W}" aria-hidden="true"><path d="M24 7.5c9.3 0 16.5 7.5 16.5 16.5S33.3 40.5 24 40.5 7.5 33 7.5 24 14.7 7.5 24 7.5z" fill="#f6e3a8"/><path d="M24 11c7.2 0 13 5.8 13 13s-5.8 13-13 13-13-5.8-13-13 5.8-13 13-13z" fill="#fbf0c9"/><g fill="#c9a46a"><circle cx="24" cy="20" r="1.4"/><circle cx="27.5" cy="26" r="1.4"/><circle cx="20.5" cy="26" r="1.4"/></g></svg>'}},snk=(k,w)=>SNACKS[k].svg.split('{W}').join(w||36);
 let VISIT=null;
 const GBOX=to=>'https://firestore.googleapis.com/v1/projects/'+DB.projectId+'/databases/(default)/documents/gifts/'+to+'/box';
 function openVisit(){if(!DB){toast('visiting needs the online save');return;}$('#visitErr').textContent='';$('#visitName').value='';$('#visitAsk').hidden=false;setTimeout(()=>$('#visitName').focus(),60);}
@@ -1609,12 +1630,29 @@ $('#visitForm').addEventListener('submit',e=>{e.preventDefault();const n=$('#vis
 function enterVisit(n,rec){if(TV.on)setTankView(false);if(toy)endToy(true);persistLocal();
   const f=(rec.save.pets&&rec.save.pets.fish)||{},pr=normProg(rec.prog);
   VISIT={n,mine:save.tank,look:Object.assign({c:'orange',p:'plain',seed:1},f.look||{}),stage:Math.min(10,Math.max(pr.grow||0,Math.floor(pr.level/5))),fish:f.name||DEF,level:pr.level};
-  save.tank=JSON.parse(JSON.stringify(rec.save.tank||{}));rebuildTank();R.lookStage=null;S.grow=VISIT.stage/10;applyLook();
+  VISIT.friends=(rec.save.friends||[]).slice(0,6);save.tank=JSON.parse(JSON.stringify(rec.save.tank||{}));rebuildTank();spawnFriends();R.lookStage=null;S.grow=VISIT.stage/10;applyLook();
   document.body.classList.add('visiting');$('#visitBar').hidden=false;$('#visitTitle').textContent='@'+n+'’s tank · '+VISIT.fish+' · lv '+VISIT.level;say('');}
-function leaveVisit(){if(!VISIT)return;save.tank=VISIT.mine;VISIT=null;rebuildTank();R.lookStage=null;S.grow=growStage()/10;applyLook();
+function leaveVisit(){if(!VISIT)return;save.tank=VISIT.mine;VISIT=null;rebuildTank();spawnFriends();R.lookStage=null;S.grow=growStage()/10;applyLook();
   document.body.classList.remove('visiting');$('#visitBar').hidden=true;$('#giftOut').hidden=true;persistLocal();if(cloudDirty)cloudPut();}
 $('#visitHome').onclick=leaveVisit;
 // sending
+const PAT_CODE={plain:'a',fade:'b','dark fins':'c',patches:'d'};
+function packLook(l){return [l.c||'orange',PAT_CODE[l.p]||'a',(l.seed||0)%1000,l.skin==='christmas'?'x':''].join('.');}
+function unpackLook(s){const [c,p,sd,sk]=String(s||'').split('.'),P=Object.keys(PAT_CODE).find(k=>PAT_CODE[k]===p)||'plain';return {c:LOOK_COLORS[c]?c:'orange',p:P,seed:+sd||0,skin:sk==='x'?'christmas':''};}
+let FRIENDS=[];
+// gifted fish: a fifth of an adult's size, in the sender's colours; they just potter about and can't be played with
+function spawnFriends(){for(const f of FRIENDS)world.remove(f.g);FRIENDS=[];const list=(VISIT?VISIT.friends:save.friends)||[];
+  if(!VISIT&&save.hideFriends)return;
+  for(const it of list){const F=buildFish();poseYouth(F,10,true);applyLook(F,it.look,10);F.g.scale.setScalar(0.434*0.2);
+    F.g.traverse(o=>{if(o.userData&&o.userData.proxy)o.visible=false;});
+    const piv=[];for(const m of F.tails||[]){const p=new THREE.Group();p.position.x=-0.66;F.inner.add(p);F.inner.remove(m);m.position.x+=0.66;p.add(m);piv.push(p);}
+    const pos=new V3(rnd(-B.x*0.8,B.x*0.8),rnd(B.ymin,B.ymax-0.3),rnd(-1.2,0.5));F.g.position.copy(pos);world.add(F.g);
+    FRIENDS.push({g:F.g,piv,pos,vel:new V3(),tgt:pos.clone(),head:rnd(0,6),ph:rnd(0,6),t:0});}}
+function friendsTick(dt){for(const f of FRIENDS){f.t-=dt;if(f.t<=0||f.pos.distanceTo(f.tgt)<0.1){f.tgt.set(rnd(-B.x*0.85,B.x*0.85),rnd(B.ymin,B.ymax-0.2),rnd(-1.3,0.6));f.t=rnd(3,8);}
+    const d=f.tgt.clone().sub(f.pos),L=d.length(),want=d.multiplyScalar(L>0.001?Math.min(0.35,L)/L:0);f.vel.lerp(want,1-Math.exp(-dt*1.6));f.pos.addScaledVector(f.vel,dt);
+    const sp=f.vel.length();if(sp>0.02){const h=Math.atan2(-f.vel.z,f.vel.x);let dh=h-f.head;dh=Math.atan2(Math.sin(dh),Math.cos(dh));f.head+=dh*Math.min(1,dt*4);}
+    f.ph+=dt*(4+sp*14);f.g.position.copy(f.pos);f.g.position.y+=Math.sin(f.ph*0.3)*0.01;f.g.rotation.set(0,f.head+Math.sin(f.ph)*0.08,clamp(f.vel.y*1.5,-0.5,0.5));
+    for(const p of f.piv)p.rotation.y=Math.sin(f.ph+0.6)*0.35;}}
 function giftDay(){if(!PROG.gday||PROG.gday.d!==dayKey())PROG.gday={d:dayKey(),snack:0};return PROG.gday;}
 function giftMsg(t){$('#giftMsg').textContent=t;}
 function sendGift(kind,item,done){if(!VISIT||!DB||!USER)return;giftMsg('sending…');
@@ -1623,8 +1661,12 @@ function sendGift(kind,item,done){if(!VISIT||!DB||!USER)return;giftMsg('sending�
     .then(r=>{if(r.ok){giftMsg('sent to @'+VISIT.n+'!');snd.pop&&snd.pop();done&&done();}else giftMsg(r.status===403?'gifts need the new database rules (see the guide)':'couldn’t send (error '+r.status+')');})
     .catch(()=>giftMsg('couldn’t reach the online save'));}
 function openGiftOut(){if(!VISIT)return;$('#giftTitle').textContent='send a gift to @'+VISIT.n;giftMsg('');
-  const left=3-giftDay().snack;$('#snackLeft').textContent=left>0?left+' left today':'none left today';$('#sendSnack').disabled=left<=0;
-  const sr=$('#stickerRow');sr.textContent='';for(const k in STICKERS){const b=document.createElement('button');b.type='button';b.className='gbtn';b.setAttribute('aria-label',k);b.innerHTML=stk(k,32);
+  const w0=wallet(),snr=$('#snackRow');snr.textContent='';
+  for(const k in SNACKS){const b=document.createElement('button');b.type='button';b.className='gpic';b.innerHTML=snk(k,44)+'<span>'+SNACKS[k].name+' · 5 xp</span>';b.disabled=w0<5;
+    b.onclick=()=>{if(wallet()<5)return;sendGift('snack',k,()=>{spendXP(5);persist();openGiftOut();giftMsg(SNACKS[k].name+' sent to @'+VISIT.n+'!');});};snr.appendChild(b);}
+  {const myLook=pet().look||{c:'orange',p:'plain',seed:1};$('#giftFishImg').src=fishThumb(myLook,10,true);$('#sendFish').disabled=w0<50;
+    $('#sendFish').onclick=()=>{if(wallet()<50)return;sendGift('fish',packLook(myLook),()=>{spendXP(50);persist();openGiftOut();giftMsg('a little fish swam off to @'+VISIT.n+'!');});};}
+  const sr=$('#stickerRow');sr.textContent='';for(const k in STICKERS){const b=document.createElement('button');b.type='button';b.className='gpic';b.setAttribute('aria-label',k);b.innerHTML=stk(k,44);
     b.onclick=()=>{if(T-(openGiftOut.t||-9)<2)return;openGiftOut.t=T;sendGift('sticker',k);};sr.appendChild(b);}
   const th=makeThumbs(),gd=$('#giftDeco');gd.textContent='';const w=wallet();
   for(const d of SHOP){const it=document.createElement('div');it.className='item';const im=document.createElement('img');im.src=th[d.id];im.alt='';const nb=document.createElement('b');nb.textContent=d.name;
@@ -1642,7 +1684,9 @@ function checkGifts(){if(!DB||!USER||VISIT||!cloudReady)return;const me=USER;
     if(got.length)openGifts(got);}).catch(()=>{});}
 function openGifts(list){const el=$('#giftInList');el.textContent='';const p=pet();
   for(const g of list){const row=document.createElement('div');row.className='gift-line';let pic='',txt='';
-    if(g.kind==='snack'){p.s.food=Math.min(100,p.s.food+15);p.s.fun=Math.min(100,p.s.fun+10);pic=SNACK_SVG;txt='@'+g.from+' sent a snack';}
+    if(g.kind==='snack'){p.s.food=Math.min(100,p.s.food+15);p.s.fun=Math.min(100,p.s.fun+10);const k=SNACKS[g.item]?g.item:'cucumber';pic=snk(k,40);txt='@'+g.from+' sent a '+SNACKS[k].name;}
+    else if(g.kind==='fish'){const lk=unpackLook(g.item);save.friends=(save.friends||[]).concat([{from:g.from,look:lk}]).slice(-6);const img=fishThumb(lk,10,true);
+      pic='<img alt="" src="'+img+'" style="width:56px;height:40px">';txt='@'+g.from+' sent a little fish';setTimeout(spawnFriends,50);}
     else if(g.kind==='sticker'&&STICKERS[g.item]){pic=stk(g.item,40);txt='@'+g.from+' sent a '+g.item;}
     else if(g.kind==='deco'){const d=SHOP.find(x=>x.id===g.item);if(!d)continue;const th=makeThumbs();pic='<img alt="" src="'+th[d.id]+'">';
       if(save.tank.owned[d.id]){addXP(Math.round(d.price/2));txt='@'+g.from+' sent a '+d.name+' (you had one, so +'+Math.round(d.price/2)+' xp)';}else{save.tank.owned[d.id]=1;txt='@'+g.from+' sent a '+d.name;}}
@@ -1688,7 +1732,7 @@ cv.addEventListener('wheel',e=>{if(!TV.on)return;e.preventDefault();tvZoom(TV.zo
 $('#tvIn').onclick=()=>tvZoom(TV.zoom/1.35);$('#tvOut').onclick=()=>tvZoom(TV.zoom*1.35);
 function frame(){requestAnimationFrame(frame);const nowF=performance.now(),busy=ptr.down||toy||foods.length||T-(S.lastTouch||-9)<4||(TV.t>0&&TV.t<1),minF=busy?0:(lightsOff&&S.asleep?62:30);
   if(nowF-(frame.last||0)<minF)return;frame.last=nowF;const dt=Math.min(clock.getDelta(),0.07);T+=dt;
-  needs(dt);behave(dt);physics(dt);animate(dt);keepAboveFloor();updateFoods(dt);updateToy(dt);updateRocks(dt);updateFX(dt);updateSay(dt);
+  needs(dt);behave(dt);physics(dt);animate(dt);keepAboveFloor();if(FRIENDS.length)friendsTick(dt);updateFoods(dt);updateToy(dt);updateRocks(dt);updateFX(dt);updateSay(dt);
   const lt=lightsOff?0.35:1;hemi.intensity=damp(hemi.intensity,0.85*lt,2,dt);keyL.intensity=damp(keyL.intensity,0.7*lt,2,dt);
   if(!tankViewCam(dt)){const d=camera.position.distanceTo(camLook);scene.fog.far=damp(scene.fog.far,d+lerp(3,40,pet().s.clean/100),2,dt);
   camera.position.x=camBase.x+Math.sin(T*0.17)*0.05;camera.position.y=camBase.y+Math.sin(T*0.23)*0.03;camera.lookAt(camLook);}
