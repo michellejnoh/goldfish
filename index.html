@@ -583,6 +583,7 @@ if(uN>0.001){float h=clamp((vSunP.y-uNF)/2.6,0.,1.);
    // night light on things: just a soft lift of brightness that fades with height, no shape-revealing rim or facing terms
    float back=clamp((-vSunP.z+0.4)/2.0,0.,1.),lit=pow(1.-h,1.6);
    float f=(1.-uN*0.16*(0.4+0.6*h))+uN*lit*0.24*(0.65+0.35*back);
+   float upN=dot(vSunN,vSunN)>0.0001?normalize(vSunN).y:0.;f-=uN*0.075*smoothstep(0.75,0.95,upN)*(1.-smoothstep(0.,0.5,vSunP.y-uNF));// the sand floor stays a shade under the glowing water so the line between them still reads
    gl_FragColor.rgb=min(gl_FragColor.rgb*f,vec3(1.));}
 #include <tonemapping_fragment>`);}
 function flatMat(o){o=Object.assign({},o);['roughness','metalness','envMap','envMapIntensity','bumpMap','bumpScale','emissive'].forEach(k=>delete o[k]);const m=new THREE.MeshBasicMaterial(o);m.onBeforeCompile=sunPatch;return m;}
@@ -2232,11 +2233,11 @@ cyl(w,0.6,0.6,1.5,0x777777,42,196,1.8,8).rotation.x=Math.PI/2;}
     curve(B2,[[11,21,13],[12,17,14],[11.5,13,14.5]],0.25,0xa0a0a0);sph(B2,1.8,0xd0d0d0,11.5,11.5,14.6);sph(B2,1.4,0x8a8a8a,9,13,14.4,1,1,0.6);}
   {const sole=new THREE.Shape();sole.moveTo(0,-12);sole.bezierCurveTo(4.6,-12,5,-6,4.4,-1);sole.bezierCurveTo(4,4,5.4,8,4.2,11);sole.bezierCurveTo(3,13.6,-3,13.6,-4.2,11);
     sole.bezierCurveTo(-5,8,-3.6,4,-3.8,-1);sole.bezierCurveTo(-4.4,-6,-4.6,-12,0,-12);const SG2=new THREE.ExtrudeGeometry(sole,{depth:1.6,bevelEnabled:true,bevelThickness:0.6,bevelSize:0.6,bevelSegments:3,curveSegments:20});
-    const up=new THREE.SphereGeometry(1,28,14,0,Math.PI,0,Math.PI/2);
+    const up=new THREE.SphereGeometry(1,28,12,Math.PI,Math.PI,0,Math.PI/2);up.scale(4.9,4.2,8.5);
     [[-7,0.15,1],[6,-0.35,-1]].forEach(([dx,ry,mir])=>{const sl=grp(root,8+dx,0,hz-44+(mir<0?4:0),ry);sl.scale.x=mir;
       const so=mk(SG2,0x8c8c8c,sl,0,0.6,0);so.rotation.x=-Math.PI/2;
-      const u2=mk(up.clone(),M(0xdedede,{side:THREE.DoubleSide}),sl,0.2,2.6,6);u2.scale.set(5.2,5,7.8);u2.rotation.y=Math.PI/2;lumpy(u2,0.25,1.6,dx);
-      for(let i=0;i<14;i++){const a3=i/13*Math.PI;sph(sl,1,0xe8e8e8,Math.cos(a3)*5.1,2.6+Math.sin(i*1.7)*0.3,6+Math.sin(a3)*-0.2-0.2,1,1,1);}});}
+      // fuzzy upper over the toe half only, open towards the heel
+      lumpy(mk(up.clone(),M(0xdedede,{side:THREE.DoubleSide}),sl,0,2.7,-1.5),0.3,1.4,dx);});}
   {const mg=tex(128,170,(x,w,h)=>{x.fillStyle='#d2d2d2';x.fillRect(0,0,w,h);x.fillStyle='#8a8a8a';x.fillRect(0,0,w,34);x.fillStyle='#f0f0f0';x.font='bold 22px sans-serif';x.fillText('TEEN BEAT',8,26);x.fillStyle='#a8a8a8';x.fillRect(16,50,96,90);x.fillStyle='#7a7a7a';x.fillRect(16,148,70,8);});
     for(let i=0;i<3;i++){const m=mk(new THREE.BoxGeometry(21,0.8,28),[M(0xdddddd),M(0xdddddd),M(0xffffff,{map:mg}),M(0xdddddd),M(0xdddddd),M(0xdddddd)],root,-8+i*2,0.4+i*0.85,hz-110);m.rotation.y=0.4-i*0.35;}}
   {const star=new THREE.Shape();for(let i=0;i<10;i++){const a=i/10*Math.PI*2-Math.PI/2,r=i%2?1.6:4;star.lineTo(Math.cos(a)*r,Math.sin(a)*r);}const SG=new THREE.ShapeGeometry(star),gm=M(0xeef0ea);
