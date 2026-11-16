@@ -1870,7 +1870,7 @@ function checkGifts(){if(!DB||!USER||VISIT||!cloudReady)return;const me=USER;
     for(const d of j.documents){if(SEEN_GIFTS.has(d.name))continue;SEEN_GIFTS.add(d.name);const F=d.fields||{},g={from:F.from&&F.from.stringValue,kind:F.kind&&F.kind.stringValue,item:F.item&&F.item.stringValue};
       if(!g.from||!g.kind)continue;got.push(g);fetch('https://firestore.googleapis.com/v1/'+d.name+'?key='+DB.apiKey,{method:'DELETE'}).catch(()=>{});}
     if(got.length)openGifts(got);}).catch(()=>{});}
-function openGifts(list){const el=$('#giftInList');el.textContent='';const p=pet();let placedGift=false;
+function openGifts(list){const el=$('#giftInList');if($('#giftIn').hidden)el.textContent='';const p=pet();let placedGift=false;
   for(const g of list){const row=document.createElement('div');row.className='gift-line';let pic='',txt='';
     if(g.kind==='snack'){p.s.food=Math.min(100,p.s.food+15);p.s.fun=Math.min(100,p.s.fun+10);const k=SNACKS[g.item]?g.item:'cucumber';pic=snk(k,40);SNACK_Q.push(k);txt='@'+g.from+' sent a '+SNACKS[k].name;}
     else if(g.kind==='fish'){const lk=unpackLook(g.item),pst=String(g.item).split('.')[4],st=pst===undefined||pst===''?10:clamp(+pst||0,0,10);save.friends=(save.friends||[]).concat([{from:g.from,look:lk,stage:st}]).slice(-6);const img=fthumb(lk,st);
