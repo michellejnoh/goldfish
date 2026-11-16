@@ -2263,7 +2263,7 @@ cyl(w,0.6,0.6,1.5,0x777777,42,196,1.8,8).rotation.x=Math.PI/2;}
     const moon=new THREE.Shape();moon.absarc(0,0,7,0.6,Math.PI*2-0.6,false);moon.absarc(4,0,5.4,Math.PI*2-1.1,1.1,true);const mn=mk(new THREE.ShapeGeometry(moon,16),gm,root,70,RH-0.5,-40);mn.rotation.x=Math.PI/2;mn.rotation.z=0.6;}
   const walls={b:wall.b,f:wall.f,l:wall.l,r:wall.r,root,hx,hz};
   root.traverse(o=>{o.userData.room=1;});const g=new THREE.Group();g.add(root);g.userData.room=1;TV.walls=walls;return g;}
-function setTankView(on){if(on===TV.on)return;TV.on=on;if(on){TV.zoom=TV.zs=4;if(toy)endToy(true);buildTankBox();TV.box.visible=true;clipTank(true);TV.fogN=scene.fog.near;TV.fogF=scene.fog.far;
+function setTankView(on){if(on===TV.on)return;TV.on=on;if(on){TV.zoom=TV.zs=0.85;if(toy)endToy(true);buildTankBox();TV.box.visible=true;clipTank(true);TV.fogN=scene.fog.near;TV.fogF=scene.fog.far;
     document.body.classList.add('viewing');$('#viewBar').hidden=false;say('');}
   else{document.body.classList.remove('viewing');$('#viewBar').hidden=true;TV.pts.clear();}S.lastTouch=T;}
 function tankViewCam(dt){TV.t=clamp(TV.t+(TV.on?1:-1)*dt/0.75);TV.zs=damp(TV.zs,TV.zoom,10,dt);const e=TV.t*TV.t*(3-2*TV.t);
