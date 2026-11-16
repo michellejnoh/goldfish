@@ -1050,8 +1050,8 @@ function dropFood(p){if(!p||lightsOff||foods.length>8)return;const g=new THREE.G
   for(let i=0;i<3;i++){const k=new THREE.Mesh(new THREE.CylinderGeometry(0.04,0.045,0.006,9),flatMat({color:cols[(i+foods.length)%4],roughness:0.9}));
     k.position.set(rnd(-0.1,0.1),rnd(0,0.04),rnd(-0.07,0.07));k.rotation.set(rnd(-0.4,0.4),0,rnd(-0.4,0.4));g.add(k);}
   g.children.forEach((k,i)=>{k.userData.base=k.position.clone();k.userData.dir=new V3(rnd(-1,1),rnd(-0.3,0.3),rnd(-0.6,0.6)).normalize();k.userData.ph=rnd(0,6);k.userData.fr=rnd(2.2,3.4);});
-  g.position.set(clamp(p.x,-B.x,B.x),B.surf-0.05,rnd(-0.2,0.3));world.add(g);foods.push({m:g,pos:g.position,age:0});snd.pop();ripple(g.position);
-  for(let i=0;i<3;i++)spawn({mesh:new THREE.Mesh(BUB,BUBM),vel:new V3(rnd(-0.1,0.1),rnd(0.05,0.2),0),life:rnd(0.5,0.9),s0:rnd(0.01,0.02)}).mesh.position.copy(g.position).add(new V3(rnd(-0.06,0.06),-0.03,0));}
+  g.position.set(clamp(p.x,-B.x,B.x),(B.top||B.surf)+0.08,rnd(-0.2,0.3));world.add(g);foods.push({m:g,pos:g.position,age:0});snd.pop();
+}
 // a ring on the water surface where food lands
 const RIPPLES=[],RIPM=new THREE.MeshBasicMaterial({color:0x8a9599,transparent:true,opacity:0.5,depthWrite:false,side:THREE.DoubleSide});
 function ripple(p){for(let i=0;i<2;i++){const m=new THREE.Mesh(new THREE.RingGeometry(0.9,1,40),RIPM.clone());m.rotation.x=-Math.PI/2;m.position.set(p.x,B.surf,p.z);m.scale.setScalar(0.02);world.add(m);RIPPLES.push({m,t:-i*0.18});}}
@@ -1069,7 +1069,7 @@ function dropSnack(kind){const L=SNACK_LOOK[kind]||SNACK_LOOK.cucumber,[rim,face
     inner.add(w);pieces.push(w);}
   // eat the wedges around the slice in turn, starting from a random one
   const st=Math.floor(Math.random()*n);for(let i=0;i<n;i++)order.push(pieces[(st+i)%n]);
-  g.position.set(rnd(-B.x*0.5,B.x*0.5),B.surf-0.05,rnd(-0.1,0.3));g.rotation.set(rnd(-0.3,0.3),rnd(-0.5,0.5),rnd(-0.4,0.4));world.add(g);
+  g.position.set(rnd(-B.x*0.5,B.x*0.5),(B.top||B.surf)+0.1,rnd(-0.1,0.3));g.rotation.set(rnd(-0.3,0.3),rnd(-0.5,0.5),rnd(-0.4,0.4));world.add(g);
   foods.push({m:g,pos:g.position,age:0,snack:{kind,order,col:[face,core,rim],bite:0.35,kick:0}});snd.pop();}
 function snackBite(f,dt){const sn=f.snack,m=mouthWorld();S.faceT=f.pos;
   const want=m.clone().add(new V3(0,-0.01,0));if(f.pos.distanceTo(want)>0.09)f.pos.lerp(want,1-Math.exp(-3*dt));
@@ -1085,7 +1085,7 @@ function snackBite(f,dt){const sn=f.snack,m=mouthWorld();S.faceT=f.pos;
 function updateFoods(dt){updateRipples(dt);
   if(SNACK_Q.length&&!VISIT&&!lightsOff&&$('#giftIn').hidden&&(updateFoods.snT=(updateFoods.snT||0)-dt)<=0){updateFoods.snT=1.6;dropSnack(SNACK_Q.shift());}
   for(const f of foods.slice()){f.age+=dt;
-  if(f.snack){if(f.eating){snackBite(f,dt);continue;}if(f.pos.y>B.floor+0.2){f.pos.y-=dt*(f.pos.y>B.surf-0.8?0.3:0.16);f.pos.x+=Math.sin(T*1.4+f.age)*0.1*dt;f.m.rotation.z=Math.sin(T*1.6+f.age)*0.35;f.m.rotation.x=Math.sin(T*1.1+f.age)*0.25;}continue;}
+  if(f.snack){if(f.eating){snackBite(f,dt);continue;}if(f.pos.y>B.floor+0.2){f.pos.y-=dt*(f.pos.y>B.surf?0.5:f.pos.y>B.surf-0.8?0.3:0.16);f.pos.x+=Math.sin(T*1.4+f.age)*0.1*dt;f.m.rotation.z=Math.sin(T*1.6+f.age)*0.35;f.m.rotation.x=Math.sin(T*1.1+f.age)*0.25;}continue;}
   // eating: the flakes are sucked into the mouth one after another, each with a little gulp
   if(f.eating){f.t+=dt;const m=mouthWorld(),ks=f.m.children,lm=f.m.worldToLocal(m.clone());
     ks.forEach((k,i)=>{const t0=i*0.13,u=clamp((f.t-t0)/0.16);if(u<=0)return;if(!k.userData.sucked&&u>=1){k.userData.sucked=1;k.visible=false;squish(-1.1);CUR.mouth=0.95;crumb(m);if(i<ks.length-1)snd.pop();}
@@ -1094,7 +1094,7 @@ function updateFoods(dt){updateRipples(dt);
     if(f.t>=0.13*(ks.length-1)+0.18)gulp(f);continue;}
   // sinking: the flakes drift apart a little and flutter like leaves, tipping and side-slipping
   const sink=f.pos.y>B.floor+0.12;
-  if(sink){const slip=Math.sin(T*1.7+f.age);f.pos.y-=dt*(0.13+0.06*Math.abs(Math.cos(T*1.7+f.age)));f.pos.x+=slip*0.12*dt;f.m.rotation.z=slip*0.25;}
+  if(sink){const slip=Math.sin(T*1.7+f.age);f.pos.y-=dt*(f.pos.y>B.surf?0.35:0)+dt*(0.13+0.06*Math.abs(Math.cos(T*1.7+f.age)));f.pos.x+=slip*0.12*dt;f.m.rotation.z=slip*0.25;}
   for(const k of f.m.children){const u=k.userData;if(!u.base)continue;const sp=Math.min(1,f.age/3)*0.06,w=T*u.fr+u.ph;
     k.position.set(u.base.x+u.dir.x*sp+Math.sin(w*0.5)*0.012,u.base.y+u.dir.y*sp+Math.sin(w)*0.008,u.base.z+u.dir.z*sp);
     if(sink){k.rotation.x=Math.sin(w)*0.7;k.rotation.z=Math.cos(w*0.8)*0.6;}else{k.rotation.x*=0.95;k.rotation.z*=0.95;}}
