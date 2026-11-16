@@ -1930,140 +1930,164 @@ function buildTankBox(){if(TV.box)world.remove(TV.box);const F=B.floor,W=B.hw,y0
   const rB=0.5*Math.hypot(2*W,y1-y0,z1-z0),fv=camera.fov*Math.PI/180,fh=2*Math.atan(Math.tan(fv/2)*camera.aspect);TV.D=rB/Math.sin(Math.min(fv,fh)/2)/0.62;}
 function clipTank(on){TVCLIP.length=0;if(!on)return;TVCLIP.push(...TV.planes);renderer.localClippingEnabled=true;
   world.traverse(o=>{if(!o.material||o.userData.room)return;(Array.isArray(o.material)?o.material:[o.material]).forEach(m=>{if(m.clippingPlanes!==TVCLIP){m.clippingPlanes=TVCLIP;m.needsUpdate=true;}});});}
-/* a small grey 2000s room around the tank in tank view: the tank sits on a table on a rug, with a window and blinds, a boxy CRT TV on a cabinet,
-   a band poster, a wall clock, a floor lamp, a beanbag and a potted plant. The walls only show from inside, so whichever wall is nearer
-   to you drops away like a dollhouse as you turn the view. */
-function buildRoom(F,W,y0,y1,z0,z1){const g=new THREE.Group(),M=(c,o)=>new THREE.MeshBasicMaterial(Object.assign({color:c},o||{})),zc=(z0+z1)/2,
-    box=(w,h,d,c,x,y,z)=>{const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),M(c));m.position.set(x,y,z);g.add(m);return m;},
-    pl=(w,h,c,x,y,z,ry,o)=>{const m=new THREE.Mesh(new THREE.PlaneGeometry(w,h),M(c,o));m.position.set(x,y,z);m.rotation.y=ry||0;g.add(m);return m;},
-    cyl=(rt,rb,h,c,x,y,z,seg)=>{const m=new THREE.Mesh(new THREE.CylinderGeometry(rt,rb,h,seg||24),M(c));m.position.set(x,y,z);g.add(m);return m;};
-  const tt=0.16,top=y0-0.004,yF=y0-2.5,Rw=W+3.6,Rd=(z1-z0)/2+3.4,Hr=y1-yF+1.7,tw=2*W+0.9,td=z1-z0+0.8;
-  // room shell (inside faces only) and floorboards
-  const shell=new THREE.Mesh(new THREE.BoxGeometry(2*Rw,Hr,2*Rd),M(0xdfdfdf,{side:THREE.BackSide}));shell.position.set(0,yF+Hr/2,zc);g.add(shell);
-  const fc=document.createElement('canvas');fc.width=256;fc.height=256;const fx=fc.getContext('2d');fx.fillStyle='#c9c9c9';fx.fillRect(0,0,256,256);fx.strokeStyle='#b6b6b6';fx.lineWidth=2;
-  for(let i=0;i<8;i++){fx.beginPath();fx.moveTo(0,i*32+1);fx.lineTo(256,i*32+1);fx.stroke();const o=(i*97)%256;fx.beginPath();fx.moveTo(o,i*32);fx.lineTo(o,i*32+32);fx.stroke();}
-  const ft=new THREE.CanvasTexture(fc);ft.wrapS=ft.wrapT=THREE.RepeatWrapping;ft.repeat.set(Rw/1.6,Rd/1.6);
-  const floor=new THREE.Mesh(new THREE.PlaneGeometry(2*Rw,2*Rd),M(0xffffff,{map:ft}));floor.rotation.x=-Math.PI/2;floor.position.set(0,yF+0.003,zc);g.add(floor);
-  // skirting along the walls
-  for(const [w,x,z,ry] of [[2*Rw,0,zc-Rd+0.01,0],[2*Rd,-Rw+0.01,zc,Math.PI/2],[2*Rd,Rw-0.01,zc,-Math.PI/2],[2*Rw,0,zc+Rd-0.01,Math.PI]])pl(w,0.22,0xc9c9c9,x,yF+0.11,z,ry);
-  // rug and the table's soft shadow
-  const rug=new THREE.Mesh(new THREE.CircleGeometry(1,48),M(0xbebebe));rug.rotation.x=-Math.PI/2;rug.scale.set(tw*0.78,td*0.9,1);rug.position.set(0,yF+0.006,zc);g.add(rug);
-  const sh=new THREE.Mesh(new THREE.CircleGeometry(1,40),M(0x000000,{transparent:true,opacity:0.1,depthWrite:false}));sh.rotation.x=-Math.PI/2;sh.scale.set(tw*0.55,td*0.6,1);sh.position.set(0,yF+0.009,zc);g.add(sh);
-  // table
-  box(tw,tt,td,0x9d9d9d,0,top-tt/2,zc);box(tw-0.1,0.05,td-0.1,0x8a8a8a,0,top-tt-0.025,zc);
-  for(const sx of [-1,1])for(const sz of [-1,1])box(0.16,top-tt-yF,0.16,0x7c7c7c,sx*(tw/2-0.25),(top-tt+yF)/2,zc+sz*(td/2-0.25));
-  // back wall: window with blinds
-  const bz=zc-Rd+0.02,wx=-Rw*0.42,wy=yF+Hr*0.58;pl(2.5,2.1,0x9a9a9a,wx,wy,bz);pl(2.25,1.85,0xf8f8f8,wx,wy,bz+0.01);
-  for(let i=0;i<9;i++)pl(2.25,0.07,0xd8d8d8,wx,wy+0.86-i*0.2,bz+0.02);pl(0.05,1.85,0xbdbdbd,wx,wy,bz+0.03);pl(2.7,0.12,0xa8a8a8,wx,wy-1.1,bz+0.04);
-  // back right corner: CRT TV on a low cabinet, antenna on top
-  const cx=Rw-1.15,cz=zc-Rd+0.75;box(1.7,0.85,1.0,0x9b9b9b,cx,yF+0.425,cz);pl(1.5,0.012,0x7d7d7d,cx,yF+0.45,cz+0.505);
-  box(1.25,1.0,1.0,0x666666,cx,yF+1.35,cz-0.05);box(0.9,0.72,0.06,0x8a8a8a,cx,yF+1.38,cz+0.46);pl(0.78,0.6,0x3e3e3e,cx-0.04,yF+1.38,cz+0.5);
-  cyl(0.05,0.05,0.06,0xb0b0b0,cx+0.5,yF+1.06,cz+0.47,12).rotation.x=Math.PI/2;
-  for(const a of [-0.45,0.45]){const an=cyl(0.012,0.012,0.75,0x6a6a6a,cx+Math.sin(a)*0.3,yF+2.15,cz-0.05,8);an.rotation.z=a;}
-  // right wall: band poster
-  const rx=Rw-0.02;pl(1.25,1.7,0x8c8c8c,rx,yF+Hr*0.58,zc-0.4,-Math.PI/2);pl(1.0,0.75,0xd4d4d4,rx-0.01,yF+Hr*0.58+0.25,zc-0.4,-Math.PI/2);
-  const disc=new THREE.Mesh(new THREE.CircleGeometry(0.26,32),M(0x6a6a6a));disc.position.set(rx-0.02,yF+Hr*0.58+0.25,zc-0.4);disc.rotation.y=-Math.PI/2;g.add(disc);
-  pl(0.8,0.08,0xd4d4d4,rx-0.01,yF+Hr*0.58-0.42,zc-0.4,-Math.PI/2);pl(0.55,0.06,0xbcbcbc,rx-0.01,yF+Hr*0.58-0.58,zc-0.4,-Math.PI/2);
-  // left wall: round clock
-  const lx=-Rw+0.02,ck=new THREE.Mesh(new THREE.CircleGeometry(0.42,40),M(0xa5a5a5));ck.position.set(lx,yF+Hr*0.66,zc+1.9);ck.rotation.y=Math.PI/2;g.add(ck);
-  const cf=new THREE.Mesh(new THREE.CircleGeometry(0.36,40),M(0xf3f3f3));cf.position.set(lx+0.01,yF+Hr*0.66,zc+1.9);cf.rotation.y=Math.PI/2;g.add(cf);
-  pl(0.035,0.26,0x555555,lx+0.02,yF+Hr*0.66+0.11,zc+1.9,Math.PI/2);const hh=pl(0.035,0.2,0x555555,lx+0.02,yF+Hr*0.66,zc+1.9+0.08,Math.PI/2);hh.rotation.z=1.1;
-  // front wall: door
-  const fz=zc+Rd-0.02;pl(1.5,3.3,0xcdcdcd,Rw*0.45,yF+1.65,fz,Math.PI);pl(1.3,1.35,0xc2c2c2,Rw*0.45,yF+2.35,fz-0.01,Math.PI);pl(1.3,1.25,0xc2c2c2,Rw*0.45,yF+0.85,fz-0.01,Math.PI);
-  cyl(0.07,0.07,0.08,0x8a8a8a,Rw*0.45-0.55,yF+1.6,fz-0.04,16).rotation.x=Math.PI/2;
-  // back left corner: floor lamp
-  const lpx=-Rw+0.7,lpz=zc-Rd+0.7;cyl(0.32,0.36,0.06,0x7a7a7a,lpx,yF+0.03,lpz);cyl(0.035,0.035,3.1,0x7a7a7a,lpx,yF+1.6,lpz,10);
-  const shade=new THREE.Mesh(new THREE.CylinderGeometry(0.3,0.55,0.6,28,1,true),M(0xdedede,{side:THREE.DoubleSide}));shade.position.set(lpx,yF+3.25,lpz);g.add(shade);
-  // front right: beanbag; front left: potted plant
-  const bb=new THREE.Mesh(new THREE.SphereGeometry(0.75,28,18),M(0xb3b3b3));bb.scale.set(1.15,0.62,1.05);bb.position.set(Rw-1.3,yF+0.45,zc+Rd-1.4);g.add(bb);
-  const bt=new THREE.Mesh(new THREE.SphereGeometry(0.5,24,14),M(0xa6a6a6));bt.scale.set(1,0.5,0.9);bt.position.set(Rw-1.45,yF+0.86,zc+Rd-1.15);g.add(bt);
-  const ppx=-Rw+0.8,ppz=zc+Rd-0.9;cyl(0.32,0.25,0.6,0x8d8d8d,ppx,yF+0.3,ppz);
-  [[0,1.05,0,0.42,0x7f7f7f],[0.25,0.85,0.12,0.32,0x8f8f8f],[-0.22,0.9,-0.1,0.3,0x737373],[0.05,1.35,0.08,0.26,0x8a8a8a]].forEach(([x,y,z,r,c])=>{const l=new THREE.Mesh(new THREE.SphereGeometry(r,18,12),M(c));l.position.set(ppx+x,yF+y,ppz+z);g.add(l);});
-  // ---- details ----
-  const sph=(r,c,x,y,z,sx,sy,sz)=>{const m=new THREE.Mesh(new THREE.SphereGeometry(r,18,12),M(c));m.position.set(x,y,z);m.scale.set(sx||1,sy||1,sz||1);g.add(m);return m;};
-  // rug pattern
-  for(const [k,c] of [[0.8,0xb2b2b2],[0.62,0xc6c6c6],[0.5,0xb7b7b7]]){const r=new THREE.Mesh(new THREE.RingGeometry(k-0.03,k,64),M(c));r.rotation.x=-Math.PI/2;r.scale.set(tw*0.78,td*0.9,1);r.position.set(0,yF+0.008,zc);g.add(r);}
-  // curtains and rod at the window, sill with a little cactus
-  cyl(0.03,0.03,3.6,0x8a8a8a,wx,wy+1.22,bz+0.12,10).rotation.z=Math.PI/2;
-  for(const side of [-1,1])for(let i=0;i<4;i++){const cx2=wx+side*(1.32+i*0.13);box(0.13,2.7,0.08+(i%2)*0.05,i%2?0xc9c9c9:0xd6d6d6,cx2,wy-0.1,bz+0.1);}
-  box(2.6,0.08,0.3,0xb3b3b3,wx,wy-1.02,bz+0.15);cyl(0.11,0.09,0.18,0x8d8d8d,wx+0.65,wy-0.89,bz+0.18,16);
-  sph(0.08,0x6f6f6f,wx+0.65,wy-0.72,bz+0.18,0.8,1.5,0.8);sph(0.045,0x7a7a7a,wx+0.72,wy-0.72,bz+0.18,1.2,0.8,0.8);
-  // computer desk on the left wall: CRT monitor, keyboard, mouse, tower PC, office chair
-  const dz=zc-0.95,dx=-Rw+0.55,dH=1.25;box(1.1,0.08,2.5,0xa3a3a3,dx,yF+dH,dz);
-  for(const s2 of [-1,1])box(1.05,dH-0.04,0.07,0x939393,dx,yF+(dH-0.04)/2,dz+s2*1.2);box(0.05,dH-0.3,2.4,0x8e8e8e,-Rw+0.04,yF+(dH-0.3)/2+0.2,dz);
-  box(0.75,0.62,0.72,0xd9d9d9,dx-0.08,yF+dH+0.37,dz-0.2);box(0.42,0.5,0.5,0xcfcfcf,dx-0.38,yF+dH+0.33,dz-0.2);box(0.04,0.5,0.6,0xb5b5b5,dx+0.3,yF+dH+0.38,dz-0.2);
-  box(0.02,0.4,0.48,0x4a4a4a,dx+0.325,yF+dH+0.39,dz-0.2);box(0.3,0.03,0.22,0xc7c7c7,dx-0.05,yF+dH+0.05,dz-0.2);
-  box(0.28,0.03,0.85,0xe2e2e2,dx+0.3,yF+dH+0.055,dz-0.15);sph(0.06,0xdedede,dx+0.3,yF+dH+0.06,dz+0.42,0.8,0.45,1.2);
-  box(0.42,0.85,0.8,0xd4d4d4,dx-0.05,yF+0.43,dz+0.65);box(0.02,0.06,0.3,0x9a9a9a,dx+0.165,yF+0.7,dz+0.65);
-  const chx=dx+1.15;cyl(0.04,0.04,0.55,0x6d6d6d,chx,yF+0.3,dz-0.15,10);box(0.6,0.1,0.6,0x7b7b7b,chx,yF+0.6,dz-0.15);box(0.09,0.75,0.55,0x7b7b7b,chx+0.3,yF+1.0,dz-0.15);
-  for(let i=0;i<5;i++){const a=i/5*Math.PI*2,l=box(0.32,0.04,0.05,0x6d6d6d,chx+Math.cos(a)*0.16,yF+0.05,dz-0.15+Math.sin(a)*0.16);l.rotation.y=-a;}
-  // corkboard with polaroids above the desk
-  pl(1.6,1.05,0xa9a9a9,lx+0.005,yF+Hr*0.6,dz,Math.PI/2);
-  [[-0.45,0.2,0.2],[-0.05,0.25,-0.15],[0.4,0.18,0.12],[0.15,-0.22,0.1],[-0.42,-0.2,-0.08]].forEach(([oz,oy,rz])=>{const p=pl(0.3,0.36,0xf6f6f6,lx+0.015,yF+Hr*0.6+oy,dz+oz,Math.PI/2);p.rotation.z=rz;
-    const q=pl(0.24,0.22,0x8f8f8f,lx+0.02,yF+Hr*0.6+oy+0.04,dz+oz,Math.PI/2);q.rotation.z=rz;});
-  // right wall: shelf with CDs and a plush toy, and a second small poster
-  const shz=zc+1.55,shy=yF+Hr*0.5;box(0.35,0.06,1.6,0xa0a0a0,rx-0.18,shy,shz);
-  for(let i=0;i<11;i++)box(0.28,0.3,0.05,[0x6e6e6e,0x9a9a9a,0xbdbdbd,0x858585][i%4],rx-0.2,shy+0.18,shz-0.65+i*0.07);
-  sph(0.15,0xcfcfcf,rx-0.2,shy+0.2,shz+0.45,1,0.9,1);sph(0.12,0xcfcfcf,rx-0.2,shy+0.42,shz+0.45);sph(0.045,0xcfcfcf,rx-0.2,shy+0.55,shz+0.37);sph(0.045,0xcfcfcf,rx-0.2,shy+0.55,shz+0.53);
-  pl(0.75,1.0,0xb8b8b8,rx,yF+Hr*0.72,zc+1.55,-Math.PI/2);pl(0.6,0.12,0x777777,rx-0.01,yF+Hr*0.72+0.33,zc+1.55,-Math.PI/2);
-  const st=new THREE.Mesh(new THREE.CircleGeometry(0.2,5),M(0x8a8a8a));st.position.set(rx-0.01,yF+Hr*0.72-0.05,zc+1.55);st.rotation.y=-Math.PI/2;g.add(st);
-  // around the TV: VCR in the cabinet, console with a controller, a stack of tapes
-  box(0.9,0.12,0.6,0x5e5e5e,cx,yF+0.62,cz+0.22);box(0.5,0.02,0.01,0x9a9a9a,cx-0.1,yF+0.63,cz+0.525);
-  box(0.42,0.1,0.38,0x7a7a7a,cx-0.55,yF+0.9,cz+0.15);box(0.24,0.05,0.14,0x6a6a6a,cx-0.3,yF+0.04,cz+0.95);sph(0.05,0x6a6a6a,cx-0.4,yF+0.05,cz+0.95);sph(0.05,0x6a6a6a,cx-0.2,yF+0.05,cz+0.95);
-  for(let i=0;i<5;i++){const t=box(0.4,0.08,0.24,i%2?0x5a5a5a:0x707070,cx-1.25,yF+0.04+i*0.085,cz+0.1);t.rotation.y=(i%3-1)*0.12;}
-  // floor: magazines near the beanbag, slippers by the door
-  for(let i=0;i<3;i++){const mg=box(0.5,0.03,0.38,[0xd7d7d7,0xa8a8a8,0xc4c4c4][i],Rw-2.4+i*0.03,yF+0.02+i*0.032,zc+Rd-1.0);mg.rotation.y=0.3-i*0.25;}
-  for(const sx of [-0.13,0.13]){const sl=sph(0.12,0xb9b9b9,Rw*0.45-1.1+sx,yF+0.04,fz-0.55,0.9,0.35,1.6);sl.rotation.y=0.15;}
-  // table: fish food tub and a little net beside the tank
-  cyl(0.11,0.11,0.24,0xd0d0d0,W+0.22,top+0.12,zc+0.55,18);cyl(0.115,0.115,0.04,0x8a8a8a,W+0.22,top+0.26,zc+0.55,18);
-  const nh=cyl(0.015,0.015,0.9,0x7d7d7d,-W-0.22,top+0.03,zc-0.3,8);nh.rotation.x=Math.PI/2;nh.position.y=top+0.02;
-  const ring=new THREE.Mesh(new THREE.TorusGeometry(0.13,0.012,6,24),M(0x7d7d7d));ring.rotation.x=Math.PI/2;ring.position.set(-W-0.22,top+0.02,zc+0.25);g.add(ring);
-  // light switch by the door
-  pl(0.14,0.22,0xd0d0d0,Rw*0.45-1.05,yF+1.6,fz-0.005,Math.PI);
-  // ---- more details ----
-  const keep0=g.children.length;
-  // bed along the right wall: frame, mattress, folded blanket, pillow, and a stuffed bunny
-  const bx=Rw-0.62,bz2=zc-0.15;box(1.2,0.32,2.3,0x8f8f8f,bx,yF+0.16,bz2);box(1.12,0.2,2.2,0xe6e6e6,bx,yF+0.42,bz2);
-  box(1.14,0.12,1.3,0xb9b9b9,bx,yF+0.56,bz2+0.42);box(1.14,0.06,0.25,0xa3a3a3,bx,yF+0.6,bz2-0.18);
-  sph(0.22,0xf2f2f2,bx,yF+0.62,bz2-0.82,1.5,0.45,0.85);box(0.08,0.9,1.2,0x8a8a8a,Rw-0.04,yF+0.55,bz2-1.0);
-  sph(0.11,0xd2d2d2,bx-0.25,yF+0.66,bz2-0.45,1,1.1,0.9);sph(0.08,0xd2d2d2,bx-0.25,yF+0.82,bz2-0.45);sph(0.03,0xd2d2d2,bx-0.28,yF+0.95,bz2-0.47,0.6,1.8,0.6);sph(0.03,0xd2d2d2,bx-0.22,yF+0.95,bz2-0.43,0.6,1.8,0.6);
-  // tall bookcase on the left wall with books of different heights
-  const kz=zc+2.75,kx=-Rw+0.24,kH=2.5;box(0.44,kH,1.1,0x9a9a9a,kx,yF+kH/2,kz);box(0.4,kH-0.08,1.02,0x7c7c7c,kx+0.03,yF+kH/2,kz);
-  for(let sI=0;sI<4;sI++){const sy=yF+0.1+sI*0.62;box(0.42,0.04,1.04,0xa6a6a6,kx+0.02,sy,kz);let zz=kz-0.46;
-    while(zz<kz+0.4){const bw=rnd(0.04,0.09),bh=rnd(0.32,0.5);box(0.3,bh,bw,[0xd7d7d7,0x6b6b6b,0xb0b0b0,0x8e8e8e,0xc4c4c4][Math.floor(rnd(0,5))],kx+0.05,sy+0.02+bh/2,zz+bw/2);zz+=bw+0.01;}}
-  // guitar leaning on the back wall, and a stack of books on the floor
-  const gx=Rw*0.12,gz=zc-Rd+0.55;{const gg=new THREE.Group();gg.position.set(gx,yF,gz);gg.rotation.x=-0.22;g.add(gg);
-    const gb=(r,y,sx,c)=>{const m=new THREE.Mesh(new THREE.SphereGeometry(r,24,14),M(c));m.scale.set(sx,1,0.32);m.position.y=y;gg.add(m);};gb(0.32,0.38,1,0x8b8b8b);gb(0.24,0.78,1,0x8b8b8b);
-    const hole=new THREE.Mesh(new THREE.CircleGeometry(0.08,20),M(0x4d4d4d));hole.position.set(0,0.66,0.105);gg.add(hole);const nk=new THREE.Mesh(new THREE.BoxGeometry(0.08,1.0,0.05),M(0x6c6c6c));nk.position.y=1.45;gg.add(nk);
-    const hd=new THREE.Mesh(new THREE.BoxGeometry(0.13,0.2,0.05),M(0x5a5a5a));hd.position.y=2.0;gg.add(hd);}
-  for(let i=0;i<4;i++){const bk=box(0.5-i*0.04,0.08,0.36,[0x9c9c9c,0xd0d0d0,0x7a7a7a,0xbababa][i],bx-0.2,yF+0.04+i*0.085,bz2+1.55);bk.rotation.y=0.15*(i%2?1:-1);}
-  // desk extras: desk lamp, pencil cup, headphones, flip phone; a waste basket beside the desk
-  {const lx2=dx-0.25,lz2=dz-1.0;cyl(0.12,0.14,0.04,0x6f6f6f,lx2,yF+dH+0.06,lz2);const a1=cyl(0.02,0.02,0.55,0x6f6f6f,lx2+0.06,yF+dH+0.32,lz2);a1.rotation.z=-0.35;
-    const a2=cyl(0.02,0.02,0.45,0x6f6f6f,lx2+0.25,yF+dH+0.68,lz2);a2.rotation.z=0.9;const hd2=new THREE.Mesh(new THREE.ConeGeometry(0.12,0.2,20,1,true),M(0x7a7a7a,{side:THREE.DoubleSide}));hd2.position.set(lx2+0.43,yF+dH+0.68,lz2);hd2.rotation.z=-2.2;g.add(hd2);}
-  cyl(0.06,0.05,0.16,0x9a9a9a,dx-0.3,yF+dH+0.12,dz+0.75);for(let i=0;i<3;i++){const pc=cyl(0.008,0.008,0.22,[0x555555,0x888888,0x6e6e6e][i],dx-0.3+(i-1)*0.02,yF+dH+0.25,dz+0.75+(i-1)*0.015,6);pc.rotation.z=(i-1)*0.15;}
-  const hp=new THREE.Mesh(new THREE.TorusGeometry(0.14,0.018,8,24,Math.PI),M(0x5c5c5c));hp.position.set(dx+0.05,yF+dH+0.06,dz+0.9);hp.rotation.x=-Math.PI/2;g.add(hp);
-  sph(0.05,0x5c5c5c,dx-0.09,yF+dH+0.06,dz+0.9,0.8,0.5,1);sph(0.05,0x5c5c5c,dx+0.19,yF+dH+0.06,dz+0.9,0.8,0.5,1);
-  box(0.09,0.03,0.18,0x7a7a7a,dx+0.3,yF+dH+0.055,dz+0.55);box(0.07,0.005,0.08,0x3e3e3e,dx+0.3,yF+dH+0.072,dz+0.5);
-  {const wb=new THREE.Mesh(new THREE.CylinderGeometry(0.22,0.17,0.45,24,1,true),M(0xa0a0a0,{side:THREE.DoubleSide}));wb.position.set(dx+0.55,yF+0.225,dz+1.6);g.add(wb);
-    sph(0.07,0xeaeaea,dx+0.52,yF+0.44,dz+1.58);sph(0.06,0xdedede,dx+0.6,yF+0.46,dz+1.65);}
-  // backpack by the door, and a skateboard on the floor
-  sph(0.28,0x7d7d7d,Rw*0.45+1.0,yF+0.3,fz-0.35,1,1.15,0.6);box(0.32,0.2,0.08,0x6b6b6b,Rw*0.45+1.0,yF+0.2,fz-0.53);
-  {const sk=box(0.28,0.04,1.0,0x8e8e8e,-Rw+2.3,yF+0.11,zc+Rd-1.9);sk.rotation.y=0.6;for(const k of [-0.32,0.32])for(const q of [-0.1,0.1]){const w2=cyl(0.04,0.04,0.04,0x5a5a5a,-Rw+2.3+Math.sin(0.6)*k+Math.cos(0.6)*q,yF+0.04,zc+Rd-1.9+Math.cos(0.6)*k-Math.sin(0.6)*q,12);w2.rotation.z=Math.PI/2;}}
-  for(let i=keep0;i<g.children.length;i++)g.children[i].userData.keep=1;
-  // wall extras: string lights along the top of the back wall, a calendar, framed photos over the bed, a dartboard by the door
-  for(let i=0;i<=16;i++){const t=i/16,x=-Rw+0.3+t*(2*Rw-0.6),y=yF+Hr-0.35-Math.sin(t*Math.PI*4)*0.12-0.05;sph(0.05,i%2?0xf7f7f7:0xdadada,x,y,zc-Rd+0.06,1,1.3,1);}
-  pl(0.6,0.75,0xd8d8d8,Rw-1.3,yF+Hr*0.62,zc-Rd+0.02);pl(0.6,0.16,0x8a8a8a,Rw-1.3,yF+Hr*0.62+0.28,zc-Rd+0.03);
-  for(let r=0;r<3;r++)for(let c=0;c<4;c++)pl(0.09,0.08,0xbdbdbd,Rw-1.52+c*0.14,yF+Hr*0.62+0.12-r*0.13,zc-Rd+0.03);
-  [[0.75,0.55,-0.6],[0.5,0.62,0.05],[0.55,0.45,0.6]].forEach(([w,h,oz],i)=>{pl(w,h,0x9c9c9c,rx,yF+1.75+(i%2)*0.2,bz2+oz,-Math.PI/2);pl(w-0.12,h-0.12,[0xcfcfcf,0xbdbdbd,0xd9d9d9][i],rx-0.01,yF+1.75+(i%2)*0.2,bz2+oz,-Math.PI/2);});
-  {const db=new THREE.Mesh(new THREE.CircleGeometry(0.35,32),M(0x7d7d7d));db.position.set(-Rw*0.1,yF+2.2,fz-0.02);db.rotation.y=Math.PI;g.add(db);
-    for(const [r2,c2] of [[0.26,0xc9c9c9],[0.17,0x8f8f8f],[0.08,0xd2d2d2],[0.03,0x555555]]){const d2=new THREE.Mesh(new THREE.CircleGeometry(r2,32),M(c2));d2.position.set(-Rw*0.1,yF+2.2,fz-0.025-r2*0.001);d2.rotation.y=Math.PI;g.add(d2);}}
-  // things hung on a wall go with that wall, so they disappear with it when it drops away
-  const walls={b:new THREE.Group(),l:new THREE.Group(),r:new THREE.Group(),f:new THREE.Group()};
-  for(const o of g.children.slice()){if(o===shell||o===floor||o.userData.keep)continue;const p=o.position;if(p.y<yF+0.5)continue;
-    const d={b:p.z-(zc-Rd),f:(zc+Rd)-p.z,l:p.x+Rw,r:Rw-p.x};let k=null,best=0.45;for(const w in d)if(d[w]<best){best=d[w];k=w;}if(k){g.remove(o);walls[k].add(o);}}
-  for(const w in walls)g.add(walls[w]);TV.walls={...walls,zc,Rw,Rd};
-  g.traverse(o=>{o.userData.room=1;});return g;}
-function setTankView(on){if(on===TV.on)return;TV.on=on;if(on){TV.zoom=TV.zs=1.35;if(toy)endToy(true);buildTankBox();TV.box.visible=true;clipTank(true);TV.fogN=scene.fog.near;TV.fogF=scene.fog.far;
+/* the room around the tank in tank view, in real proportions (everything in centimetres, scaled so the tank is about 55 cm tall).
+   A 2000s bedroom in greys: the tank on a small table in the middle, a window with venetian blinds and curtains, a CRT TV on a stand
+   with a VCR and a console, a desk with a CRT monitor, keyboard, tower and office chair, a bed, a bookcase, a guitar, a floor lamp,
+   a beanbag, a plant, posters, a clock, a corkboard and fairy lights. Wall things are built flat on their wall, and each wall
+   (with everything hung on it) drops away when it is between you and the tank, like a dollhouse. */
+function buildRoom(F,W,y0,yG,z0,z1){
+  const u=(yG-y0)/55,tw=2*W/u,td=(z1-z0)/u,TH=75,zc=(z0+z1)/2;
+  const root=new THREE.Group();root.scale.setScalar(u);root.position.set(0,y0-TH*u,zc);
+  const MC={},M=(c,o)=>{const k=c+(o?JSON.stringify(Object.keys(o)):'');if(!o&&MC[k])return MC[k];const m=new THREE.MeshBasicMaterial(Object.assign({color:c},o||{}));if(!o)MC[k]=m;return m;};
+  const tex=(w,h,draw)=>{const c=document.createElement('canvas');c.width=w;c.height=h;draw(c.getContext('2d'),w,h);const t=new THREE.CanvasTexture(c);t.anisotropy=4;return t;};
+  const mk=(geo,c,p,x,y,z,o)=>{const m=new THREE.Mesh(geo,typeof c==='object'?c:M(c,o));m.position.set(x,y,z);(p||root).add(m);return m;};
+  const box=(p,w,h,d,c,x,y,z)=>mk(new THREE.BoxGeometry(w,h,d),c,p,x,y,z);
+  const cyl=(p,rt,rb,h,c,x,y,z,seg,o)=>mk(new THREE.CylinderGeometry(rt,rb,h,seg||20,1,!!(o&&o.open)),c,p,x,y,z,o&&o.side?{side:THREE.DoubleSide}:undefined);
+  const sph=(p,r,c,x,y,z,sx,sy,sz)=>{const m=mk(new THREE.SphereGeometry(r,20,14),c,p,x,y,z);m.scale.set(sx||1,sy||1,sz||1);return m;};
+  const pl=(p,w,h,c,x,y,z,o)=>mk(new THREE.PlaneGeometry(w,h),c,p,x,y,z,o);
+  const grp=(p,x,y,z,ry)=>{const g=new THREE.Group();g.position.set(x,y,z);g.rotation.y=ry||0;(p||root).add(g);return g;};
+  const RW=320,RD=360,RH=240,hx=RW/2,hz=RD/2;
+  // shell and floorboards
+  const shell=mk(new THREE.BoxGeometry(RW,RH,RD),M(0xe2e2e2,{side:THREE.BackSide}),root,0,RH/2,0);
+  const planks=tex(512,512,(x,w,h)=>{x.fillStyle='#cbcbcb';x.fillRect(0,0,w,h);for(let r=0;r<8;r++){const y=r*64;let s=(r*137)%200;
+      for(let k=-1;k<4;k++){const x0=s+k*200;x.fillStyle=['#c6c6c6','#cfcfcf','#c2c2c2','#cacaca'][(r+k+4)%4];x.fillRect(x0,y+1,198,62);
+        x.strokeStyle='rgba(0,0,0,.05)';for(let g=0;g<5;g++){x.beginPath();x.moveTo(x0,y+8+g*11);x.bezierCurveTo(x0+60,y+6+g*11,x0+130,y+12+g*11,x0+198,y+8+g*11);x.stroke();}}
+      x.fillStyle='#b3b3b3';x.fillRect(0,y,w,2);}});
+  planks.wrapS=planks.wrapT=THREE.RepeatWrapping;planks.repeat.set(RW/120,RD/120);
+  const floor=mk(new THREE.PlaneGeometry(RW,RD),M(0xffffff,{map:planks}),root,0,0.2,0);floor.rotation.x=-Math.PI/2;
+  // walls: a group per wall, local x along the wall, y up, +z into the room
+  const wall={b:grp(root,0,0,-hz,0),f:grp(root,0,0,hz,Math.PI),l:grp(root,-hx,0,0,Math.PI/2),r:grp(root,hx,0,0,-Math.PI/2)};
+  for(const k in wall){const L=k==='b'||k==='f'?RW:RD;box(wall[k],L,9,1.5,0xcfcfcf,0,4.5,0.8);box(wall[k],L,1.2,2,0xbdbdbd,0,9.2,1);}
+  // ---------- the tank's table ----------
+  {const t=grp(root,0,0,0),TW=tw+22,TD=td+18;box(t,TW,3,TD,0x9d9d9d,0,TH-1.5,0);box(t,TW-4,6,TD-4,0x8c8c8c,0,TH-6,0);
+    for(const sx of [-1,1])for(const sz of [-1,1]){const lg=cyl(t,2,1.5,TH-6,0x7f7f7f,sx*(TW/2-5),(TH-6)/2,sz*(TD/2-5),12);}
+    box(t,TW-14,1.5,TD-14,0x969696,0,18,0);
+    // fish food tub, a net and a small water-test bottle on the table
+    cyl(t,3.5,3.5,8,0xd4d4d4,TW/2-6,TH+4,TD/2-7);cyl(t,3.7,3.7,1.6,0x8a8a8a,TW/2-6,TH+8.6,TD/2-7);
+    const nh=cyl(t,0.4,0.4,26,0x7d7d7d,-TW/2+5,TH+0.6,-2,8);nh.rotation.x=Math.PI/2;const nr=mk(new THREE.TorusGeometry(4,0.35,6,24),0x7d7d7d,t,-TW/2+5,TH+0.6,13);nr.rotation.x=Math.PI/2;
+    cyl(t,1.4,1.4,6,0xbdbdbd,TW/2-12,TH+3,TD/2-5,12);cyl(t,0.8,0.8,1.6,0x6f6f6f,TW/2-12,TH+6.8,TD/2-5,10);
+    // rug under the table, with a border and a simple pattern
+    const rug=tex(512,384,(x,w,h)=>{x.fillStyle='#b9b9b9';x.fillRect(0,0,w,h);x.strokeStyle='#cfcfcf';x.lineWidth=14;x.strokeRect(22,22,w-44,h-44);x.strokeStyle='#a4a4a4';x.lineWidth=4;x.strokeRect(46,46,w-92,h-92);
+      x.fillStyle='#a9a9a9';for(let i=0;i<7;i++)for(let j=0;j<5;j++){x.save();x.translate(90+i*56,86+j*54);x.rotate(Math.PI/4);x.fillRect(-9,-9,18,18);x.restore();}
+      x.fillStyle='#cfcfcf';for(let i=0;i<w;i+=8){x.fillRect(i,0,3,8);x.fillRect(i,h-8,3,8);}});
+    const rg=mk(new THREE.PlaneGeometry(190,140),M(0xffffff,{map:rug}),root,0,0.5,0);rg.rotation.x=-Math.PI/2;}
+  // ---------- back wall: window with venetian blinds and curtains, fairy lights, calendar ----------
+  {const w=wall.b,wx=-70,wy=140;box(w,124,134,4,0xa8a8a8,wx,wy,2);pl(w,112,122,0xf4f4f4,wx,wy,4.2);
+    box(w,3,122,3,0xa8a8a8,wx,wy,5.5);box(w,112,3,3,0xa8a8a8,wx,wy,5.5);box(w,132,4,14,0xb2b2b2,wx,wy-68,7);
+    for(let i=0;i<26;i++)box(w,110,1.6,2.6,i%2?0xdadada:0xd2d2d2,wx,wy+58-i*4.3,8+Math.sin(i)*0.2);
+    for(const sx of [-40,40])box(w,0.4,116,0.4,0xa0a0a0,wx+sx,wy+2,9.5);box(w,114,5,5,0xbcbcbc,wx,wy+62,8);
+    const rod=cyl(w,1.2,1.2,170,0x8c8c8c,wx,wy+74,12,10);rod.rotation.z=Math.PI/2;sph(w,2.4,0x7d7d7d,wx-86,wy+74,12);sph(w,2.4,0x7d7d7d,wx+86,wy+74,12);
+    for(const side of [-1,1])for(let i=0;i<7;i++){const cx2=wx+side*(64+i*3.6);const c2=cyl(w,2.2,2.6+(i%2),150,i%2?0xc8c8c8:0xd5d5d5,cx2,wy+0,13+(i%2)*1.5,10);}
+    for(const side of [-1,1]){const tb=mk(new THREE.TorusGeometry(5,0.8,6,16),0xb0b0b0,w,wx+side*70,wy-20,15);tb.scale.set(1.4,0.5,1);}
+    cyl(w,5,4,9,0x8d8d8d,wx+30,wy-61.5,10,16);sph(w,2.5,0x6f6f6f,wx+30,wy-52,10,0.8,1.8,0.8);sph(w,1.4,0x7a7a7a,wx+33,wy-53,10,1.4,0.7,0.7);
+    const pts=[];for(let i=0;i<=40;i++){const t=i/40;pts.push(new V3(-150+t*300,214-Math.abs(Math.sin(t*Math.PI*4))*14,3));}
+    const wire=new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts),new THREE.LineBasicMaterial({color:0x8a8a8a}));w.add(wire);
+    for(let i=0;i<=24;i++){const t=i/24,y=214-Math.abs(Math.sin(t*Math.PI*4))*14;sph(w,1.4,i%2?0xfafafa:0xe0e0e0,-150+t*300,y-2.5,3.4,1,1.4,1);box(w,1.2,1.2,1.2,0x9a9a9a,-150+t*300,y-0.6,3.4);}
+    const cal=tex(256,320,(x,ww,hh)=>{x.fillStyle='#efefef';x.fillRect(0,0,ww,hh);x.fillStyle='#bdbdbd';x.fillRect(0,0,ww,120);x.fillStyle='#8a8a8a';x.font='bold 44px sans-serif';x.fillText('NOV',20,180);x.font='22px sans-serif';
+      for(let r=0;r<5;r++)for(let c=0;c<7;c++){x.strokeStyle='#cfcfcf';x.strokeRect(14+c*33,198+r*23,33,23);x.fillStyle='#9a9a9a';x.fillText(String(1+r*7+c<=30?1+r*7+c:''),17+c*33,216+r*23);}});
+    pl(w,30,38,M(0xffffff,{map:cal}),105,150,1.2);mk(new THREE.CylinderGeometry(0.4,0.4,1,6),0x777777,w,105,170,1.4).rotation.x=Math.PI/2;}
+  // ---------- back right corner: TV stand, CRT TV, VCR, console, controller, tapes ----------
+  {const s=grp(root,hx-62,0,-hz+30);box(s,96,4,46,0x9b9b9b,0,48,0);box(s,96,4,46,0x9b9b9b,0,4,0);for(const sx of [-1,1])box(s,4,48,46,0x8e8e8e,sx*46,26,0);box(s,96,44,2,0x8a8a8a,0,26,-22);box(s,88,2.5,42,0x9b9b9b,0,26,1);
+    box(s,42,8,30,0x5c5c5c,-18,10.5,2);pl(s,18,1.6,0x9a9a9a,-24,11,17.2);pl(s,8,2.6,0x3d3d3d,-6,11,17.2);
+    box(s,30,7,26,0x777777,22,9.5,2);pl(s,26,0.4,0x5f5f5f,22,10,15.1);cyl(s,1,1,0.6,0x9a9a9a,32,9.5,15.2,10).rotation.x=Math.PI/2;
+    for(let i=0;i<4;i++)box(s,19,2.4,10.5,i%2?0x666666:0x5a5a5a,24,28.4+i*2.5,4);
+    const tv=grp(s,0,50,-2);box(tv,58,46,30,0x6e6e6e,0,23,6);box(tv,46,38,22,0x626262,0,22,-16);box(tv,30,28,10,0x5a5a5a,0,22,-31);
+    box(tv,52,40,1.5,0x777777,0,24,21.6);pl(tv,42,32,0x3b3b3b,-2,25,22.5);const gl=pl(tv,38,28,0x474747,-2,26,22.7);
+    for(let i=0;i<6;i++)pl(tv,4,0.5,0x555555,22,30-i*1.6,22.5);cyl(tv,0.9,0.9,0.6,0x9a9a9a,22,13,22.6,10).rotation.x=Math.PI/2;cyl(tv,0.4,0.4,0.4,0xd0d0d0,22,9,22.7,8).rotation.x=Math.PI/2;
+    for(const a of [-0.5,0.5]){const an=cyl(tv,0.35,0.35,50,0x6a6a6a,Math.sin(a)*24,46+Math.cos(a)*24,0,8);an.rotation.z=-a;}sph(tv,4,0x6a6a6a,0,46,0,1.4,0.6,1);
+    const ct=grp(root,hx-80,0.8,-hz+70,0.4);box(ct,15,2.5,8,0x6c6c6c,0,1.25,0);sph(ct,3,0x6c6c6c,-6.5,1.5,1.5,1,0.6,1.3);sph(ct,3,0x6c6c6c,6.5,1.5,1.5,1,0.6,1.3);
+    for(const [xx,zz] of [[4,-1],[5.6,0.4],[4,1.8],[2.4,0.4]])cyl(ct,0.7,0.7,0.6,0x444444,xx,2.8,zz,8);cyl(ct,1.2,1.2,0.8,0x555555,-3.5,2.8,0,10);
+    const cord=new THREE.Line(new THREE.BufferGeometry().setFromPoints([new V3(hx-80,2,-hz+64),new V3(hx-78,1,-hz+55),new V3(hx-70,1,-hz+50),new V3(hx-62,9,-hz+46)]),new THREE.LineBasicMaterial({color:0x5a5a5a}));root.add(cord);
+    for(let i=0;i<5;i++){const tp=box(root,19,2.6,10.5,i%2?0x5e5e5e:0x707070,hx-122,1.3+i*2.7,-hz+30);tp.rotation.y=(i%3-1)*0.15;}}
+  // ---------- left wall: desk with CRT monitor, keyboard, mouse, tower, lamp; office chair; corkboard; clock; bookcase ----------
+  {const D=grp(root,-hx+32,0,-50,Math.PI/2);// local x along the wall (toward the back is +x), +z into the room
+    box(D,130,3,60,0xa3a3a3,0,73.5,0);for(const sx of [-1,1])box(D,3,72,58,0x939393,sx*63,36,0);box(D,124,40,1.5,0x8e8e8e,0,52,-28);
+    const dr=grp(D,-40,0,0);box(dr,40,70,56,0x9a9a9a,0,35,1);for(let i=0;i<3;i++){box(dr,36,20,1.2,0xa9a9a9,0,12+i*22.5,29.2);box(dr,10,1.4,1.6,0x6d6d6d,0,17+i*22.5,30.3);}
+    // CRT monitor with a deep back, bezel, screen and stand
+    const mon=grp(D,10,75,-6);box(mon,38,34,6,0xdedede,0,22,13);box(mon,34,30,18,0xd4d4d4,0,21,1);box(mon,22,20,12,0xcccccc,0,20,-13);
+    pl(mon,31,24,0x3e3e3e,0,23,16.1);pl(mon,29,22,0x4a4a4a,0,23.4,16.2);cyl(mon,0.6,0.6,0.4,0x8f8f8f,15,7.5,16.2,8).rotation.x=Math.PI/2;box(mon,16,3,14,0xd0d0d0,0,1.5,6);box(mon,6,4,6,0xcfcfcf,0,4,6);
+    const kb=tex(512,160,(x,w,h)=>{x.fillStyle='#d6d6d6';x.fillRect(0,0,w,h);x.fillStyle='#ececec';for(let r=0;r<5;r++){const n=r===4?8:14;let xx=10+(r%2)*8;
+        for(let k=0;k<n;k++){const kw=r===4&&k===3?150:26;x.fillRect(xx,12+r*28,kw,22);xx+=kw+6;}}
+      for(let r=0;r<5;r++)for(let k=0;k<4;k++)x.fillRect(400+k*26,12+r*28,22,22);});
+    const kbd=mk(new THREE.BoxGeometry(44,2,15),[M(0xcfcfcf),M(0xcfcfcf),M(0xffffff,{map:kb}),M(0xcfcfcf),M(0xcfcfcf),M(0xcfcfcf)],D,8,76,16);kbd.rotation.x=0.06;
+    sph(D,3,0xdcdcdc,36,76.2,17,0.8,0.45,1.25);const mc=new THREE.Line(new THREE.BufferGeometry().setFromPoints([new V3(36,77,13),new V3(37,77,4),new V3(30,76,-8)]),new THREE.LineBasicMaterial({color:0x9a9a9a}));D.add(mc);
+    pl(D,18,22,0xd9d9d9,36,75.2,17).rotation.x=-Math.PI/2;
+    const tower=grp(D,40,0,4);box(tower,19,44,44,0xd6d6d6,0,22,0);for(let i=0;i<3;i++)pl(tower,15,4,i?0xc4c4c4:0xbcbcbc,0,38-i*5.5,22.1);pl(tower,10,0.6,0x777777,0,28,22.1);
+    cyl(tower,1.2,1.2,0.4,0xa6a6a6,0,14,22.2,12).rotation.x=Math.PI/2;cyl(tower,0.4,0.4,0.4,0x666666,4,14,22.3,8).rotation.x=Math.PI/2;
+    // desk lamp, speakers, pencil cup, headphones, flip phone, CD case
+    const lp=grp(D,-55,75,-14);cyl(lp,7,8,2,0x6f6f6f,0,1,0,20);const a1=cyl(lp,0.7,0.7,30,0x6f6f6f,4,15,0,8);a1.rotation.z=-0.3;const a2=cyl(lp,0.7,0.7,26,0x6f6f6f,15,33,0,8);a2.rotation.z=1.0;
+    const sh=mk(new THREE.ConeGeometry(7,11,20,1,true),M(0x7a7a7a,{side:THREE.DoubleSide}),lp,26,30,0);sh.rotation.z=-2.4;sph(lp,1.6,0xf0f0f0,24,27,0);
+    for(const sx of [-12,32]){box(D,9,15,10,0x9c9c9c,sx,82.5,-12);cyl(D,3,3,0.4,0x6a6a6a,sx,84,-6.8,14).rotation.x=Math.PI/2;cyl(D,1.6,1.6,0.4,0x7e7e7e,sx,77.8,-6.8,12).rotation.x=Math.PI/2;}
+    cyl(D,4,3.6,11,0x9a9a9a,-52,80.5,18,16);for(let i=0;i<4;i++){const pc=cyl(D,0.4,0.4,17,[0x555555,0x888888,0x6e6e6e,0x9e9e9e][i],-52+(i-1.5)*1.2,86,18+(i%2)*1.2,6);pc.rotation.z=(i-1.5)*0.12;}
+    const hp=mk(new THREE.TorusGeometry(9,1.1,8,24,Math.PI),0x5c5c5c,D,-30,76,16);hp.rotation.x=-Math.PI/2;for(const sx of [-9,9])cyl(D,3.2,3.2,2.2,0x555555,-30+sx,76.5,16,16);
+    const ph=grp(D,52,75.4,20,0.3);box(ph,5,1.2,9,0x7a7a7a,0,0.6,0);pl(ph,3.6,4,0x3e3e3e,0,1.25,-1.8).rotation.x=-Math.PI/2;for(let r=0;r<4;r++)for(let c=0;c<3;c++)pl(ph,0.9,0.6,0xa5a5a5,(c-1)*1.2,1.25,2+r*0.9).rotation.x=-Math.PI/2;
+    box(D,12.5,1,14,0xc9c9c9,-12,75.5,22);pl(D,11,12,0x8f8f8f,-12,76.1,22).rotation.x=-Math.PI/2;
+    // office chair: five-star base with casters, gas lift, seat, back, armrests
+    const ch=grp(D,8,0,52,0.25);for(let i=0;i<5;i++){const a=i/5*Math.PI*2,leg=box(ch,28,2.2,3.5,0x5f5f5f,Math.cos(a)*14,6,Math.sin(a)*14);leg.rotation.y=-a;sph(ch,2.2,0x3e3e3e,Math.cos(a)*27,2.2,Math.sin(a)*27);}
+    cyl(ch,2.6,2.6,7,0x5f5f5f,0,9,0,12);cyl(ch,1.6,1.6,30,0x7f7f7f,0,26,0,12);box(ch,46,7,44,0x707070,0,44,0);box(ch,44,2,42,0x7a7a7a,0,48,0);
+    box(ch,4,30,4,0x5f5f5f,0,56,-21);box(ch,42,40,6,0x707070,0,82,-23);box(ch,38,36,1,0x7a7a7a,0,82,-19.8);
+    for(const sx of [-1,1]){box(ch,3,18,3,0x5f5f5f,sx*24,55,-2);box(ch,5,2.5,24,0x5a5a5a,sx*24,64,-2);}
+    // waste basket with a few paper balls
+    const wb=mk(new THREE.CylinderGeometry(13,10,30,24,1,true),M(0xa0a0a0,{side:THREE.DoubleSide}),root,-hx+30,15,24);
+    for(let i=0;i<24;i++){const a=i/24*Math.PI*2;const st=box(root,0.6,30,0.6,0x8d8d8d,-hx+30+Math.cos(a)*11.6,15,24+Math.sin(a)*11.6);st.rotation.x=Math.sin(a)*0.1;st.rotation.z=-Math.cos(a)*0.1;}
+    sph(root,4,0xeeeeee,-hx+28,28,22);sph(root,3.4,0xe4e4e4,-hx+33,29,27);}
+  {const w=wall.l;// local x: +x is toward the back (-z world) ... corkboard above the desk, clock nearer the front
+    box(w,100,62,2.5,0x8c8c8c,50,140,1.3);pl(w,94,56,0xb4a99a&0xffffff?0xb0b0b0:0,50,140,2.6);
+    [[22,152,-0.12],[46,150,0.08],[72,154,-0.05],[34,128,0.1],[62,126,-0.1],[84,132,0.06]].forEach(([x,y,r],i)=>{const pg=grp(w,x,y,2.8);pg.rotation.z=r;pl(pg,16,19,0xf7f7f7,0,0,0);pl(pg,13.5,13,[0x8f8f8f,0xa3a3a3,0x7d7d7d,0x9b9b9b,0xb0b0b0,0x888888][i],0,1.6,0.05);sph(pg,1,[0x555555,0x777777][i%2],0,8,0.6);});
+    const ck=grp(w,-70,185,1);mk(new THREE.TorusGeometry(15,1.6,10,40),0x8f8f8f,ck,0,0,0.6);mk(new THREE.CircleGeometry(15,40),0xf3f3f3,ck,0,0,0.4);
+    for(let i=0;i<12;i++){const a=i/12*Math.PI*2,tk=pl(ck,i%3?0.6:1.2,i%3?2:3.2,0x666666,Math.sin(a)*12.4,Math.cos(a)*12.4,0.6);tk.rotation.z=-a;}
+    const hr=pl(ck,1.3,7.5,0x444444,0,0,0.8);hr.geometry.translate(0,3.2,0);hr.rotation.z=-0.9;const mn=pl(ck,0.9,11,0x444444,0,0,0.9);mn.geometry.translate(0,4.8,0);mn.rotation.z=-3.3;
+    const sc=pl(ck,0.35,12,0x9a9a9a,0,0,1.0);sc.geometry.translate(0,4.4,0);sc.rotation.z=-2.1;mk(new THREE.CircleGeometry(0.9,16),0x444444,ck,0,0,1.1);
+    // bookcase against the wall near the front corner
+    const bk=grp(w,-95,0,16);box(bk,80,180,1.5,0x8f8f8f,0,90,-15);for(const sx of [-1,1])box(bk,2,180,30,0x9a9a9a,sx*39,90,0);box(bk,80,2,30,0x9a9a9a,0,179,0);
+    for(let s=0;s<5;s++){const sy=4+s*35;box(bk,76,2,29,0xa6a6a6,0,sy,0);if(s===4)continue;let xx=-36;const seed=s*7;
+      while(xx<34){const bw=2+((xx*13+seed*7)&3)*0.9,bh=20+((xx*7+seed)%9),lean=xx>24&&s===1;const b2=box(bk,bw,bh,20,[0xd7d7d7,0x6b6b6b,0xb0b0b0,0x8e8e8e,0xc4c4c4,0x7b7b7b][Math.abs(Math.round(xx*3+seed))%6],xx+bw/2,sy+1+bh/2,2);
+        if(lean){b2.rotation.z=-0.35;b2.position.x+=3;b2.position.y-=1.5;}pl(bk,bw*0.7,1.2,0xe8e8e8,xx+bw/2,sy+1+bh*0.75,12.1);xx+=bw+0.4;if(lean)break;}}
+    cyl(bk,5,4,8,0x8d8d8d,22,184,0,14);for(let i=0;i<6;i++)sph(bk,2.4,0x7a7a7a,22+Math.cos(i)*3,191+i%2*2,Math.sin(i)*3,0.6,1.4,0.6);
+    box(bk,14,10,10,0x9e9e9e,-20,185,0);pl(bk,12,8,0x555555,-20,185,5.1);}
+  // ---------- right wall: bed, shelf with CDs, framed photos, a poster ----------
+  {const bd=grp(root,hx-54,0,30);box(bd,104,24,206,0x8f8f8f,0,18,0);for(const sx of [-1,1])for(const sz of [-1,1])box(bd,6,8,6,0x7a7a7a,sx*48,4,sz*99);
+    box(bd,100,22,200,0xececec,0,40,0);box(bd,102,4,150,0xc4c4c4,0,52,26);box(bd,102,5,20,0xb2b2b2,0,53,-50);box(bd,103,22,148,0xc4c4c4,0,41,27);
+    for(const sx of [-24,24])sph(bd,18,0xf5f5f5,sx,56,-84,1.15,0.4,0.62);
+    box(bd,104,92,5,0x868686,0,46,-104);for(let i=0;i<7;i++)box(bd,6,60,3,0x9a9a9a,-42+i*14,50,-100.5);box(bd,104,6,6,0x7c7c7c,0,93,-104);
+    const bun=grp(bd,-30,51,-62,0.4);sph(bun,8,0xd8d8d8,0,6,0,1,1.1,0.9);sph(bun,6,0xd8d8d8,0,17,1);for(const sx of [-2.4,2.4]){const ear=sph(bun,1.8,0xd8d8d8,sx,25,0,0.8,2.6,0.6);ear.rotation.z=sx*0.08;}
+    sph(bun,0.7,0x444444,-2,18,6.2);sph(bun,0.7,0x444444,2,18,6.2);sph(bun,2.6,0xd8d8d8,-5,1,4,1,0.6,1.3);sph(bun,2.6,0xd8d8d8,5,1,4,1,0.6,1.3);
+    for(let i=0;i<4;i++){const b2=box(root,26-i*2,4,19,[0x9c9c9c,0xd0d0d0,0x7a7a7a,0xbababa][i],hx-125,2+i*4.2,-80);b2.rotation.y=0.15*(i%2?1:-1);}}
+  {const w=wall.r;// local x: +x toward the front (+z world)
+    box(w,90,2.5,20,0xa0a0a0,30,150,10);for(const sx of [-38,38])box(w,2,10,16,0x8a8a8a,30+sx,144,8);
+    let xx=-8;for(let i=0;i<14;i++){box(w,1.1,14,12.5,[0x6e6e6e,0x9a9a9a,0xbdbdbd,0x858585,0xa8a8a8][i%5],xx+i*1.3,158.5,10);}xx+=20;
+    const cd=box(w,14,14,1.2,0x8f8f8f,xx+8,158,8);cd.rotation.z=0.05;box(w,6,12,6,0x7a7a7a,58,157,10);sph(w,4.5,0xcfcfcf,68,156,10);
+    [[0,64,26,32],[1,92,22,28],[2,36,20,26]].forEach(([i,x,ww,hh])=>{box(w,ww,hh,1.5,0x8a8a8a,x,110+(i===1?6:0),0.8);pl(w,ww-5,hh-5,[0xcdcdcd,0xbababa,0xd6d6d6][i],x,110+(i===1?6:0),1.6);pl(w,ww-7,hh-10,[0x9d9d9d,0x8a8a8a,0xa9a9a9][i],x,108+(i===1?6:0),1.7);});
+    const ps=tex(256,360,(x,ww,hh)=>{x.fillStyle='#9a9a9a';x.fillRect(0,0,ww,hh);x.fillStyle='#d4d4d4';x.beginPath();x.arc(128,150,80,0,Math.PI*2);x.fill();x.fillStyle='#6f6f6f';x.beginPath();x.arc(128,150,26,0,Math.PI*2);x.fill();
+      x.fillStyle='#e6e6e6';x.font='bold 40px sans-serif';x.textAlign='center';x.fillText('LIVE',128,290);x.font='22px sans-serif';x.fillText('WORLD TOUR · 2004',128,325);});
+    pl(w,50,70,M(0xffffff,{map:ps}),-100,150,1);for(const [sx,sy] of [[-1,1],[1,1],[-1,-1],[1,-1]])pl(w,5,2.2,0xeeeeee,-100+sx*24,150+sy*34,1.2).rotation.z=sx*sy*0.7;}
+  // ---------- front wall: door with panels, knob and hinges; dartboard; light switch ----------
+  {const w=wall.f,dx2=-20;box(w,96,214,3,0xb8b8b8,dx2,107,1.5);box(w,84,204,4,0xd0d0d0,dx2,102,3);
+    for(const [py,ph2] of [[150,80],[52,80]])for(const px of [-19,19]){box(w,30,ph2,1,0xc4c4c4,dx2+px,py,5.3);box(w,26,ph2-4,1,0xd2d2d2,dx2+px,py,5.9);}
+    cyl(w,3.2,3.2,1,0x9a9a9a,dx2-34,100,5.5,20).rotation.x=Math.PI/2;sph(w,3,0x8a8a8a,dx2-34,100,8.5,1,1,0.8);for(const hy of [40,170])box(w,2,10,1.2,0x9a9a9a,dx2+42,hy,5.4);
+    box(w,8,12,1.2,0xd8d8d8,dx2-54,120,0.7);box(w,2,4,1,0xb5b5b5,dx2-54,121,1.4);
+    const db=grp(w,95,160,1);mk(new THREE.CircleGeometry(23,40),0x5a5a5a,db,0,0,0.3);
+    for(let i=0;i<20;i++){const a0=i/20*Math.PI*2,sg=new THREE.Mesh(new THREE.RingGeometry(3,18,4,1,a0,Math.PI*2/20),M(i%2?0xd2d2d2:0x7e7e7e));sg.position.z=0.6;db.add(sg);}
+    for(const [r1,r2,c] of [[16.5,18,0x9e9e9e],[10,11.5,0x9e9e9e]]){const rr=new THREE.Mesh(new THREE.RingGeometry(r1,r2,40),M(c));rr.position.z=0.8;db.add(rr);}
+    mk(new THREE.CircleGeometry(3,24),0x8f8f8f,db,0,0,0.9);mk(new THREE.CircleGeometry(1.3,16),0x444444,db,0,0,1.0);
+    for(const [x,y] of [[6,4],[-8,-3]]){const dt=cyl(db,0.4,0.2,9,0x666666,x,y,5,6);dt.rotation.x=Math.PI/2;box(db,2.4,0.2,3,0x9a9a9a,x,y,9);}}
+  // ---------- floor things: lamp, plant, beanbag, backpack, slippers, skateboard, magazines ----------
+  {const L=grp(root,-hx+28,0,-hz+28);cyl(L,15,16,3,0x777777,0,1.5,0,24);cyl(L,1.4,1.4,150,0x7a7a7a,0,77,0,10);const sh=mk(new THREE.CylinderGeometry(14,22,26,28,1,true),M(0xe0e0e0,{side:THREE.DoubleSide}),L,0,154,0);
+    box(L,1.6,8,3,0x666666,2,70,0);sph(L,4,0xf8f8f8,0,146,0);}
+  {const P=grp(root,-hx+26,0,hz-24);cyl(P,17,13,34,0x8d8d8d,0,17,0,24);cyl(P,18,18,4,0x9b9b9b,0,33,0,24);cyl(P,15.5,15.5,1,0x6a6a6a,0,33.5,0,24);
+    for(let i=0;i<11;i++){const a=i/11*Math.PI*2+i*0.3,hgt=55+((i*37)%30),lf=sph(P,4.5,i%2?0x777777:0x878787,Math.cos(a)*5,34+hgt/2,Math.sin(a)*5,1,hgt/9,0.35);lf.rotation.y=-a;lf.rotation.z=Math.cos(a)*0.18;lf.rotation.x=Math.sin(a)*0.18;}}
+  {const bb=mk(new THREE.SphereGeometry(40,32,20),0xb3b3b3,root,-60,26,hz-70);const bp=bb.geometry.attributes.position;for(let i=0;i<bp.count;i++){const x=bp.getX(i),y=bp.getY(i),z=bp.getZ(i);const k=1+0.06*Math.sin(x*0.3+z*0.2)*Math.cos(y*0.25);bp.setXYZ(i,x*k,y<0?y*0.7:y*k*(1-0.25*Math.max(0,-z)/40),z*k);}
+    bb.scale.set(1.05,0.75,1);const bt=mk(new THREE.SphereGeometry(22,24,14),0xa6a6a6,root,-60,48,hz-60);bt.scale.set(1.2,0.45,1);}
+  {const B2=grp(root,45,0,hz-14,0.2);sph(B2,16,0x7d7d7d,0,22,0,1,1.3,0.55);box(B2,24,14,6,0x6b6b6b,0,14,7);box(B2,22,1,6.2,0x5a5a5a,0,20,7);for(const sx of [-8,8])box(B2,3.5,30,1.5,0x5f5f5f,sx,24,-9.5);box(B2,8,4,3,0x5f5f5f,0,42,-3);}
+  for(const sx of [-5.5,5.5]){const sl=grp(root,5+sx,0,hz-42,0.15);sph(sl,5.5,0xbababa,0,2.2,0,0.85,0.4,2.1);sph(sl,4.8,0xd2d2d2,0,3.6,-2,0.75,0.25,1.4);}
+  {const sk=grp(root,-hx+95,0,hz-110,0.7);const deck=box(sk,20,1.5,80,0x8e8e8e,0,9,0);for(const s of [-1,1]){const tl=box(sk,20,1.5,12,0x8e8e8e,0,10.6,s*44);tl.rotation.x=s*0.35;}
+    pl(sk,19,78,0x5e5e5e,0,9.8,0).rotation.x=-Math.PI/2;for(const s of [-1,1]){box(sk,16,2,4,0xa0a0a0,0,6.5,s*28);for(const sx of [-1,1]){const wh=cyl(sk,2.8,2.8,3.4,0xd8d8d8,sx*8,2.8,s*28,14);wh.rotation.z=Math.PI/2;}}}
+  {const mg=tex(128,170,(x,w,h)=>{x.fillStyle='#d2d2d2';x.fillRect(0,0,w,h);x.fillStyle='#8a8a8a';x.fillRect(0,0,w,34);x.fillStyle='#f0f0f0';x.font='bold 24px sans-serif';x.fillText('TEEN',10,26);x.fillStyle='#a8a8a8';x.fillRect(16,50,96,90);x.fillStyle='#7a7a7a';x.fillRect(16,148,70,8);});
+    for(let i=0;i<3;i++){const m=mk(new THREE.BoxGeometry(21,0.8,28),[M(0xdddddd),M(0xdddddd),M(0xffffff,{map:mg}),M(0xdddddd),M(0xdddddd),M(0xdddddd)],root,-14+i*2,0.4+i*0.85,hz-68);m.rotation.y=0.4-i*0.35;}}
+  // each wall carries what hangs on it, and drops away when it's between you and the tank
+  const walls={b:wall.b,f:wall.f,l:wall.l,r:wall.r,root,hx,hz};
+  root.traverse(o=>{o.userData.room=1;});const g=new THREE.Group();g.add(root);g.userData.room=1;TV.walls=walls;return g;}
+function setTankView(on){if(on===TV.on)return;TV.on=on;if(on){TV.zoom=TV.zs=4;if(toy)endToy(true);buildTankBox();TV.box.visible=true;clipTank(true);TV.fogN=scene.fog.near;TV.fogF=scene.fog.far;
     document.body.classList.add('viewing');$('#viewBar').hidden=false;say('');}
   else{document.body.classList.remove('viewing');$('#viewBar').hidden=true;TV.pts.clear();}S.lastTouch=T;}
 function tankViewCam(dt){TV.t=clamp(TV.t+(TV.on?1:-1)*dt/0.75);TV.zs=damp(TV.zs,TV.zoom,10,dt);const e=TV.t*TV.t*(3-2*TV.t);
@@ -2071,11 +2095,11 @@ function tankViewCam(dt){TV.t=clamp(TV.t+(TV.on?1:-1)*dt/0.75);TV.zs=damp(TV.zs,
   scene.fog.near=lerp(TV.fogN,200,e);scene.fog.far=lerp(TV.fogF,400,e);
   const o=new V3(Math.sin(TV.yaw)*Math.cos(TV.pitch),Math.sin(TV.pitch),Math.cos(TV.yaw)*Math.cos(TV.pitch)).multiplyScalar(TV.D*TV.zs).add(TV.c);
   camera.position.lerpVectors(camBase,o,e);camera.lookAt(new V3().lerpVectors(camLook,TV.c,e));
-  if(TV.walls){const W2=TV.walls,c=world.worldToLocal(camera.position.clone());W2.b.visible=c.z>W2.zc-W2.Rd;W2.f.visible=c.z<W2.zc+W2.Rd;W2.l.visible=c.x>-W2.Rw;W2.r.visible=c.x<W2.Rw;}
+  if(TV.walls){const W2=TV.walls,c=W2.root.worldToLocal(camera.position.clone());W2.b.visible=c.z>-W2.hz;W2.f.visible=c.z<W2.hz;W2.l.visible=c.x>-W2.hx;W2.r.visible=c.x<W2.hx;}
   return true;}
 $('#tvBtn').onclick=()=>setTankView(true);$('#viewDone').onclick=()=>setTankView(false);
 // one finger turns the tank; two fingers pinch to zoom; on a computer, scroll to zoom
-const tvZoom=z=>{TV.zoom=clamp(z,0.28,2.3);S.lastTouch=T;};
+const tvZoom=z=>{TV.zoom=clamp(z,0.28,5.5);S.lastTouch=T;};
 cv.addEventListener('pointerdown',e=>{if(!TV.on)return;TV.pts.set(e.pointerId,{x:e.clientX,y:e.clientY});
   if(TV.pts.size===2){const [a,b]=[...TV.pts.values()];TV.pinch=Math.hypot(a.x-b.x,a.y-b.y);TV.drag=null;}else TV.drag={x:e.clientX,y:e.clientY};S.lastTouch=T;e.stopImmediatePropagation();},true);
 cv.addEventListener('pointermove',e=>{if(!TV.on)return;e.stopImmediatePropagation();if(!TV.pts.has(e.pointerId))return;TV.pts.set(e.pointerId,{x:e.clientX,y:e.clientY});S.lastTouch=T;
