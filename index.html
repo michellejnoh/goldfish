@@ -136,12 +136,12 @@ body.visiting .ui,body.visiting #say{display:none}
 .card p{margin:0;font-size:16px;color:#6b6b6b;line-height:1.4}
 .card input{font:500 24px var(--font);border:0;border-bottom:1px solid #111;border-radius:0;padding:6px 0;background:transparent;color:#111;-webkit-user-select:text;user-select:text;width:100%}
 .card input:focus{outline:none}
-.langrow{display:flex;gap:18px;justify-content:flex-end;margin-bottom:-6px}
+.langrow{display:flex;gap:16px;align-items:baseline;justify-content:flex-start;margin:2px 0 -4px}
 .langrow .link[aria-pressed="true"]{color:#111;text-decoration-thickness:2px}
-.growrow{display:flex;align-items:flex-end;justify-content:space-between;gap:2px;margin-top:-4px}
+.growrow{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));align-items:end;gap:6px 4px;margin-top:-2px}
 .growrow span{display:flex;flex-direction:column;align-items:center;gap:2px;font-size:12px;color:#9a9a9a;flex:1;min-width:0;white-space:nowrap}
 .growrow img{display:block;height:auto}
-.growrow span.no img{opacity:.22;filter:grayscale(1)}
+.growrow span.no img{opacity:.35;filter:grayscale(1)}
 .growrow span.now{color:#111}
 .mrow{display:flex;align-items:center;gap:14px;width:100%;text-align:left;padding:9px 0;border-bottom:1px solid #ececec;cursor:pointer}
 .mrow:last-of-type{border-bottom:0}
@@ -174,9 +174,12 @@ body.visiting .ui,body.visiting #say{display:none}
 .item em{font-style:normal;color:#8a8a8a;font-size:13px}
 .item button{font:inherit;font-size:13px;color:#111;text-decoration:underline;text-underline-offset:3px;text-align:center;padding:2px 0}
 .item.locked img{opacity:.55}
+.item small.need{font-size:12px;color:#a3a3a3;line-height:1.1}
 @keyframes giftIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 .gift-line{animation:giftIn .4s ease-out both}
 .lookgrid button.off img{opacity:.3}
+.sheet{transition:background-color .3s}.sheet .card{transition:opacity .3s,transform .3s}
+.sheet.peek{background-color:rgba(255,255,255,0);pointer-events:none}.sheet.peek .card{opacity:.22;transform:translateY(14px) scale(.98)}
 .fx-fly{position:fixed;pointer-events:none;z-index:21;object-fit:contain}
 .fx-sent{position:fixed;left:50%;top:calc(42% + 64px);font-size:24px;color:#111;pointer-events:none;z-index:21;white-space:nowrap;max-width:92vw;overflow:hidden;text-overflow:ellipsis}
 .fx-note{position:fixed;font-size:22px;color:#111;pointer-events:none;z-index:21;white-space:nowrap;transform:translate(-50%,-100%)}
@@ -219,10 +222,10 @@ body.visiting .ui,body.visiting #say{display:none}
   <div class="card">
     <h2>you got gifts</h2>
     <div id="giftInList"></div>
-    <div class="row2"><span></span><button type="button" class="go" id="giftInClose">thanks</button></div>
+    <div class="row2"><span></span><button type="button" class="go" id="giftInClose">close</button></div>
   </div>
 </div>
-<div id="viewBar" hidden><p id="viewHint">drag to turn · pinch to zoom</p><span class="zoombtns"><button type="button" class="icon" id="tvOut" aria-label="Zoom out">−</button><button type="button" class="icon" id="tvIn" aria-label="Zoom in">+</button></span><button type="button" class="go" id="viewDone">done</button></div>
+<div id="viewBar" hidden><p id="viewHint">drag to turn · pinch to zoom</p><span class="zoombtns"><button type="button" class="icon" id="tvOut" aria-label="Zoom out">−</button><button type="button" class="icon" id="tvIn" aria-label="Zoom in">+</button></span><button type="button" class="go" id="viewDone">close</button></div>
 <div id="editBar" hidden><nav aria-label="Edit tools"><button type="button" data-e="add">add pebbles</button><button type="button" data-e="remove">remove pebbles</button><button type="button" data-e="arrange">move decorations</button><button type="button" class="done" id="editDone">done</button></nav><p id="editHint"></p><div id="turnRow" hidden><button type="button" data-turn="1">turn left</button><button type="button" data-turn="-1">turn right</button></div></div>
 <div id="say" aria-live="polite"></div>
 <div class="ui top">
@@ -239,12 +242,12 @@ body.visiting .ui,body.visiting #say{display:none}
 
 <div class="sheet" id="login" hidden>
   <form class="card" id="loginForm">
-    <div class="langrow"><button type="button" class="link" data-lang="en">English</button><button type="button" class="link" data-lang="ko">한국어</button></div>
     <h2>who's keeping this fish?</h2>
     <p id="loginNote">Pick a username. Your fish, its level and missions are saved under it.</p>
     <input id="loginName" maxlength="16" autocomplete="off" autocapitalize="none" spellcheck="false" aria-label="Username" placeholder="username">
     <p class="small" id="loginMsg">letters, numbers and _ · 2 to 16 characters</p>
-    <div class="row2"><button type="button" class="link" id="loginBack" hidden>pick another</button><button type="button" class="link" id="loginClose" hidden>back</button><button type="submit" class="go" id="loginGo">start</button></div>
+    <div class="langrow"><span class="small">language</span><button type="button" class="link" data-lang="en">English</button><button type="button" class="link" data-lang="ko">한국어</button></div>
+    <div class="row2"><button type="button" class="link" id="loginBack" hidden>pick another</button><button type="button" class="link" id="loginClose" hidden>close</button><button type="submit" class="go" id="loginGo">start</button></div>
   </form>
 </div>
 <div class="sheet" id="naming" hidden>
@@ -286,8 +289,8 @@ body.visiting .ui,body.visiting #say{display:none}
     <h2>water</h2>
     <div id="waterRow">
     <button type="button" class="mrow" data-w="clear"><span class="mi"><svg viewBox="0 0 24 24" width="28" height="28" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="#ffffff" stroke="#bbb" stroke-width="1"/></svg></span><span class="mt"><b>clear</b><small>bright and plain</small></span></button>
-    <button type="button" class="mrow" data-w="blue"><span class="mi"><svg viewBox="0 0 24 24" width="28" height="28" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="#e2eaee" stroke="#bbb" stroke-width="1"/></svg></span><span class="mt"><b>blue</b><small>a cool, soft tint</small></span></button>
-    <button type="button" class="mrow" data-w="green"><span class="mi"><svg viewBox="0 0 24 24" width="28" height="28" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="#e5ebe0" stroke="#bbb" stroke-width="1"/></svg></span><span class="mt"><b>green</b><small>a little mossy</small></span></button>
+    <button type="button" class="mrow" data-w="blue"><span class="mi"><svg viewBox="0 0 24 24" width="28" height="28" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="#bcd2dc" stroke="#9fb3bc" stroke-width="1"/></svg></span><span class="mt"><b>blue</b><small>a cool, soft tint</small></span></button>
+    <button type="button" class="mrow" data-w="green"><span class="mi"><svg viewBox="0 0 24 24" width="28" height="28" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="#c8d6bc" stroke="#a7b59b" stroke-width="1"/></svg></span><span class="mt"><b>green</b><small>a little mossy</small></span></button>
     </div>
     <div class="row2"><span></span><button type="button" class="go" data-back>back</button></div>
   </div>
@@ -306,7 +309,7 @@ body.visiting .ui,body.visiting #say{display:none}
   <div class="card">
     <h2>fish colour</h2>
     <div class="lookgrid" id="colorList"></div>
-    <div class="row2"><span></span><button type="button" class="go" id="colorsClose">done</button></div>
+    <div class="row2"><span></span><button type="button" class="go" id="colorsClose">back</button></div>
   </div>
 </div>
 <div class="sheet" id="skins" hidden>
@@ -314,7 +317,7 @@ body.visiting .ui,body.visiting #say{display:none}
     <h2>skin</h2>
     <p class="small">a skin is worn over your colour and pattern · tap it again to reshuffle</p>
     <div class="lookgrid pat" id="skinList"></div>
-    <div class="row2"><span></span><button type="button" class="go" id="skinsClose">done</button></div>
+    <div class="row2"><span></span><button type="button" class="go" id="skinsClose">back</button></div>
   </div>
 </div>
 <div class="sheet" id="patterns" hidden>
@@ -322,7 +325,7 @@ body.visiting .ui,body.visiting #say{display:none}
     <h2>pattern</h2>
     <p class="small">tap a pattern again to reshuffle it</p>
     <div class="lookgrid pat" id="patList"></div>
-    <div class="row2"><span></span><button type="button" class="go" id="patternsClose">done</button></div>
+    <div class="row2"><span></span><button type="button" class="go" id="patternsClose">back</button></div>
   </div>
 </div>
 <div class="sheet" id="shop" hidden>
@@ -330,7 +333,7 @@ body.visiting .ui,body.visiting #say{display:none}
     <h2>winter shop</h2>
     <p class="small" id="wallet"></p>
     <div class="shopgrid" id="shopList"></div>
-    <div class="row2"><span></span><button type="button" class="go" id="shopClose">close</button></div>
+    <div class="row2"><span></span><button type="button" class="go" id="shopClose">back</button></div>
   </div>
 </div>
 <div class="sheet" id="shot" hidden>
@@ -421,7 +424,7 @@ const KO={
 'toy · drag the lure and let your fish chase it':'장난감 · 미끼를 끌면 금붕어가 쫓아와요','sleep · turns the lights off so your fish can rest':'재우기 · 불을 꺼서 금붕어를 쉬게 해요',
 'missions · three goals a day for xp. your fish grows every 5 levels':'미션 · 하루 세 가지 목표로 xp를 모아요. 5레벨마다 금붕어가 자라요',
 'edit · your fish’s colour and pattern, the water, and decorations':'편집 · 금붕어 색과 무늬, 물 색, 장식을 바꿔요','tank view · see the whole tank and turn it around':'어항 보기 · 어항 전체를 보고 돌려 봐요',
-'camera · take a picture of your tank':'카메라 · 어항 사진을 찍어요','your keeper name · tap to switch keepers':'키퍼 이름 · 탭하면 다른 키퍼로 바꿔요','growth':'성장','growth · by level':'성장 · 레벨별','Take picture':'사진 찍기','Sound on':'소리 켜짐','Sound off':'소리 꺼짐','Tank view':'어항 보기','drag to turn · pinch to zoom':'끌어서 돌리기 · 두 손가락으로 확대','Zoom in':'확대','Zoom out':'축소','Goldfish tank. Tap, drag and feed to interact.':'금붕어 수조. 탭하고 끌고 먹이를 주며 놀아 주세요.',
+'camera · take a picture of your tank':'카메라 · 어항 사진을 찍어요','your keeper name · tap to switch keepers':'키퍼 이름 · 탭하면 다른 키퍼로 바꿔요','growth':'성장','language':'언어','growth · by level':'성장 · 레벨별','Take picture':'사진 찍기','Sound on':'소리 켜짐','Sound off':'소리 꺼짐','Tank view':'어항 보기','drag to turn · pinch to zoom':'끌어서 돌리기 · 두 손가락으로 확대','Zoom in':'확대','Zoom out':'축소','Goldfish tank. Tap, drag and feed to interact.':'금붕어 수조. 탭하고 끌고 먹이를 주며 놀아 주세요.',
 ': check the Firestore rules':': Firestore 규칙을 확인해 주세요',': is the Firestore database created?':': Firestore 데이터베이스가 만들어졌는지 확인해 주세요'};
 const KO_RX=[
 [/^(.+) is nosing at the surface\.$/,'$1, 수면에서 뻐끔거리고 있어요.'],[/^(.+) is drifting low\.$/,'$1, 바닥 가까이 떠 있어요.'],
@@ -440,7 +443,7 @@ const KO_RX=[
 [/^(\d+) \/ (\d+) xp to level (\d+)$/,'$3레벨까지 $1 / $2 xp'],[/^level (\d+)$/,'레벨 $1'],[/^level (\d+) · max$/,'레벨 $1 · 최고'],[/^lv (\d+)$/,'Lv $1'],[/^no keeper called “(.+)” yet$/,'“$1” 키퍼가 아직 없어요'],[/^@(.+)’s tank · (.+) · lv (\d+)$/,'@$1의 어항 · $2 · Lv $3'],
 [/^send a gift to @(.+)$/,'@$1에게 선물 보내기'],[/^(\d+) left today$/,'오늘 $1번 남았어요'],[/^send · (\d+) xp$/,'보내기 · $1 xp'],[/^sent to @(.+)!$/,'@$1에게 보냈어요!'],[/^(.+) sent to @(.+)!$/,'$1, @$2에게 보냈어요!'],
 [/^@(.+) sent a snack$/,'@$1님이 간식을 보냈어요'],[/^@(.+) sent a little fish$/,'@$1님이 작은 물고기를 보냈어요'],[/^(.+) · 5 xp$/,'$1 · 5 xp'],
-[/^a little fish swam off to @(.+)!$/,'작은 물고기가 @$1에게 헤엄쳐 갔어요!'],[/^(\d+) of (\d+) shown · tap to choose$/,'$2마리 중 $1마리 보임 · 탭해서 고르기'],[/^@(.+) · hidden$/,'@$1 · 숨김'],[/^@(.+) · shown$/,'@$1 · 보임'],[/^@(.+) hidden$/,'@$1 숨김'],[/^@(.+) is back$/,'@$1 다시 보여요'],[/^(.+) put away$/,'$1 치움'],[/^hidden · tap to show (\d+)$/,'숨김 · 탭하면 $1마리 보여요'],[/^shown · tap to hide (\d+)$/,'보임 · 탭하면 $1마리 숨겨요'],[/^@(.+) sent a (.+) \(you had one, so \+(\d+) xp\)$/,'@$1님이 $2을(를) 보냈어요 (이미 있어서 +$3 xp)'],[/^@(.+) sent a (.+)$/,'@$1님이 $2을(를) 보냈어요'],
+[/^a little fish swam off to @(.+)!$/,'작은 물고기가 @$1에게 헤엄쳐 갔어요!'],[/^(\d+) of (\d+) shown · tap to choose$/,'$2마리 중 $1마리 보임 · 탭해서 고르기'],[/^@(.+) · hidden$/,'@$1 · 숨김'],[/^@(.+) · shown$/,'@$1 · 보임'],[/^@(.+) hidden$/,'@$1 숨김'],[/^@(.+) is back$/,'@$1 다시 보여요'],[/^(.+) put away$/,'$1 치움'],[/^(\d+) xp more$/,'$1 xp 더 필요'],[/^hidden · tap to show (\d+)$/,'숨김 · 탭하면 $1마리 보여요'],[/^shown · tap to hide (\d+)$/,'보임 · 탭하면 $1마리 숨겨요'],[/^@(.+) sent a (.+) \(you had one, so \+(\d+) xp\)$/,'@$1님이 $2을(를) 보냈어요 (이미 있어서 +$3 xp)'],[/^@(.+) sent a (.+)$/,'@$1님이 $2을(를) 보냈어요'],
 [/^couldn’t send \(error (\d+)\)$/,'보내지 못했어요 (오류 $1)'],[/^grown! · lv (\d+)$/,'성장! · Lv $1'],[/^(\d+) \/ (\d+) · tap to continue$/,'$1 / $2 · 탭해서 계속'],
 [/^(\d+) days? in a row · new missions at midnight$/,'$1일 연속 · 자정에 새 미션'],
 [/^level (\d+) · (\d+) xp to spend · buying uses up xp, so your level can go down$/,'레벨 $1 · 쓸 수 있는 xp $2 · 사면 xp가 줄어 레벨이 내려갈 수 있어요'],
@@ -626,8 +629,10 @@ function applyLook(F,lk,st){F=F||R;if(!F)return;lk=lk||lookOf();if(st===undefine
       for(let i=0;i<src.length;i+=3){v.set(src[i],src[i+1],src[i+2]).applyMatrix4(m);rest[i]=v.x;rest[i+1]=v.y;rest[i+2]=v.z;}g.userData.rest=rest;}
     geos.push([g,o.material===MAT_FIN]);});
   const P=bodyProfile(F);
+  const ph={};_lm.set(LOOK_COLORS[lk.c]||LOOK_COLORS.orange).getHSL(ph);const paleK=lk.skin?0:clamp((ph.l-0.68)/0.2),paleSh=new THREE.Color().setHSL(ph.h,Math.min(1,ph.s*1.15+0.12),ph.l*0.66);
   for(const [g,fin] of geos){const r=g.userData.rest,fl=g.userData.flex,col=new Float32Array(r.length);
-    for(let i=0,n=0;i<r.length;i+=3,n++){const vv=vOf(P,r[i],r[i+1]),c=youthColor(lookColor(r[i],r[i+1],r[i+2],fin,lk,vv,fl?fl[n]:(fin?0.6:0)),r[i],r[i+1],r[i+2],fin,vv,Yc);col[i]=c.r;col[i+1]=c.g;col[i+2]=c.b;}
+    for(let i=0,n=0;i<r.length;i+=3,n++){const vv=vOf(P,r[i],r[i+1]),q=fl?fl[n]:(fin?0.6:0),c=youthColor(lookColor(r[i],r[i+1],r[i+2],fin,lk,vv,q),r[i],r[i+1],r[i+2],fin,vv,Yc);
+      if(paleK>0)c.lerp(paleSh,paleK*(fin?0.14+0.4*q:0.1+0.42*Math.pow(clamp(vv),1.6)));col[i]=c.r;col[i+1]=c.g;col[i+2]=c.b;}
     g.setAttribute('color',new THREE.Float32BufferAttribute(col,3));}
   for(const M of [MAT_FISH,MAT_FIN]){M.vertexColors=true;M.color.set(0xffffff);M.needsUpdate=true;}}
 
@@ -648,7 +653,7 @@ function fishThumb(lk,st,big){if(!FT){const r=new THREE.WebGLRenderer({antialias
     const sc=new THREE.Scene(),f=buildFish();sc.add(f.g);f.g.rotation.set(0,-0.42,0.04);f.g.updateMatrixWorld(true);
     const bb=new THREE.Box3().setFromObject(f.g),c=bb.getCenter(new V3()),sz=bb.getSize(new V3()),cam=new THREE.PerspectiveCamera(24,168/120,0.05,50);
     const d=Math.max(sz.x/(2*Math.tan(Math.PI*12/180)*(168/120)),sz.y/(2*Math.tan(Math.PI*12/180)))*1.12;cam.position.set(c.x,c.y+d*0.08,c.z+d);cam.lookAt(c);FT={r,sc,f,cam};applyLook(f,lk,10);}
-  st=st===undefined?10:st;poseYouth(FT.f,st,true);applyLook(FT.f,lk,st);FT.f.g.scale.setScalar(big?0.434:0.434*youth(st).size/youth(10).size);FT.r.render(FT.sc,FT.cam);return FT.r.domElement.toDataURL();}
+  st=st===undefined?10:st;poseYouth(FT.f,st,true);applyLook(FT.f,lk,st);FT.f.g.scale.setScalar(typeof big==='number'?0.434*big:big?0.434:0.434*youth(st).size/youth(10).size);FT.r.render(FT.sc,FT.cam);return FT.r.domElement.toDataURL();}
 
 /* ================= the goldfish ================= */
 let R;
@@ -1512,7 +1517,7 @@ $('#who').onclick=()=>{persistLocal();cloudPut();openLogin();};
 /* ---- missions sheet ---- */
 function renderMissions(){if(!PROG)return;ensureDaily();const d=PROG.daily;
   {const g=growStage(),el=$('#growRow');el.textContent='';
-    for(let k=0;k<=10;k++){const sp=document.createElement('span');sp.className=k<=g?(k===g?'now':''):'no';const im=document.createElement('img');im.src=fishThumb(lookOf(),k);im.alt='';
+    for(let k=0;k<=10;k++){const sp=document.createElement('span');sp.className=k<=g?(k===g?'now':''):'no';const im=document.createElement('img');im.src=fishThumb(lookOf(),k,0.5+0.5*k/10);im.alt='';
       im.style.width='100%';const t=document.createElement('i');t.style.fontStyle='normal';t.textContent=String(k*5);sp.append(im,t);el.appendChild(sp);}}
   $('#misTitle').textContent='level '+PROG.level+(PROG.level>=MAXL?' · max':'');
   $('#misXp').textContent=PROG.level>=MAXL?'Every level reached.':(PROG.exp+' / '+need(PROG.level)+' xp to level '+(PROG.level+1));
@@ -1553,7 +1558,7 @@ $('#skinBtn').onclick=openSkins;
 function friendsFix(){if(save.hideFriends){(save.friends||[]).forEach(f=>f.hide=true);delete save.hideFriends;}}
 function friendsLabel(){friendsFix();const L=save.friends||[],n=L.length,on=L.filter(f=>!f.hide).length;$('#friendsTxt').textContent=n?on+' of '+n+' shown · tap to choose':'little fish your friends send you swim here';}
 function openFriends(){friendsFix();const el=$('#friendList');el.textContent='';
-  (save.friends||[]).forEach((f,i)=>{const b=document.createElement('button');b.type='button';if(f.hide)b.classList.add('off');const im=document.createElement('img');im.alt='';im.src=fishThumb(f.look,10,true);
+  (save.friends||[]).forEach((f,i)=>{const b=document.createElement('button');b.type='button';if(f.hide)b.classList.add('off');const im=document.createElement('img');im.alt='';im.src=fthumb(f.look,fstage(f));
     const t=document.createElement('span');t.textContent='@'+f.from+(f.hide?' · hidden':' · shown');b.append(im,t);
     b.onclick=()=>{f.hide=!f.hide;persist();spawnFriends();openFriends();friendsLabel();
       peekTank('#friendsSheet',()=>{const fr=FRIENDS.find(x=>x.src===f);fxNote('@'+f.from+(f.hide?' hidden':' is back'),fr?toScreen(fr.g,0.12):{x:innerWidth/2,y:innerHeight*0.5});});};el.appendChild(b);});}
@@ -1576,7 +1581,7 @@ function renderShop(){const t=save.tank,th=makeThumbs();
   $('#wallet').textContent=PROG?'level '+PROG.level+' \u00b7 '+wallet()+' xp to spend \u00b7 buying uses up xp, so your level can go down':'sign in to collect decorations';
   $('#shopList').innerHTML=SHOP.map(d=>{const own=t.owned[d.id],on=t.items.some(i=>i.id===d.id),can=PROG&&wallet()>=d.price;
     const after=can?(()=>{let L=PROG.level,e=PROG.exp-d.price;while(e<0&&L>1){L--;e+=need(L);}return L;})():0;
-    const act=!own?(can?'<button data-buy="'+d.id+'">buy \u00b7 '+d.price+' xp'+(after<PROG.level?' (to lv '+after+')':'')+'</button>':'<em>'+d.price+' xp</em>'):on?'<button data-off="'+d.id+'">put away</button>':'<button data-on="'+d.id+'">place in tank</button>';
+    const act=!own?(can?'<button data-buy="'+d.id+'">buy \u00b7 '+d.price+' xp'+(after<PROG.level?' (to lv '+after+')':'')+'</button>':'<em>'+d.price+' xp</em>'+(PROG?'<small class="need">'+(d.price-wallet())+' xp more</small>':'')):on?'<button data-off="'+d.id+'">put away</button>':'<button data-on="'+d.id+'">place in tank</button>';
     return '<div class="item'+(!own&&!can?' locked':'')+'" data-id="'+d.id+'"><img src="'+th[d.id]+'" alt="'+d.name+'"><b>'+d.name+'</b>'+act+'</div>';}).join('');}
 $('#shopBtn').onclick=()=>{renderShop();$('#decorMenu').hidden=true;$('#shop').hidden=false;};
 $('#editBtn').onclick=()=>openTank();
@@ -1739,13 +1744,14 @@ function leaveVisit(){if(!VISIT)return;save.tank=VISIT.mine;VISIT=null;rebuildTa
 $('#visitHome').onclick=leaveVisit;
 // sending
 const PAT_CODE={plain:'a',fade:'b','dark fins':'c',patches:'d'};
-function packLook(l){return [l.c||'orange',PAT_CODE[l.p]||'a',(l.seed||0)%1000,l.skin==='christmas'?'x':''].join('.');}
-function unpackLook(s){const [c,p,sd,sk]=String(s||'').split('.'),P=Object.keys(PAT_CODE).find(k=>PAT_CODE[k]===p)||'plain';return {c:LOOK_COLORS[c]?c:'orange',p:P,seed:+sd||0,skin:sk==='x'?'christmas':''};}
+function packLook(l,st){const a=[l.c||'orange',PAT_CODE[l.p]||'a',(l.seed||0)%1000,l.skin==='christmas'?'x':''];if(st!==undefined)a.push(Math.round(clamp(st,0,10)));return a.join('.');}
+const fstage=f=>f&&f.stage!==undefined?f.stage:10,fthumb=(lk,st)=>fishThumb(lk,st,0.6+0.4*st/10),recStage=rec=>{const pr=normProg(rec&&rec.prog);return Math.min(10,Math.max(pr.grow||0,Math.floor(pr.level/5)));};
+function unpackLook(s){const [c,p,sd,sk,st]=String(s||'').split('.'),P=Object.keys(PAT_CODE).find(k=>PAT_CODE[k]===p)||'plain';return {c:LOOK_COLORS[c]?c:'orange',p:P,seed:+sd||0,skin:sk==='x'?'christmas':''};}
 let FRIENDS=[];
 // gifted fish: a fifth of an adult's size, in the sender's colours; they just potter about and can't be played with
 function spawnFriends(){for(const f of FRIENDS)world.remove(f.g);FRIENDS=[];const list=(VISIT?VISIT.friends:save.friends)||[];
   if(!VISIT)friendsFix();
-  for(const it of list){if(it.hide)continue;const F=buildFish();poseYouth(F,10,true);applyLook(F,it.look,10);F.g.scale.setScalar(0.434*0.2);
+  for(const it of list){if(it.hide)continue;const st=fstage(it),F=buildFish();poseYouth(F,st,true);applyLook(F,it.look,st);F.g.scale.setScalar(0.434*0.2*(0.6+0.4*youth(st).size));
     F.g.traverse(o=>{if(o.userData&&o.userData.proxy)o.visible=false;});
     const piv=[];for(const m of F.tails||[]){const p=new THREE.Group();p.position.x=-0.66;F.inner.add(p);F.inner.remove(m);m.position.x+=0.66;p.add(m);piv.push(p);}
     const pos=new V3(rnd(-B.x*0.8,B.x*0.8),rnd(B.ymin,B.ymax-0.3),rnd(-1.2,0.5));F.g.position.copy(pos);world.add(F.g);
@@ -1768,16 +1774,14 @@ function fxNote(text,p){const t=document.createElement('div');t.className='fx-no
   t.animate([{opacity:0,marginTop:'6px'},{opacity:1,marginTop:'0px',offset:.2},{opacity:1,offset:.75},{opacity:0,marginTop:'-6px'}],{duration:1600,easing:'ease-out'}).onfinish=()=>t.remove();}
 // fade the open menu away for a moment so the change can be seen in the tank, then bring it back
 function peekTank(sel,show){const sh=$(sel);if(!sh||sh.hidden)return;clearTimeout(peekTank.t1);clearTimeout(peekTank.t2);
-  sh.style.transition='opacity .25s';sh.style.opacity='0';sh.style.pointerEvents='none';
-  peekTank.t1=setTimeout(()=>{show&&show();},260);
-  peekTank.t2=setTimeout(()=>{sh.style.opacity='';sh.style.pointerEvents='';setTimeout(()=>{sh.style.transition='';},300);},2000);}
+  sh.classList.add('peek');peekTank.t1=setTimeout(()=>{show&&show();},280);peekTank.t2=setTimeout(()=>sh.classList.remove('peek'),1900);}
 function growIn(g){if(!g)return;const s1=g.scale.x,t0=performance.now();g.scale.setScalar(s1*0.01);
   const f=()=>{const u=Math.min(1,(performance.now()-t0)/450),e=1-Math.pow(1-u,3);g.scale.setScalar(s1*Math.max(0.01,e));if(u<1)requestAnimationFrame(f);};requestAnimationFrame(f);}
 function showFishChange(text){peekTank(['#colors','#patterns','#skins'].find(k=>!$(k).hidden),()=>fxNote(text,toScreen(R.g,0.32)));}
 function refreshFriendLooks(list,done){if(!DB||!list||!list.length)return;refreshFriendLooks.t=Date.now();const names=[...new Set(list.map(f=>f.from).filter(n=>NAME_RE.test(n||'')))];let changed=false,left=names.length;
   names.forEach(n=>fetch(docURL(n),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{if(!j||!j.fields||!j.fields.data)return;let rec;try{rec=JSON.parse(j.fields.data.stringValue);}catch(e){return;}
-    const lk=rec&&rec.save&&rec.save.pets&&rec.save.pets.fish&&rec.save.pets.fish.look;if(!lk)return;const nl=unpackLook(packLook(lk));
-    for(const f of list)if(f.from===n&&packLook(f.look||{})!==packLook(nl)){f.look=nl;changed=true;}}).catch(()=>{}).finally(()=>{if(--left===0&&changed)done&&done();}));}
+    const lk=rec&&rec.save&&rec.save.pets&&rec.save.pets.fish&&rec.save.pets.fish.look;if(!lk)return;const nl=unpackLook(packLook(lk)),st=recStage(rec);
+    for(const f of list)if(f.from===n&&(packLook(f.look||{})!==packLook(nl)||fstage(f)!==st)){f.look=nl;f.stage=st;changed=true;}}).catch(()=>{}).finally(()=>{if(--left===0&&changed)done&&done();}));}
 function giftDay(){if(!PROG.gday||PROG.gday.d!==dayKey())PROG.gday={d:dayKey(),snack:0};return PROG.gday;}
 function giftMsg(t){$('#giftMsg').textContent=t;}
 function sendGift(kind,item,done){if(!VISIT||!DB||!USER)return;giftMsg('sending…');
@@ -1789,8 +1793,8 @@ function openGiftOut(){if(!VISIT)return;$('#giftTitle').textContent='send a gift
   const w0=wallet(),snr=$('#snackRow');snr.textContent='';
   for(const k in SNACKS){const b=document.createElement('button');b.type='button';b.className='gpic';b.innerHTML=snk(k,44)+'<span>'+SNACKS[k].name+' · 5 xp</span>';b.disabled=w0<5;
     b.onclick=()=>{if(wallet()<5)return;const im=b.querySelector('img');sendGift('snack',k,()=>{giftFly(im.src,im,SNACKS[k].name+' sent to @'+VISIT.n+'!');spendXP(5);persist();openGiftOut();giftMsg(SNACKS[k].name+' sent to @'+VISIT.n+'!');});};snr.appendChild(b);}
-  {const myLook=pet().look||{c:'orange',p:'plain',seed:1};$('#giftFishImg').src=fishThumb(myLook,10,true);$('#sendFish').disabled=w0<50;
-    $('#sendFish').onclick=()=>{if(wallet()<50)return;sendGift('fish',packLook(myLook),()=>{giftFly($('#giftFishImg').src,$('#giftFishImg'),'a little fish swam off to @'+VISIT.n+'!');spendXP(50);persist();openGiftOut();giftMsg('a little fish swam off to @'+VISIT.n+'!');});};}
+  {const myLook=pet().look||{c:'orange',p:'plain',seed:1};$('#giftFishImg').src=fthumb(myLook,growStage());$('#sendFish').disabled=w0<50;
+    $('#sendFish').onclick=()=>{if(wallet()<50)return;sendGift('fish',packLook(myLook,growStage()),()=>{giftFly($('#giftFishImg').src,$('#giftFishImg'),'a little fish swam off to @'+VISIT.n+'!');spendXP(50);persist();openGiftOut();giftMsg('a little fish swam off to @'+VISIT.n+'!');});};}
   const th=makeThumbs(),gd=$('#giftDeco');gd.textContent='';const w=wallet();
   for(const d of SHOP){const it=document.createElement('div');it.className='item';const im=document.createElement('img');im.src=th[d.id];im.alt='';const nb=document.createElement('b');nb.textContent=d.name;
     const bt=document.createElement('button');bt.type='button';bt.textContent='send · '+d.price+' xp';bt.disabled=w<d.price;
@@ -1809,7 +1813,7 @@ function checkGifts(){if(!DB||!USER||VISIT||!cloudReady)return;const me=USER;
 function openGifts(list){const el=$('#giftInList');el.textContent='';const p=pet();
   for(const g of list){const row=document.createElement('div');row.className='gift-line';let pic='',txt='';
     if(g.kind==='snack'){p.s.food=Math.min(100,p.s.food+15);p.s.fun=Math.min(100,p.s.fun+10);const k=SNACKS[g.item]?g.item:'cucumber';pic=snk(k,40);SNACK_Q.push(k);txt='@'+g.from+' sent a '+SNACKS[k].name;}
-    else if(g.kind==='fish'){const lk=unpackLook(g.item);save.friends=(save.friends||[]).concat([{from:g.from,look:lk}]).slice(-6);const img=fishThumb(lk,10,true);
+    else if(g.kind==='fish'){const lk=unpackLook(g.item),pst=String(g.item).split('.')[4],st=pst===undefined||pst===''?10:clamp(+pst||0,0,10);save.friends=(save.friends||[]).concat([{from:g.from,look:lk,stage:st}]).slice(-6);const img=fthumb(lk,st);
       pic='<img alt="" src="'+img+'" style="width:56px;height:40px">';txt='@'+g.from+' sent a little fish';setTimeout(spawnFriends,50);}
     else if(g.kind==='sticker'&&STICKERS[g.item]){pic=stk(g.item,40);txt='@'+g.from+' sent a '+g.item;}
     else if(g.kind==='deco'){const d=SHOP.find(x=>x.id===g.item);if(!d)continue;const th=makeThumbs();pic='<img alt="" src="'+th[d.id]+'">';
