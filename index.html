@@ -1874,10 +1874,10 @@ $('#tvIn').onclick=()=>tvZoom(TV.zoom/1.35);$('#tvOut').onclick=()=>tvZoom(TV.zo
    lights a pool on the sand, a moving web of light plays over the floor, and specks glint in the beams. */
 let SUN=null;
 function rayTex(){const W=64,Hh=256,c=document.createElement('canvas');c.width=W;c.height=Hh;const x=c.getContext('2d'),im=x.createImageData(W,Hh);
-  // soft-edged beam with faint lengthwise streaks inside; it wraps sideways so the streaks can drift
-  for(let j=0;j<Hh;j++)for(let i=0;i<W;i++){const u=(i-31.5)/32,v=j/(Hh-1),edge=Math.exp(-u*u*4.2),
-      streak=0.86+0.14*Math.sin(i/W*Math.PI*2*3+1.3)*Math.sin(i/W*Math.PI*2*5+0.4),fade=ss(0,0.22,v)*Math.pow(1-ss(0.25,1,v),1.3);
-    const a=edge*streak*fade,k=(j*W+i)*4;im.data[k]=im.data[k+1]=im.data[k+2]=255;im.data[k+3]=Math.round(a*255);}
+  // a clear beam: an even body with a soft but defined edge, faint lengthwise streaks, strongest near the top and still glowing when it reaches the floor
+  for(let j=0;j<Hh;j++)for(let i=0;i<W;i++){const u=Math.abs((i-31.5)/32),v=j/(Hh-1),edge=1-ss(0.6,1,u),core=0.88+0.12*(1-ss(0,0.6,u)),
+      streak=0.95+0.05*Math.sin(i/W*Math.PI*2*3+1.3),fade=ss(0,0.05,v)*(1-0.6*ss(0.1,1,v));
+    const a=edge*core*streak*fade,k=(j*W+i)*4;im.data[k]=im.data[k+1]=im.data[k+2]=255;im.data[k+3]=Math.round(a*255);}
   x.putImageData(im,0,0);const t=new THREE.CanvasTexture(c);return t;}
 function glowTex(){const c=document.createElement('canvas');c.width=c.height=64;const x=c.getContext('2d'),g=x.createRadialGradient(32,32,0,32,32,32);
   g.addColorStop(0,'rgba(255,255,255,1)');g.addColorStop(0.5,'rgba(255,255,255,.45)');g.addColorStop(1,'rgba(255,255,255,0)');x.fillStyle=g;x.fillRect(0,0,64,64);return new THREE.CanvasTexture(c);}
@@ -1890,32 +1890,44 @@ function causticTex(seed){const N=256,c=document.createElement('canvas');c.width
 const LIGHT_MAT=o=>new THREE.MeshBasicMaterial(Object.assign({transparent:true,opacity:0,depthWrite:false,fog:false,blending:THREE.AdditiveBlending},o));
 const CAUSTIC=[0,1].map(i=>LIGHT_MAT({map:causticTex(3+i*7),polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2}));
 function addCaustics(sand,w,h){CAUSTIC.forEach((m,i)=>{m.map.repeat.set(w/(1.6+i*0.5),h/(1.6+i*0.5));const o=new THREE.Mesh(sand.geometry,m);o.position.y=0.004+i*0.002;o.renderOrder=7;sand.add(o);});}
+// how much sunlight falls on a point (0..1), from the beams' current positions
+function sunAt(px,py){if(!SUN||!SUN.a||!SUN.s[0].hw)return 0;let best=0;
+  for(const o of SUN.s){const t=clamp((o.y0-py)/o.L),cx=o.x0+Math.tan(o.ang)*(o.y0-py),hw=o.hw*(1+0.35*t),d=Math.abs(px-cx)/hw;best=Math.max(best,(1-ss(0.5,1,d))*o.k*o.fl*(1-0.5*t));}
+  return best*SUN.a;}
 function sunTick(dt){if(!SUN){const tex=rayTex(),glow=glowTex();SUN={g:new THREE.Group(),s:[]};
-    // the dimming veil sits just inside the front glass, over the whole tank
-    SUN.veil=new THREE.Mesh(new THREE.PlaneGeometry(1,1),new THREE.MeshBasicMaterial({color:0x4f5d66,transparent:true,opacity:0,depthWrite:false,fog:false}));SUN.veil.renderOrder=4;SUN.g.add(SUN.veil);
-    const bg=new THREE.PlaneGeometry(1,1,1,16).translate(0,-0.5,0),bp=bg.attributes.position;for(let i=0;i<bp.count;i++){const y=bp.getY(i);bp.setX(i,bp.getX(i)*(1+0.9*-y));}
-    const WS=[0.75,0.22,0.55,0.3,0.9,0.18,0.5,0.35],KS=[0.9,0.6,0.8,0.65,1,0.55,0.75,0.7];
-    for(let i=0;i<8;i++){const m=new THREE.Mesh(bg,LIGHT_MAT({map:tex.clone()}));m.material.map.needsUpdate=true;m.material.map.wrapS=THREE.RepeatWrapping;
-      m.renderOrder=6;SUN.g.add(m);const pool=new THREE.Mesh(new THREE.PlaneGeometry(1,1),LIGHT_MAT({map:glow}));pool.rotation.x=-Math.PI/2;pool.renderOrder=7;SUN.g.add(pool);
-      SUN.s.push({m,pool,ph:rnd(0,6),ph2:rnd(0,6),w:WS[i],x:(i/7-0.5)*1.8+rnd(-0.08,0.08),z:-1.35+i%4*0.22+rnd(-0.05,0.05),k:KS[i]});}
-    const n=30,pg=new THREE.BufferGeometry(),pos=new Float32Array(n*3);pg.setAttribute('position',new THREE.BufferAttribute(pos,3));
-    SUN.dots=new THREE.Points(pg,new THREE.PointsMaterial({size:0.05,map:glow,transparent:true,opacity:0,depthWrite:false,depthTest:false,fog:false,blending:THREE.AdditiveBlending}));SUN.dots.renderOrder=7;SUN.g.add(SUN.dots);
-    SUN.dd=[];for(let i=0;i<n;i++)SUN.dd.push({b:i%8,f:rnd(-0.4,0.4),y:rnd(0,1),ph:rnd(0,6),v:rnd(0.01,0.035)});world.add(SUN.g);}
+    SUN.veil=new THREE.Mesh(new THREE.PlaneGeometry(1,1),new THREE.MeshBasicMaterial({color:0x56707e,transparent:true,opacity:0,depthWrite:false,fog:false}));SUN.veil.renderOrder=4;SUN.g.add(SUN.veil);
+    // beams widen a little as they fall; each has a faint twin drawn in front so plants and stones inside it look lit too
+    const bg=new THREE.PlaneGeometry(1,1,1,16).translate(0,-0.5,0),bp=bg.attributes.position;for(let i=0;i<bp.count;i++){const y=bp.getY(i);bp.setX(i,bp.getX(i)*(1+0.35*-y));}
+    const WS=[0.78,0.42,0.66,0.38,0.82,0.5],KS=[1,0.8,0.92,0.75,0.95,0.82],XS=[-0.98,-0.55,-0.08,0.27,0.62,1.02];
+    for(let i=0;i<6;i++){const mk=front=>{const m=new THREE.Mesh(bg,LIGHT_MAT({map:tex,depthTest:!front,blending:THREE.NormalBlending}));m.renderOrder=front?8:6;SUN.g.add(m);return m;};
+      const pool=new THREE.Mesh(new THREE.PlaneGeometry(1,1),LIGHT_MAT({map:glow}));pool.rotation.x=-Math.PI/2;pool.renderOrder=7;SUN.g.add(pool);
+      SUN.s.push({m:mk(false),f:mk(true),pool,ph:rnd(0,6),ph2:rnd(0,6),w:WS[i],x:XS[i]+rnd(-0.04,0.04),z:-1.3+(i%3)*0.3,k:KS[i]});}
+    // a soft bright band where the light enters at the top
+    SUN.band=new THREE.Mesh(new THREE.PlaneGeometry(1,1),LIGHT_MAT({map:(()=>{const c=document.createElement('canvas');c.width=4;c.height=128;const x=c.getContext('2d'),g=x.createLinearGradient(0,0,0,128);g.addColorStop(0,'rgba(255,255,255,1)');g.addColorStop(1,'rgba(255,255,255,0)');x.fillStyle=g;x.fillRect(0,0,4,128);return new THREE.CanvasTexture(c);})(),depthTest:false}));
+    SUN.band.renderOrder=8;SUN.g.add(SUN.band);
+    const n=34,pg=new THREE.BufferGeometry(),pos=new Float32Array(n*3);pg.setAttribute('position',new THREE.BufferAttribute(pos,3));
+    SUN.dots=new THREE.Points(pg,new THREE.PointsMaterial({size:0.05,map:glow,transparent:true,opacity:0,depthWrite:false,depthTest:false,fog:false,blending:THREE.AdditiveBlending}));SUN.dots.renderOrder=9;SUN.g.add(SUN.dots);
+    SUN.dd=[];for(let i=0;i<n;i++)SUN.dd.push({b:i%6,f:rnd(-0.45,0.45),y:rnd(0,1),ph:rnd(0,6),v:rnd(0.01,0.035)});world.add(SUN.g);}
   const d=new Date(),h=d.getHours()+d.getMinutes()/60,u=(h-6.3)/12.6,day=u>0&&u<1,alt=day?Math.sin(Math.PI*u):0,side=(0.5-clamp(u))*2;
   const want=lightsOff||TV.t>0.02?0:clamp(alt*1.8);SUN.a=damp(SUN.a||0,want,0.8,dt);const A=SUN.a;
   CAUSTIC.forEach((m,i)=>{m.opacity=A*(i?0.13:0.19);m.map.offset.set(T*(i?-0.012:0.009)+Math.sin(T*0.31+i)*0.025,T*(i?0.008:-0.007)+Math.cos(T*0.27+i*2)*0.025);});
-  SUN.g.visible=A>0.005;if(!SUN.g.visible)return;
-  const warm=1-clamp(alt*2),H=B.surf-B.floor,srcH=5,srcX=-side*B.x*2.2,cr=1,cg=1-0.08*warm,cb=1-0.25*warm;
-  SUN.veil.scale.set(B.hw*2+3,H+8,1);SUN.veil.position.set(0,(B.surf+B.floor)/2,0.92);SUN.veil.material.opacity=A*0.16;
-  const top=(B.top||B.surf)+0.25,HT=top-B.floor;
+  SUN.g.visible=A>0.005;
+  // things inside a beam catch the light: the fish (and friends' fish) and the decorations brighten a little
+  const fl=1+0.38*sunAt(S.pos.x,S.pos.y);MAT_FISH.color.setScalar(fl);MAT_FIN.color.setScalar(fl);
+  for(const g of ITEMS_ON){const l=1+0.3*sunAt(g.position.x,B.floor+0.15);if(Math.abs((g.userData.lit||1)-l)<0.01)continue;g.userData.lit=l;
+    g.traverse(o=>{if(!o.isMesh||!o.material||!o.material.color)return;if(!o.userData.c0)o.userData.c0=o.material.color.clone();o.material.color.copy(o.userData.c0).multiplyScalar(l);});}
+  if(!SUN.g.visible)return;
+  const warm=1-clamp(alt*2),H=B.surf-B.floor,srcH=6,srcX=-side*B.x*2,cr=1,cg=1-0.07*warm,cb=1-0.22*warm,top=(B.top||B.surf)+0.15,HT=top-B.floor;
+  SUN.veil.scale.set(B.hw*2+3,H+8,1);SUN.veil.position.set(0,(B.surf+B.floor)/2,0.92);SUN.veil.material.opacity=A*0.22;
+  SUN.band.scale.set(B.hw*2+3,(top-B.surf)*2.4,1);SUN.band.position.set(0,top-(top-B.surf)*1.2,0.9);SUN.band.material.opacity=0;SUN.band.material.color.setRGB(cr,cg,cb);
   SUN.dots.material.color.setRGB(cr,cg,cb);
-  for(let i=0;i<SUN.s.length;i++){const o=SUN.s[i],m=o.m;
-    // the surface ripples bend each beam a little and make it brighten and fade
-    const topX=o.x*B.x+Math.sin(T*0.13+o.ph)*0.1,a=Math.atan2(topX-srcX,srcH)+Math.sin(T*0.23+o.ph2)*0.018,L=(HT+0.05)/Math.cos(a),flick=0.55+0.45*(0.5+0.5*Math.sin(T*0.55+o.ph))*(0.8+0.2*Math.sin(T*1.6+o.ph2));
-    m.material.color.setRGB(cr,cg,cb);m.material.opacity=A*0.3*o.k*flick;m.material.map.offset.x=T*0.015*(i%2?1:-1);
-    const w=o.w*(0.9+0.1*Math.sin(T*0.4+o.ph));m.scale.set(w,L,1);m.rotation.z=a;m.position.set(topX,top,o.z);
-    const hx=topX+Math.tan(a)*HT;o.pool.position.set(hx,B.floor+0.03,o.z+0.15);o.pool.scale.set(w*3.2,w*1.7,1);o.pool.material.color.setRGB(cr,cg,cb);o.pool.material.opacity=A*0.22*o.k*flick;
-    o.top=topX+Math.tan(a)*(top-B.surf);o.ang=a;o.wid=w*1.4;}
+  for(let i=0;i<SUN.s.length;i++){const o=SUN.s[i];
+    // the surface ripples bend each beam a little and make it swell and dim
+    const topX=o.x*B.x+Math.sin(T*0.13+o.ph)*0.08,a=Math.atan2(topX-srcX,srcH)+Math.sin(T*0.23+o.ph2)*0.015,L=(HT+0.05)/Math.cos(a),flick=0.68+0.32*(0.5+0.5*Math.sin(T*0.5+o.ph))*(0.85+0.15*Math.sin(T*1.5+o.ph2));
+    const w=o.w*(0.93+0.07*Math.sin(T*0.37+o.ph));
+    for(const [m,op] of [[o.m,0.62],[o.f,0.09]]){m.material.color.setRGB(cr,cg,cb);m.material.opacity=A*op*o.k*flick;m.scale.set(w,L,1);m.rotation.z=a;m.position.set(topX,top,m===o.f?0.6:o.z);}
+    const hx=topX+Math.tan(a)*HT;o.pool.position.set(hx,B.floor+0.03,o.z+0.2);o.pool.scale.set(w*2.2,w*1.2,1);o.pool.material.color.setRGB(cr,cg,cb);o.pool.material.opacity=A*0.26*o.k*flick;
+    o.x0=topX;o.y0=top;o.ang=a;o.L=L;o.hw=w/2;o.fl=flick;o.top=topX+Math.tan(a)*(top-B.surf);o.wid=w*1.2;}
   const p=SUN.dots.geometry.attributes.position;
   for(let i=0;i<SUN.dd.length;i++){const q=SUN.dd[i],o=SUN.s[q.b];q.y-=q.v*dt*0.3;if(q.y<0)q.y=1;const depth=(1-q.y)*H;
     p.setXYZ(i,o.top+Math.tan(o.ang)*depth+q.f*o.wid*0.7+Math.sin(T*0.3+q.ph)*0.03,B.surf-depth+Math.sin(T*0.5+q.ph)*0.02,o.z+0.05);}
