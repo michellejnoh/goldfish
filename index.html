@@ -545,6 +545,8 @@ function normalizeSave(sv){if(!sv||!sv.pets)sv={pets:{}};for(const k in sv.pets)
   const t=sv.tank=Object.assign({water:'clear',pebbles:null,items:[],owned:{}},sv.tank||{});if(!Array.isArray(t.items))t.items=[];t.owned=t.owned||{};return sv;}
 let save=normalizeSave(null);
 const pet=()=>save.pets.fish;
+// when visiting, the glass and haze show the friend's tank as they left it, not yours
+const cleanOf=()=>VISIT?VISIT.clean:pet().s.clean;
 const fill=t=>t.replace(/\{n\}/g,pet().name);
 const add=(k,v)=>{const s=pet().s;s[k]=clamp(s[k]+v,0,100);};
 
@@ -1037,7 +1039,7 @@ function drawAlgae(){const A=ALG,x=A.cvs.getContext('2d'),cw=A.cvs.width,ch=A.cv
   A.tex.needsUpdate=true;A.dirty=false;}
 function needCleanNudge(){return !!(ALG&&ALG.sm.length>=2&&tool!=='wash'&&!(save.tut&&save.tut.clean>=3)&&!lightsOff);}
 function syncAlgae(){const nb=$('#t-wash'),nn=needCleanNudge();if(nb)nb.classList.toggle('nudge',nn);
-  if(nn&&!(save.tut&&save.tut.told)){save.tut=save.tut||{};save.tut.told=1;toast('the glass is getting dirty · tap clean to wipe it',5);}const N=Math.round((100-pet().s.clean)/8);
+  if(nn&&!(save.tut&&save.tut.told)){save.tut=save.tut||{};save.tut.told=1;toast('the glass is getting dirty · tap clean to wipe it',5);}const N=Math.round((100-cleanOf())/8);
   while(ALG.sm.length<N){ALG.sm.push({u:rnd(0.1,0.9),v:rnd(0.12,0.88),r:rnd(0.18,0.32),a:1,seed:rnd(0,9)});ALG.dirty=true;}
   while(ALG.sm.length>N+1){ALG.sm.shift();ALG.dirty=true;}
   if(ALG.dirty)drawAlgae();}
@@ -1858,9 +1860,10 @@ $('#visitForm').addEventListener('submit',e=>{e.preventDefault();const n=$('#vis
 function enterVisit(n,rec){if(TV.on)setTankView(false);if(toy)endToy(true);persistLocal();
   const f=(rec.save.pets&&rec.save.pets.fish)||{},pr=normProg(rec.prog);
   VISIT={n,mine:save.tank,look:Object.assign({c:'orange',p:'plain',seed:1},f.look||{}),stage:Math.min(10,Math.max(pr.grow||0,Math.floor(pr.level/5))),fish:f.name||DEF,level:pr.level};
+  VISIT.lamp=rec.save.lamp;VISIT.clean=clamp(+(f.s&&f.s.clean)||80,0,100);VISIT.myLights=lightsOff;lightsOff=!!rec.save.night;document.body.classList.toggle('night',lightsOff);if(S)S.asleep=lightsOff;
   VISIT.friends=(rec.save.friends||[]).slice(0,6);{const vf=VISIT.friends,vn=n;refreshFriendLooks(vf,()=>{if(VISIT&&VISIT.n===vn)spawnFriends();});}save.tank=JSON.parse(JSON.stringify(rec.save.tank||{}));rebuildTank();spawnFriends();R.lookStage=null;S.grow=VISIT.stage/10;applyLook();
   document.body.classList.add('visiting');$('#visitBar').hidden=false;$('#visitTitle').textContent='@'+n+'’s tank · '+VISIT.fish+' · lv '+VISIT.level;say('');}
-function leaveVisit(){if(!VISIT)return;if(GPLACE)endGiftPlace(false);save.tank=VISIT.mine;VISIT=null;rebuildTank();spawnFriends();R.lookStage=null;S.grow=growStage()/10;applyLook();
+function leaveVisit(){if(!VISIT)return;if(GPLACE)endGiftPlace(false);save.tank=VISIT.mine;lightsOff=VISIT.myLights;document.body.classList.toggle('night',lightsOff);if(S)S.asleep=lightsOff;VISIT=null;rebuildTank();spawnFriends();R.lookStage=null;S.grow=growStage()/10;applyLook();
   document.body.classList.remove('visiting');$('#visitBar').hidden=true;$('#giftOut').hidden=true;persistLocal();if(cloudDirty)cloudPut();}
 $('#visitHome').onclick=leaveVisit;
 // sending
@@ -2366,7 +2369,7 @@ function sunTick(dt){if(!SUN){const tex=rayTex(),glow=glowTex();SUN={g:new THREE
 function nightAmt(){const d=new Date(),h=d.getHours()+d.getMinutes()/60;if(h>=21)return clamp((h-21)/0.33);if(h<5)return 1-clamp((h-4.67)/0.33);return 0;}
 function shade(hex,k){const c=new THREE.Color(hex);c.multiplyScalar(k);return '#'+c.getHexString();}
 function nightTick(dt){const want=TV.t>0.02?0:!$('#lampMenu').hidden?1:lightsOff?0:nightAmt();
-  {const L=LAMPS[save&&save.lamp]||LAMPS.warm;if(nightTick.lc!==L){nightTick.lc=L;NIGHTU.uLC.value.set(...L.t);document.documentElement.style.setProperty('--lampc',L.c);}}NIGHTU.uN.value=damp(NIGHTU.uN.value,want,1.2,dt);
+  {const L=LAMPS[VISIT?VISIT.lamp:save&&save.lamp]||LAMPS.warm;if(nightTick.lc!==L){nightTick.lc=L;NIGHTU.uLC.value.set(...L.t);document.documentElement.style.setProperty('--lampc',L.c);}}NIGHTU.uN.value=damp(NIGHTU.uN.value,want,1.2,dt);
   const N=NIGHTU.uN.value;NIGHTU.uNF.value=B.floor;
   const on=N>0.02;document.body.classList.toggle('evening',on);
   {const w0=WATER[(save.tank&&save.tank.water)||'clear']||WATER.clear;if(scene.fog)scene.fog.color.set(w0).multiplyScalar(1-0.3*N);}// haze matches the dimmer night water, so fish don't fade into a pale glow
@@ -2392,7 +2395,7 @@ function frame(){requestAnimationFrame(frame);const nowF=performance.now(),busy=
   if(nowF-(frame.last||0)<minF)return;frame.last=nowF;const dt=Math.min(clock.getDelta(),0.07);T+=dt;
   needs(dt);behave(dt);physics(dt);animate(dt);keepAboveFloor();if(FRIENDS.length)friendsTick(dt);updateFoods(dt);updateToy(dt);updateRocks(dt);updateFX(dt);updateSay(dt);sunTick(dt);nightTick(dt);
   const lt=lightsOff?0.35:1;hemi.intensity=damp(hemi.intensity,0.85*lt,2,dt);keyL.intensity=damp(keyL.intensity,0.7*lt,2,dt);
-  if(!tankViewCam(dt)){const d=camera.position.distanceTo(camLook);scene.fog.far=damp(scene.fog.far,d+lerp(3,40,pet().s.clean/100),2,dt);
+  if(!tankViewCam(dt)){const d=camera.position.distanceTo(camLook);scene.fog.far=damp(scene.fog.far,d+lerp(3,40,cleanOf()/100),2,dt);
   camera.position.x=camBase.x+Math.sin(T*0.17)*0.05;camera.position.y=camBase.y+Math.sin(T*0.23)*0.03;camera.lookAt(camLook);}
   if((algT+=dt)>1){algT=0;syncAlgae();}
   if((uiT+=dt)>0.3){uiT=0;syncTheme();{let up=false,any=false;document.querySelectorAll('.sheet.dock').forEach(sh=>{if(!sh.hidden){any=true;if(!sh.classList.contains('top'))up=true;}});
