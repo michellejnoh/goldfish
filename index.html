@@ -2363,7 +2363,7 @@ function nlBuild(){const g=new THREE.Group(),add=(geo,tex,op,ro,blend,col)=>{con
   const L={g,band:add(plane(),band,0.3,2),spots:[],rays:[],shadows:[]};
   [-0.86,-0.42,-0.02,0.38,0.8].forEach((x0,i)=>{const sp=add(plane(),spot,0,2);sp.visible=false;sp.userData.x=x0+rnd(-0.05,0.05);sp.userData.w=rnd(0.9,1.3);sp.userData.ph=rnd(0,6);L.spots.push(sp);
     for(const k of (i%2?[1]:[-1])){const geo=new THREE.PlaneGeometry(1,1,1,8).translate(0,0.5,0),bp=geo.attributes.position;for(let q=0;q<bp.count;q++)bp.setX(q,bp.getX(q)*(1+1.3*bp.getY(q)));
-      const r=add(geo,ray,rnd(0.025,0.045),2);r.userData.x=sp.userData.x;r.userData.a=k*rnd(0.06,0.3);r.userData.w=rnd(0.18,0.32);r.userData.ph=rnd(0,6);L.rays.push(r);}});
+      const r=add(geo,ray,rnd(0.033,0.058),2);r.userData.x=sp.userData.x;r.userData.a=k*rnd(0.06,0.3);r.userData.w=rnd(0.18,0.32);r.userData.ph=rnd(0,6);L.rays.push(r);}});
   const casters=[],cl=[];for(const rb of ribbons){let c=cl.find(q=>Math.abs(q.x-rb.m.position.x)<0.45&&Math.abs(q.z-rb.m.position.z)<0.5);if(!c){c={x:0,z:0,n:0,h:0,x0:9,x1:-9};cl.push(c);}
     c.x+=rb.m.position.x;c.z+=rb.m.position.z;c.n++;c.h=Math.max(c.h,rb.H);c.x0=Math.min(c.x0,rb.m.position.x);c.x1=Math.max(c.x1,rb.m.position.x);}
   for(const c of cl)casters.push({x:c.x/c.n,z:c.z/c.n,h:c.h*0.7,w:Math.max(0.35,(c.x1-c.x0)+0.3),k:0.55});
