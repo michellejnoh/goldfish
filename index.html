@@ -592,7 +592,7 @@ function speckle(x,y,z,sd,v,bias){
   const k=ss(th,th+0.07,n);if(!k)return 0;return k*(0.5+0.5*vnoise(x*4,y*4,z*4,sd+4));}
 const _hsl={h:0,s:0,l:0},_lt=new THREE.Color(),_dk=new THREE.Color(),_cr=new THREE.Color('#f0e4ce');
 /* v = how high the point sits on the body at that spot (0 belly .. 1 back), q = how far out along a fin (0 root .. 1 tip) */
-const _xr=new THREE.Color('#d42f2f'),_xw=new THREE.Color('#f6eee2'),_xg=new THREE.Color('#2f7d4f');
+const _xr=new THREE.Color('#d42f2f'),_xw=new THREE.Color('#ffffff'),_xg=new THREE.Color('#2f7d4f');
 /* christmas skin: festive colours laid out the way a bred goldfish's pigment really falls:
    big irregular red patches on white (like a sarasa), the odd green patch, a paler belly, and colour that runs from the body
    out into the fins and fades toward their see-through tips */
@@ -632,10 +632,8 @@ function applyLook(F,lk,st){F=F||R;if(!F)return;lk=lk||lookOf();if(st===undefine
       for(let i=0;i<src.length;i+=3){v.set(src[i],src[i+1],src[i+2]).applyMatrix4(m);rest[i]=v.x;rest[i+1]=v.y;rest[i+2]=v.z;}g.userData.rest=rest;}
     geos.push([g,o.material===MAT_FIN]);});
   const P=bodyProfile(F);
-  const ph={};_lm.set(LOOK_COLORS[lk.c]||LOOK_COLORS.orange).getHSL(ph);const paleK=lk.skin?0:clamp((ph.l-0.68)/0.2),paleSh=new THREE.Color().setHSL(ph.h,Math.min(1,ph.s*1.15+0.12),ph.l*0.66);
   for(const [g,fin] of geos){const r=g.userData.rest,fl=g.userData.flex,col=new Float32Array(r.length);
-    for(let i=0,n=0;i<r.length;i+=3,n++){const vv=vOf(P,r[i],r[i+1]),q=fl?fl[n]:(fin?0.6:0),c=youthColor(lookColor(r[i],r[i+1],r[i+2],fin,lk,vv,q),r[i],r[i+1],r[i+2],fin,vv,Yc);
-      if(paleK>0)c.lerp(paleSh,paleK*(fin?0.14+0.4*q:0.1+0.42*Math.pow(clamp(vv),1.6)));col[i]=c.r;col[i+1]=c.g;col[i+2]=c.b;}
+    for(let i=0,n=0;i<r.length;i+=3,n++){const vv=vOf(P,r[i],r[i+1]),q=fl?fl[n]:(fin?0.6:0),c=youthColor(lookColor(r[i],r[i+1],r[i+2],fin,lk,vv,q),r[i],r[i+1],r[i+2],fin,vv,Yc);col[i]=c.r;col[i+1]=c.g;col[i+2]=c.b;}
     g.setAttribute('color',new THREE.Float32BufferAttribute(col,3));}
   for(const M of [MAT_FISH,MAT_FIN]){M.vertexColors=true;M.color.set(0xffffff);M.needsUpdate=true;}}
 
