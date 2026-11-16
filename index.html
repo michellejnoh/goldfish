@@ -1498,8 +1498,12 @@ function mergeProg(a,b){if(!a)return b;if(!b)return a;a=normProg(JSON.parse(JSON
   if((lo.streak&&lo.streak.n||0)>(hi.streak&&hi.streak.n||0))hi.streak=lo.streak;
   const d1=hi.daily,d2=lo.daily;if(d1&&d2&&d1.day===d2.day&&String(d1.ids)===String(d2.ids)){for(const id of d1.ids){d1.prog[id]=Math.max(d1.prog[id]||0,d2.prog[id]||0);d1.done[id]=d1.done[id]||d2.done[id];}d1.bonus=d1.bonus||d2.bonus;}
   return hi;}
-function mergeRec(a,b){if(!a)return b;if(!b)return a;const ua=a.changed||a.updated||0,ub=b.changed||b.updated||0;
-  return {updated:Math.max(ua,ub),save:(ub>ua?b:a).save,prog:mergeProg(a.prog,b.prog)};}
+// gifted fish are never lost in a sync: the lists from both sides are combined (the newer side's show/hide choice wins)
+function friendKeys(list){const n={};return (list||[]).map(f=>{if(!f)return '';if(f.id)return f.id;const k=f.from||'';n[k]=(n[k]||0)+1;return k+'#'+n[k];});}
+function mergeFriends(win,lose){const out=(win||[]).filter(Boolean),keys=new Set(friendKeys(out)),lk=friendKeys(lose);(lose||[]).forEach((f,i)=>{if(f&&!keys.has(lk[i])){out.push(f);keys.add(lk[i]);}});return out.slice(-6);}
+function mergeRec(a,b){if(!a)return b;if(!b)return a;const ua=a.changed||a.updated||0,ub=b.changed||b.updated||0,w=ub>ua?b:a,l=ub>ua?a:b;
+  let sv=w.save;if(sv&&l.save&&((l.save.friends||[]).length||(sv.friends||[]).length)){sv=Object.assign({},sv,{friends:mergeFriends(sv.friends,l.save.friends)});}
+  return {updated:Math.max(ua,ub),save:sv,prog:mergeProg(a.prog,b.prog)};}
 const curRec=()=>({updated:lastChange,save,prog:PROG});
 // bring a merged copy into the running game only if it actually adds something
 function takeMerged(c){if(!c)return false;const m=mergeRec(curRec(),c),more=(m.prog&&PROG&&(m.prog.total||0)>(PROG.total||0))||(c.updated||0)>lastChange+500||(m.prog&&PROG&&(m.prog.grow||0)>(PROG.grow||0));
@@ -1602,7 +1606,7 @@ function openSkins(){$('#fishMenu').hidden=true;$('#skins').hidden=false;const e
     const t=document.createElement('span');t.textContent=k;b.append(im,t);b.setAttribute('aria-pressed',(lk.skin||'none')===k);
     b.onclick=()=>{const l=lookOf();if(k==='christmas'&&l.skin==='christmas')l.seed=Math.floor(Math.random()*1000);l.skin=k==='none'?'':k;applyLook();persist();openSkins();showFishChange(k==='none'?'no skin':k);};el.appendChild(b);}}
 $('#skinBtn').onclick=openSkins;
-function friendsFix(){if(save.hideFriends){(save.friends||[]).forEach(f=>f.hide=true);delete save.hideFriends;}}
+function friendsFix(){if(save.hideFriends!==undefined)delete save.hideFriends;}
 function friendsLabel(){friendsFix();const L=save.friends||[],n=L.length,on=L.filter(f=>!f.hide).length;$('#friendsTxt').textContent=n?on+' of '+n+' shown · tap to choose':'little fish your friends send you swim here';}
 function openFriends(){friendsFix();const el=$('#friendList');el.textContent='';
   (save.friends||[]).forEach((f,i)=>{const b=document.createElement('button');b.type='button';if(f.hide)b.classList.add('off');const im=document.createElement('img');im.alt='';im.src=fthumb(f.look,fstage(f));
@@ -1869,13 +1873,13 @@ const SEEN_GIFTS=new Set();
 function checkGifts(){if(!DB||!USER||VISIT||!cloudReady)return;const me=USER;
   if(Date.now()-(refreshFriendLooks.t||0)>180000)refreshFriendLooks(save.friends,()=>{if(USER===me&&!VISIT){persist();spawnFriends();}});
   fetch(GBOX(me)+'?key='+DB.apiKey+'&pageSize=50',{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{if(!j||!j.documents||USER!==me||VISIT)return;const got=[];
-    for(const d of j.documents){if(SEEN_GIFTS.has(d.name))continue;SEEN_GIFTS.add(d.name);const F=d.fields||{},g={from:F.from&&F.from.stringValue,kind:F.kind&&F.kind.stringValue,item:F.item&&F.item.stringValue};
+    for(const d of j.documents){if(SEEN_GIFTS.has(d.name))continue;SEEN_GIFTS.add(d.name);const F=d.fields||{},g={id:String(d.name).split('/').pop(),from:F.from&&F.from.stringValue,kind:F.kind&&F.kind.stringValue,item:F.item&&F.item.stringValue};
       if(!g.from||!g.kind)continue;got.push(g);fetch('https://firestore.googleapis.com/v1/'+d.name+'?key='+DB.apiKey,{method:'DELETE'}).catch(()=>{});}
     if(got.length)openGifts(got);}).catch(()=>{});}
 function openGifts(list){const el=$('#giftInList');if($('#giftIn').hidden)el.textContent='';const p=pet();let placedGift=false;
   for(const g of list){const row=document.createElement('div');row.className='gift-line';let pic='',txt='';
     if(g.kind==='snack'){p.s.food=Math.min(100,p.s.food+15);p.s.fun=Math.min(100,p.s.fun+10);const k=SNACKS[g.item]?g.item:'cucumber';pic=snk(k,40);SNACK_Q.push(k);txt='@'+g.from+' sent a '+SNACKS[k].name;}
-    else if(g.kind==='fish'){const lk=unpackLook(g.item),pst=String(g.item).split('.')[4],st=pst===undefined||pst===''?10:clamp(+pst||0,0,10);save.friends=(save.friends||[]).concat([{from:g.from,look:lk,stage:st}]).slice(-6);const img=fthumb(lk,st);
+    else if(g.kind==='fish'){const lk=unpackLook(g.item),pst=String(g.item).split('.')[4],st=pst===undefined||pst===''?10:clamp(+pst||0,0,10);save.friends=(save.friends||[]).concat([{id:g.id||(g.from+'-'+Date.now()),from:g.from,look:lk,stage:st}]).slice(-6);const img=fthumb(lk,st);
       pic='<img alt="" src="'+img+'" style="width:56px;height:40px">';txt='@'+g.from+' sent a little fish';setTimeout(spawnFriends,50);}
     else if(g.kind==='sticker'&&STICKERS[g.item]){pic=stk(g.item,40);txt='@'+g.from+' sent a '+g.item;}
     else if(g.kind==='deco'){const pd=parseDecoItem(g.item),d=SHOP.find(x=>x.id===pd.id);if(!d)continue;const th=makeThumbs();pic='<img alt="" src="'+th[d.id]+'">';
