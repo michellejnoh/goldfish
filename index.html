@@ -547,8 +547,8 @@ float sunMask(vec3 p){float m=0.;
   float low=1.-smoothstep(uF+0.05,uF+0.6,p.y);
   float wob=sin(p.z*2.3+p.x*0.9+uT*0.35)*0.16+sin(p.z*5.1-p.x*1.7-uT*0.5)*0.07+sin(p.x*3.7+p.z*1.3+uT*0.27)*0.06;
   for(int i=0;i<6;i++){vec4 b=uB[i];float cx=b.x+b.z*(b.y-p.y);float hw=b.w*(1.+0.35*clamp((b.y-p.y)/uL,0.,1.));
-    float dx=(p.x+wob*low-cx)/max(hw,0.001),dz=(p.z-uZ[i]-0.35)/(hw*2.2+0.6);float d=sqrt(dx*dx+dz*dz*low*(1.+wob*0.8));
-    m=max(m,(1.-smoothstep(0.3,1.2,d))*uK[i]);}return m;}`;
+    float hf=hw*(1.+0.55*low);float dx=(p.x+wob*low-cx)/max(hf,0.001),dz=(p.z-uZ[i]-0.35)/(hf*2.6+0.8);float d=sqrt(dx*dx+dz*dz*low*(1.+wob*0.8));
+    m=max(m,(1.-smoothstep(mix(0.3,0.05,low),mix(1.2,1.7,low),d))*uK[i]);}return m;}`;
 function sunPatch(sh){Object.assign(sh.uniforms,SUNU);
   sh.vertexShader='varying vec3 vSunP;varying vec3 vSunN;\n'+sh.vertexShader.replace('#include <project_vertex>','#include <project_vertex>\n vSunP=(modelMatrix*vec4(transformed,1.0)).xyz;vSunN=mat3(modelMatrix)*normal;');
   sh.fragmentShader=SUN_GLSL+'\n'+sh.fragmentShader.replace('#include <tonemapping_fragment>',`if(uA>0.001){vec3 n=vSunN;float up=dot(n,n)>0.0001?normalize(n).y:1.;float m=sunMask(vSunP)*uA;
@@ -1939,7 +1939,7 @@ function sunTick(dt){if(!SUN){const tex=rayTex(),glow=glowTex();SUN={g:new THREE
     // the surface ripples bend each beam a little and make it swell and dim
     const topX=o.x*B.x+Math.sin(T*0.13+o.ph)*0.08,a=Math.atan2(topX-srcX,srcH)+Math.sin(T*0.23+o.ph2)*0.015,L=(HT+0.7)/Math.cos(a),flick=0.68+0.32*(0.5+0.5*Math.sin(T*0.5+o.ph))*(0.85+0.15*Math.sin(T*1.5+o.ph2));
     const w=o.w*(0.93+0.07*Math.sin(T*0.37+o.ph));
-    for(const [m,op] of [[o.m,0.5],[o.f,0.06]]){m.material.color.setRGB(cr,cg,cb);m.material.opacity=A*op*o.k*flick;m.scale.set(w,L,1);m.rotation.z=a;m.position.set(topX,top,m===o.f?Math.max(0.6,o.z+0.3):o.z);}
+    for(const [m,op] of [[o.m,0.72],[o.f,0.08]]){m.material.color.setRGB(cr,cg,cb);m.material.opacity=A*op*o.k*flick;m.scale.set(w,L,1);m.rotation.z=a;m.position.set(topX,top,m===o.f?Math.max(0.6,o.z+0.3):o.z);}
     o.pool.visible=false;SUNU.uB.value[i].set(topX,top,Math.tan(a),w/2);SUNU.uK.value[i]=o.k*flick;SUNU.uZ.value[i]=o.z;
     o.x0=topX;o.y0=top;o.ang=a;o.L=L;o.hw=w/2;o.fl=flick;o.top=topX+Math.tan(a)*(top-B.surf);o.wid=w*1.2;}
   const p=SUN.dots.geometry.attributes.position;
