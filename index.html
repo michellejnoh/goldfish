@@ -634,7 +634,7 @@ function applyLook(F,lk,st){F=F||R;if(!F)return;lk=lk||lookOf();if(st===undefine
 /* growing up, like a real goldfish: a slender, pale, big-eyed fry (lv 0-4), then a rounder speckled juvenile,
    colouring in and growing long fins toward the adult (lv 50). s = growth stage 0..10 (may be fractional) */
 function youth(s){const slim=clamp(1-s/3),pale=clamp(2-s),speck=clamp(Math.min(s-0.3,6.5-s)/1.5);
-  return {size:0.3+0.7*Math.pow(s/10,1.1),lx:1+0.38*slim,ly:1-0.45*slim,lz:1-0.38*slim,eye:1+0.75*clamp(1-s/6),tail:0.42+0.58*clamp(s/8),fin:0.55+0.45*clamp(s/6),pale,speck};}
+  return {size:0.3+0.7*Math.pow(s/10,1.1),lx:1+0.26*slim,ly:1-0.45*slim,lz:1-0.38*slim,eye:1+0.75*clamp(1-s/6),tail:0.42+0.58*clamp(s/8),fin:0.55+0.45*clamp(s/6),pale,speck};}
 function poseYouth(F,s,innerToo){const Y=youth(s);
   if(!F.tails){F.tails=[];F.inner.traverse(o=>{if(o.isMesh&&o.geometry.userData.kind==='tail')F.tails.push(o);});}
   for(const m of F.tails){m.scale.set(Y.tail,0.6+0.4*Y.tail,1);m.position.x=-0.66*(1-Y.tail);}
