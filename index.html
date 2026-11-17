@@ -294,6 +294,7 @@ body.lookdock #viewArrows{display:flex}
     <p id="loginNote">Pick a username. Your fish, its level and missions are saved under it.</p>
     <input id="loginName" maxlength="16" autocomplete="off" autocapitalize="none" spellcheck="false" aria-label="Username" placeholder="username">
     <p class="small" id="loginMsg">letters, numbers and _ · 2 to 16 characters</p>
+    <div class="langrow" id="pushRow" hidden><span class="small" id="pushTxt">notifications</span><button type="button" class="link" id="pushBtn">turn on</button></div>
     <div class="langrow"><span class="small">language</span><button type="button" class="link" data-lang="en">English</button><button type="button" class="link" data-lang="ko">한국어</button></div>
     <div class="row2"><button type="button" class="link" id="loginBack" hidden>pick another</button><button type="button" class="link" id="loginClose" hidden>close</button><button type="submit" class="go" id="loginGo">start</button></div>
   </form>
@@ -477,7 +478,7 @@ const KO={
 'gifts need the new database rules (see the guide)':'선물을 보내려면 새 저장 서버 규칙이 필요해요','visiting needs the online save':'방문하려면 온라인 저장이 필요해요',
 'heart':'하트','sparkle':'반짝','fishy':'물고기','bubbles':'방울','cucumber':'오이','yum':'냠','crunch':'아삭','zucchini':'애호박','banana':'바나나',
 'a little fish like yours · 50 xp':'내 금붕어를 닮은 작은 물고기 · 50 xp','send · 50 xp':'보내기 · 50 xp','friends’ fish':'친구 물고기','tap a fish to show or hide it in your tank':'물고기를 탭해서 어항에 보이거나 숨겨요','no skin':'스킨 없음','little fish your friends send you swim here':'친구가 보낸 작은 물고기가 여기서 헤엄쳐요',
-'visit · type a friend’s username to visit their tank, send gifts, or challenge them to a duel. fish you’re sent swim with yours':'방문 · 친구 아이디를 입력해 어항에 놀러 가서 선물을 보내거나 결투를 신청해요. 선물받은 물고기는 내 물고기랑 같이 놀아요','duel':'결투','rock stacking':'돌 쌓기','rock balancing':'돌 균형 잡기','who stacks the tallest tower':'누가 더 높이 쌓나','whose stack stays up longer':'누구 탑이 더 오래 버티나','pick a game. winning is pure luck · the winner gets a shiny winner ring (+50 xp)':'게임을 골라요. 승패는 순전히 운 · 이기면 반짝이는 승리 반지 (+50 xp)','winner ring':'승리 반지','skin':'스킨','special looks, like christmas':'크리스마스 같은 특별한 모습','a skin is worn over your color and pattern · tap it again to reshuffle':'스킨은 색과 무늬 위에 입혀져요 · 한 번 더 누르면 모양이 바뀌어요','none':'없음','christmas':'크리스마스','at least 20 stones stay in the tank':'어항에는 돌이 최소 20개 남아 있어야 해요','skip':'건너뛰기',
+'visit · type a friend’s username to visit their tank, send gifts, or challenge them to a duel. fish you’re sent swim with yours':'방문 · 친구 아이디를 입력해 어항에 놀러 가서 선물을 보내거나 결투를 신청해요. 선물받은 물고기는 내 물고기랑 같이 놀아요','duel':'결투','notifications':'알림','turn on':'켜기','turn off':'끄기','notifications are on':'알림이 켜져 있어요','notifications · add Goldfish to your home screen first':'알림 · 먼저 Goldfish를 홈 화면에 추가해 주세요',"notifications aren’t available here":'여기서는 알림을 쓸 수 없어요','notifications are blocked in settings':'설정에서 알림이 꺼져 있어요','rock stacking':'돌 쌓기','rock balancing':'돌 균형 잡기','who stacks the tallest tower':'누가 더 높이 쌓나','whose stack stays up longer':'누구 탑이 더 오래 버티나','pick a game. winning is pure luck · the winner gets a shiny winner ring (+50 xp)':'게임을 골라요. 승패는 순전히 운 · 이기면 반짝이는 승리 반지 (+50 xp)','winner ring':'승리 반지','skin':'스킨','special looks, like christmas':'크리스마스 같은 특별한 모습','a skin is worn over your color and pattern · tap it again to reshuffle':'스킨은 색과 무늬 위에 입혀져요 · 한 번 더 누르면 모양이 바뀌어요','none':'없음','christmas':'크리스마스','at least 20 stones stay in the tank':'어항에는 돌이 최소 20개 남아 있어야 해요','skip':'건너뛰기',
 'hand · drag to lead your fish, tap to call it, tap the fish to say hi':'손 · 끌어서 금붕어를 데려가고, 탭해서 부르고, 금붕어를 탭하면 인사해요',
 'food · tap the water to sprinkle flakes':'먹이 · 물을 탭해서 먹이를 뿌려요','clean · when the glass gets dirty, rub it clean':'청소 · 유리가 더러워지면 문질러서 닦아요',
 'toy · drag the lure and let your fish chase it':'장난감 · 미끼를 끌면 금붕어가 쫓아와요','sleep · turns the lights off so your fish can rest':'재우기 · 불을 꺼서 금붕어를 쉬게 해요',
@@ -1629,12 +1630,12 @@ function cloudWrite(keep,who){if(!cloudDirty||who!==USER||UTS[who]===undefined)r
 function pull(){if(!DB||!USER||cloudDirty||VISIT)return;const who=USER;cloudGet(who).then(c=>{if(!c||USER!==who)return;takeMerged(c);if((PROG.total||0)>((c.prog&&c.prog.total)||0)||(PROG.spent||0)>((c.prog&&c.prog.spent)||0)){cloudDirty=true;cloudPut();}},()=>{});}
 function adopt(rec){save=normalizeSave(rec&&rec.save);setTimeout(spawnFriends,0);if(save.lang&&save.lang!==LANG&&!langPicked)setLang(save.lang);PROG=normProg(rec&&rec.prog);ensureDaily();
   if(typeof lightsOff!=='undefined'&&S){rebuildTank();lightsOff=!!save.night;document.body.classList.toggle('night',lightsOff);S.asleep=lightsOff;renderUI();}}
-function signIn(n,rec){USER=n;cloudReady=true;setTimeout(checkGifts,3000);adopt(rec);if(langPicked||!save.lang)save.lang=LANG;langPicked=false;lastChange=(rec&&rec.updated)||Date.now();persist();cloudPut();$('#who').textContent='@'+n;$('#login').hidden=true;
+function signIn(n,rec){if(USER&&USER!==n)pushSwitch(USER,n);USER=n;cloudReady=true;setTimeout(checkGifts,3000);adopt(rec);if(langPicked||!save.lang)save.lang=LANG;langPicked=false;lastChange=(rec&&rec.updated)||Date.now();persist();cloudPut();$('#who').textContent='@'+n;$('#login').hidden=true;
   if(PROG.total)toast(fill('welcome back. {n} missed you.'));else setTimeout(()=>openNaming(true),300);}
 /* ---- the username sheet ---- */
 let pending=null;
 document.querySelectorAll('[data-lang]').forEach(b=>b.onclick=()=>{langPicked=true;setLang(b.dataset.lang);});
-function openLogin(){pending=null;setLang(LANG);const f=$('#loginName');f.value='';$('#loginBack').hidden=true;$('#loginClose').hidden=!USER;$('#loginGo').textContent=USER?'switch':'start';
+function openLogin(){pending=null;pushUI();setLang(LANG);const f=$('#loginName');f.value='';$('#loginBack').hidden=true;$('#loginClose').hidden=!USER;$('#loginGo').textContent=USER?'switch':'start';
   $('#loginNote').textContent=DB?'Pick a username. Your fish, its level and missions are saved under it, so you can carry on from any device.':'Pick a username. Your fish, its level and missions are saved under it on this device.';
   $('#loginMsg').textContent='letters, numbers and _ · 2 to 16 characters'+(DB?' · anyone who types the same username opens the same fish':'');
   $('#login').hidden=false;setTimeout(()=>{try{f.focus()}catch(e){}},250);}
@@ -1679,7 +1680,7 @@ setInterval(()=>{if(cloudDirty)cloudPut();else if(!document.hidden)pull();},3000
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)pull();});
 /* the home-screen app keeps an old copy of the page open (and iOS caches it), so check for a newer build when it opens or comes back,
    and reload past the cache if there is one */
-const BUILD='20261117010028';
+const BUILD='20261117010647';
 function checkBuild(){fetch('version.json?t='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{if(!j||!j.b||j.b===BUILD)return;
   try{if(sessionStorage.getItem('gf-build')===j.b)return;sessionStorage.setItem('gf-build',j.b);}catch(e){}
   try{persistLocal();}catch(e){}location.replace(location.pathname+'?v='+encodeURIComponent(j.b));}).catch(()=>{});}
@@ -2003,6 +2004,28 @@ function openGiftOut(){if(!VISIT)return;$('#giftTitle').textContent='send a gift
     bt.onclick=()=>{if(wallet()<d.price)return;startGiftPlace(d);};it.append(im,nb,bt);gd.appendChild(it);}
   $('#giftOut').hidden=false;}
 $('#giftBtn').onclick=openGiftOut;
+/* ---- notifications: on the home-screen app (iOS 16.4+, or any browser with web push), gifts and duels arrive as notifications.
+   Each device stores its push address under the keeper (write-only: nobody can read them back); a small server function sends the pushes. ---- */
+const VAPID_PUB='BDEPipv2IN9wI9dPO1kGk1dZGONmx5ZsLdFiol7YzgAITCGADzFOjtEkqgX3MKkgMiLDMC9IkvptOPunrTOUgck';
+const PUSHDOC=(n,d)=>'https://firestore.googleapis.com/v1/projects/'+DB.projectId+'/databases/(default)/documents/push/'+n+'/devices/'+d+'?key='+DB.apiKey;
+const STANDALONE=()=>matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;
+const PUSH_OK=()=>'serviceWorker' in navigator&&'PushManager' in window&&'Notification' in window;
+let SWREG=null;if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').then(r=>{SWREG=r;}).catch(()=>{});
+function b64u(s){s=s.replace(/-/g,'+').replace(/_/g,'/');const r=atob(s+'==='.slice((s.length+3)%4)),a=new Uint8Array(r.length);for(let i=0;i<r.length;i++)a[i]=r.charCodeAt(i);return a;}
+function pushSave(n,sub){if(!DB||!n)return Promise.resolve();return fetch(PUSHDOC(n,DEV),{method:'PATCH',headers:{'Content-Type':'application/json'},
+  body:JSON.stringify({fields:{sub:{stringValue:sub?JSON.stringify(sub):''},at:{timestampValue:new Date().toISOString()}}})}).then(r=>{if(!r.ok)throw r.status;});}
+function pushOn(){try{return localStorage.getItem('goldfish-push')===USER;}catch(e){return false;}}
+function pushUI(){const row=$('#pushRow');if(!USER||!DB){row.hidden=true;return;}row.hidden=false;const b=$('#pushBtn'),t=$('#pushTxt');
+  if(!PUSH_OK()){t.textContent=/iPhone|iPad/.test(navigator.userAgent)&&!STANDALONE()?'notifications · add Goldfish to your home screen first':'notifications aren’t available here';b.hidden=true;return;}
+  b.hidden=false;const on=pushOn()&&Notification.permission==='granted';t.textContent=on?'notifications are on':'notifications';b.textContent=on?'turn off':'turn on';}
+$('#pushBtn').onclick=()=>{const t=$('#pushTxt');
+  if(pushOn()&&Notification.permission==='granted'){(SWREG?SWREG.pushManager.getSubscription():Promise.resolve(null)).then(s=>s&&s.unsubscribe()).finally(()=>{pushSave(USER,null).catch(()=>{});try{localStorage.removeItem('goldfish-push');}catch(e){}pushUI();});return;}
+  Notification.requestPermission().then(p=>{if(p!=='granted'){t.textContent='notifications are blocked in settings';return;}
+    return navigator.serviceWorker.ready.then(r=>r.pushManager.getSubscription().then(s=>s||r.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:b64u(VAPID_PUB)})))
+      .then(sub=>pushSave(USER,sub.toJSON())).then(()=>{try{localStorage.setItem('goldfish-push',USER);}catch(e){}pushUI();});}).catch(()=>{t.textContent='couldn’t turn on notifications';});};
+// switching keeper on this device: stop sending the old keeper's notifications here, and send the new one's if they were on
+function pushSwitch(oldN,newN){if(!pushOn()||oldN===newN)return;pushSave(oldN,null).catch(()=>{});if(SWREG)SWREG.pushManager.getSubscription().then(s=>{if(s)pushSave(newN,s.toJSON()).then(()=>{try{localStorage.setItem('goldfish-push',newN);}catch(e){}}).catch(()=>{});});}
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&navigator.clearAppBadge)navigator.clearAppBadge().catch(()=>{});});
 /* ---- duels: when visiting, challenge the keeper to rock stacking or rock balancing. It's a coin flip, shown as a little race of two stacks.
    One duel per tank a day. The winner gets a shiny winner ring (the first one goes in your tank) worth +50 xp. ---- */
 let DUEL=null;
@@ -2033,9 +2056,12 @@ function duelFrame(){const D=DUEL;if(!D||$('#duel').hidden&&D.end)return;const c
   side(D.me,W*0.28,'you');side(D.them,W*0.72,'@'+D.n);
   if(!D.end&&D.t>fallT+0.9){D.end=true;duelResult();}
   if(!D.end||D.t<fallT+3)requestAnimationFrame(duelFrame);}
+function awardRing(){addXP(50);const home=VISIT?VISIT.mine:save.tank;PROG.life.rings=(PROG.life.rings||0)+1;
+  if(!home.owned.ring){home.owned.ring=1;if(!home.items.some(i=>i.id==='ring'))home.items.push({id:'ring',x:+rnd(-0.6,0.6).toFixed(3),z:+rnd(-0.3,0.3).toFixed(2),r:0});if(!VISIT)rebuildTank();}}
 function duelResult(){const D=DUEL;if(!D)return;
-  if(D.win){addXP(50);const home=VISIT?VISIT.mine:save.tank;PROG.life.rings=(PROG.life.rings||0)+1;
-    if(!home.owned.ring){home.owned.ring=1;if(!home.items.some(i=>i.id==='ring'))home.items.push({id:'ring',x:+rnd(-0.6,0.6).toFixed(3),z:+rnd(-0.3,0.3).toFixed(2),r:0});}
+  // let the other keeper know how it went (it lands in their gift box, and as a notification if they've turned those on)
+  if(DB&&USER){const body={fields:{from:{stringValue:USER},kind:{stringValue:'duel'},item:{stringValue:D.kind+'.'+(D.win?'w':'l')},at:{timestampValue:new Date().toISOString()}}};fetch(GBOX(D.n)+'?key='+DB.apiKey,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}).catch(()=>{});}
+  if(D.win){awardRing();
     $('#duelMsg').textContent='you won! a shiny winner ring (+50 xp)'+(PROG.life.rings>1?' · rings won: '+PROG.life.rings:' · it’s waiting in your tank');renderUI();persist();snd.pop&&snd.pop();}
   else $('#duelMsg').textContent='@'+D.n+' won this time. try again tomorrow';}$('#giftClose').onclick=()=>{$('#giftOut').hidden=true;};
 $('#sendSnack').onclick=()=>{const g=giftDay();if(g.snack>=3)return;sendGift('snack','flakes',()=>{g.snack++;persist();openGiftOut();});};
@@ -2052,6 +2078,8 @@ function openGifts(list){const el=$('#giftInList');if($('#giftIn').hidden)el.tex
     if(g.kind==='snack'){p.s.food=Math.min(100,p.s.food+15);p.s.fun=Math.min(100,p.s.fun+10);const k=SNACKS[g.item]?g.item:'cucumber';pic=snk(k,40);SNACK_Q.push(k);txt='@'+g.from+' sent a '+SNACKS[k].name;}
     else if(g.kind==='fish'){const lk=unpackLook(g.item),pst=String(g.item).split('.')[4],st=pst===undefined||pst===''?10:clamp(+pst||0,0,10);save.friends=(save.friends||[]).concat([{id:g.id||(g.from+'-'+Date.now()),from:g.from,look:lk,stage:st}]).slice(-6);const img=fthumb(lk,st);
       pic='<img alt="" src="'+img+'" style="width:56px;height:40px">';txt='@'+g.from+' sent a little fish';setTimeout(spawnFriends,50);}
+    else if(g.kind==='duel'){const [dk,res]=String(g.item).split('.'),gm=dk==='balance'?'rock balancing':'rock stacking',th=makeThumbs();pic='<img alt="" src="'+th.ring+'">';
+      if(res==='l'){awardRing();placedGift=true;txt='@'+g.from+' challenged you to '+gm+' and you won a winner ring (+50 xp)';}else txt='@'+g.from+' challenged you to '+gm+' and won this time';}
     else if(g.kind==='sticker'&&STICKERS[g.item]){pic=stk(g.item,40);txt='@'+g.from+' sent a '+g.item;}
     else if(g.kind==='deco'){const pd=parseDecoItem(g.item),d=SHOP.find(x=>x.id===pd.id);if(!d)continue;const th=makeThumbs();pic='<img alt="" src="'+th[d.id]+'">';
       if(save.tank.owned[d.id]){addXP(Math.round(d.price/2));txt='@'+g.from+' sent a '+d.name+' (you had one, so +'+Math.round(d.price/2)+' xp)';}else{save.tank.owned[d.id]=1;txt='@'+g.from+' sent a '+d.name;

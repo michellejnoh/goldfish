@@ -32,7 +32,17 @@ service cloud.firestore {
         && d.updated is timestamp;
     }
 
-    // Gift boxes: anyone can leave a small gift for a keeper (a snack, a sticker or a decoration id).
+    // Notifications: each device that turned notifications on leaves its push address here (one document per device).
+    // Write-only from the game: nobody can read the addresses back; only the server function that sends the notifications can.
+    match /push/{name}/devices/{dev} {
+      allow create, update: if name.matches('^[a-z0-9_]{2,16}$') && dev.matches('^[a-z0-9]{4,12}$')
+        && request.resource.data.keys().hasOnly(['sub', 'at'])
+        && request.resource.data.sub is string && request.resource.data.sub.size() < 2000
+        && request.resource.data.at is timestamp;
+      allow read, delete: if false;
+    }
+
+    // Gift boxes: anyone can leave a small gift for a keeper (a snack, a decoration id, a little fish, or how a duel went).
     // The keeper's game reads the box and clears it after opening the gifts. Gifts can't be edited.
     match /gifts/{to}/box/{id} {
       allow read, delete: if to.matches('^[a-z0-9_]{2,16}$');
@@ -41,7 +51,7 @@ service cloud.firestore {
         && request.resource.data.keys().hasAll(['from', 'kind', 'item', 'at'])
         && request.resource.data.from is string && request.resource.data.from.matches('^[a-z0-9_]{2,16}$')
         && request.resource.data.from != to
-        && request.resource.data.kind in ['snack', 'sticker', 'deco', 'fish']
+        && request.resource.data.kind in ['snack', 'sticker', 'deco', 'fish', 'duel']
         && request.resource.data.item is string && request.resource.data.item.size() <= 24
         && request.resource.data.at is timestamp;
       allow update: if false;
