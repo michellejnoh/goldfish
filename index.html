@@ -41,6 +41,7 @@ html[lang="ko"] .small,html[lang="ko"] p{line-height:1.45}
 html[lang="ko"] .item b,html[lang="ko"] .lookgrid span{line-height:1.3}
 html{background:var(--bg)}
 html,body{height:100%;margin:0;overflow:hidden;overscroll-behavior:none}
+body{position:fixed;inset:0;width:100%}
 body{background:var(--bg);color:var(--ink);font-family:var(--font);-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
 #c{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none;z-index:0}
 #dark{position:fixed;inset:0;background:#0c0c0f;opacity:0;transition:opacity 1.2s ease;pointer-events:none;z-index:1}
@@ -1234,7 +1235,7 @@ function hitFish(){return ray.intersectObject(R.g,true).some(x=>{let o=x.object;
 /* turning decorations: twist with two fingers, scroll on a computer, or the turn buttons in the edit bar */
 const TP=new Map();let twist=null,selItem=null;
 const tpAng=()=>{const [a,b]=[...TP.values()];return Math.atan2(b.y-a.y,b.x-a.x);};
-function saveItemTurn(o){if(!o)return;o.userData.item.r=+o.rotation.y.toFixed(2);computeObst();persist();}
+function saveItemTurn(o){if(!o)return;o.userData.item.r=+o.rotation.y.toFixed(2);o.userData.item.t=Date.now();computeObst();persist();}
 function turnItem(o,da){if(!o)return;o.rotation.y+=da;}
 cv.addEventListener('pointerdown',e=>{TP.set(e.pointerId,{x:e.clientX,y:e.clientY});
   if(tool==='arrange'&&TP.size===2){const o=dragItem||(ITEMS_ON.includes(selItem)?selItem:null);if(o){twist={o,a:tpAng()};dragItem=null;}return;}},true);
@@ -1255,7 +1256,7 @@ cv.addEventListener('pointermove',e=>{setNDC(e);ptr.world=worldPoint();ptr.seen=
   else if(tool==='peb')pebbleBrush(false);
   else if(tool==='arrange'&&dragItem){const fp=floorPoint();if(fp){dragItem.position.x=clamp(fp.x,-B.x,B.x);dragItem.position.z=clamp(fp.z,-1.3,0.7);}}});
 function up(){if(!ptr.down)return;ptr.down=false;lastPeb=null;if(pebDirty){pebDirty=false;persist();}
-  if(dragItem){const it=dragItem.userData.item;it.x=+(dragItem.position.x/B.x).toFixed(3);it.z=+dragItem.position.z.toFixed(2);dragItem=null;computeObst();persist();}if(ptr.moved<12&&performance.now()-ptr.t0<380)tap();if(tool==='toy')endToy(false);}
+  if(dragItem){const it=dragItem.userData.item;it.x=+(dragItem.position.x/B.x).toFixed(3);it.z=+dragItem.position.z.toFixed(2);it.t=Date.now();dragItem=null;computeObst();persist();}if(ptr.moved<12&&performance.now()-ptr.t0<380)tap();if(tool==='toy')endToy(false);}
 cv.addEventListener('pointerup',up);cv.addEventListener('pointercancel',up);
 cv.addEventListener('pointerleave',e=>{if(e.pointerType==='mouse'&&!ptr.down)ptr.seen=-9;});
 function tap(){
@@ -1601,7 +1602,7 @@ function track(ty,n=1){if(!PROG||!USER||VISIT)return;ensureDaily();
   PROG.life[ty]=(PROG.life[ty]||0)+n;
   if(ty==='lead'){S.leadAcc=(S.leadAcc||0)+n;if(S.leadAcc>=10){S.leadAcc-=10;addXP(1);}}else if(PASSIVE[ty])addXP(PASSIVE[ty]);
   const d=PROG.daily;for(const id of d.ids){const m=MISSIONS.find(x=>x.id===id);if(!m||m.ty!==ty||d.done[id])continue;
-    d.prog[id]=Math.min(m.g,(d.prog[id]||0)+n);if(d.prog[id]>=m.g){d.done[id]=true;addXP(m.xp);toast('mission done: '+fill(m.t)+' +'+m.xp+' xp');}}
+    d.pd=d.pd||{};d.pd[id]=d.pd[id]||{};d.pd[id][DEV]=(d.pd[id][DEV]||0)+n;d.prog[id]=Math.min(m.g,Math.max((d.prog[id]||0)+n,sumO(d.pd[id])));if(d.prog[id]>=m.g){d.done[id]=true;addXP(m.xp);toast('mission done: '+fill(m.t)+' +'+m.xp+' xp');}}
   if(!d.bonus&&d.ids.every(id=>d.done[id])){d.bonus=true;addXP(50);toast('all of today’s missions done +50 xp',3.6);}
   checkAch(ty,PROG.life[ty]);if(!$('#missions').hidden)renderMissions();}
 /* ---- local copy (instant) and online copy (any device) ---- */
@@ -1619,7 +1620,8 @@ function mergeProg(a,b){if(!a)return b;if(!b)return a;a=normProg(JSON.parse(JSON
   for(const k in lo.life)hi.life[k]=Math.max(hi.life[k]||0,lo.life[k]||0);
   hi.grow=Math.max(hi.grow||0,lo.grow||0);
   if((lo.streak&&lo.streak.n||0)>(hi.streak&&hi.streak.n||0))hi.streak=lo.streak;
-  const d1=hi.daily,d2=lo.daily;if(d1&&d2&&d1.day===d2.day&&String(d1.ids)===String(d2.ids)){for(const id of d1.ids){d1.prog[id]=Math.max(d1.prog[id]||0,d2.prog[id]||0);d1.done[id]=d1.done[id]||d2.done[id];}d1.bonus=d1.bonus||d2.bonus;}
+  const d1=hi.daily,d2=lo.daily;if(d1&&d2&&d1.day===d2.day&&String(d1.ids)===String(d2.ids)){d1.pd=d1.pd||{};const p2=d2.pd||{};
+    for(const id of d1.ids){const m=Object.assign({},(d1.pd[id]||{}));for(const k in p2[id]||{})m[k]=Math.max(m[k]||0,p2[id][k]);d1.pd[id]=m;d1.prog[id]=Math.max(d1.prog[id]||0,d2.prog[id]||0,sumO(m));d1.done[id]=d1.done[id]||d2.done[id];}d1.bonus=d1.bonus||d2.bonus;}
   return hi;}
 // gifted fish are never lost in a sync: the lists from both sides are combined (the newer side's show/hide choice wins)
 function friendKeys(list){const n={};return (list||[]).map(f=>{if(!f)return '';if(f.id)return f.id;const k=f.from||'';n[k]=(n[k]||0)+1;return k+'#'+n[k];});}
@@ -1628,7 +1630,14 @@ function mergeRec(a,b){if(!a)return b;if(!b)return a;const ua=a.changed||a.updat
   let sv=w.save;if(sv&&l.save&&((l.save.friends||[]).length||(sv.friends||[]).length)){sv=Object.assign({},sv,{friends:mergeFriends(sv.friends,l.save.friends)});}
   // decorations owned on either copy stay owned; one the newer copy has never had keeps its spot from the other copy
   if(sv&&l.save&&l.save.tank){const st=sv.tank||{},lt=l.save.tank,mo=st.owned||{},own=Object.assign({},lt.owned||{},mo),items=(st.items||[]).slice();
-    for(const it of lt.items||[])if(it&&!mo[it.id]&&!items.some(i=>i.id===it.id))items.push(it);sv=Object.assign({},sv,{tank:Object.assign({},st,{owned:own,items})});}
+    // each decoration keeps its own time of last change (placed, moved, turned, put away); for each one the most recent change wins,
+    // so moving something on one device is never undone by an unrelated save from another
+    const gone=Object.assign({},lt.gone||{});for(const k in st.gone||{})gone[k]=Math.max(gone[k]||0,st.gone[k]);
+    const ids=new Set([...items.map(i=>i.id),...(lt.items||[]).map(i=>i&&i.id),...Object.keys(gone)]),out=[];
+    for(const id of ids){if(!id)continue;const a1=items.find(i=>i.id===id),b1=(lt.items||[]).find(i=>i&&i.id===id),ta=a1?(a1.t||0):-1,tb=b1?(b1.t||0):-1,tg=gone[id]||-1;
+      let pick=null;if(a1&&ta>=tb)pick=a1;else if(b1&&tb>ta)pick=b1;else if(b1&&!a1&&!mo[id])pick=b1;
+      if(pick&&tg>(pick.t||0))pick=null;if(pick)out.push(pick);}
+    sv=Object.assign({},sv,{tank:Object.assign({},st,{owned:own,items:out,gone})});}
   return {updated:Math.max(ua,ub),save:sv,prog:mergeProg(a.prog,b.prog)};}
 // my own save as it should go online: while visiting, the tank on screen is the friend's, so put mine back in
 const homeSave=()=>VISIT?Object.assign({},save,{tank:VISIT.mine}):save;
@@ -1724,7 +1733,7 @@ setInterval(()=>{if(cloudDirty)cloudPut();else if(!document.hidden)pull();},3000
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)pull();});
 /* the home-screen app keeps an old copy of the page open (and iOS caches it), so check for a newer build when it opens or comes back,
    and reload past the cache if there is one */
-const BUILD='20261117075259';
+const BUILD='20261117084857';
 function checkBuild(){fetch('version.json?t='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{if(!j||!j.b||j.b===BUILD)return;
   try{if(sessionStorage.getItem('gf-build')===j.b)return;sessionStorage.setItem('gf-build',j.b);}catch(e){}
   try{persistLocal();}catch(e){}location.replace(location.pathname+'?v='+encodeURIComponent(j.b));}).catch(()=>{});}
@@ -1853,11 +1862,11 @@ $('#arrangeBtn').onclick=()=>setEdit('arrange');
 document.querySelectorAll('[data-e]').forEach(b=>b.onclick=()=>setEdit(b.dataset.e));
 $('#editDone').onclick=endEdit;
 document.querySelectorAll('[data-turn]').forEach(b=>b.onclick=()=>{const o=selItem&&ITEMS_ON.includes(selItem)?selItem:ITEMS_ON[ITEMS_ON.length-1];if(!o)return;selItem=o;turnItem(o,+b.dataset.turn*Math.PI/8);saveItemTurn(o);});
-function placeItem(id){const it={id,x:+rnd(-0.8,0.8).toFixed(3),z:+rnd(-0.45,0.45).toFixed(2),r:+rnd(-0.6,0.6).toFixed(2)};save.tank.items.push(it);rebuildTank();persist();}
+function placeItem(id){const it={id,x:+rnd(-0.8,0.8).toFixed(3),z:+rnd(-0.45,0.45).toFixed(2),r:+rnd(-0.6,0.6).toFixed(2),t:Date.now()};save.tank.items.push(it);rebuildTank();persist();}
 $('#shopList').addEventListener('click',e=>{const d=e.target.dataset||{};
   if(d.buy){const it=ALLDECO().find(x=>x.id===d.buy&&!x.prize);if(!it)return;const lv0=PROG?PROG.level:1;if(!spendXP(it.price))return;save.tank.owned[it.id]=true;placeItem(it.id);toast(it.name+' added to the tank'+(PROG.level<lv0?' \u00b7 now level '+PROG.level:''));}
   else if(d.on)placeItem(d.on);
-  else if(d.off){save.tank.items=save.tank.items.filter(i=>i.id!==d.off);rebuildTank();persist();}
+  else if(d.off){save.tank.items=save.tank.items.filter(i=>i.id!==d.off);save.tank.gone=Object.assign({},save.tank.gone,{[d.off]:Date.now()});rebuildTank();persist();}
   renderShop();const id=d.buy||d.on||d.off,def=id&&ALLDECO().find(x=>x.id===id);if(!def)return;
   if(!d.off)dropIn(ITEMS_ON[ITEMS_ON.length-1]);});
 const FLOOR=new THREE.Plane(new V3(0,1,0),0);
@@ -1977,6 +1986,11 @@ function VISIT_REC(n){const r=(save.recent||[]).filter(x=>x!==n);r.unshift(n);sa
 function openVisit(){if(!DB){toast('visiting needs the online save');return;}$('#visitErr').textContent='';$('#visitName').value='';$('#visitAsk').hidden=false;
   {const el=$('#recent');el.textContent='';for(const n of (save.recent||[]).slice(0,8)){const b=document.createElement('button');b.type='button';b.textContent='@'+n;b.onclick=()=>{$('#visitName').value=n;$('#visitForm').requestSubmit();};el.appendChild(b);}}setTimeout(()=>$('#visitName').focus(),60);}
 $('#visitBtn').onclick=openVisit;
+/* iOS (especially the home-screen app) scrolls the whole page up when the keyboard opens and doesn't always scroll it back, so the
+   screen creeps upward over time. Put it back whenever the keyboard closes, the viewport changes, or the app comes back. */
+function unshift(){if(window.scrollY||document.documentElement.scrollTop||document.body.scrollTop){window.scrollTo(0,0);document.documentElement.scrollTop=0;document.body.scrollTop=0;}}
+document.addEventListener('focusout',()=>setTimeout(unshift,60));if(window.visualViewport){visualViewport.addEventListener('resize',()=>setTimeout(unshift,60));visualViewport.addEventListener('scroll',()=>{if(!document.activeElement||!/INPUT|TEXTAREA/.test(document.activeElement.tagName))unshift();});}
+window.addEventListener('scroll',()=>{if(!document.activeElement||!/INPUT|TEXTAREA/.test(document.activeElement.tagName))unshift();});document.addEventListener('visibilitychange',()=>{if(!document.hidden)setTimeout(unshift,100);});setInterval(()=>{if(!document.activeElement||!/INPUT|TEXTAREA/.test(document.activeElement.tagName))unshift();},2000);
 function openMore(){$('#mSoundTxt').textContent=save.sound?'on':'off';$('#mAcctTxt').textContent=USER?'@'+USER+' · '+(LANG==='ko'?'한국어':'English'):'sign in';$('#more').hidden=false;}
 $('#moreBtn').onclick=openMore;$('#moreClose').onclick=()=>{$('#more').hidden=true;};
 $('#mTank').onclick=()=>{$('#more').hidden=true;$('#tvBtn').click();};$('#mPhoto').onclick=()=>{$('#more').hidden=true;$('#captureBtn').click();};
@@ -2203,7 +2217,7 @@ function goHomeWithRing(){const f=$('#fade');f.hidden=false;requestAnimationFram
 function endDuel(){const D=DX;if(!D)return;DX=null;for(const P of [D.me,D.host])for(const q of P.src)world.remove(q.m);world.remove(D.me.G.g);if(D.ring)world.remove(D.ring.g);
   FRIENDS.forEach(f=>f.g.visible=true);for(const m of D.hid)m.visible=true;S.pitch=0;S.mode='idle';duelCap('');renderUI();}
 function awardRing(){addXP(50);const home=VISIT?VISIT.mine:save.tank;PROG.life.rings=(PROG.life.rings||0)+1;
-  if(!home.owned.ring){home.owned.ring=1;if(!home.items.some(i=>i.id==='ring'))home.items.push({id:'ring',x:+rnd(-0.6,0.6).toFixed(3),z:+rnd(-0.3,0.3).toFixed(2),r:0});if(!VISIT)rebuildTank();}}
+  if(!home.owned.ring){home.owned.ring=1;if(!home.items.some(i=>i.id==='ring'))home.items.push({id:'ring',x:+rnd(-0.6,0.6).toFixed(3),z:+rnd(-0.3,0.3).toFixed(2),r:0,t:Date.now()});if(!VISIT)rebuildTank();}}
 $('#sendSnack').onclick=()=>{const g=giftDay();if(g.snack>=3)return;sendGift('snack','flakes',()=>{g.snack++;persist();openGiftOut();});};
 // receiving
 const SEEN_GIFTS=new Set();
@@ -2223,7 +2237,7 @@ function openGifts(list){const el=$('#giftInList');if($('#giftIn').hidden)el.tex
     else if(g.kind==='sticker'&&STICKERS[g.item]){pic=stk(g.item,40);txt='@'+g.from+' sent a '+g.item;}
     else if(g.kind==='deco'){const pd=parseDecoItem(g.item),d=ALLDECO().find(x=>x.id===pd.id&&!x.prize);if(!d)continue;const th=makeThumbs();pic='<img alt="" src="'+th[d.id]+'">';
       if(save.tank.owned[d.id]){addXP(Math.round(d.price/2));txt='@'+g.from+' sent a '+d.name+' (you had one, so +'+Math.round(d.price/2)+' xp)';}else{save.tank.owned[d.id]=1;txt='@'+g.from+' sent a '+d.name;
-        if(pd.x!==undefined&&!save.tank.items.some(i=>i.id===d.id)){save.tank.items.push({id:d.id,x:+pd.x.toFixed(3),z:+pd.z.toFixed(2),r:+pd.r.toFixed(2)});placedGift=true;txt+=' and placed it in your tank';}}}
+        if(pd.x!==undefined&&!save.tank.items.some(i=>i.id===d.id)){save.tank.items.push({id:d.id,x:+pd.x.toFixed(3),z:+pd.z.toFixed(2),r:+pd.r.toFixed(2),t:Date.now()});placedGift=true;txt+=' and placed it in your tank';}}}
     else continue;
     row.innerHTML=pic;const t=document.createElement('span');t.textContent=txt;row.appendChild(t);el.appendChild(row);}
   {const ib=save.inbox=(save.inbox||[]);el.querySelectorAll('.gift-line span').forEach(sp=>ib.unshift({t:Date.now(),x:sp.textContent,n:1}));save.inbox=ib.slice(0,40);bellDot();}
