@@ -1733,7 +1733,7 @@ setInterval(()=>{if(cloudDirty)cloudPut();else if(!document.hidden)pull();},3000
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)pull();});
 /* the home-screen app keeps an old copy of the page open (and iOS caches it), so check for a newer build when it opens or comes back,
    and reload past the cache if there is one */
-const BUILD='20261117113911';
+const BUILD='20261117114037';
 function checkBuild(){fetch('version.json?t='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{if(!j||!j.b||j.b===BUILD)return;
   try{if(sessionStorage.getItem('gf-build')===j.b)return;sessionStorage.setItem('gf-build',j.b);}catch(e){}
   try{persistLocal();}catch(e){}location.replace(location.pathname+'?v='+encodeURIComponent(j.b));}).catch(()=>{});}
@@ -2712,7 +2712,7 @@ function ffTex(){if(ffTex.t)return ffTex.t;const c=document.createElement('canva
 function ffBuild(){const g=new THREE.Group(),tex=FFMODE===1?ffTex():glowTex(),spr=(col)=>{const m=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,color:col,transparent:true,opacity:0,depthWrite:false,fog:false,blending:THREE.AdditiveBlending}));m.renderOrder=9;g.add(m);return m;},
     mk=(col)=>{const c=spr(FFMODE===1?0xfffbe6:0xffffff),h=spr(col);c.userData.h=h;return c;};
   FF={g,a:0,list:[],rip:[],next:3,emit:0};world.add(g);
-  if(FFMODE===1)for(let i=0;i<7;i++)FF.list.push({s:mk(0xfff1b8),c:new V3(rnd(-B.x*0.7,B.x*0.7),rnd(B.floor+0.4,B.surf-0.4),rnd(-0.9,0.4)),ph:rnd(0,6),w:rnd(1.6,3),away:new V3(),b:0});
+  if(FFMODE===1)for(let i=0;i<7;i++)FF.list.push({s:mk(0xfff1b8),c:new V3(rnd(-B.x*0.7,B.x*0.7),rnd(B.floor+0.4,B.surf-0.4),rnd(-0.9,0.4)),ph:rnd(0,6),w:rnd(0.4,0.75),away:new V3(),b:0});
   else if(FFMODE===2){for(let i=0;i<5;i++)FF.list.push({s:mk(0xf2ef8a),x:rnd(-B.x*0.8,B.x*0.8),vx:rnd(0.04,0.1)*(i%2?1:-1),z:0,ph:rnd(0,6),w:rnd(1.2,2.2),b:0});
     for(let i=0;i<3;i++){const m=new THREE.Mesh(new THREE.RingGeometry(0.85,1,40),new THREE.MeshBasicMaterial({color:0xfff6d8,transparent:true,depthWrite:false,fog:false,blending:THREE.AdditiveBlending,side:THREE.DoubleSide}));m.rotation.x=-Math.PI/2;m.visible=false;g.add(m);FF.rip.push({m,t:9});}}
   else{for(let i=0;i<10;i++)FF.list.push({s:mk(0x7fe8ff),ambient:true,p:new V3(rnd(-B.x*0.8,B.x*0.8),rnd(B.floor+0.3,B.surf-0.3),rnd(-0.8,0.4)),ph:rnd(0,6),w:rnd(0.8,1.6),b:0});
