@@ -1733,7 +1733,7 @@ setInterval(()=>{if(cloudDirty)cloudPut();else if(!document.hidden)pull();},3000
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)pull();});
 /* the home-screen app keeps an old copy of the page open (and iOS caches it), so check for a newer build when it opens or comes back,
    and reload past the cache if there is one */
-const BUILD='20261117084857';
+const BUILD='20261117110844';
 function checkBuild(){fetch('version.json?t='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{if(!j||!j.b||j.b===BUILD)return;
   try{if(sessionStorage.getItem('gf-build')===j.b)return;sessionStorage.setItem('gf-build',j.b);}catch(e){}
   try{persistLocal();}catch(e){}location.replace(location.pathname+'?v='+encodeURIComponent(j.b));}).catch(()=>{});}
@@ -1845,7 +1845,7 @@ $('#shopClose').onclick=()=>{$('#shop').hidden=true;};
 function openTank(){renderTank();$('#tank').hidden=false;}
 const SUBS=['waterMenu','decorMenu','lampMenu'];
 function openSub(id){$('#tank').hidden=true;SUBS.forEach(k=>$('#'+k).hidden=k!==id);renderTank();friendsLabel();}
-$('#waterMenuBtn').onclick=()=>openSub('waterMenu');$('#decorMenuBtn').onclick=()=>openSub('decorMenu');
+$('#waterMenuBtn').onclick=()=>openSub('waterMenu');$('#decorMenuBtn').onclick=()=>setEdit('arrange');
 document.querySelectorAll('[data-back]').forEach(b=>b.onclick=()=>{SUBS.forEach(k=>$('#'+k).hidden=true);openTank();});
 $('#tankClose').onclick=()=>{$('#tank').hidden=true;};
 function renderLamps(){const el=$('#lampRow'),cur=save.lamp||'warm';el.textContent='';
