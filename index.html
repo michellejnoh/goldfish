@@ -53,6 +53,12 @@ body.night #dark{opacity:.55}
 .ui > *{pointer-events:auto}
 .top{top:0;padding-top:calc(env(safe-area-inset-top,0px) + 14px);display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
 .who{display:flex;flex-direction:column;gap:9px;min-width:0;flex:1;max-width:560px}
+.icon.hide{display:none!important}
+#lvBadge{display:inline-flex;align-items:center;gap:7px;align-self:flex-start;background:none;border:0;padding:2px 0;font:inherit;font-size:15px;color:inherit}#lvBadge svg{display:block}
+.sec{font-size:13px;opacity:.5;margin:12px 0 2px;letter-spacing:.02em}.sec:first-of-type{margin-top:4px}
+#recent{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 2px}#recent button{background:none;border:1px solid rgba(0,0,0,.15);border-radius:999px;padding:6px 12px;font:inherit;font-size:15px;color:inherit}
+.shoptabs{display:flex;gap:6px;justify-content:center;margin:4px 0 10px}.shoptabs button{background:none;border:0;border-bottom:1.5px solid transparent;padding:4px 10px;font:inherit;font-size:16px;color:inherit;opacity:.5}.shoptabs button[aria-selected=true]{opacity:1;border-color:currentColor}
+#visitBar .vb{display:inline-flex;flex-direction:column;align-items:center;gap:2px;background:none;border:0;font:inherit;font-size:12px;color:inherit;padding:2px 8px}#visitBar .vb svg{display:block}
 #name{cursor:pointer;font:500 40px/1 var(--font);letter-spacing:-.01em;color:var(--ink);background:transparent;border:0;padding:0;margin:0;width:100%;white-space:nowrap;
   -webkit-user-select:text;user-select:text;text-shadow:inherit}
 #name:focus{outline:none;border-bottom:1px solid var(--ink)}
@@ -167,6 +173,7 @@ body.visiting .ui,body.visiting #say{display:none}
 .growrow span.now{color:#111}
 .mrow{display:flex;align-items:center;gap:14px;width:100%;text-align:left;padding:9px 0;border-bottom:1px solid #ececec;cursor:pointer}
 .mrow:last-of-type{border-bottom:0}
+@media (max-height:760px){#tank .mrow,html[lang="ko"] #tank .mrow{padding:6px 0}#tank .mrow small{display:none}#tank .sec{margin:8px 0 0}}
 .mi{width:40px;height:40px;flex:none;display:flex;align-items:center;justify-content:center;color:var(--ink)}
 .mt{display:flex;flex-direction:column;gap:0;min-width:0}
 .mt b{font-weight:500;font-size:22px;line-height:1.1;color:#111}
@@ -236,12 +243,13 @@ body.lookdock #viewArrows{display:flex}
 <div id="tour" hidden><div class="arrow"><svg viewBox="0 0 44 24" width="44" height="24" fill="none" stroke="#111" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12h36M31 5l8 7-8 7"/></svg></div><div class="tip"><p id="tourText"></p><div class="row2"><button type="button" class="link" id="tourSkip">skip</button><span id="tourStep"></span></div></div></div>
 <div id="giftPlaceBar" hidden><p id="gpTitle"></p><p class="small">drag it where you like · twist or use the arrows to turn it</p>
   <div class="gprow"><button type="button" class="go" data-gpturn="1" aria-label="turn left">‹</button><button type="button" class="go" data-gpturn="-1" aria-label="turn right">›</button><span></span><button type="button" class="go" id="gpCancel">cancel</button><button type="button" class="go" id="gpSend">send</button></div></div>
-<div id="visitBar" hidden><p id="visitTitle"></p><button type="button" class="go" id="giftBtn">send a gift</button><button type="button" class="go" id="duelBtn">duel</button><button type="button" class="go" id="visitHome">home</button></div>
+<div id="visitBar" hidden><p id="visitTitle"></p><button type="button" class="vb" id="giftBtn"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 10h16v10H4z"/><path d="M3 7h18v3H3z"/><path d="M12 7v13"/><path d="M12 7c-1.5-3-5-3-5-1s3 1 5 1c2 0 5 1 5-1s-3.5-2-5 1"/></svg><span>gift</span></button><button type="button" class="vb" id="duelBtn"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><ellipse cx="12" cy="18.5" rx="6" ry="2"/><ellipse cx="12" cy="13.8" rx="4.4" ry="1.9"/><ellipse cx="12" cy="9.6" rx="3" ry="1.6"/><ellipse cx="12" cy="6.2" rx="1.8" ry="1.2"/></svg><span>duel</span></button><button type="button" class="vb" id="visitHome"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 11.5L12 5l8 6.5"/><path d="M6 10v9h12v-9"/></svg><span>home</span></button></div>
 <div class="sheet" id="visitAsk" hidden>
   <div class="card">
-    <h2>visit a keeper</h2>
-    <p class="small">type the username of the keeper you want to visit</p>
+    <h2>friends</h2>
+    <p class="small">visit a keeper by username, or tap one you’ve visited</p>
     <form id="visitForm" autocomplete="off"><input id="visitName" placeholder="username" maxlength="16" autocapitalize="none" spellcheck="false" aria-label="Username">
+    <div id="recent"></div>
     <p class="small" id="visitErr"></p>
     <div class="row2"><button type="button" class="link" id="visitCancel">cancel</button><button type="submit" class="go">visit</button></div></form>
   </div>
@@ -257,6 +265,16 @@ body.lookdock #viewArrows{display:flex}
 </div>
 <p id="duelCap" hidden></p>
 <div id="fade" hidden></div>
+<div class="sheet" id="more" hidden>
+  <div class="card">
+    <h2>more</h2>
+    <button type="button" class="mrow" id="mTank"><span class="mi"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 8.5h12.5v11.5H3.5z"/><path d="M3.5 8.5L7.5 4.5h12.5v11.5l-4 4"/><path d="M16 8.5l4-4"/></svg></span><span class="mt"><b>tank view</b><small>see your tank in its room</small></span></button>
+    <button type="button" class="mrow" id="mPhoto"><span class="mi"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8.5h3.2L8.8 6h6.4l1.6 2.5H20v10H4z"/><circle cx="12" cy="13.2" r="3.3"/></svg></span><span class="mt"><b>photo</b><small>save a picture of your tank</small></span></button>
+    <button type="button" class="mrow" id="mSound"><span class="mi"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9.5v5h3.5L12 18.5v-13L7.5 9.5H4z"/><path d="M15.5 9.5a3.5 3.5 0 0 1 0 5"/></svg></span><span class="mt"><b>sound</b><small id="mSoundTxt">on</small></span></button>
+    <button type="button" class="mrow" id="mAcct"><span class="mi"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8.5" r="3.5"/><path d="M5 20c.8-3.6 3.6-5.5 7-5.5s6.2 1.9 7 5.5"/></svg></span><span class="mt"><b>account & language</b><small id="mAcctTxt">sign in</small></span></button>
+    <div class="row2 topclose"><span></span><button type="button" class="go" id="moreClose">close</button></div>
+  </div>
+</div>
 <div class="sheet" id="inbox" hidden>
   <div class="card">
     <h2>notifications</h2>
@@ -292,8 +310,9 @@ body.lookdock #viewArrows{display:flex}
   <div class="who">
     <input id="name" maxlength="14" aria-label="Fish name" spellcheck="false" autocomplete="off" readonly>
     <div class="stats" id="stats"></div>
+    <button type="button" id="lvBadge" aria-label="Level and missions"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-opacity=".18" stroke-width="2.2"/><circle id="lvRing" cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-dasharray="56.5" stroke-dashoffset="56.5" transform="rotate(-90 12 12)"/></svg><span id="lvl">lv 1</span></button>
   </div>
-  <div class="side"><button class="mini" id="who">keeper</button><button class="icon" id="bellBtn" aria-label="Notifications"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 16.5V11a6 6 0 0 1 12 0v5.5l1.5 1.5h-15z"/><path d="M10 20.5a2 2 0 0 0 4 0"/></svg><i id="bellDot" hidden></i></button><button class="icon" id="misBtn" aria-label="Missions"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 21V3.5"/><path d="M6 4.5h11.5l-2.4 4 2.4 4H6"/></svg></button><button class="icon" id="snd" aria-label="Sound on"></button><button class="icon" id="visitBtn" aria-label="Visit a keeper"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 11.5L12 5l8 6.5"/><path d="M6 10v9h12v-9"/></svg></button><button class="icon" id="tvBtn" aria-label="Tank view"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 8.5h12.5v11.5H3.5z"/><path d="M3.5 8.5L7.5 4.5h12.5v11.5l-4 4"/><path d="M16 8.5l4-4"/><path d="M3.5 13c2.1 1 4.2 1 6.3 0s4.1-1 6.2 0"/></svg></button><button class="icon" id="editBtn" aria-label="Edit your tank"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20l4.2-1 10.4-10.4a2 2 0 0 0 0-2.8l-.4-.4a2 2 0 0 0-2.8 0L5 15.8 4 20z"/><path d="M13.5 6.5l4 4"/></svg></button><button class="icon" id="captureBtn" aria-label="Capture the tank"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8.5h3.2L8.8 6h6.4l1.6 2.5H20v10H4z"/><circle cx="12" cy="13.2" r="3.3"/></svg></button></div>
+  <div class="side"><button class="mini" id="who">keeper</button><button class="icon" id="bellBtn" aria-label="Notifications"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 16.5V11a6 6 0 0 1 12 0v5.5l1.5 1.5h-15z"/><path d="M10 20.5a2 2 0 0 0 4 0"/></svg><i id="bellDot" hidden></i></button><button class="icon" id="bagBtn" aria-label="Shop"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 8.5h14l-1.2 11.5H6.2z"/><path d="M9 8.5V7a3 3 0 0 1 6 0v1.5"/></svg></button><button class="icon hide" id="misBtn" aria-label="Missions"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 21V3.5"/><path d="M6 4.5h11.5l-2.4 4 2.4 4H6"/></svg></button><button class="icon hide" id="snd" aria-label="Sound on"></button><button class="icon" id="visitBtn" aria-label="Friends"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 9.5c1.4-2 3.2-2.8 5-2.8 1.7 0 2.9.8 3.6 1.7l1.3-1.1v4.4l-1.3-1.1c-.7.9-1.9 1.7-3.6 1.7-1.8 0-3.6-.8-5-2.8z"/><path d="M10.5 16c1.4-2 3.2-2.8 5-2.8 1.7 0 2.9.8 3.6 1.7l1.3-1.1v4.4l-1.3-1.1c-.7.9-1.9 1.7-3.6 1.7-1.8 0-3.6-.8-5-2.8z"/></svg></button><button class="icon hide" id="tvBtn" aria-label="Tank view"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 8.5h12.5v11.5H3.5z"/><path d="M3.5 8.5L7.5 4.5h12.5v11.5l-4 4"/><path d="M16 8.5l4-4"/><path d="M3.5 13c2.1 1 4.2 1 6.3 0s4.1-1 6.2 0"/></svg></button><button class="icon" id="editBtn" aria-label="Edit your tank"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20l4.2-1 10.4-10.4a2 2 0 0 0 0-2.8l-.4-.4a2 2 0 0 0-2.8 0L5 15.8 4 20z"/><path d="M13.5 6.5l4 4"/></svg></button><button class="icon hide" id="captureBtn" aria-label="Capture the tank"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8.5h3.2L8.8 6h6.4l1.6 2.5H20v10H4z"/><circle cx="12" cy="13.2" r="3.3"/></svg></button><button class="icon" id="moreBtn" aria-label="More"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="6" cy="12" r="1.1" fill="currentColor"/><circle cx="12" cy="12" r="1.1" fill="currentColor"/><circle cx="18" cy="12" r="1.1" fill="currentColor"/></svg></button></div>
 </div>
 <div class="ui bottom">
   <p id="cap" aria-live="polite"></p>
@@ -320,21 +339,16 @@ body.lookdock #viewArrows{display:flex}
 <div class="sheet" id="tank" hidden>
   <div class="card">
     <h2>edit</h2>
-    <button type="button" class="mrow" id="fishMenuBtn"><span class="mi"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><g><path d="M2.5 12c2.6-4 6.2-5.6 9.6-5.6 3.3 0 5.6 1.6 6.9 3.4l2.4-2.1c.5-.4 1.2 0 1 .7l-.8 3.6.8 3.6c.2.7-.5 1.1-1 .7l-2.4-2.1c-1.3 1.8-3.6 3.4-6.9 3.4-3.4 0-7-1.6-9.6-5.6z" fill="currentColor" stroke="none"/><circle cx="7" cy="11.2" r="1" fill="#fff" stroke="none"/></g></svg></span><span class="mt"><b>your fish</b><small>color, pattern, skin &amp; friends</small></span></button>
-    <button type="button" class="mrow" id="waterMenuBtn"><span class="mi"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.5c3 3.9 6 7.4 6 10.9a6 6 0 0 1-12 0c0-3.5 3-7 6-10.9z"/></svg></span><span class="mt"><b>water</b><small>clear, blue or green</small></span></button>
-    <button type="button" class="mrow" id="decorMenuBtn"><span class="mi"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.5 5c.75 4.4 2.3 6.1 6.7 6.8-4.4.75-5.95 2.45-6.7 6.95-.75-4.5-2.3-6.2-6.7-6.95 4.4-.7 5.95-2.4 6.7-6.8z"/><path d="M18 2.8c.38 2 1.1 2.75 3.1 3.15-2 .4-2.72 1.15-3.1 3.2-.38-2.05-1.1-2.8-3.1-3.2 2-.4 2.72-1.15 3.1-3.15z"/></svg></span><span class="mt"><b>decorations</b><small>shop, move &amp; pebbles</small></span></button>
-    <button type="button" class="mrow" id="lampMenuBtn"><span class="mi"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 4h8l2.2 8H5.8z"/><path d="M12 12v6"/><path d="M8.5 20h7"/></svg></span><span class="mt"><b>night lamp</b><small>the color of the light at night</small></span></button>
-    <div class="row2"><span></span><button type="button" class="go" id="tankClose">close</button></div>
-  </div>
-</div>
-<div class="sheet" id="fishMenu" hidden>
-  <div class="card">
-    <h2>your fish</h2>
+    <p class="sec">my fish</p>
     <button type="button" class="mrow" id="colorBtn"><span class="mi"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.2a8.8 8.8 0 1 0 0 17.6c1.3 0 1.9-1 1.4-2-.6-1.2.3-2.3 1.5-2.3h2.3a3.8 3.8 0 0 0 3.8-3.8c0-5.2-4-9.5-9-9.5z"/><circle cx="7.8" cy="11" r="1.1" fill="currentColor"/><circle cx="10.5" cy="7.3" r="1.1" fill="currentColor"/><circle cx="15" cy="7.6" r="1.1" fill="currentColor"/></svg></span><span class="mt"><b>color</b><small>25 shades to choose from</small></span></button>
     <button type="button" class="mrow" id="patBtn"><span class="mi"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7.5c2-2 4-2 6 0s4 2 6 0 4-2 6 0"/><path d="M3 12.5c2-2 4-2 6 0s4 2 6 0 4-2 6 0"/><path d="M3 17.5c2-2 4-2 6 0s4 2 6 0 4-2 6 0"/></svg></span><span class="mt"><b>pattern</b><small>fade, dark fins &amp; patches</small></span></button>
     <button type="button" class="mrow" id="skinBtn"><span class="mi"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.2 17L3 7.8l5 4.2 4-6.5 4 6.5 5-4.2-1.2 9.2z"/><path d="M4.8 20.2h14.4"/></svg></span><span class="mt"><b>skin</b><small>special looks, like christmas</small></span></button>
     <button type="button" class="mrow" id="friendsBtn"><span class="mi"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><g transform="translate(-0.5 0.5) scale(0.68)"><path d="M2.5 12c2.6-4 6.2-5.6 9.6-5.6 3.3 0 5.6 1.6 6.9 3.4l2.4-2.1c.5-.4 1.2 0 1 .7l-.8 3.6.8 3.6c.2.7-.5 1.1-1 .7l-2.4-2.1c-1.3 1.8-3.6 3.4-6.9 3.4-3.4 0-7-1.6-9.6-5.6z" fill="currentColor" stroke="none"/><circle cx="7" cy="11.2" r="1" fill="#fff" stroke="none"/></g><g transform="translate(8.2 9.4) scale(0.68)"><path d="M2.5 12c2.6-4 6.2-5.6 9.6-5.6 3.3 0 5.6 1.6 6.9 3.4l2.4-2.1c.5-.4 1.2 0 1 .7l-.8 3.6.8 3.6c.2.7-.5 1.1-1 .7l-2.4-2.1c-1.3 1.8-3.6 3.4-6.9 3.4-3.4 0-7-1.6-9.6-5.6z" fill="currentColor" stroke="none"/><circle cx="7" cy="11.2" r="1" fill="#fff" stroke="none"/></g></svg></span><span class="mt"><b>friends’ fish</b><small id="friendsTxt"></small></span></button>
-    <div class="row2"><span></span><button type="button" class="go" data-back>back</button></div>
+    <p class="sec">tank</p>
+    <button type="button" class="mrow" id="waterMenuBtn"><span class="mi"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.5c3 3.9 6 7.4 6 10.9a6 6 0 0 1-12 0c0-3.5 3-7 6-10.9z"/></svg></span><span class="mt"><b>water</b><small>clear, blue or green</small></span></button>
+    <button type="button" class="mrow" id="decorMenuBtn"><span class="mi"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.5 5c.75 4.4 2.3 6.1 6.7 6.8-4.4.75-5.95 2.45-6.7 6.95-.75-4.5-2.3-6.2-6.7-6.95 4.4-.7 5.95-2.4 6.7-6.8z"/><path d="M18 2.8c.38 2 1.1 2.75 3.1 3.15-2 .4-2.72 1.15-3.1 3.2-.38-2.05-1.1-2.8-3.1-3.2 2-.4 2.72-1.15 3.1-3.15z"/></svg></span><span class="mt"><b>decorations</b><small>shop, move &amp; pebbles</small></span></button>
+    <button type="button" class="mrow" id="lampMenuBtn"><span class="mi"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 4h8l2.2 8H5.8z"/><path d="M12 12v6"/><path d="M8.5 20h7"/></svg></span><span class="mt"><b>night lamp</b><small>the color of the light at night</small></span></button>
+    <div class="row2 topclose"><span></span><button type="button" class="go" id="tankClose">close</button></div>
   </div>
 </div>
 <div id="viewArrows" aria-label="turn your fish"><button type="button" id="viewL" aria-label="turn left"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.5 6l-6 6 6 6"/></svg></button><button type="button" id="viewR" aria-label="turn right"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.5 6l6 6-6 6"/></svg></button></div>
@@ -368,7 +382,6 @@ body.lookdock #viewArrows{display:flex}
 <div class="sheet" id="decorMenu" hidden>
   <div class="card">
     <h2>decorations</h2>
-    <button type="button" class="mrow" id="shopBtn"><span class="mi"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 8h14l-1.2 12H6.2L5 8z"/><path d="M9 10V7a3 3 0 0 1 6 0v3"/></svg></span><span class="mt"><b>shop</b><small>buy winter decorations with xp</small></span></button>
     <button type="button" class="mrow" id="arrangeBtn"><span class="mi"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v16M4 12h16"/><path d="M9.5 6.5L12 4l2.5 2.5M9.5 17.5L12 20l2.5-2.5M6.5 9.5L4 12l2.5 2.5M17.5 9.5L20 12l-2.5 2.5"/></svg></span><span class="mt"><b>move &amp; turn</b><small>drag them, twist to rotate</small></span></button>
     <button type="button" class="mrow" data-p="add"><span class="mi"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><ellipse cx="8" cy="16.5" rx="4" ry="2.6"/><ellipse cx="15.5" cy="17.5" rx="3" ry="2"/><path d="M17 4.5v6M14 7.5h6"/></svg></span><span class="mt"><b>add pebbles</b><small>tap or drag on the floor</small></span></button>
     <button type="button" class="mrow" data-p="remove"><span class="mi"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><ellipse cx="8" cy="16.5" rx="4" ry="2.6"/><ellipse cx="15.5" cy="17.5" rx="3" ry="2"/><path d="M14 7.5h6"/></svg></span><span class="mt"><b>remove pebbles</b><small>rub over them to pick up</small></span></button>
@@ -402,7 +415,7 @@ body.lookdock #viewArrows{display:flex}
   <div class="card">
     <h2>shop</h2>
     <p class="small" id="wallet"></p>
-    <div class="shoppg"><button type="button" id="shopPrev" aria-label="previous page">‹</button><b id="shopPgName">winter</b><button type="button" id="shopNext" aria-label="next page">›</button></div>
+    <div class="shoptabs" role="tablist"><button type="button" role="tab" data-pg="0">winter</button><button type="button" role="tab" data-pg="1">crystals</button><button type="button" role="tab" data-pg="2">rings</button></div>
     <div class="shopgrid" id="shopList"></div>
     <div class="row2 topclose"><span></span><button type="button" class="go" id="shopClose">back</button></div>
   </div>
@@ -490,7 +503,8 @@ const KO={
 'gifts need the new database rules (see the guide)':'선물을 보내려면 새 저장 서버 규칙이 필요해요','visiting needs the online save':'방문하려면 온라인 저장이 필요해요',
 'heart':'하트','sparkle':'반짝','fishy':'물고기','bubbles':'방울','cucumber':'오이','yum':'냠','crunch':'아삭','zucchini':'애호박','banana':'바나나',
 'a little fish like yours · 50 xp':'내 금붕어를 닮은 작은 물고기 · 50 xp','send · 50 xp':'보내기 · 50 xp','friends’ fish':'친구 물고기','tap a fish to show or hide it in your tank':'물고기를 탭해서 어항에 보이거나 숨겨요','no skin':'스킨 없음','little fish your friends send you swim here':'친구가 보낸 작은 물고기가 여기서 헤엄쳐요',
-'visit · type a friend’s username to visit their tank, send gifts, or challenge them to a duel. fish you’re sent swim with yours':'방문 · 친구 아이디를 입력해 어항에 놀러 가서 선물을 보내거나 결투를 신청해요. 선물받은 물고기는 내 물고기랑 같이 놀아요','duel':'결투','notifications':'알림','nothing yet':'아직 없어요','winter':'겨울','crystals':'크리스탈','amethyst cluster':'자수정 무리','rose quartz':'로즈 쿼츠','citrine geode':'시트린 지오드','aquamarine pair':'아쿠아마린 한 쌍','green fluorite':'초록 형석','rings · won in duels':'반지 · 결투에서 얻어요','win a duel':'결투에서 이기면','tallest tower wins':'더 높이 쌓으면 승리','keep the stones on your nose longest':'코 위 돌을 끝까지 지키면 승리','the fish play it out in the tank · pure luck · winner gets a winner ring (+50 xp)':'물고기들이 어항에서 직접 겨뤄요 · 순전히 운 · 이기면 승리 반지 (+50 xp)','notifications':'알림','turn on':'켜기','turn off':'끄기','notifications are on':'알림이 켜져 있어요','notifications · add Goldfish to your home screen first':'알림 · 먼저 Goldfish를 홈 화면에 추가해 주세요',"notifications aren’t available here":'여기서는 알림을 쓸 수 없어요','notifications are blocked in settings':'설정에서 알림이 꺼져 있어요','rock stacking':'돌 쌓기','rock balancing':'돌 균형 잡기','who stacks the tallest tower':'누가 더 높이 쌓나','whose stack stays up longer':'누구 탑이 더 오래 버티나','pick a game. winning is pure luck · the winner gets a shiny winner ring (+50 xp)':'게임을 골라요. 승패는 순전히 운 · 이기면 반짝이는 승리 반지 (+50 xp)','winner ring':'승리 반지','skin':'스킨','special looks, like christmas':'크리스마스 같은 특별한 모습','a skin is worn over your color and pattern · tap it again to reshuffle':'스킨은 색과 무늬 위에 입혀져요 · 한 번 더 누르면 모양이 바뀌어요','none':'없음','christmas':'크리스마스','at least 20 stones stay in the tank':'어항에는 돌이 최소 20개 남아 있어야 해요','skip':'건너뛰기',
+'visit · type a friend’s username to visit their tank, send gifts, or challenge them to a duel. fish you’re sent swim with yours':'방문 · 친구 아이디를 입력해 어항에 놀러 가서 선물을 보내거나 결투를 신청해요. 선물받은 물고기는 내 물고기랑 같이 놀아요','duel':'결투','notifications':'알림','nothing yet':'아직 없어요','my fish':'내 금붕어','tank':'어항','more':'더보기','tank view':'어항 뷰','see your tank in its room':'방 안의 어항 보기','photo':'사진','save a picture of your tank':'어항 사진 저장','sound':'소리','on':'켜짐','off':'꺼짐','account & language':'계정 · 언어','friends':'친구','visit a keeper by username, or tap one you’ve visited':'아이디로 놀러 가거나, 전에 갔던 친구를 눌러요','gift':'선물','home':'집','rings':'반지','won in duels':'결투에서 얻어요',
+'your level · tap for missions. your fish grows every 5 levels':'레벨 · 누르면 미션이 나와요. 5레벨마다 금붕어가 자라요','shop · winter decorations, crystals and rings':'상점 · 겨울 장식, 크리스탈, 반지','friends · visit a keeper, send gifts, or challenge them to a duel. fish you’re sent swim with yours':'친구 · 놀러 가서 선물을 보내거나 결투를 신청해요. 선물받은 물고기는 내 물고기랑 같이 놀아요','more · tank view, photos, sound, account and language':'더보기 · 어항 뷰, 사진, 소리, 계정과 언어','winter':'겨울','crystals':'크리스탈','amethyst cluster':'자수정 무리','rose quartz':'로즈 쿼츠','citrine geode':'시트린 지오드','aquamarine pair':'아쿠아마린 한 쌍','green fluorite':'초록 형석','rings · won in duels':'반지 · 결투에서 얻어요','win a duel':'결투에서 이기면','tallest tower wins':'더 높이 쌓으면 승리','keep the stones on your nose longest':'코 위 돌을 끝까지 지키면 승리','the fish play it out in the tank · pure luck · winner gets a winner ring (+50 xp)':'물고기들이 어항에서 직접 겨뤄요 · 순전히 운 · 이기면 승리 반지 (+50 xp)','notifications':'알림','turn on':'켜기','turn off':'끄기','notifications are on':'알림이 켜져 있어요','notifications · add Goldfish to your home screen first':'알림 · 먼저 Goldfish를 홈 화면에 추가해 주세요',"notifications aren’t available here":'여기서는 알림을 쓸 수 없어요','notifications are blocked in settings':'설정에서 알림이 꺼져 있어요','rock stacking':'돌 쌓기','rock balancing':'돌 균형 잡기','who stacks the tallest tower':'누가 더 높이 쌓나','whose stack stays up longer':'누구 탑이 더 오래 버티나','pick a game. winning is pure luck · the winner gets a shiny winner ring (+50 xp)':'게임을 골라요. 승패는 순전히 운 · 이기면 반짝이는 승리 반지 (+50 xp)','winner ring':'승리 반지','skin':'스킨','special looks, like christmas':'크리스마스 같은 특별한 모습','a skin is worn over your color and pattern · tap it again to reshuffle':'스킨은 색과 무늬 위에 입혀져요 · 한 번 더 누르면 모양이 바뀌어요','none':'없음','christmas':'크리스마스','at least 20 stones stay in the tank':'어항에는 돌이 최소 20개 남아 있어야 해요','skip':'건너뛰기',
 'hand · drag to lead your fish, tap to call it, tap the fish to say hi':'손 · 끌어서 금붕어를 데려가고, 탭해서 부르고, 금붕어를 탭하면 인사해요',
 'food · tap the water to sprinkle flakes':'먹이 · 물을 탭해서 먹이를 뿌려요','clean · when the glass gets dirty, rub it clean':'청소 · 유리가 더러워지면 문질러서 닦아요',
 'toy · drag the lure and let your fish chase it':'장난감 · 미끼를 끌면 금붕어가 쫓아와요','sleep · turns the lights off so your fish can rest':'재우기 · 불을 꺼서 금붕어를 쉬게 해요',
@@ -1486,7 +1500,7 @@ function updateCap(){const el=$('#cap');
   el.textContent=fill(lv<40?MOOD[lk]:MOOD.ok);}
 function renderUI(){bellDot();
   const nm=$('#name');if(document.activeElement!==nm)nm.value=pet().name;fitName();
-  $('#stats').innerHTML=STATS.map(([k,l])=>'<span>'+l+'</span><b><i id="b-'+k+'"></i></b>').join('')+'<span id="lvl">lv 1</span><b><i id="b-xp"></i></b>';
+  $('#stats').innerHTML=STATS.map(([k,l])=>'<span>'+l+'</span><b><i id="b-'+k+'"></i></b>').join('');
   $('#who').textContent=USER?'@'+USER:'sign in';
   const tl=$('#tools');tl.innerHTML='';
   TOOLS.forEach(t=>{const b=document.createElement('button');b.id='t-'+t;b.textContent=t==='sleep'&&lightsOff?'wake':t==='wash'?'clean':t;if(t==='wash'){b.dataset.ko='청소';b.classList.toggle('nudge',needCleanNudge());}b.setAttribute('aria-pressed',t==='sleep'?lightsOff:t==='tank'?(tool==='peb'||tool==='arrange'):t===tool);
@@ -1494,7 +1508,7 @@ function renderUI(){bellDot();
   {const b=$('#snd'),on=!!save.sound;if(b.dataset.on!==String(on)){b.dataset.on=on;b.setAttribute('aria-label',on?'Sound on':'Sound off');
     b.innerHTML='<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9.5v5h3.5L12 18.5v-13L7.5 9.5H4z"/>'+(on?'<path d="M15.5 9.5a3.5 3.5 0 0 1 0 5"/><path d="M18 7a7 7 0 0 1 0 10"/>':'<path d="M16 10l4.5 4.5M20.5 10L16 14.5"/>')+'</svg>';}}updateStats();updateCap();}
 function updateStats(){const s=pet().s;for(const [k] of STATS){const b=$('#b-'+k);if(b)b.style.width=Math.round(s[k])+'%';}
-  const lv=$('#lvl'),bx=$('#b-xp');if(lv&&PROG){lv.textContent='lv '+PROG.level;bx.style.width=(PROG.level>=MAXL?100:Math.round(PROG.exp/need(PROG.level)*100))+'%';}}
+  const lv=$('#lvl'),rg=$('#lvRing');if(lv&&PROG){lv.textContent='lv '+PROG.level;const f=PROG.level>=MAXL?1:PROG.exp/need(PROG.level);rg.setAttribute('stroke-dashoffset',(56.5*(1-f)).toFixed(1));}$('#lvBadge').hidden=!PROG;}
 function toggleLights(){lightsOff=!lightsOff;save.night=lightsOff;if(lightsOff)S.sleptAt=T;else if(S.sleptAt!==undefined&&T-S.sleptAt>=60)track('sleep');persist();document.body.classList.toggle('night',lightsOff);
   if(lightsOff){S.call=null;endToy(true);}else if(S.asleep){S.asleep=false;react('wake');}renderUI();}
 $('#snd').onclick=()=>{save.sound=!save.sound;snd.ac();persist();renderUI();};
@@ -1510,8 +1524,10 @@ $('#namingForm').addEventListener('submit',e=>{e.preventDefault();const v=$('#fi
   if(v){pet().name=v;persist();renderUI();toast('hello, '+v+'.',2.4);}$('#naming').hidden=true;if(openNaming.first)maybeTour();});
 $('#namingSkip').onclick=()=>{$('#naming').hidden=true;if(openNaming.first)maybeTour();};
 const TOUR=[['#t-hand','hand · drag to lead your fish, tap to call it, tap the fish to say hi'],
-  ['#misBtn','missions · three goals a day for xp. your fish grows every 5 levels'],
-  ['#tvBtn','tank view · see your tank on its table in a little room, and turn it around'],['#visitBtn','visit · type a friend’s username to visit their tank, send gifts, or challenge them to a duel. fish you’re sent swim with yours']];
+  ['#lvBadge','your level · tap for missions. your fish grows every 5 levels'],
+  ['#bagBtn','shop · winter decorations, crystals and rings'],
+  ['#visitBtn','friends · visit a keeper, send gifts, or challenge them to a duel. fish you’re sent swim with yours'],
+  ['#moreBtn','more · tank view, photos, sound, account and language']];
 let tourI=-1;
 function maybeTour(){if(!USER||(save.tut&&save.tut.tour))return;save.tut=save.tut||{};save.tut.tour=1;persist();setTimeout(()=>{tourI=0;$('#tour').hidden=false;tourShow();},500);}
 function tourShow(){const st=TOUR[tourI],el=$(st[0]);if(!el||!el.offsetParent){tourNext();return;}const r=el.getBoundingClientRect(),tip=$('#tour .tip');
@@ -1697,7 +1713,7 @@ function renderMissions(){if(!PROG)return;ensureDaily();const d=PROG.daily;
 function syncNow(){if(!USER)return;if(!DB){toast('saved on this device only');return;}SYNC={ok:null,msg:'',t:0};renderMissions();cloudDirty=true;cloudPut();
   setTimeout(()=>cloudGet(USER).then(c=>{if(takeMerged(c))toast('synced with your other devices');else toast('already up to date');renderMissions();},()=>{toast('couldn\u2019t reach the online save');renderMissions();}),900);}
 $('#syncNow').onclick=syncNow;
-$('#misBtn').onclick=()=>{renderMissions();$('#missions').hidden=false;};
+$('#misBtn').onclick=()=>{renderMissions();$('#missions').hidden=false;};$('#lvBadge').onclick=()=>$('#misBtn').click();
 $('#misClose').onclick=()=>{$('#missions').hidden=true;};
 /* ---- start-up: last keeper on this device loads instantly, then the online copy if it's newer ---- */
 {const last=(()=>{try{return localStorage.getItem('goldfish-user')}catch(e){return null}})();
@@ -1708,7 +1724,7 @@ setInterval(()=>{if(cloudDirty)cloudPut();else if(!document.hidden)pull();},3000
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)pull();});
 /* the home-screen app keeps an old copy of the page open (and iOS caches it), so check for a newer build when it opens or comes back,
    and reload past the cache if there is one */
-const BUILD='20261117073052';
+const BUILD='20261117074324';
 function checkBuild(){fetch('version.json?t='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{if(!j||!j.b||j.b===BUILD)return;
   try{if(sessionStorage.getItem('gf-build')===j.b)return;sessionStorage.setItem('gf-build',j.b);}catch(e){}
   try{persistLocal();}catch(e){}location.replace(location.pathname+'?v='+encodeURIComponent(j.b));}).catch(()=>{});}
@@ -1721,12 +1737,12 @@ function spendXP(n){if(!PROG||wallet()<n)return false;PROG.sp[DEV]=(PROG.sp[DEV]
 function lookPick(list,key,label,onPick){const el=$(list);el.textContent='';const lk=lookOf();
   for(const k of key){const b=document.createElement('button');b.type='button';const im=document.createElement('img');im.alt='';im.src=fishThumb(label(k));
     const t=document.createElement('span');t.textContent=k;b.append(im,t);b.setAttribute('aria-pressed',k===(list==='#colorList'?lk.c:lk.p));b.onclick=()=>{onPick(k);showFishChange(list==='#colorList'?k:k==='plain'?'plain':k);};el.appendChild(b);}}
-function openColors(){$('#fishMenu').hidden=true;$('#colors').hidden=false;
+function openColors(){$('#tank').hidden=true;$('#colors').hidden=false;
   lookPick('#colorList',Object.keys(LOOK_COLORS),k=>Object.assign({},lookOf(),{c:k}),k=>{lookOf().c=k;applyLook();persist();openColors();});}
-function openPatterns(){$('#fishMenu').hidden=true;$('#patterns').hidden=false;
+function openPatterns(){$('#tank').hidden=true;$('#patterns').hidden=false;
   lookPick('#patList',LOOK_PATTERNS,k=>Object.assign({},lookOf(),{p:k}),k=>{const l=lookOf();if(l.p===k&&k==='patches')l.seed=Math.floor(Math.random()*1000);l.p=k;applyLook();persist();openPatterns();});}
 const LOOK_SKINS=['none','christmas'];
-function openSkins(){$('#fishMenu').hidden=true;$('#skins').hidden=false;const el=$('#skinList');el.textContent='';const lk=lookOf();
+function openSkins(){$('#tank').hidden=true;$('#skins').hidden=false;const el=$('#skinList');el.textContent='';const lk=lookOf();
   for(const k of LOOK_SKINS){const b=document.createElement('button');b.type='button';const im=document.createElement('img');im.alt='';im.src=fishThumb(Object.assign({},lk,{skin:k==='none'?'':k}));
     const t=document.createElement('span');t.textContent=k;b.append(im,t);b.setAttribute('aria-pressed',(lk.skin||'none')===k);
     b.onclick=()=>{const l=lookOf();if(k==='christmas'&&l.skin==='christmas')l.seed=Math.floor(Math.random()*1000);l.skin=k==='none'?'':k;applyLook();persist();openSkins();showFishChange(k==='none'?'no skin':k);};el.appendChild(b);}}
@@ -1744,11 +1760,11 @@ document.querySelectorAll('[data-gpturn]').forEach(b=>b.onclick=()=>{const o=GPL
 $('#gpCancel').onclick=()=>endGiftPlace(false);
 $('#gpSend').onclick=()=>{if(!GPLACE)return;const {d,it}=GPLACE;if(wallet()<d.price){endGiftPlace(false);return;}const b=$('#gpSend');b.disabled=true;
   sendGift('deco',giftPlaceCode(it),()=>{spendXP(d.price);persist();giftFly('',null,d.name+' sent to @'+VISIT.n+'!');endGiftPlace(true);});setTimeout(()=>{b.disabled=false;},1500);};
-$('#friendsBtn').onclick=()=>{if(!(save.friends||[]).length)return;$('#fishMenu').hidden=true;openFriends();$('#friendsSheet').hidden=false;};
-$('#friendsClose').onclick=()=>{$('#friendsSheet').hidden=true;openSub('fishMenu');};$('#skinsClose').onclick=()=>{$('#skins').hidden=true;$('#fishMenu').hidden=false;};
+$('#friendsBtn').onclick=()=>{if(!(save.friends||[]).length)return;$('#tank').hidden=true;openFriends();$('#friendsSheet').hidden=false;};
+$('#friendsClose').onclick=()=>{$('#friendsSheet').hidden=true;openTank();};$('#skinsClose').onclick=()=>{$('#skins').hidden=true;openTank();};
 $('#colorBtn').onclick=openColors;$('#patBtn').onclick=openPatterns;
-$('#colorsClose').onclick=()=>{$('#colors').hidden=true;$('#fishMenu').hidden=false;};
-$('#patternsClose').onclick=()=>{$('#patterns').hidden=true;$('#fishMenu').hidden=false;};
+$('#colorsClose').onclick=()=>{$('#colors').hidden=true;openTank();};
+$('#patternsClose').onclick=()=>{$('#patterns').hidden=true;openTank();};
 function renderTank(){const t=save.tank;document.querySelectorAll('#waterRow [data-w]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.w===t.water));
   document.querySelectorAll('[data-p]').forEach(b=>b.setAttribute('aria-pressed',tool==='peb'&&S.pebMode===b.dataset.p));
 }
@@ -1802,28 +1818,29 @@ function thumbsOf(list){const out={};const tr=new THREE.WebGLRenderer({antialias
     {const f=d.fit||1;cam.position.set(c.x+r*0.55*f,c.y+r*0.55*f,c.z+r*2.5*f);}cam.lookAt(c);tr.render(sc,cam);out[d.id]=tr.domElement.toDataURL('image/png');sc.remove(g);}
   tr.dispose();if(tr.forceContextLoss)tr.forceContextLoss();return out;}
 let SHOPPG=0;
-function renderShop(){const t=save.tank,th=makeThumbs();$('#shopPgName').textContent=SHOPPG?'crystals':'winter';$('#shopPrev').disabled=SHOPPG===0;$('#shopNext').disabled=SHOPPG===1;
+function renderShop(){const t=save.tank,th=makeThumbs();document.querySelectorAll('.shoptabs [data-pg]').forEach(b=>b.setAttribute('aria-selected',+b.dataset.pg===SHOPPG));
   $('#wallet').textContent=PROG?'level '+PROG.level+' \u00b7 '+wallet()+' xp to spend \u00b7 buying uses up xp, so your level can go down':'sign in to collect decorations';
-  $('#shopList').innerHTML=(SHOPPG?CRYSTALS:SHOP).map(d=>{const own=t.owned[d.id],on=t.items.some(i=>i.id===d.id),can=PROG&&wallet()>=d.price;
+  $('#shopList').innerHTML=(SHOPPG===2?[]:SHOPPG?CRYSTALS:SHOP).map(d=>{const own=t.owned[d.id],on=t.items.some(i=>i.id===d.id),can=PROG&&wallet()>=d.price;
     const after=can?(()=>{let L=PROG.level,e=PROG.exp-d.price;while(e<0&&L>1){L--;e+=need(L);}return L;})():0;
     const act=!own?(can?'<button data-buy="'+d.id+'">buy \u00b7 '+d.price+' xp'+(after<PROG.level?' (to lv '+after+')':'')+'</button>':'<em>'+d.price+' xp</em>'+(PROG?'<small class="need">'+(d.price-wallet())+' xp more</small>':'')):on?'<button data-off="'+d.id+'">put away</button>':'<button data-on="'+d.id+'">place in tank</button>';
     return '<div class="item'+(!own&&!can?' locked':'')+'" data-id="'+d.id+'"><img src="'+th[d.id]+'" alt="'+d.name+'"><b>'+d.name+'</b>'+act+'</div>';}).join('')
-    +(SHOPPG?'':'<p class="small shophead">rings · won in duels</p>'+(()=>{const own=t.owned.ring,on=t.items.some(i=>i.id==='ring'),n=PROG&&PROG.life.rings||0;
+    +(SHOPPG!==2?'':'<p class="small shophead">won in duels</p>'+(()=>{const own=t.owned.ring,on=t.items.some(i=>i.id==='ring'),n=PROG&&PROG.life.rings||0;
       return '<div class="item'+(own?'':' locked')+'" data-id="ring"><img src="'+th.ring+'" alt="winner ring"><b>winner ring'+(n>1?' ×'+n:'')+'</b>'+(!own?'<small class="need">win a duel</small>':on?'<button data-off="ring">put away</button>':'<button data-on="ring">place in tank</button>')+'</div>';})());}
-$('#shopPrev').onclick=()=>{SHOPPG=0;renderShop();};$('#shopNext').onclick=()=>{SHOPPG=1;renderShop();};
-{let sx=null;const el=$('#shopList');el.addEventListener('touchstart',e=>{sx=e.touches[0].clientX;},{passive:true});el.addEventListener('touchend',e=>{if(sx===null)return;const dx=e.changedTouches[0].clientX-sx;sx=null;if(Math.abs(dx)>50){const p=dx<0?1:0;if(p!==SHOPPG){SHOPPG=p;renderShop();}}},{passive:true});}
-$('#shopBtn').onclick=()=>{renderShop();$('#decorMenu').hidden=true;$('#shop').hidden=false;};
+document.querySelectorAll('.shoptabs [data-pg]').forEach(b=>b.onclick=()=>{SHOPPG=+b.dataset.pg;renderShop();});
+{let sx=null;const el=$('#shopList');el.addEventListener('touchstart',e=>{sx=e.touches[0].clientX;},{passive:true});el.addEventListener('touchend',e=>{if(sx===null)return;const dx=e.changedTouches[0].clientX-sx;sx=null;if(Math.abs(dx)>50){const p=clamp(SHOPPG+(dx<0?1:-1),0,2);if(p!==SHOPPG){SHOPPG=p;renderShop();}}},{passive:true});}
+function openShop(){if(VISIT)return;renderShop();$('#tank').hidden=true;$('#decorMenu').hidden=true;$('#shop').hidden=false;}
+$('#bagBtn').onclick=openShop;
 $('#editBtn').onclick=()=>openTank();
 /* tapping anywhere outside a menu's box closes the menu */
 document.querySelectorAll('.sheet').forEach(sh=>sh.addEventListener('click',e=>{if(e.target!==sh)return;
   if(sh.id==='login'){if(!$('#loginClose').hidden)$('#loginClose').click();return;}
   if(sh.id==='naming')return;
   sh.hidden=true;}));
-$('#shopClose').onclick=()=>{$('#shop').hidden=true;openSub('decorMenu');};
+$('#shopClose').onclick=()=>{$('#shop').hidden=true;};
 function openTank(){renderTank();$('#tank').hidden=false;}
-const SUBS=['fishMenu','waterMenu','decorMenu','lampMenu'];
+const SUBS=['waterMenu','decorMenu','lampMenu'];
 function openSub(id){$('#tank').hidden=true;SUBS.forEach(k=>$('#'+k).hidden=k!==id);renderTank();friendsLabel();}
-$('#fishMenuBtn').onclick=()=>openSub('fishMenu');$('#waterMenuBtn').onclick=()=>openSub('waterMenu');$('#decorMenuBtn').onclick=()=>openSub('decorMenu');
+$('#waterMenuBtn').onclick=()=>openSub('waterMenu');$('#decorMenuBtn').onclick=()=>openSub('decorMenu');
 document.querySelectorAll('[data-back]').forEach(b=>b.onclick=()=>{SUBS.forEach(k=>$('#'+k).hidden=true);openTank();});
 $('#tankClose').onclick=()=>{$('#tank').hidden=true;};
 function renderLamps(){const el=$('#lampRow'),cur=save.lamp||'warm';el.textContent='';
@@ -1960,15 +1977,21 @@ let GTH=null;function giftThumbs(){if(GTH)return GTH;GTH=thumbsOf(GIFT_MODELS);G
 const gimg=(src,w)=>'<img class="gimg" alt="" src="'+src+'" style="width:'+(w||36)+'px;height:'+(w||36)+'px;object-fit:contain">',stk=(k,w)=>gimg(giftThumbs()[k],w),snk=(k,w)=>gimg(giftThumbs()[k],w);
 let VISIT=null;
 const GBOX=to=>'https://firestore.googleapis.com/v1/projects/'+DB.projectId+'/databases/(default)/documents/gifts/'+to+'/box';
-function openVisit(){if(!DB){toast('visiting needs the online save');return;}$('#visitErr').textContent='';$('#visitName').value='';$('#visitAsk').hidden=false;setTimeout(()=>$('#visitName').focus(),60);}
-$('#visitBtn').onclick=openVisit;$('#visitCancel').onclick=()=>{$('#visitAsk').hidden=true;};
+function VISIT_REC(n){const r=(save.recent||[]).filter(x=>x!==n);r.unshift(n);save.recent=r.slice(0,8);}
+function openVisit(){if(!DB){toast('visiting needs the online save');return;}$('#visitErr').textContent='';$('#visitName').value='';$('#visitAsk').hidden=false;
+  {const el=$('#recent');el.textContent='';for(const n of (save.recent||[]).slice(0,8)){const b=document.createElement('button');b.type='button';b.textContent='@'+n;b.onclick=()=>{$('#visitName').value=n;$('#visitForm').requestSubmit();};el.appendChild(b);}}setTimeout(()=>$('#visitName').focus(),60);}
+$('#visitBtn').onclick=openVisit;
+function openMore(){$('#mSoundTxt').textContent=save.sound?'on':'off';$('#mAcctTxt').textContent=USER?'@'+USER+' · '+(LANG==='ko'?'한국어':'English'):'sign in';$('#more').hidden=false;}
+$('#moreBtn').onclick=openMore;$('#moreClose').onclick=()=>{$('#more').hidden=true;};
+$('#mTank').onclick=()=>{$('#more').hidden=true;$('#tvBtn').click();};$('#mPhoto').onclick=()=>{$('#more').hidden=true;$('#captureBtn').click();};
+$('#mSound').onclick=()=>{$('#snd').click();$('#mSoundTxt').textContent=save.sound?'on':'off';};$('#mAcct').onclick=()=>{$('#more').hidden=true;$('#who').click();};$('#visitCancel').onclick=()=>{$('#visitAsk').hidden=true;};
 $('#visitForm').addEventListener('submit',e=>{e.preventDefault();const n=$('#visitName').value.trim().toLowerCase();
   if(!NAME_RE.test(n)){$('#visitErr').textContent='use 2 to 16 letters, numbers or _';return;}if(n===USER){$('#visitErr').textContent='that’s your own tank';return;}
   $('#visitErr').textContent='looking…';cloudGet(n).then(rec=>{if(!rec||!rec.save){$('#visitErr').textContent='no keeper called “'+n+'” yet';return;}$('#visitAsk').hidden=true;enterVisit(n,rec);},
     ()=>{$('#visitErr').textContent='couldn’t reach the online save';});});
 function enterVisit(n,rec){if(TV.on)setTankView(false);if(toy)endToy(true);persistLocal();
   const f=(rec.save.pets&&rec.save.pets.fish)||{},pr=normProg(rec.prog);
-  VISIT={n,mine:save.tank,look:Object.assign({c:'orange',p:'plain',seed:1},f.look||{}),stage:Math.min(10,Math.max(pr.grow||0,Math.floor(pr.level/5))),fish:f.name||DEF,level:pr.level};
+  VISIT_REC(n);VISIT={n,mine:save.tank,look:Object.assign({c:'orange',p:'plain',seed:1},f.look||{}),stage:Math.min(10,Math.max(pr.grow||0,Math.floor(pr.level/5))),fish:f.name||DEF,level:pr.level};
   VISIT.lamp=rec.save.lamp;VISIT.clean=clamp(+(f.s&&f.s.clean)||80,0,100);VISIT.myLights=lightsOff;lightsOff=!!rec.save.night;document.body.classList.toggle('night',lightsOff);if(S)S.asleep=lightsOff;
   VISIT.friends=(rec.save.friends||[]).slice(0,6);{const vf=VISIT.friends,vn=n;refreshFriendLooks(vf,()=>{if(VISIT&&VISIT.n===vn)spawnFriends();});}save.tank=JSON.parse(JSON.stringify(rec.save.tank||{}));rebuildTank();spawnFriends();R.lookStage=null;S.grow=VISIT.stage/10;applyLook();
   document.body.classList.add('visiting');$('#visitBar').hidden=false;$('#visitTitle').textContent='@'+n+'’s tank · '+VISIT.fish+' · lv '+VISIT.level;say('');}
