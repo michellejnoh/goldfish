@@ -1724,7 +1724,7 @@ setInterval(()=>{if(cloudDirty)cloudPut();else if(!document.hidden)pull();},3000
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)pull();});
 /* the home-screen app keeps an old copy of the page open (and iOS caches it), so check for a newer build when it opens or comes back,
    and reload past the cache if there is one */
-const BUILD='20261117075002';
+const BUILD='20261117075259';
 function checkBuild(){fetch('version.json?t='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{if(!j||!j.b||j.b===BUILD)return;
   try{if(sessionStorage.getItem('gf-build')===j.b)return;sessionStorage.setItem('gf-build',j.b);}catch(e){}
   try{persistLocal();}catch(e){}location.replace(location.pathname+'?v='+encodeURIComponent(j.b));}).catch(()=>{});}
@@ -1796,7 +1796,7 @@ function xtal(par,r,h,tip,base,lite,x,y,z,rx,rz,sides){const g=new THREE.Group()
   const body=new THREE.CylinderGeometry(r,r*1.04,h,sides,1);body.translate(0,h/2,0);const cap=new THREE.ConeGeometry(r,tip,sides,1);cap.translate(0,h+tip/2,0);
   const c1=new THREE.Color(base),c2=new THREE.Color(lite);g.add(new THREE.Mesh(facetShade(body,c1.getHex(),0.45),glassMat()));g.add(new THREE.Mesh(facetShade(cap,c1.clone().lerp(c2,0.6).getHex(),0.4),glassMat()));g.traverse(o=>{if(o.isMesh)o.renderOrder=3;});return g;}
 // see-through crystal: both sides of each facet drawn faintly, so the far facets show through the near ones
-function glassMat(){return flatMat({vertexColors:true,transparent:true,opacity:0.5,side:THREE.DoubleSide,depthWrite:false});}
+function glassMat(){return flatMat({vertexColors:true,transparent:true,opacity:0.38,side:THREE.DoubleSide,depthWrite:false});}
 function rockBase(g,r,col){const m=new THREE.Mesh(facetShade(new THREE.DodecahedronGeometry(r,0),col,0.35),flatMat({vertexColors:true}));m.scale.set(1.2,0.45,1);m.position.y=r*0.2;g.add(m);return m;}
 const CRYSTALS=[
  {id:'amethyst',name:'amethyst',price:180,glow:[0.62,0.45,1],make:()=>{const g=new THREE.Group();
