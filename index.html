@@ -81,7 +81,7 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
 .tools button{font-size:24px;letter-spacing:.005em;color:var(--dim);padding:12px 6px;min-width:44px}
 .tools button[aria-pressed="true"]{color:var(--ink);text-decoration:underline;text-decoration-thickness:1.5px;text-underline-offset:6px}
 button:focus-visible,#name:focus-visible{outline:1.5px solid var(--ink);outline-offset:3px}
-body.evening{background:radial-gradient(ellipse 95% 55% at 102% 58%,rgba(var(--lampc,255,236,206),.62),rgba(var(--lampc,255,236,206),.26) 45%,rgba(var(--lampc,255,236,206),0) 75%),var(--nMid)!important;transition:background .6s}
+body.evening{background:radial-gradient(ellipse 95% 55% at 102% 58%,rgba(var(--lampc,255,236,206),calc(.62*var(--lampA,1))),rgba(var(--lampc,255,236,206),calc(.26*var(--lampA,1))) 45%,rgba(var(--lampc,255,236,206),0) 75%),var(--nMid)!important;transition:background .6s}
 body.night{--ink:#ededed;--dim:#7d7d7d;--soft:#b3b3b3;--track:#4a4a4a}
 body.night #say{color:#e0e0e0}
 @media (min-width:700px){#name{font-size:46px}}
@@ -623,10 +623,10 @@ let world=new THREE.Group();scene.add(world);
 /* sunlight inside the flat materials: a surface inside a beam is brighter (more so where it faces up), the water between beams is a touch shadier,
    and a soft moving web of light (projected from above) plays over sand, stones and fish only where the beams fall. At night it does nothing. */
 const SUNU={uA:{value:0},uB:{value:[0,1,2,3,4,5].map(()=>new THREE.Vector4(0,9,0,0))},uK:{value:[0,0,0,0,0,0]},uL:{value:4},uCaus:{value:null},uCo:{value:new THREE.Vector4()},uCol:{value:new THREE.Color(1,1,1)},uZ:{value:[0,0,0,0,0,0]},uF:{value:0},uT:{value:0}};
-const NIGHTU={uN:{value:0},uNF:{value:0},uNL:{value:new THREE.Vector4(2,1,0.4,2.4)},uLC:{value:new THREE.Vector3(1.05,1,0.92)}};
+const NIGHTU={uN:{value:0},uLm:{value:0},uNF:{value:0},uNL:{value:new THREE.Vector4(2,1,0.4,2.4)},uLC:{value:new THREE.Vector3(1.05,1,0.92)}};
 const LAMPS={warm:{c:'255,236,206',t:[1.05,1,0.92]},white:{c:'255,255,255',t:[1.02,1.02,1.02]},pink:{c:'255,206,222',t:[1.07,0.94,0.99]},
   blue:{c:'200,222,255',t:[0.93,0.99,1.08]},green:{c:'206,240,206',t:[0.95,1.06,0.95]},purple:{c:'222,206,255',t:[1.0,0.94,1.08]}};
-const SUN_GLSL=`uniform vec4 uGP[5];uniform vec3 uGC[5];uniform float uN;uniform float uNF;uniform vec4 uNL;uniform vec3 uLC;
+const SUN_GLSL=`uniform vec4 uGP[10];uniform vec3 uGC[10];uniform float uN;uniform float uLm;uniform float uNF;uniform vec4 uNL;uniform vec3 uLC;
 uniform float uA;uniform vec4 uB[6];uniform float uK[6];uniform float uL;uniform sampler2D uCaus;uniform vec4 uCo;uniform vec3 uCol;uniform float uZ[6];uniform float uF;uniform float uT;varying vec3 vSunP;varying vec3 vSunN;
 float sunMask(vec3 p){float m=0.;
   // near the floor the light lands as soft rounded pools with wavy, drifting edges instead of straight strips
@@ -635,7 +635,7 @@ float sunMask(vec3 p){float m=0.;
   for(int i=0;i<6;i++){vec4 b=uB[i];float cx=b.x+b.z*(b.y-p.y);float hw=b.w*(1.+0.35*clamp((b.y-p.y)/uL,0.,1.));
     float hf=hw*(1.+0.55*low);float dx=(p.x+wob*low-cx)/max(hf,0.001),dz=(p.z-uZ[i]-0.35)/(hf*2.6+0.8);float d=sqrt(dx*dx+dz*dz*low*(1.+wob*0.8));
     m=max(m,(1.-smoothstep(mix(0.3,0.05,low),mix(1.2,1.7,low),d))*uK[i]);}return m;}`;
-const GLOWU={uGP:{value:[0,1,2,3,4].map(()=>new THREE.Vector4(0,-99,0,0.5))},uGC:{value:[0,1,2,3,4].map(()=>new THREE.Vector3())}};
+const GLOWU={uGP:{value:Array.from({length:10},()=>new THREE.Vector4(0,-99,0,0.5))},uGC:{value:Array.from({length:10},()=>new THREE.Vector3())}};
 function sunPatch(sh){Object.assign(sh.uniforms,SUNU,NIGHTU,GLOWU);
   sh.vertexShader='varying vec3 vSunP;varying vec3 vSunN;\n'+sh.vertexShader.replace('#include <project_vertex>','#include <project_vertex>\n vSunP=(modelMatrix*vec4(transformed,1.0)).xyz;vSunN=mat3(modelMatrix)*normal;');
   sh.fragmentShader=SUN_GLSL+'\n'+sh.fragmentShader.replace('#include <tonemapping_fragment>',`if(uA>0.001){vec3 n=vSunN;float up=dot(n,n)>0.0001?normalize(n).y:1.;float m=sunMask(vSunP)*uA;
@@ -646,13 +646,13 @@ if(uN>0.001){vec3 dl=vSunP-uNL.xyz;float lm=exp(-dot(dl,dl)/(uNL.w*uNL.w));
    // night: the room is dark except for a mood lamp beside the tank; things nearer to it catch its soft, slightly warm light
    vec3 b0=gl_FragColor.rgb;
    #ifdef FISHLIT
-   float tk=uN*(0.35+lm)*1.5;// the fish picks up the lamp's colour (more as it swims near), over its own
+   float tk=uLm*(0.35+lm)*1.5;// the fish picks up the lamp's colour (more as it swims near), over its own
    #else
-   float tk=uN*lm*0.8;
+   float tk=uLm*lm*0.8;
    #endif
-   vec3 cN=b0*(1.-uN*0.34+uN*0.62*lm)*mix(vec3(1.),uLC,tk);cN=min(cN,vec3(1.));
+   vec3 cN=b0*(1.-uN*0.34+uLm*0.62*lm)*mix(vec3(1.),uLC,tk);cN=min(cN,vec3(1.));
    float lmN=dot(cN,vec3(0.299,0.587,0.114));gl_FragColor.rgb=clamp(mix(vec3(lmN),cN,1.+0.3*uN),0.,1.);}
-{vec3 gl=vec3(0.);for(int i=0;i<5;i++){vec3 d=vSunP-uGP[i].xyz;float q=dot(d,d)/(uGP[i].w*uGP[i].w);gl+=uGC[i]*exp(-q)/(1.+q*q);}
+{vec3 gl=vec3(0.);for(int i=0;i<10;i++){vec3 d=vSunP-uGP[i].xyz;float q=dot(d,d)/(uGP[i].w*uGP[i].w);gl+=uGC[i]*exp(-q)/(1.+q*q);}
    // crystals' own soft light on whatever is near them
    gl_FragColor.rgb=min(gl_FragColor.rgb*(1.+gl*(0.16+0.3*uN))+gl*(0.025+0.06*uN),vec3(1.));}
 #include <tonemapping_fragment>`);}
@@ -1733,7 +1733,7 @@ setInterval(()=>{if(cloudDirty)cloudPut();else if(!document.hidden)pull();},3000
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)pull();});
 /* the home-screen app keeps an old copy of the page open (and iOS caches it), so check for a newer build when it opens or comes back,
    and reload past the cache if there is one */
-const BUILD='20261117112335';
+const BUILD='20261117113653';
 function checkBuild(){fetch('version.json?t='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{if(!j||!j.b||j.b===BUILD)return;
   try{if(sessionStorage.getItem('gf-build')===j.b)return;sessionStorage.setItem('gf-build',j.b);}catch(e){}
   try{persistLocal();}catch(e){}location.replace(location.pathname+'?v='+encodeURIComponent(j.b));}).catch(()=>{});}
@@ -2083,7 +2083,7 @@ function peekTank(sel,show){const sh=$(sel);if(!sh||sh.hidden)return;clearTimeou
 const DROPS=[];
 function glowTick(){let k=0;for(const o of ITEMS_ON){if(!o.userData.glow||k>=5)continue;const c=o.userData.glow,br=0.75+0.25*Math.sin(T*0.8+o.position.x*4);
     GLOWU.uGP.value[k].set(o.position.x,o.position.y+0.16,o.position.z,0.34);GLOWU.uGC.value[k].set(c[0]*br,c[1]*br,c[2]*br);k++;}
-  for(;k<5;k++){GLOWU.uGP.value[k].y=-99;GLOWU.uGC.value[k].set(0,0,0);}}
+  k=ffGlow(k);for(;k<10;k++){GLOWU.uGP.value[k].y=-99;GLOWU.uGC.value[k].set(0,0,0);}}
 function dropIn(g){if(!g)return;const rest={y:g.position.y,x:g.position.x,rx:g.rotation.x,rz:g.rotation.z};g.userData.rest=rest;
   const d={g,rest,y:B.surf-0.08,vy:0,t:0,ph:rnd(0,6),tx:rnd(-0.7,0.7),tz:rnd(-0.7,0.7),landed:0};g.position.y=d.y;DROPS.push(d);}
 function dropTick(dt){for(let i=DROPS.length-1;i>=0;i--){const d=DROPS[i],g=d.g;d.t+=dt;
@@ -2664,7 +2664,7 @@ function sunTick(dt){if(!SUN){const tex=rayTex(),glow=glowTex();SUN={g:new THREE
    through it, and a slow breathing shimmer. It fades in and out over about twenty minutes and goes out with the lights when the fish sleeps. */
 function nightAmt(){const d=new Date(),h=d.getHours()+d.getMinutes()/60;if(h>=21)return clamp((h-21)/0.33);if(h<5)return 1-clamp((h-4.67)/0.33);return 0;}
 function shade(hex,k){const c=new THREE.Color(hex);c.multiplyScalar(k);return '#'+c.getHexString();}
-function nightTick(dt){const want=TV.t>0.02?0:!$('#lampMenu').hidden?1:lightsOff?0:nightAmt();
+function nightTick(dt){const lampW=TV.t>0.02?0:!$('#lampMenu').hidden?1:lightsOff?0:nightAmt(),want=TV.t>0.02?0:Math.max(lampW,lightsOff?0:duskAmt()*0.75);NIGHTU.uLm.value=damp(NIGHTU.uLm.value,lampW,1.2,dt);document.documentElement.style.setProperty('--lampA',NIGHTU.uLm.value.toFixed(3));
   {const L=LAMPS[VISIT?VISIT.lamp:save&&save.lamp]||LAMPS.warm;if(nightTick.lc!==L){nightTick.lc=L;if(TV.lamp)TV.lamp.c=L.c.split(',').map(Number);NIGHTU.uLC.value.set(...L.t);document.documentElement.style.setProperty('--lampc',L.c);}}NIGHTU.uN.value=damp(NIGHTU.uN.value,want,1.2,dt);
   const N=NIGHTU.uN.value;NIGHTU.uNF.value=B.floor;
   // the lamp in the room is only on at night (9 pm to 5 am); by day its shade is a plain pale grey
@@ -2675,9 +2675,48 @@ function nightTick(dt){const want=TV.t>0.02?0:!$('#lampMenu').hidden?1:lightsOff
     r.setProperty('--nTop',shade(w,k*0.985));r.setProperty('--nMid',shade(w,k));r.setProperty('--nBot',shade(w,k*0.95));}}
   {const w=WATER[(save.tank&&save.tank.water)||'clear']||WATER.clear,top=on?shade(w,1-0.3*N):null;if(syncTheme.over!==top){syncTheme.over=top;syncTheme();document.documentElement.style.background=top||w;}}// one flat colour for the page, Safari's top bar and its bottom bar, so nothing shows a seam// Safari's top bar follows the night water
   if(on)NIGHTU.uNL.value.set(B.x*1.2,B.floor+((B.top||B.surf)-B.floor)*0.42,0.5,2.9);
-  lampShadows(N,on);}
+  lampShadows(NIGHTU.uLm.value,NIGHTU.uLm.value>0.02);ffTick(dt);}
 /* the lamp throws soft, faint shadows across the sand, away from it: under the rocks, decorations and the fish */
 let LSH=null;
+// evening, 7 to 9 pm: fades in over the first 20 minutes and out over the last 20 as the night lamp takes over
+function duskAmt(){if(!FFMODE)return 0;const d=new Date(),h=d.getHours()+d.getMinutes()/60;if(h<19||h>=21)return 0;return Math.min(clamp((h-19)/0.33),clamp((21-h)/0.33));}
+// not switched on yet: the three designs can be tried with ?ff=1, ?ff=2 or ?ff=3 at the end of the address
+let FFMODE=+(new URLSearchParams(location.search).get('ff')||0),FF=null;
+function ffTick(dt){const want=TV.t>0.02||VISIT&&false?0:duskAmt();if(!FF){if(want<=0)return;ffBuild();}FF.a=damp(FF.a,want,1,dt);const A=FF.a,t=T;FF.g.visible=A>0.01;if(!FF.g.visible)return;
+  if(FFMODE===1){for(const f of FF.list){f.c.x+=Math.sin(t*0.07+f.ph)*0.04*dt;f.c.y+=Math.cos(t*0.05+f.ph*2)*0.03*dt;
+      const p=new V3(f.c.x+Math.sin(t*0.31+f.ph)*0.35,f.c.y+Math.sin(t*0.23+f.ph*1.7)*0.2,f.c.z+Math.sin(t*0.19+f.ph*0.6)*0.25);
+      // shy of the fish: drifts away if it comes close
+      const dv=p.clone().sub(S.pos),dd=dv.length();f.away.lerp(dd<0.5?dv.normalize().multiplyScalar((0.5-dd)*0.9):new V3(),1-Math.exp(-dt*2));p.add(f.away);
+      p.x=clamp(p.x,-B.x*0.92,B.x*0.92);p.y=clamp(p.y,B.floor+0.15,B.surf-0.1);f.s.position.copy(p);
+      const b=0.12+0.88*Math.pow(Math.max(0,Math.sin(t*f.w+f.ph)),2);f.b=b*A;f.s.material.opacity=f.b;f.s.scale.setScalar(0.06+0.06*b);}}
+  else if(FFMODE===2){for(const f of FF.list){f.x+=f.vx*dt;if(Math.abs(f.x)>B.x*0.9)f.vx*=-1;f.z=0.1+Math.sin(t*0.2+f.ph)*0.5;
+      const sh=0.55+0.45*Math.sin(t*7+f.ph*3)*Math.sin(t*3.1+f.ph),b=0.25+0.75*Math.pow(Math.max(0,Math.sin(t*f.w+f.ph)),2);f.b=b*A;
+      f.s.position.set(f.x+Math.sin(t*2.3+f.ph)*0.02,B.surf-0.04,f.z);f.s.material.opacity=f.b*sh;f.s.scale.set(0.26+0.08*sh,0.045,1);}
+    // now and then one touches down on the surface: rings spread from where it landed, and the fish comes up to look
+    FF.next-=dt;if(FF.next<=0&&A>0.5){FF.next=rnd(5,9);const f=FF.list[Math.floor(rnd(0,FF.list.length))],r=FF.rip.find(q=>q.t>=1.6);if(r){r.t=0;r.m.position.set(f.x,B.surf-0.015,f.z);}
+      if(!S.call&&!S.react&&!toy&&!lightsOff&&Math.random()<0.6)S.call=new V3(clamp(f.x,-B.x,B.x),B.ymax-0.05,clamp(f.z,-0.8,0.5));}
+    for(const r of FF.rip){r.t+=dt;const k=Math.min(1,r.t/1.6);r.m.visible=k<1;r.m.scale.setScalar(0.03+k*0.35);r.m.material.opacity=(1-k)*0.9*A;}}
+  else{// 3: glowing plankton, stirred up where the fish swims and where you drag a finger
+    FF.emit-=dt;const sp=S.vel.length();if(sp>0.25&&FF.emit<=0){FF.emit=0.06;R.g.updateMatrixWorld(true);ffSpark(R.inner.localToWorld(new V3(-0.7,0,0)),0.06);}
+    if(ptr.down&&ptr.world&&ptr.moved>6){FF.pe=(FF.pe||0)-dt;if(FF.pe<=0){FF.pe=0.04;ffSpark(ptr.world.clone(),0.08);ffSpark(ptr.world.clone(),0.08);}}
+    for(const q of FF.list){q.life-=dt;if(q.ambient){q.s.position.set(q.p.x+Math.sin(t*0.2+q.ph)*0.2,q.p.y+Math.sin(t*0.17+q.ph)*0.1,q.p.z);const b=0.25+0.45*Math.pow(Math.max(0,Math.sin(t*q.w+q.ph)),3);q.b=b*A;q.s.material.opacity=q.b;q.s.scale.setScalar(0.04+0.03*b);continue;}
+      if(q.life<=0){q.s.visible=false;q.b=0;continue;}q.s.visible=true;q.p.addScaledVector(q.v,dt);q.v.multiplyScalar(1-dt*1.5);const u=1-q.life/q.L,b=u<0.15?u/0.15:Math.pow(1-(u-0.15)/0.85,1.6);
+      q.b=b*A;q.s.position.copy(q.p);q.s.material.opacity=q.b;q.s.scale.setScalar(0.04+0.06*b);}}
+  ffHalo();}
+function ffHalo(){for(const f of FF.list){const c=f.s,h=c.userData.h;if(!h)continue;h.visible=c.visible!==false;h.position.copy(c.position);h.material.opacity=c.material.opacity*0.55;h.scale.set(c.scale.x*(FFMODE===2?1.6:3.4),c.scale.y*(FFMODE===2?4:3.4),1);}}
+function ffSpark(p,spread){const q=FF.list.find(x=>!x.ambient&&x.life<=0)||FF.list.filter(x=>!x.ambient).sort((a,b)=>a.life-b.life)[0];if(!q)return;
+  q.p.copy(p).add(new V3(rnd(-spread,spread),rnd(-spread,spread),rnd(-0.03,0.03)));q.v.set(rnd(-0.15,0.15),rnd(-0.05,0.2),rnd(-0.05,0.05));q.L=q.life=rnd(1.2,2);}
+function ffBuild(){const g=new THREE.Group(),tex=glowTex(),spr=(col)=>{const m=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,color:col,transparent:true,opacity:0,depthWrite:false,fog:false,blending:THREE.AdditiveBlending}));m.renderOrder=9;g.add(m);return m;},
+    mk=(col)=>{const c=spr(0xffffff),h=spr(col);c.userData.h=h;return c;};
+  FF={g,a:0,list:[],rip:[],next:3,emit:0};world.add(g);
+  if(FFMODE===1)for(let i=0;i<7;i++)FF.list.push({s:mk(0xe8f56a),c:new V3(rnd(-B.x*0.7,B.x*0.7),rnd(B.floor+0.4,B.surf-0.4),rnd(-0.9,0.4)),ph:rnd(0,6),w:rnd(1.6,3),away:new V3(),b:0});
+  else if(FFMODE===2){for(let i=0;i<5;i++)FF.list.push({s:mk(0xf2ef8a),x:rnd(-B.x*0.8,B.x*0.8),vx:rnd(0.04,0.1)*(i%2?1:-1),z:0,ph:rnd(0,6),w:rnd(1.2,2.2),b:0});
+    for(let i=0;i<3;i++){const m=new THREE.Mesh(new THREE.RingGeometry(0.85,1,40),new THREE.MeshBasicMaterial({color:0xfff6d8,transparent:true,depthWrite:false,fog:false,blending:THREE.AdditiveBlending,side:THREE.DoubleSide}));m.rotation.x=-Math.PI/2;m.visible=false;g.add(m);FF.rip.push({m,t:9});}}
+  else{for(let i=0;i<10;i++)FF.list.push({s:mk(0x7fe8ff),ambient:true,p:new V3(rnd(-B.x*0.8,B.x*0.8),rnd(B.floor+0.3,B.surf-0.3),rnd(-0.8,0.4)),ph:rnd(0,6),w:rnd(0.8,1.6),b:0});
+    for(let i=0;i<70;i++)FF.list.push({s:mk(0x7fe8ff),p:new V3(),v:new V3(),life:0,L:1,b:0});}}
+// the brightest few fireflies also light what's right around them (sharing the crystals' light slots)
+function ffGlow(k){if(!FF||!FF.g.visible)return k;const L=FF.list.filter(f=>f.b>0.15&&f.s.visible).sort((a,b)=>b.b-a.b);
+  for(const f of L){if(k>=10)break;const p=f.s.position,col=FFMODE===3?[0.5,0.95,1]:[0.95,1,0.45];GLOWU.uGP.value[k].set(p.x,p.y,p.z,FFMODE===2?0.3:0.2);GLOWU.uGC.value[k].set(col[0]*f.b*0.7,col[1]*f.b*0.7,col[2]*f.b*0.7);k++;}return k;}
 function lampShadows(N,on){if(LSH&&LSH.env!==ENV){world.remove(LSH.g);LSH=null;}if(!on){if(LSH)LSH.g.visible=false;return;}
   const L=NIGHTU.uNL.value,F=B.floor;
   if(!LSH){const c=document.createElement('canvas');c.width=c.height=64;const x=c.getContext('2d'),g=x.createRadialGradient(32,32,0,32,32,32);g.addColorStop(0,'rgba(0,0,0,1)');g.addColorStop(0.5,'rgba(0,0,0,.45)');g.addColorStop(1,'rgba(0,0,0,0)');x.fillStyle=g;x.fillRect(0,0,64,64);
