@@ -91,7 +91,10 @@ body.visiting .ui,body.visiting #say{display:none}
 #visitTitle{margin:0;flex:1;font-size:19px;line-height:1.2;color:var(--ink)}
 .giftrow{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:4px}
 .duelopts{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0 4px}.duelopts .gbtn{display:flex;flex-direction:column;align-items:flex-start;gap:4px;padding:14px;text-align:left;width:auto;height:auto}
-.duelopts small{opacity:.6;font-size:13px}#duelCv{width:100%;height:auto;display:block;margin:6px 0 2px}#duelMsg{min-height:1.3em;text-align:center;font-size:16px}
+.duelopts small{opacity:.6;font-size:13px}#duelCap{position:fixed;left:0;right:0;top:calc(env(safe-area-inset-top,0px) + 54px);z-index:4;margin:0;text-align:center;font-size:17px;color:var(--ink);opacity:.8;pointer-events:none;transition:opacity .4s}
+#inboxList{max-height:56vh;overflow-y:auto;margin:6px 0 4px}#inboxList .ib{display:flex;gap:10px;align-items:baseline;padding:9px 0;border-bottom:1px solid rgba(0,0,0,.06);font-size:15px}#inboxList .ib:last-child{border:0}
+#inboxList .ib small{margin-left:auto;opacity:.5;white-space:nowrap;font-size:12px}#inboxList .ib.new b{font-weight:600}#inboxList p{opacity:.55;text-align:center;margin:18px 0}
+#bellBtn{position:relative}#bellBtn i{position:absolute;top:6px;right:6px;width:7px;height:7px;border-radius:50%;background:var(--ink)}#bellBtn i[hidden]{display:none}
 .gbtn{display:flex;align-items:center;gap:8px;padding:6px 10px;border:1px solid #e3e3e3;border-radius:12px;font-size:17px;color:#111;cursor:pointer}
 .gbtn:disabled{opacity:.35;cursor:default}
 .gi svg{display:block}
@@ -242,14 +245,18 @@ body.lookdock #viewArrows{display:flex}
 <div class="sheet" id="duel" hidden>
   <div class="card">
     <h2 id="duelTitle">duel</h2>
-    <div id="duelPick">
-      <p class="small">pick a game. winning is pure luck · the winner gets a shiny winner ring (+50 xp)</p>
-      <div class="duelopts"><button type="button" class="gbtn" data-duel="stack"><b>rock stacking</b><small>who stacks the tallest tower</small></button>
-      <button type="button" class="gbtn" data-duel="balance"><b>rock balancing</b><small>whose stack stays up longer</small></button></div>
-    </div>
-    <canvas id="duelCv" width="600" height="380" hidden></canvas>
-    <p id="duelMsg" class="small"></p>
+    <p class="small" id="duelNote">the fish play it out in the tank · pure luck · winner gets a winner ring (+50 xp)</p>
+    <div class="duelopts" id="duelPick"><button type="button" class="gbtn" data-duel="stack"><b>rock stacking</b><small>tallest tower wins</small></button>
+    <button type="button" class="gbtn" data-duel="balance"><b>rock balancing</b><small>last stack standing wins</small></button></div>
     <div class="row2 topclose"><span></span><button type="button" class="go" id="duelClose">close</button></div>
+  </div>
+</div>
+<p id="duelCap" hidden></p>
+<div class="sheet" id="inbox" hidden>
+  <div class="card">
+    <h2>notifications</h2>
+    <div id="inboxList"></div>
+    <div class="row2 topclose"><span></span><button type="button" class="go" id="inboxClose">close</button></div>
   </div>
 </div>
 <div class="sheet" id="giftOut" hidden>
@@ -281,7 +288,7 @@ body.lookdock #viewArrows{display:flex}
     <input id="name" maxlength="14" aria-label="Fish name" spellcheck="false" autocomplete="off" readonly>
     <div class="stats" id="stats"></div>
   </div>
-  <div class="side"><button class="mini" id="who">keeper</button><button class="icon" id="misBtn" aria-label="Missions"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 21V3.5"/><path d="M6 4.5h11.5l-2.4 4 2.4 4H6"/></svg></button><button class="icon" id="snd" aria-label="Sound on"></button><button class="icon" id="visitBtn" aria-label="Visit a keeper"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 11.5L12 5l8 6.5"/><path d="M6 10v9h12v-9"/></svg></button><button class="icon" id="tvBtn" aria-label="Tank view"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 8.5h12.5v11.5H3.5z"/><path d="M3.5 8.5L7.5 4.5h12.5v11.5l-4 4"/><path d="M16 8.5l4-4"/><path d="M3.5 13c2.1 1 4.2 1 6.3 0s4.1-1 6.2 0"/></svg></button><button class="icon" id="editBtn" aria-label="Edit your tank"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20l4.2-1 10.4-10.4a2 2 0 0 0 0-2.8l-.4-.4a2 2 0 0 0-2.8 0L5 15.8 4 20z"/><path d="M13.5 6.5l4 4"/></svg></button><button class="icon" id="captureBtn" aria-label="Capture the tank"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8.5h3.2L8.8 6h6.4l1.6 2.5H20v10H4z"/><circle cx="12" cy="13.2" r="3.3"/></svg></button></div>
+  <div class="side"><button class="mini" id="who">keeper</button><button class="icon" id="bellBtn" aria-label="Notifications"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 16.5V11a6 6 0 0 1 12 0v5.5l1.5 1.5h-15z"/><path d="M10 20.5a2 2 0 0 0 4 0"/></svg><i id="bellDot" hidden></i></button><button class="icon" id="misBtn" aria-label="Missions"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 21V3.5"/><path d="M6 4.5h11.5l-2.4 4 2.4 4H6"/></svg></button><button class="icon" id="snd" aria-label="Sound on"></button><button class="icon" id="visitBtn" aria-label="Visit a keeper"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 11.5L12 5l8 6.5"/><path d="M6 10v9h12v-9"/></svg></button><button class="icon" id="tvBtn" aria-label="Tank view"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 8.5h12.5v11.5H3.5z"/><path d="M3.5 8.5L7.5 4.5h12.5v11.5l-4 4"/><path d="M16 8.5l4-4"/><path d="M3.5 13c2.1 1 4.2 1 6.3 0s4.1-1 6.2 0"/></svg></button><button class="icon" id="editBtn" aria-label="Edit your tank"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20l4.2-1 10.4-10.4a2 2 0 0 0 0-2.8l-.4-.4a2 2 0 0 0-2.8 0L5 15.8 4 20z"/><path d="M13.5 6.5l4 4"/></svg></button><button class="icon" id="captureBtn" aria-label="Capture the tank"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8.5h3.2L8.8 6h6.4l1.6 2.5H20v10H4z"/><circle cx="12" cy="13.2" r="3.3"/></svg></button></div>
 </div>
 <div class="ui bottom">
   <p id="cap" aria-live="polite"></p>
@@ -477,7 +484,7 @@ const KO={
 'gifts need the new database rules (see the guide)':'선물을 보내려면 새 저장 서버 규칙이 필요해요','visiting needs the online save':'방문하려면 온라인 저장이 필요해요',
 'heart':'하트','sparkle':'반짝','fishy':'물고기','bubbles':'방울','cucumber':'오이','yum':'냠','crunch':'아삭','zucchini':'애호박','banana':'바나나',
 'a little fish like yours · 50 xp':'내 금붕어를 닮은 작은 물고기 · 50 xp','send · 50 xp':'보내기 · 50 xp','friends’ fish':'친구 물고기','tap a fish to show or hide it in your tank':'물고기를 탭해서 어항에 보이거나 숨겨요','no skin':'스킨 없음','little fish your friends send you swim here':'친구가 보낸 작은 물고기가 여기서 헤엄쳐요',
-'visit · type a friend’s username to visit their tank, send gifts, or challenge them to a duel. fish you’re sent swim with yours':'방문 · 친구 아이디를 입력해 어항에 놀러 가서 선물을 보내거나 결투를 신청해요. 선물받은 물고기는 내 물고기랑 같이 놀아요','duel':'결투','notifications':'알림','turn on':'켜기','turn off':'끄기','notifications are on':'알림이 켜져 있어요','notifications · add Goldfish to your home screen first':'알림 · 먼저 Goldfish를 홈 화면에 추가해 주세요',"notifications aren’t available here":'여기서는 알림을 쓸 수 없어요','notifications are blocked in settings':'설정에서 알림이 꺼져 있어요','rock stacking':'돌 쌓기','rock balancing':'돌 균형 잡기','who stacks the tallest tower':'누가 더 높이 쌓나','whose stack stays up longer':'누구 탑이 더 오래 버티나','pick a game. winning is pure luck · the winner gets a shiny winner ring (+50 xp)':'게임을 골라요. 승패는 순전히 운 · 이기면 반짝이는 승리 반지 (+50 xp)','winner ring':'승리 반지','skin':'스킨','special looks, like christmas':'크리스마스 같은 특별한 모습','a skin is worn over your color and pattern · tap it again to reshuffle':'스킨은 색과 무늬 위에 입혀져요 · 한 번 더 누르면 모양이 바뀌어요','none':'없음','christmas':'크리스마스','at least 20 stones stay in the tank':'어항에는 돌이 최소 20개 남아 있어야 해요','skip':'건너뛰기',
+'visit · type a friend’s username to visit their tank, send gifts, or challenge them to a duel. fish you’re sent swim with yours':'방문 · 친구 아이디를 입력해 어항에 놀러 가서 선물을 보내거나 결투를 신청해요. 선물받은 물고기는 내 물고기랑 같이 놀아요','duel':'결투','notifications':'알림','nothing yet':'아직 없어요','tallest tower wins':'더 높이 쌓으면 승리','last stack standing wins':'끝까지 버티면 승리','the fish play it out in the tank · pure luck · winner gets a winner ring (+50 xp)':'물고기들이 어항에서 직접 겨뤄요 · 순전히 운 · 이기면 승리 반지 (+50 xp)','notifications':'알림','turn on':'켜기','turn off':'끄기','notifications are on':'알림이 켜져 있어요','notifications · add Goldfish to your home screen first':'알림 · 먼저 Goldfish를 홈 화면에 추가해 주세요',"notifications aren’t available here":'여기서는 알림을 쓸 수 없어요','notifications are blocked in settings':'설정에서 알림이 꺼져 있어요','rock stacking':'돌 쌓기','rock balancing':'돌 균형 잡기','who stacks the tallest tower':'누가 더 높이 쌓나','whose stack stays up longer':'누구 탑이 더 오래 버티나','pick a game. winning is pure luck · the winner gets a shiny winner ring (+50 xp)':'게임을 골라요. 승패는 순전히 운 · 이기면 반짝이는 승리 반지 (+50 xp)','winner ring':'승리 반지','skin':'스킨','special looks, like christmas':'크리스마스 같은 특별한 모습','a skin is worn over your color and pattern · tap it again to reshuffle':'스킨은 색과 무늬 위에 입혀져요 · 한 번 더 누르면 모양이 바뀌어요','none':'없음','christmas':'크리스마스','at least 20 stones stay in the tank':'어항에는 돌이 최소 20개 남아 있어야 해요','skip':'건너뛰기',
 'hand · drag to lead your fish, tap to call it, tap the fish to say hi':'손 · 끌어서 금붕어를 데려가고, 탭해서 부르고, 금붕어를 탭하면 인사해요',
 'food · tap the water to sprinkle flakes':'먹이 · 물을 탭해서 먹이를 뿌려요','clean · when the glass gets dirty, rub it clean':'청소 · 유리가 더러워지면 문질러서 닦아요',
 'toy · drag the lure and let your fish chase it':'장난감 · 미끼를 끌면 금붕어가 쫓아와요','sleep · turns the lights off so your fish can rest':'재우기 · 불을 꺼서 금붕어를 쉬게 해요',
@@ -1258,6 +1265,7 @@ function doReact(dt){const r=S.react;r.t+=dt;const u=clamp(r.t/r.dur);
 /* ================= behaviour ================= */
 function behave(dt){const s=pet().s;S.faceT=null;
   S.look=(T-ptr.seen<2.5&&ptr.world)?ptr.world:null;
+  if(DX){duelHost(dt);return;}
   if(S.react&&S.react.lock){doReact(dt);return;}
   if(lightsOff){sleepB(dt);if(S.react)doReact(dt);return;}
   S.asleep=false;
@@ -1455,7 +1463,7 @@ function updateCap(){const el=$('#cap');
   if(performance.now()<hintUntil){el.textContent=HINT[tool]||'';return;}
   const s=pet().s;let lk=null,lv=101;for(const [k] of STATS)if(s[k]<lv){lv=s[k];lk=k;}
   el.textContent=fill(lv<40?MOOD[lk]:MOOD.ok);}
-function renderUI(){
+function renderUI(){bellDot();
   const nm=$('#name');if(document.activeElement!==nm)nm.value=pet().name;fitName();
   $('#stats').innerHTML=STATS.map(([k,l])=>'<span>'+l+'</span><b><i id="b-'+k+'"></i></b>').join('')+'<span id="lvl">lv 1</span><b><i id="b-xp"></i></b>';
   $('#who').textContent=USER?'@'+USER:'sign in';
@@ -1679,7 +1687,7 @@ setInterval(()=>{if(cloudDirty)cloudPut();else if(!document.hidden)pull();},3000
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)pull();});
 /* the home-screen app keeps an old copy of the page open (and iOS caches it), so check for a newer build when it opens or comes back,
    and reload past the cache if there is one */
-const BUILD='20261117011110';
+const BUILD='20261117012737';
 function checkBuild(){fetch('version.json?t='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{if(!j||!j.b||j.b===BUILD)return;
   try{if(sessionStorage.getItem('gf-build')===j.b)return;sessionStorage.setItem('gf-build',j.b);}catch(e){}
   try{persistLocal();}catch(e){}location.replace(location.pathname+'?v='+encodeURIComponent(j.b));}).catch(()=>{});}
@@ -1908,7 +1916,7 @@ function enterVisit(n,rec){if(TV.on)setTankView(false);if(toy)endToy(true);persi
   VISIT.friends=(rec.save.friends||[]).slice(0,6);{const vf=VISIT.friends,vn=n;refreshFriendLooks(vf,()=>{if(VISIT&&VISIT.n===vn)spawnFriends();});}save.tank=JSON.parse(JSON.stringify(rec.save.tank||{}));rebuildTank();spawnFriends();R.lookStage=null;S.grow=VISIT.stage/10;applyLook();
   document.body.classList.add('visiting');$('#visitBar').hidden=false;$('#visitTitle').textContent='@'+n+'’s tank · '+VISIT.fish+' · lv '+VISIT.level;say('');}
 let VISIT_CLOUD=null;
-function leaveVisit(){if(!VISIT)return;if(GPLACE)endGiftPlace(false);VISIT_CLOUD=VISIT.cloud||null;save.tank=VISIT.mine;lightsOff=VISIT.myLights;document.body.classList.toggle('night',lightsOff);if(S)S.asleep=lightsOff;VISIT=null;rebuildTank();spawnFriends();R.lookStage=null;S.grow=growStage()/10;applyLook();
+function leaveVisit(){if(!VISIT)return;if(DX)endDuel();if(GPLACE)endGiftPlace(false);VISIT_CLOUD=VISIT.cloud||null;save.tank=VISIT.mine;lightsOff=VISIT.myLights;document.body.classList.toggle('night',lightsOff);if(S)S.asleep=lightsOff;VISIT=null;rebuildTank();spawnFriends();R.lookStage=null;S.grow=growStage()/10;applyLook();
   document.body.classList.remove('visiting');$('#visitBar').hidden=true;$('#giftOut').hidden=true;persistLocal();{const c=VISIT_CLOUD;VISIT_CLOUD=null;if(c)takeMerged(c);}if(cloudDirty)cloudPut();}
 $('#visitHome').onclick=leaveVisit;
 // sending
@@ -2004,44 +2012,93 @@ function openGiftOut(){if(!VISIT)return;$('#giftTitle').textContent='send a gift
   $('#giftOut').hidden=false;}
 $('#giftBtn').onclick=openGiftOut;
 
-/* ---- duels: when visiting, challenge the keeper to rock stacking or rock balancing. It's a coin flip, shown as a little race of two stacks.
-   One duel per tank a day. The winner gets a shiny winner ring (the first one goes in your tank) worth +50 xp. ---- */
-let DUEL=null;
-function openDuel(){if(!VISIT||!USER)return;const n=VISIT.n,day=dayKey(),d=save.duels||{};$('#duelTitle').textContent='duel @'+n;$('#duelCv').hidden=true;
-  const done=d[n]===day;$('#duelPick').hidden=done;$('#duelMsg').textContent=done?'you already dueled @'+n+' today. come back tomorrow':'';$('#duel').hidden=false;}
-$('#duelBtn').onclick=openDuel;$('#duelClose').onclick=()=>{if(DUEL&&!DUEL.end)return;$('#duel').hidden=true;};
-document.querySelectorAll('[data-duel]').forEach(b=>b.onclick=()=>runDuel(b.dataset.duel));
-function runDuel(kind){if(!VISIT||DUEL&&!DUEL.end)return;const n=VISIT.n;save.duels=Object.assign({},save.duels);for(const k in save.duels)if(save.duels[k]!==dayKey())delete save.duels[k];save.duels[n]=dayKey();persist();
-  const win=Math.random()<0.5;$('#duelPick').hidden=true;$('#duelMsg').textContent=kind==='stack'?'stacking…':'balancing…';const cv=$('#duelCv');cv.hidden=false;
-  // each side: a list of rocks (width, height, offset). stacking: the loser's tower tops out lower and its last rock slides off; balancing: the loser's stack wobbles more and topples first
-  const mk=k=>{const a=[];let w=74;for(let i=0;i<k;i++){a.push({w:w*(0.8+Math.random()*0.35),h:16+Math.random()*9,o:(Math.random()-0.5)*10,sh:0.55+Math.random()*0.3});w*=0.9;}return a;};
-  const nW=kind==='stack'?7+Math.floor(Math.random()*3):6,nL=kind==='stack'?Math.max(3,nW-1-Math.floor(Math.random()*3)):6;
-  const me={rocks:mk(win?nW:nL+1),lose:!win},them={rocks:mk(win?nL+1:nW),lose:win};
-  DUEL={kind,t:0,me,them,win,n,end:false};requestAnimationFrame(duelFrame);}
-function duelFrame(){const D=DUEL;if(!D||$('#duel').hidden&&D.end)return;const cv=$('#duelCv'),x=cv.getContext('2d'),W=cv.width,H=cv.height,g=H-46,now=performance.now();D.t+=Math.min(0.1,(now-(D.last||now))/1000);D.last=now;
-  x.clearRect(0,0,W,H);x.fillStyle='#e9e9e9';x.beginPath();x.ellipse(W/2,g+8,W*0.46,14,0,0,Math.PI*2);x.fill();
-  const drop=0.42,stackT=Math.max(D.me.rocks.length,D.them.rocks.length)*drop+0.4,fallT=stackT+(D.kind==='balance'?1.6:0.2);
-  const side=(S2,cx,label)=>{let y=g,lean=0;const nShow=Math.min(S2.rocks.length,Math.floor(D.t/drop)+1);
-    // the losing stack: its last rock tips off (stacking), or the whole stack sways harder and falls over (balancing)
-    const wob=D.kind==='balance'&&D.t>stackT*0.6?Math.sin(D.t*(S2.lose?5:3.2))*(S2.lose?0.05+Math.min(0.25,(D.t-stackT*0.6)*0.08):0.02):0;
-    const fall=S2.lose&&D.t>fallT?Math.min(1,(D.t-fallT)/0.7):0;
-    x.save();x.translate(cx,g);x.rotate(D.kind==='balance'?wob+fall*fall*1.3*(cx<W/2?-1:1):0);x.translate(-cx,-g);
-    for(let i=0;i<nShow;i++){const r=S2.rocks[i],k=i===nShow-1?Math.min(1,(D.t-i*drop)/drop):1,yy=y-r.h/2-(1-k*k)*160;let ox=r.o+lean,rot=0,vy=0;
-      if(D.kind==='stack'&&S2.lose&&i===S2.rocks.length-1&&D.t>fallT){const f=Math.min(1,(D.t-fallT)/0.8);ox+=f*60*(cx<W/2?-1:1);rot=f*1.2*(cx<W/2?-1:1);vy=f*f*(g-yy);}
-      x.save();x.translate(cx+ox,yy+vy);x.rotate(rot);const v=Math.round(110+r.sh*90);x.fillStyle='rgb('+v+','+v+','+v+')';x.beginPath();x.ellipse(0,0,r.w/2,r.h/2,0,0,Math.PI*2);x.fill();
-      x.fillStyle='rgba(255,255,255,.22)';x.beginPath();x.ellipse(-r.w*0.12,-r.h*0.18,r.w*0.26,r.h*0.18,0,0,Math.PI*2);x.fill();x.restore();y-=r.h*0.92;lean+=r.o*0.15;}
-    x.restore();x.fillStyle='#555';x.font='26px '+getComputedStyle(document.body).fontFamily;x.textAlign='center';x.fillText(label,cx,H-8);};
-  side(D.me,W*0.28,'you');side(D.them,W*0.72,'@'+D.n);
-  if(!D.end&&D.t>fallT+0.9){D.end=true;duelResult();}
-  if(!D.end||D.t<fallT+3)requestAnimationFrame(duelFrame);}
+/* ---- duels: when visiting, challenge the keeper to rock stacking or rock balancing. Your fish swims in and the two fish play it out
+   in the tank: fetching stones from the sand and stacking them. It's a coin flip. One duel per tank a day; the winner gets a winner ring (+50 xp). ---- */
+let DX=null;
+function openDuel(){if(!VISIT||!USER||DX)return;const n=VISIT.n,done=(save.duels||{})[n]===dayKey();$('#duelTitle').textContent='duel @'+n;
+  $('#duelPick').hidden=done;$('#duelNote').textContent=done?'you already dueled @'+n+' today':'the fish play it out in the tank · pure luck · winner gets a winner ring (+50 xp)';$('#duel').hidden=false;}
+$('#duelBtn').onclick=openDuel;$('#duelClose').onclick=()=>{$('#duel').hidden=true;};
+document.querySelectorAll('[data-duel]').forEach(b=>b.onclick=()=>{$('#duel').hidden=true;startDuel(b.dataset.duel);});
+function duelCap(t){const c=$('#duelCap');c.textContent=t;c.hidden=!t;}
+function startDuel(kind){if(!VISIT||DX)return;const n=VISIT.n;save.duels=Object.assign({},save.duels);for(const k in save.duels)if(save.duels[k]!==dayKey())delete save.duels[k];save.duels[n]=dayKey();persist();
+  if(toy)endToy(true);const win=Math.random()<0.5,F=B.floor,z=0.4,sx=B.x*0.38;
+  // your fish, full size, swimming in from the left
+  const st=myStage(),G=buildFish();poseYouth(G,st,true);applyLook(G,pet().look||{c:'orange',p:'plain',seed:1},st);G.g.scale.setScalar(0.434*youth(st).size);
+  G.g.traverse(o=>{if(o.userData&&o.userData.proxy)o.visible=false;});const piv=[];for(const m of G.tails||[]){const p=new THREE.Group();p.position.x=-0.66;G.inner.add(p);G.inner.remove(m);m.position.x+=0.66;p.add(m);piv.push(p);}
+  world.add(G.g);FRIENDS.forEach(f=>f.g.visible=false);
+  const hid=[];for(const pb of PEBBLES){const p=pb.m.position;if(pb.m.visible&&p.z>-0.25&&Math.abs(Math.abs(p.x)-sx)<B.x*0.55){pb.m.visible=false;hid.push(pb.m);}}for(const d of DECOS){const p=d.m.position;if(d.m.visible&&p.z>-0.25){d.m.visible=false;hid.push(d.m);}}
+  const mk=(side,cnt)=>{const src=[];for(let i=0;i<cnt;i++){const r=rnd(0.1,0.12)*(1-i*0.035),fl=rnd(0.42,0.5),g=stoneGeo(r,i*3+side,false,fl),v=rnd(0.55,0.8);tint(g,()=>pebbleCol.setRGB(v,v,v));
+      const m=new THREE.Mesh(g,MAT),x=side*B.x*(0.72+(i%3)*0.09),zz=0.05+Math.floor(i/3)*0.22+(i%2)*0.07;m.position.set(x,F+r*fl*0.9,zz);m.rotation.y=rnd(0,6);world.add(m);src.push({m,r,fl,h:r*fl*1.8});}return src;};
+  const nW=kind==='stack'?6:4,nL=kind==='stack'?5:4;
+  const me={side:-1,G,piv,pos:new V3(-B.x*1.1,B.ymin+0.7,z),vel:new V3(),head:0,ph:0,base:new V3(-sx,F,z),stack:[],steps:[],face:null,droop:0,carry:null,lose:!win};
+  const host={side:1,host:true,base:new V3(sx,F,z),stack:[],steps:[],face:null,droop:0,carry:null,lose:win};
+  me.src=mk(-1,win?nW:nL);host.src=mk(1,win?nL:nW);
+  DX={kind,win,me,host,t:0,n,stones:[],fall:[],sway:0,ring:null,phase:'build',endT:0,hid};
+  for(const P of [me,host]){if(P===me)P.steps.push({go:new V3(-B.x*0.6,B.ymin+0.5,z),v:1.2});P.src.forEach((st2,i)=>{fetchSteps(P,st2);placeSteps(P,st2,i===P.src.length-1);});P.steps.push({fn:()=>{P.done=true;}});}
+  duelCap((kind==='stack'?'rock stacking':'rock balancing')+' · you vs @'+n);}
+const mouthOf=P=>P.host?R.mouth.x*R.g.scale.x:P.G.mouth.x*P.G.g.scale.x;
+const posOf=P=>P.host?S.pos:P.pos;
+// where the body goes so the mouth lands on point p, approaching from the side it's already on
+function bodyAt(P,p,side){side=side||Math.sign(posOf(P).x-p.x)||P.side;return {p:new V3(p.x+side*mouthOf(P),p.y+0.03,p.z),face:p};}
+function fetchSteps(P,st){const top=()=>st.m.position.clone().add(new V3(0,st.h*0.5+0.02,0));
+  P.steps.push({go:()=>{const b=bodyAt(P,top(),-P.side);b.p.y+=0.18;return b;},v:2.1,loose:0.07},{go:()=>bodyAt(P,top(),-P.side),v:1.2},{wait:0.14},{fn:()=>{P.carry=st;sandPuffAt(st.m.position);}},{go:()=>{const b=bodyAt(P,top(),-P.side);b.p.y+=0.22;return b;},v:1.6,loose:0.08});}
+function stackTop(P){let y=P.base.y;for(const q of P.stack)y+=q.h*0.92;return y;}
+function placeSteps(P,st,last){const slot=()=>new V3(P.base.x+rnd(-0.01,0.01),stackTop(P)+st.h*0.5,P.base.z);
+  P.steps.push({go:()=>{const b=bodyAt(P,slot().add(new V3(0,0.16,0)),P.side);return b;},v:2.1,loose:0.07},{go:()=>bodyAt(P,slot().add(new V3(0,0.04,0)),P.side),v:1.1},{wait:0.1},
+    {fn:()=>{const to=slot();P.carry=null;P.stack.push(st);st.from=st.m.position.clone();st.to=to;st.k=0;st.rest=to.clone();st.wob=0.25;
+      if(last&&P.lose&&DX.kind==='stack')P.steps.unshift({wait:0.5},{fn:()=>topple(P)});}},{go:()=>{const b=bodyAt(P,slot(),P.side);b.p.x+=P.side*0.2;b.p.y+=0.14;return b;},v:1.5,loose:0.08});}
+function sandPuffAt(p){for(let i=0;i<3;i++)bubble(new V3(p.x+rnd(-0.05,0.05),p.y+0.05,p.z),0.012,0.25);}
+// a stack giving way: each stone tumbles off with its own push and spin, then settles on the sand
+function topple(P){if(P.fallen)return;P.fallen=true;P.steps=[];const o=P.side*(DX.kind==='balance'?1:1);
+  P.stack.forEach((q,i)=>{q.fall={v:new V3(o*rnd(0.25,0.55)*(0.6+i*0.25),rnd(0.05,0.25),rnd(-0.15,0.15)),w:new V3(rnd(-3,3),rnd(-2,2),o*-rnd(2,4))};DX.fall.push(q);});
+  // the loser startles back, then sinks down beside the scattered stones, nose low
+  const bp=posOf(P).clone();P.steps.push({go:new V3(bp.x+P.side*0.35,bp.y+0.12,bp.z+0.1),v:1.6},{wait:0.6},{fn:()=>{P.droop=1;}},{go:new V3(P.base.x+P.side*0.45,B.ymin+0.12,P.base.z+0.25),v:0.35},{wait:9});}
+function cheer(P){const c=P.base.clone(),h=stackTop(P);P.steps=[];const pts=[];for(let i=0;i<=10;i++){const a=i/10*Math.PI*2+(P.side>0?0:Math.PI);pts.push(new V3(c.x+Math.cos(a)*0.38,h+0.15+i*0.025,c.z+Math.sin(a)*0.3));}
+  pts.forEach(p=>P.steps.push({go:p,v:1.7,loose:0.12}));P.steps.push({fn:()=>{for(let i=0;i<8;i++)setTimeout(()=>bubble(posOf(P).clone().add(new V3(rnd(-0.1,0.1),0.1,0))),i*90);P.spin=1;}},{wait:1},{go:new V3(c.x+P.side*0.3,h+0.35,c.z+0.2),v:0.8},{wait:9});}
+function ringPop(P){const g=RING.make();g.scale.setScalar(0.001);const h=stackTop(P);g.position.set(P.base.x,h+0.35,P.base.z);g.userData.isRing=true;world.add(g);DX.ring={g,t:0,y:h+0.35};}
+function runSteps(P,dt){const st=P.steps[0];if(!st)return null;
+  if(st.wait!==undefined){st.wait-=dt;if(st.wait<=0)P.steps.shift();return {hold:true};}
+  if(st.fn){P.steps.shift();st.fn();return runSteps(P,dt);}
+  if(!st.target){const g=typeof st.go==='function'?st.go():{p:st.go};st.target=g.p;st.face=g.face||null;}
+  const d=posOf(P).distanceTo(st.target);if(d<(st.loose||0.04)){P.steps.shift();return runSteps(P,dt);}return st;}
+// the host fish (the one that lives in this tank) is driven from behave()
+function duelHost(dt){const P=DX.host,st=runSteps(P,dt);S.faceT=null;S.mode='tidy';
+  if(!st||st.hold){brake(dt);if(P.face)S.faceT=P.face;}else{const d=st.target.clone().sub(S.pos),L=d.length(),sp=st.v*Math.min(1,L/0.22),k=L>1e-4?sp/L:0;
+    S.vel.x=damp(S.vel.x,d.x*k,5,dt);S.vel.y=damp(S.vel.y,d.y*k,5,dt);S.vel.z=damp(S.vel.z,d.z*k,5,dt);P.face=st.face;if(st.face&&L<0.3)S.faceT=st.face;}
+  S.pitch=damp(S.pitch,-0.32*P.droop,2,dt);if(P.spin>0){P.spin-=dt;S.wantH+=dt*9;}}
+function duelGuest(dt){const P=DX.me,G=P.G,st=runSteps(P,dt);let want=new V3();
+  if(st&&!st.hold){const d=st.target.clone().sub(P.pos),L=d.length(),sp=st.v*Math.min(1,L/0.22);want=d.multiplyScalar(L>1e-4?sp/L:0);P.face=st.face;}
+  P.vel.lerp(want,1-Math.exp(-dt*5));P.pos.addScaledVector(P.vel,dt);const spd=P.vel.length();
+  let h=null;if(P.face&&(!st||st.hold||P.pos.distanceTo(st.target)<0.3))h=Math.atan2(-(P.face.z-P.pos.z),P.face.x-P.pos.x);else if(spd>0.04)h=Math.atan2(-P.vel.z,P.vel.x);
+  if(P.spin>0){P.spin-=dt;P.head+=dt*9;}else if(h!==null){let dh=h-P.head;dh=Math.atan2(Math.sin(dh),Math.cos(dh));P.head+=dh*Math.min(1,dt*5);}
+  P.ph+=dt*(4+spd*12)*(P.droop?0.5:1);G.g.position.copy(P.pos);G.g.position.y+=Math.sin(P.ph*0.3)*0.008;
+  G.g.rotation.order='YZX';G.g.rotation.set(0,P.head+Math.sin(P.ph)*0.06,clamp(P.vel.y*1.2,-0.4,0.4)-0.32*P.droop);for(const p of P.piv)p.rotation.y=Math.sin(P.ph+0.6)*0.35;}
+function duelTick(dt){const D=DX;if(!D)return;D.t+=dt;duelGuest(dt);
+  const mw=P=>{if(P.host)return mouthWorld();P.G.g.updateMatrixWorld(true);return P.G.inner.localToWorld(P.G.mouth.clone());};
+  for(const P of [D.me,D.host]){if(P.carry){const m=mw(P);P.carry.m.position.set(m.x,m.y-P.carry.h*0.45,m.z);}
+    // stones being set down ease onto the stack and rock a little before settling
+    for(const q of P.stack){if(q.fall)continue;if(q.k<1){q.k=Math.min(1,q.k+dt/0.28);const e=1-Math.pow(1-q.k,3);q.m.position.lerpVectors(q.from,q.to,e);}
+      q.wob=damp(q.wob||0,0,3,dt);q.m.rotation.z=Math.sin(D.t*9+q.r*50)*0.12*q.wob;}}
+  // balancing: once both stacks are built, they sway; the loser's sways harder until it goes
+  if(D.kind==='balance'&&D.me.done&&D.host.done&&D.phase==='build'){D.phase='sway';D.swayT=0;for(const P of [D.me,D.host]){const c=P.base.clone().add(new V3(0,0.2,0));P.steps=[{go:new V3(P.base.x+P.side*0.42,P.base.y+0.32,P.base.z+0.15),v:0.8},{fn:()=>{P.face=c;}},{wait:99}];}}
+  if(D.phase==='sway'){D.swayT+=dt;for(const P of [D.me,D.host]){if(P.fallen)continue;const A=(P.lose?0.02+D.swayT*0.022:0.02+Math.min(0.03,D.swayT*0.01))*(D.swayT>3.2&&!P.lose?Math.max(0,1-(D.swayT-3.2)):1),a=Math.sin(D.swayT*(P.lose?4.4:3.6))*A;
+      let y=P.base.y;for(const q of P.stack){const cy=y+q.h*0.5-P.base.y;q.m.position.set(P.base.x+Math.sin(a)*cy,P.base.y+Math.cos(a)*cy,P.base.z);q.m.rotation.z=-a;y+=q.h*0.92;}
+      if(P.lose&&D.swayT>3.4)topple(P);}}
+  // tumbling stones: a slow underwater fall, a soft bounce, then still
+  for(const q of D.fall){const f=q.fall;if(!f||f.done)continue;f.v.y-=1.6*dt;f.v.multiplyScalar(1-dt*0.6);q.m.position.addScaledVector(f.v,dt);q.m.rotation.x+=f.w.x*dt;q.m.rotation.y+=f.w.y*dt;q.m.rotation.z+=f.w.z*dt;
+    const fl=B.floor+q.h*0.45;if(q.m.position.y<fl){q.m.position.y=fl;if(Math.abs(f.v.y)>0.15){f.v.y*=-0.25;f.v.x*=0.5;f.v.z*=0.5;f.w.multiplyScalar(0.4);sandPuffAt(q.m.position);}else{f.done=true;q.m.rotation.x=q.m.rotation.z=0;}}
+    q.m.position.x=clamp(q.m.position.x,-B.x*0.98,B.x*0.98);}
+  // result: once the loser's stack is down and the winner has finished building
+  const W=D.win?D.me:D.host,L=D.win?D.host:D.me;
+  if(D.phase!=='result'&&L.fallen&&(W.done||D.kind==='balance')&&D.fall.every(q=>q.fall.done)){D.phase='result';D.endT=D.t;cheer(W);ringPop(W);
+    if(D.win){awardRing();duelCap('you won · winner ring +50 xp');}else duelCap('@'+D.n+' won');
+    if(DB&&USER){const body={fields:{from:{stringValue:USER},kind:{stringValue:'duel'},item:{stringValue:D.kind+'.'+(D.win?'w':'l')},at:{timestampValue:new Date().toISOString()}}};fetch(GBOX(D.n)+'?key='+DB.apiKey,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}).catch(()=>{});}}
+  if(D.ring){const r=D.ring;r.t+=dt;r.g.scale.setScalar(1.9*Math.min(1,r.t*2.2)*(1+0.25*Math.max(0,Math.sin(Math.min(1,r.t*2.2)*Math.PI))));r.g.position.y=r.y+Math.sin(r.t*2)*0.03;r.g.rotation.y+=dt*1.2;}
+  if(D.phase==='result'&&D.t-D.endT>5)endDuel();}
+function endDuel(){const D=DX;if(!D)return;DX=null;for(const P of [D.me,D.host])for(const q of P.src)world.remove(q.m);world.remove(D.me.G.g);if(D.ring)world.remove(D.ring.g);
+  FRIENDS.forEach(f=>f.g.visible=true);for(const m of D.hid)m.visible=true;S.pitch=0;S.mode='idle';duelCap('');renderUI();}
 function awardRing(){addXP(50);const home=VISIT?VISIT.mine:save.tank;PROG.life.rings=(PROG.life.rings||0)+1;
   if(!home.owned.ring){home.owned.ring=1;if(!home.items.some(i=>i.id==='ring'))home.items.push({id:'ring',x:+rnd(-0.6,0.6).toFixed(3),z:+rnd(-0.3,0.3).toFixed(2),r:0});if(!VISIT)rebuildTank();}}
-function duelResult(){const D=DUEL;if(!D)return;
-  // let the other keeper know how it went (it lands in their gift box)
-  if(DB&&USER){const body={fields:{from:{stringValue:USER},kind:{stringValue:'duel'},item:{stringValue:D.kind+'.'+(D.win?'w':'l')},at:{timestampValue:new Date().toISOString()}}};fetch(GBOX(D.n)+'?key='+DB.apiKey,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}).catch(()=>{});}
-  if(D.win){awardRing();
-    $('#duelMsg').textContent='you won! a shiny winner ring (+50 xp)'+(PROG.life.rings>1?' · rings won: '+PROG.life.rings:' · it’s waiting in your tank');renderUI();persist();snd.pop&&snd.pop();}
-  else $('#duelMsg').textContent='@'+D.n+' won this time. try again tomorrow';}$('#giftClose').onclick=()=>{$('#giftOut').hidden=true;};
 $('#sendSnack').onclick=()=>{const g=giftDay();if(g.snack>=3)return;sendGift('snack','flakes',()=>{g.snack++;persist();openGiftOut();});};
 // receiving
 const SEEN_GIFTS=new Set();
@@ -2057,15 +2114,23 @@ function openGifts(list){const el=$('#giftInList');if($('#giftIn').hidden)el.tex
     else if(g.kind==='fish'){const lk=unpackLook(g.item),pst=String(g.item).split('.')[4],st=pst===undefined||pst===''?10:clamp(+pst||0,0,10);save.friends=(save.friends||[]).concat([{id:g.id||(g.from+'-'+Date.now()),from:g.from,look:lk,stage:st}]).slice(-6);const img=fthumb(lk,st);
       pic='<img alt="" src="'+img+'" style="width:56px;height:40px">';txt='@'+g.from+' sent a little fish';setTimeout(spawnFriends,50);}
     else if(g.kind==='duel'){const [dk,res]=String(g.item).split('.'),gm=dk==='balance'?'rock balancing':'rock stacking',th=makeThumbs();pic='<img alt="" src="'+th.ring+'">';
-      if(res==='l'){awardRing();placedGift=true;txt='@'+g.from+' challenged you to '+gm+' and you won a winner ring (+50 xp)';}else txt='@'+g.from+' challenged you to '+gm+' and won this time';}
+      if(res==='l'){awardRing();placedGift=true;txt='you beat @'+g.from+' at '+gm+' · winner ring +50 xp';}else txt='@'+g.from+' beat you at '+gm;}
     else if(g.kind==='sticker'&&STICKERS[g.item]){pic=stk(g.item,40);txt='@'+g.from+' sent a '+g.item;}
     else if(g.kind==='deco'){const pd=parseDecoItem(g.item),d=SHOP.find(x=>x.id===pd.id);if(!d)continue;const th=makeThumbs();pic='<img alt="" src="'+th[d.id]+'">';
       if(save.tank.owned[d.id]){addXP(Math.round(d.price/2));txt='@'+g.from+' sent a '+d.name+' (you had one, so +'+Math.round(d.price/2)+' xp)';}else{save.tank.owned[d.id]=1;txt='@'+g.from+' sent a '+d.name;
         if(pd.x!==undefined&&!save.tank.items.some(i=>i.id===d.id)){save.tank.items.push({id:d.id,x:+pd.x.toFixed(3),z:+pd.z.toFixed(2),r:+pd.r.toFixed(2)});placedGift=true;txt+=' and placed it in your tank';}}}
     else continue;
     row.innerHTML=pic;const t=document.createElement('span');t.textContent=txt;row.appendChild(t);el.appendChild(row);}
+  {const ib=save.inbox=(save.inbox||[]);el.querySelectorAll('.gift-line span').forEach(sp=>ib.unshift({t:Date.now(),x:sp.textContent,n:1}));save.inbox=ib.slice(0,40);bellDot();}
   if(placedGift)rebuildTank();if(!el.childElementCount)return;renderUI();persist();$('#giftIn').hidden=false;snd.pop&&snd.pop();el.querySelectorAll('.gift-line').forEach((r,i)=>r.style.animationDelay=(i*0.12)+'s');}
 $('#giftInClose').onclick=()=>{$('#giftIn').hidden=true;};
+function bellDot(){$('#bellDot').hidden=!(save.inbox||[]).some(i=>i.n);}
+function ago(t){const m=Math.round((Date.now()-t)/60000);return m<1?'now':m<60?m+'m':m<1440?Math.round(m/60)+'h':Math.round(m/1440)+'d';}
+$('#bellBtn').onclick=()=>{if(VISIT)return;const l=$('#inboxList'),ib=save.inbox||[];l.textContent='';
+  if(!ib.length){const p=document.createElement('p');p.textContent='nothing yet';l.appendChild(p);}
+  for(const i of ib){const r=document.createElement('div');r.className='ib'+(i.n?' new':'');const b=document.createElement('b');b.textContent=i.x;const sm=document.createElement('small');sm.textContent=ago(i.t);r.append(b,sm);l.appendChild(r);}
+  $('#inbox').hidden=false;if(ib.some(i=>i.n)){ib.forEach(i=>{i.n=0;});bellDot();persist();}};
+$('#inboxClose').onclick=()=>{$('#inbox').hidden=true;};
 setInterval(()=>{if(!document.hidden)checkGifts();},10000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)setTimeout(checkGifts,1500);});
 
 /* ---- tank view: pull back to see the whole tank as a small glass box in the middle, and turn it by dragging ---- */
@@ -2485,6 +2550,7 @@ function lampShadows(N,on){if(LSH&&LSH.env!==ENV){world.remove(LSH.g);LSH=null;}
   for(const q of LSH.list)place(q.m,q.x,q.z,q.w,q.h,0.2);
   const fy=S.pos.y,hf=Math.max(0,fy-F),fw=0.434*youth(growStage()).size*1.1;place(LSH.fish,S.pos.x,S.pos.z,fw,hf*0.5,0.12*clamp(1-hf/2.2));}
 function frame(){requestAnimationFrame(frame);
+  if(DX){const nw=performance.now();duelTick(Math.min(0.05,(nw-(DX.last||nw))/1000));if(DX)DX.last=nw;}
   for(const o of ITEMS_ON)if(o.userData.isRing)o.traverse(c=>{if(c.userData.glint){const k=Math.max(0,Math.sin(T*1.7+o.position.x*3));c.material.opacity=k*k*0.95;c.scale.setScalar(0.06+0.05*k);}});const nowF=performance.now(),busy=ptr.down||toy||foods.length||T-(S.lastTouch||-9)<4||(TV.t>0&&TV.t<1),minF=busy?0:(lightsOff&&S.asleep?62:30);
   if(nowF-(frame.last||0)<minF)return;frame.last=nowF;const dt=Math.min(clock.getDelta(),0.07);T+=dt;
   needs(dt);behave(dt);physics(dt);animate(dt);keepAboveFloor();if(FRIENDS.length)friendsTick(dt);updateFoods(dt);updateToy(dt);updateRocks(dt);updateFX(dt);updateSay(dt);sunTick(dt);nightTick(dt);
