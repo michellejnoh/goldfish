@@ -1733,7 +1733,7 @@ setInterval(()=>{if(cloudDirty)cloudPut();else if(!document.hidden)pull();},3000
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)pull();});
 /* the home-screen app keeps an old copy of the page open (and iOS caches it), so check for a newer build when it opens or comes back,
    and reload past the cache if there is one */
-const BUILD='20261117113653';
+const BUILD='20261117113911';
 function checkBuild(){fetch('version.json?t='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{if(!j||!j.b||j.b===BUILD)return;
   try{if(sessionStorage.getItem('gf-build')===j.b)return;sessionStorage.setItem('gf-build',j.b);}catch(e){}
   try{persistLocal();}catch(e){}location.replace(location.pathname+'?v='+encodeURIComponent(j.b));}).catch(()=>{});}
@@ -2680,15 +2680,15 @@ function nightTick(dt){const lampW=TV.t>0.02?0:!$('#lampMenu').hidden?1:lightsOf
 let LSH=null;
 // evening, 7 to 9 pm: fades in over the first 20 minutes and out over the last 20 as the night lamp takes over
 function duskAmt(){if(!FFMODE)return 0;const d=new Date(),h=d.getHours()+d.getMinutes()/60;if(h<19||h>=21)return 0;return Math.min(clamp((h-19)/0.33),clamp((21-h)/0.33));}
-// not switched on yet: the three designs can be tried with ?ff=1, ?ff=2 or ?ff=3 at the end of the address
-let FFMODE=+(new URLSearchParams(location.search).get('ff')||0),FF=null;
+// design 1 (underwater fireflies) is the one in use; ?ff=2 / ?ff=3 still show the other two
+let FFMODE=+(new URLSearchParams(location.search).get('ff')||1),FF=null;
 function ffTick(dt){const want=TV.t>0.02||VISIT&&false?0:duskAmt();if(!FF){if(want<=0)return;ffBuild();}FF.a=damp(FF.a,want,1,dt);const A=FF.a,t=T;FF.g.visible=A>0.01;if(!FF.g.visible)return;
   if(FFMODE===1){for(const f of FF.list){f.c.x+=Math.sin(t*0.07+f.ph)*0.04*dt;f.c.y+=Math.cos(t*0.05+f.ph*2)*0.03*dt;
       const p=new V3(f.c.x+Math.sin(t*0.31+f.ph)*0.35,f.c.y+Math.sin(t*0.23+f.ph*1.7)*0.2,f.c.z+Math.sin(t*0.19+f.ph*0.6)*0.25);
       // shy of the fish: drifts away if it comes close
       const dv=p.clone().sub(S.pos),dd=dv.length();f.away.lerp(dd<0.5?dv.normalize().multiplyScalar((0.5-dd)*0.9):new V3(),1-Math.exp(-dt*2));p.add(f.away);
       p.x=clamp(p.x,-B.x*0.92,B.x*0.92);p.y=clamp(p.y,B.floor+0.15,B.surf-0.1);f.s.position.copy(p);
-      const b=0.12+0.88*Math.pow(Math.max(0,Math.sin(t*f.w+f.ph)),2);f.b=b*A;f.s.material.opacity=f.b;f.s.scale.setScalar(0.06+0.06*b);}}
+      const b=0.12+0.88*Math.pow(Math.max(0,Math.sin(t*f.w+f.ph)),2);f.b=b*A;f.s.material.opacity=f.b;f.s.scale.setScalar(0.1+0.07*b);}}
   else if(FFMODE===2){for(const f of FF.list){f.x+=f.vx*dt;if(Math.abs(f.x)>B.x*0.9)f.vx*=-1;f.z=0.1+Math.sin(t*0.2+f.ph)*0.5;
       const sh=0.55+0.45*Math.sin(t*7+f.ph*3)*Math.sin(t*3.1+f.ph),b=0.25+0.75*Math.pow(Math.max(0,Math.sin(t*f.w+f.ph)),2);f.b=b*A;
       f.s.position.set(f.x+Math.sin(t*2.3+f.ph)*0.02,B.surf-0.04,f.z);f.s.material.opacity=f.b*sh;f.s.scale.set(0.26+0.08*sh,0.045,1);}
@@ -2703,20 +2703,23 @@ function ffTick(dt){const want=TV.t>0.02||VISIT&&false?0:duskAmt();if(!FF){if(wa
       if(q.life<=0){q.s.visible=false;q.b=0;continue;}q.s.visible=true;q.p.addScaledVector(q.v,dt);q.v.multiplyScalar(1-dt*1.5);const u=1-q.life/q.L,b=u<0.15?u/0.15:Math.pow(1-(u-0.15)/0.85,1.6);
       q.b=b*A;q.s.position.copy(q.p);q.s.material.opacity=q.b;q.s.scale.setScalar(0.04+0.06*b);}}
   ffHalo();}
-function ffHalo(){for(const f of FF.list){const c=f.s,h=c.userData.h;if(!h)continue;h.visible=c.visible!==false;h.position.copy(c.position);h.material.opacity=c.material.opacity*0.55;h.scale.set(c.scale.x*(FFMODE===2?1.6:3.4),c.scale.y*(FFMODE===2?4:3.4),1);}}
+function ffHalo(){for(const f of FF.list){const c=f.s,h=c.userData.h;if(!h)continue;h.visible=c.visible!==false;h.position.copy(c.position);h.material.opacity=c.material.opacity*(FFMODE===1?0.75:0.55);h.scale.set(c.scale.x*(FFMODE===2?1.6:FFMODE===1?5:3.4),c.scale.y*(FFMODE===2?4:FFMODE===1?5:3.4),1);}}
 function ffSpark(p,spread){const q=FF.list.find(x=>!x.ambient&&x.life<=0)||FF.list.filter(x=>!x.ambient).sort((a,b)=>a.life-b.life)[0];if(!q)return;
   q.p.copy(p).add(new V3(rnd(-spread,spread),rnd(-spread,spread),rnd(-0.03,0.03)));q.v.set(rnd(-0.15,0.15),rnd(-0.05,0.2),rnd(-0.05,0.05));q.L=q.life=rnd(1.2,2);}
-function ffBuild(){const g=new THREE.Group(),tex=glowTex(),spr=(col)=>{const m=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,color:col,transparent:true,opacity:0,depthWrite:false,fog:false,blending:THREE.AdditiveBlending}));m.renderOrder=9;g.add(m);return m;},
-    mk=(col)=>{const c=spr(0xffffff),h=spr(col);c.userData.h=h;return c;};
+// a very soft round light: bright only at the very centre, fading out over a long, smooth falloff with no visible edge
+function ffTex(){if(ffTex.t)return ffTex.t;const c=document.createElement('canvas');c.width=c.height=128;const x=c.getContext('2d'),d=x.createImageData(128,128);
+  for(let j=0;j<128;j++)for(let i=0;i<128;i++){const r=Math.hypot(i-63.5,j-63.5)/64,a=Math.exp(-r*r*4.2)*Math.pow(Math.max(0,1-r),1.4),o=(j*128+i)*4;d.data[o]=d.data[o+1]=d.data[o+2]=255;d.data[o+3]=Math.round(255*a);}x.putImageData(d,0,0);return ffTex.t=new THREE.CanvasTexture(c);}
+function ffBuild(){const g=new THREE.Group(),tex=FFMODE===1?ffTex():glowTex(),spr=(col)=>{const m=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,color:col,transparent:true,opacity:0,depthWrite:false,fog:false,blending:THREE.AdditiveBlending}));m.renderOrder=9;g.add(m);return m;},
+    mk=(col)=>{const c=spr(FFMODE===1?0xfffbe6:0xffffff),h=spr(col);c.userData.h=h;return c;};
   FF={g,a:0,list:[],rip:[],next:3,emit:0};world.add(g);
-  if(FFMODE===1)for(let i=0;i<7;i++)FF.list.push({s:mk(0xe8f56a),c:new V3(rnd(-B.x*0.7,B.x*0.7),rnd(B.floor+0.4,B.surf-0.4),rnd(-0.9,0.4)),ph:rnd(0,6),w:rnd(1.6,3),away:new V3(),b:0});
+  if(FFMODE===1)for(let i=0;i<7;i++)FF.list.push({s:mk(0xfff1b8),c:new V3(rnd(-B.x*0.7,B.x*0.7),rnd(B.floor+0.4,B.surf-0.4),rnd(-0.9,0.4)),ph:rnd(0,6),w:rnd(1.6,3),away:new V3(),b:0});
   else if(FFMODE===2){for(let i=0;i<5;i++)FF.list.push({s:mk(0xf2ef8a),x:rnd(-B.x*0.8,B.x*0.8),vx:rnd(0.04,0.1)*(i%2?1:-1),z:0,ph:rnd(0,6),w:rnd(1.2,2.2),b:0});
     for(let i=0;i<3;i++){const m=new THREE.Mesh(new THREE.RingGeometry(0.85,1,40),new THREE.MeshBasicMaterial({color:0xfff6d8,transparent:true,depthWrite:false,fog:false,blending:THREE.AdditiveBlending,side:THREE.DoubleSide}));m.rotation.x=-Math.PI/2;m.visible=false;g.add(m);FF.rip.push({m,t:9});}}
   else{for(let i=0;i<10;i++)FF.list.push({s:mk(0x7fe8ff),ambient:true,p:new V3(rnd(-B.x*0.8,B.x*0.8),rnd(B.floor+0.3,B.surf-0.3),rnd(-0.8,0.4)),ph:rnd(0,6),w:rnd(0.8,1.6),b:0});
     for(let i=0;i<70;i++)FF.list.push({s:mk(0x7fe8ff),p:new V3(),v:new V3(),life:0,L:1,b:0});}}
 // the brightest few fireflies also light what's right around them (sharing the crystals' light slots)
 function ffGlow(k){if(!FF||!FF.g.visible)return k;const L=FF.list.filter(f=>f.b>0.15&&f.s.visible).sort((a,b)=>b.b-a.b);
-  for(const f of L){if(k>=10)break;const p=f.s.position,col=FFMODE===3?[0.5,0.95,1]:[0.95,1,0.45];GLOWU.uGP.value[k].set(p.x,p.y,p.z,FFMODE===2?0.3:0.2);GLOWU.uGC.value[k].set(col[0]*f.b*0.7,col[1]*f.b*0.7,col[2]*f.b*0.7);k++;}return k;}
+  for(const f of L){if(k>=10)break;const p=f.s.position,col=FFMODE===3?[0.5,0.95,1]:FFMODE===1?[1,0.93,0.65]:[0.95,1,0.45];GLOWU.uGP.value[k].set(p.x,p.y,p.z,FFMODE===2?0.3:0.2);GLOWU.uGC.value[k].set(col[0]*f.b*0.7,col[1]*f.b*0.7,col[2]*f.b*0.7);k++;}return k;}
 function lampShadows(N,on){if(LSH&&LSH.env!==ENV){world.remove(LSH.g);LSH=null;}if(!on){if(LSH)LSH.g.visible=false;return;}
   const L=NIGHTU.uNL.value,F=B.floor;
   if(!LSH){const c=document.createElement('canvas');c.width=c.height=64;const x=c.getContext('2d'),g=x.createRadialGradient(32,32,0,32,32,32);g.addColorStop(0,'rgba(0,0,0,1)');g.addColorStop(0.5,'rgba(0,0,0,.45)');g.addColorStop(1,'rgba(0,0,0,0)');x.fillStyle=g;x.fillRect(0,0,64,64);
