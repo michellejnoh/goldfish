@@ -78,6 +78,9 @@ body.evening{background:radial-gradient(ellipse 95% 55% at 102% 58%,rgba(var(--l
 body.night{--ink:#ededed;--dim:#7d7d7d;--soft:#b3b3b3;--track:#4a4a4a}
 body.night #say{color:#e0e0e0}
 @media (min-width:700px){#name{font-size:46px}}
+@media (min-width:700px) and (min-height:700px){.ui{zoom:1.5}.sheet .card{zoom:1.35}#visitBar,#duelCap,#giftPlaceBar{zoom:1.4}.sheet.dock .card{zoom:1.2}}
+@media (min-width:1000px) and (min-height:1000px){.ui{zoom:1.65}.sheet .card{zoom:1.45}#visitBar,#duelCap,#giftPlaceBar{zoom:1.5}}
+@media (min-width:700px) and (min-height:700px) and (orientation:landscape) and (max-height:1000px){.sheet .card{zoom:1.12}.sheet.dock .card{zoom:1.05}}
 [hidden]{display:none!important}
 body.editing .ui,body.editing #say{display:none}
 body.viewing .ui,body.viewing #say{display:none}
@@ -587,8 +590,10 @@ const snd={ctx:null,
 /* ================= three setup ================= */
 const cv=$('#c');
 const LOWRES=0.8; // render below screen resolution for a soft, low-res look
+let RES=LOWRES;const resFor=()=>Math.min(LOWRES,Math.sqrt(1.0e6/Math.max(1,innerWidth*innerHeight)))*RES/LOWRES;
 const renderer=new THREE.WebGLRenderer({canvas:cv,antialias:true,alpha:true});
 renderer.setClearColor(0xffffff,0);
+cv.addEventListener('webglcontextlost',e=>{e.preventDefault();try{persistLocal();}catch(_){}setTimeout(()=>location.reload(),300);},false);
 const scene=new THREE.Scene();
 const camera=new THREE.PerspectiveCamera(38,1,0.1,400);
 const hemi=new THREE.HemisphereLight(0xffffff,0xece6df,0.9);scene.add(hemi);
@@ -850,7 +855,7 @@ function fishWave(ph,amp,bend,t,spd,lag,lagY,arch,jel,fold,st,foldY){arch=arch||
 /* ================= the tank (monotone) ================= */
 const B={x:1.5,floor:0,surf:3,ymin:0.4,ymax:2.6,hw:2};
 const camLook=new V3(0,1.5,0),camBase=new V3(),DIR=new V3(0.04,0.1,1).normalize();
-function fit(){const w=innerWidth,h=innerHeight;renderer.setPixelRatio(LOWRES);renderer.setSize(w,h,false);camera.aspect=w/h;
+function fit(){const w=innerWidth,h=innerHeight;renderer.setPixelRatio(resFor());renderer.setSize(w,h,false);camera.aspect=w/h;
   const t=Math.tan(camera.fov*Math.PI/360),d=Math.max(3.8/2/t,3.4/2/(t*camera.aspect));
   camBase.copy(camLook).addScaledVector(DIR,d);camera.position.copy(camBase);camera.lookAt(camLook);camera.updateProjectionMatrix();
   const hh=t*d,hw=hh*camera.aspect,px=2*hh/h;
@@ -1687,7 +1692,7 @@ setInterval(()=>{if(cloudDirty)cloudPut();else if(!document.hidden)pull();},3000
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)pull();});
 /* the home-screen app keeps an old copy of the page open (and iOS caches it), so check for a newer build when it opens or comes back,
    and reload past the cache if there is one */
-const BUILD='20261117012737';
+const BUILD='20261117013641';
 function checkBuild(){fetch('version.json?t='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{if(!j||!j.b||j.b===BUILD)return;
   try{if(sessionStorage.getItem('gf-build')===j.b)return;sessionStorage.setItem('gf-build',j.b);}catch(e){}
   try{persistLocal();}catch(e){}location.replace(location.pathname+'?v='+encodeURIComponent(j.b));}).catch(()=>{});}
@@ -1812,7 +1817,7 @@ function hitItem(){const list=GPLACE?ITEMS_ON.filter(o=>o.userData.item===GPLACE
 function captureTank(){const w=innerWidth,h=innerHeight,pr=Math.min(2,(devicePixelRatio||1));renderer.setPixelRatio(pr);renderer.setSize(w,h,false);renderer.render(scene,camera);
   const c=document.createElement('canvas');c.width=renderer.domElement.width;c.height=renderer.domElement.height;const x=c.getContext('2d');
   x.fillStyle=WATER[save.tank.water]||'#fff';x.fillRect(0,0,c.width,c.height);x.drawImage(renderer.domElement,0,0);if(lightsOff){x.fillStyle='rgba(12,12,15,0.55)';x.fillRect(0,0,c.width,c.height);}
-  renderer.setPixelRatio(LOWRES);renderer.setSize(w,h,false);
+  renderer.setPixelRatio(resFor());renderer.setSize(w,h,false);
   c.toBlob(blob=>{if(!blob)return;const file=new File([blob],'goldfish-tank.png',{type:'image/png'});
     if(navigator.canShare&&navigator.canShare({files:[file]})){navigator.share({files:[file],title:'my goldfish tank'}).catch(()=>showShot(blob));}else showShot(blob);},'image/png');}
 function showShot(blob){const u=URL.createObjectURL(blob);$('#shotImg').src=u;$('#shotDl').href=u;$('#tank').hidden=true;$('#shot').hidden=false;}
@@ -1823,7 +1828,7 @@ $('#shutter').onclick=()=>{const f=$('#flash');f.classList.add('on');requestAnim
 
 /* ---- grey marks wherever you touch: a round blob on tap, a teardrop when you drag ---- */
 const TC=$('#touch'),tx=TC.getContext('2d'),LY=document.createElement('canvas'),lx=LY.getContext('2d'),MARKS=new Map(),FADING=[];
-function sizeTouch(){const pr=Math.min(2,devicePixelRatio||1);for(const c of [TC,LY]){c.width=innerWidth*pr;c.height=innerHeight*pr;}lx.setTransform(pr,0,0,pr,0,0);}
+function sizeTouch(){const pr=Math.min(innerWidth*innerHeight>500000?1:2,devicePixelRatio||1);for(const c of [TC,LY]){c.width=innerWidth*pr;c.height=innerHeight*pr;}lx.setTransform(pr,0,0,pr,0,0);}
 sizeTouch();addEventListener('resize',sizeTouch);
 const MR=17,TAIL_T=0.3,TAIL_L=MR*5;
 addEventListener('pointerdown',e=>{MARKS.set(e.pointerId,{pts:[{x:e.clientX,y:e.clientY,t:performance.now()}],a:1});},true);
@@ -2563,7 +2568,10 @@ function frame(){requestAnimationFrame(frame);
     const look=['#colors','#patterns','#skins'].some(k=>!$(k).hidden);document.body.classList.toggle('lookdock',look);}updateStats();updateCap();if(PROG){ensureDaily();const n=pet().s,ok=n.food>60&&n.clean>60&&n.energy>60&&n.fun>60;if(ok&&!S.happyNow)track('needs');S.happyNow=ok;}}
   if(S.toastT>0)S.toastT-=dt;
   if((saveT+=dt)>5){saveT=0;persistLocal();}
-  renderer.render(scene,camera);}
+  renderer.render(scene,camera);perfWatch();}
+// if the device can't keep up (frames over ~28 ms for a couple of seconds), render at a lower resolution; never below 60% of normal
+function perfWatch(){const now=performance.now(),P=perfWatch;if(P.t){const d=now-P.t;if(d<250){P.sum=(P.sum||0)+d;P.n=(P.n||0)+1;}}P.t=now;
+  if((P.n||0)>=90){const avg=P.sum/P.n;P.sum=0;P.n=0;if(avg>28&&RES>LOWRES*0.6){RES=Math.max(LOWRES*0.6,RES*0.85);fit();}}}
 setup();
 if(lightsOff){document.body.classList.add('night');S.asleep=true;S.pos.set(-B.x*0.5,B.ymin+0.05,-0.4);S.heading=S.wantH=0;hemi.intensity=0.3;keyL.intensity=0.25;renderUI();}else hint();
 requestAnimationFrame(frame);
