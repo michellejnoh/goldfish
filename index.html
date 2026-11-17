@@ -95,6 +95,7 @@ body.visiting .ui,body.visiting #say{display:none}
 .giftrow{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:4px}
 .duelopts{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0 4px}.duelopts .gbtn{display:flex;flex-direction:column;align-items:flex-start;gap:4px;padding:14px;text-align:left;width:auto;height:auto}
 .duelopts small{opacity:.6;font-size:13px}#duelCap{position:fixed;left:0;right:0;top:calc(env(safe-area-inset-top,0px) + 54px);z-index:4;margin:0;text-align:center;font-size:17px;color:var(--ink);opacity:.8;pointer-events:none;transition:opacity .4s}
+#fade{position:fixed;inset:0;z-index:20;background:var(--bg);opacity:0;transition:opacity .45s ease;pointer-events:none}#fade.on{opacity:1}
 #inboxList{max-height:56vh;overflow-y:auto;margin:6px 0 4px}#inboxList .ib{display:flex;gap:10px;align-items:baseline;padding:9px 0;border-bottom:1px solid rgba(0,0,0,.06);font-size:15px}#inboxList .ib:last-child{border:0}
 #inboxList .ib small{margin-left:auto;opacity:.5;white-space:nowrap;font-size:12px}#inboxList .ib.new b{font-weight:600}#inboxList p{opacity:.55;text-align:center;margin:18px 0}
 #bellBtn{position:relative}#bellBtn i{position:absolute;top:6px;right:6px;width:7px;height:7px;border-radius:50%;background:var(--ink)}#bellBtn i[hidden]{display:none}
@@ -190,7 +191,7 @@ body.visiting .ui,body.visiting #say{display:none}
 .row2 .link[aria-pressed="true"]{color:#111;text-decoration-thickness:2px}
 .mis .done{color:#a3a3a3;text-decoration:line-through}
 .small{font-size:14px;color:#8a8a8a}
-.shopgrid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px 4px}
+.shopgrid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px 4px}.shopgrid .shophead{grid-column:1/-1;margin:10px 0 0}
 #shop .card{max-width:440px}
 @media (max-height:700px){.shopgrid{grid-template-columns:repeat(5,minmax(0,1fr))}}
 .item{display:flex;flex-direction:column;gap:1px;min-width:0;align-items:center;text-align:center}
@@ -255,6 +256,7 @@ body.lookdock #viewArrows{display:flex}
   </div>
 </div>
 <p id="duelCap" hidden></p>
+<div id="fade" hidden></div>
 <div class="sheet" id="inbox" hidden>
   <div class="card">
     <h2>notifications</h2>
@@ -487,7 +489,7 @@ const KO={
 'gifts need the new database rules (see the guide)':'선물을 보내려면 새 저장 서버 규칙이 필요해요','visiting needs the online save':'방문하려면 온라인 저장이 필요해요',
 'heart':'하트','sparkle':'반짝','fishy':'물고기','bubbles':'방울','cucumber':'오이','yum':'냠','crunch':'아삭','zucchini':'애호박','banana':'바나나',
 'a little fish like yours · 50 xp':'내 금붕어를 닮은 작은 물고기 · 50 xp','send · 50 xp':'보내기 · 50 xp','friends’ fish':'친구 물고기','tap a fish to show or hide it in your tank':'물고기를 탭해서 어항에 보이거나 숨겨요','no skin':'스킨 없음','little fish your friends send you swim here':'친구가 보낸 작은 물고기가 여기서 헤엄쳐요',
-'visit · type a friend’s username to visit their tank, send gifts, or challenge them to a duel. fish you’re sent swim with yours':'방문 · 친구 아이디를 입력해 어항에 놀러 가서 선물을 보내거나 결투를 신청해요. 선물받은 물고기는 내 물고기랑 같이 놀아요','duel':'결투','notifications':'알림','nothing yet':'아직 없어요','tallest tower wins':'더 높이 쌓으면 승리','keep the stones on your nose longest':'코 위 돌을 끝까지 지키면 승리','the fish play it out in the tank · pure luck · winner gets a winner ring (+50 xp)':'물고기들이 어항에서 직접 겨뤄요 · 순전히 운 · 이기면 승리 반지 (+50 xp)','notifications':'알림','turn on':'켜기','turn off':'끄기','notifications are on':'알림이 켜져 있어요','notifications · add Goldfish to your home screen first':'알림 · 먼저 Goldfish를 홈 화면에 추가해 주세요',"notifications aren’t available here":'여기서는 알림을 쓸 수 없어요','notifications are blocked in settings':'설정에서 알림이 꺼져 있어요','rock stacking':'돌 쌓기','rock balancing':'돌 균형 잡기','who stacks the tallest tower':'누가 더 높이 쌓나','whose stack stays up longer':'누구 탑이 더 오래 버티나','pick a game. winning is pure luck · the winner gets a shiny winner ring (+50 xp)':'게임을 골라요. 승패는 순전히 운 · 이기면 반짝이는 승리 반지 (+50 xp)','winner ring':'승리 반지','skin':'스킨','special looks, like christmas':'크리스마스 같은 특별한 모습','a skin is worn over your color and pattern · tap it again to reshuffle':'스킨은 색과 무늬 위에 입혀져요 · 한 번 더 누르면 모양이 바뀌어요','none':'없음','christmas':'크리스마스','at least 20 stones stay in the tank':'어항에는 돌이 최소 20개 남아 있어야 해요','skip':'건너뛰기',
+'visit · type a friend’s username to visit their tank, send gifts, or challenge them to a duel. fish you’re sent swim with yours':'방문 · 친구 아이디를 입력해 어항에 놀러 가서 선물을 보내거나 결투를 신청해요. 선물받은 물고기는 내 물고기랑 같이 놀아요','duel':'결투','notifications':'알림','nothing yet':'아직 없어요','rings · won in duels':'반지 · 결투에서 얻어요','win a duel':'결투에서 이기면','tallest tower wins':'더 높이 쌓으면 승리','keep the stones on your nose longest':'코 위 돌을 끝까지 지키면 승리','the fish play it out in the tank · pure luck · winner gets a winner ring (+50 xp)':'물고기들이 어항에서 직접 겨뤄요 · 순전히 운 · 이기면 승리 반지 (+50 xp)','notifications':'알림','turn on':'켜기','turn off':'끄기','notifications are on':'알림이 켜져 있어요','notifications · add Goldfish to your home screen first':'알림 · 먼저 Goldfish를 홈 화면에 추가해 주세요',"notifications aren’t available here":'여기서는 알림을 쓸 수 없어요','notifications are blocked in settings':'설정에서 알림이 꺼져 있어요','rock stacking':'돌 쌓기','rock balancing':'돌 균형 잡기','who stacks the tallest tower':'누가 더 높이 쌓나','whose stack stays up longer':'누구 탑이 더 오래 버티나','pick a game. winning is pure luck · the winner gets a shiny winner ring (+50 xp)':'게임을 골라요. 승패는 순전히 운 · 이기면 반짝이는 승리 반지 (+50 xp)','winner ring':'승리 반지','skin':'스킨','special looks, like christmas':'크리스마스 같은 특별한 모습','a skin is worn over your color and pattern · tap it again to reshuffle':'스킨은 색과 무늬 위에 입혀져요 · 한 번 더 누르면 모양이 바뀌어요','none':'없음','christmas':'크리스마스','at least 20 stones stay in the tank':'어항에는 돌이 최소 20개 남아 있어야 해요','skip':'건너뛰기',
 'hand · drag to lead your fish, tap to call it, tap the fish to say hi':'손 · 끌어서 금붕어를 데려가고, 탭해서 부르고, 금붕어를 탭하면 인사해요',
 'food · tap the water to sprinkle flakes':'먹이 · 물을 탭해서 먹이를 뿌려요','clean · when the glass gets dirty, rub it clean':'청소 · 유리가 더러워지면 문질러서 닦아요',
 'toy · drag the lure and let your fish chase it':'장난감 · 미끼를 끌면 금붕어가 쫓아와요','sleep · turns the lights off so your fish can rest':'재우기 · 불을 꺼서 금붕어를 쉬게 해요',
@@ -1692,7 +1694,7 @@ setInterval(()=>{if(cloudDirty)cloudPut();else if(!document.hidden)pull();},3000
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)pull();});
 /* the home-screen app keeps an old copy of the page open (and iOS caches it), so check for a newer build when it opens or comes back,
    and reload past the cache if there is one */
-const BUILD='20261117020524';
+const BUILD='20261117021313';
 function checkBuild(){fetch('version.json?t='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{if(!j||!j.b||j.b===BUILD)return;
   try{if(sessionStorage.getItem('gf-build')===j.b)return;sessionStorage.setItem('gf-build',j.b);}catch(e){}
   try{persistLocal();}catch(e){}location.replace(location.pathname+'?v='+encodeURIComponent(j.b));}).catch(()=>{});}
@@ -1742,7 +1744,7 @@ let THUMBS=null;
 function facetShade(g,base,k,dir){g=g.index?g.toNonIndexed():g;g.computeVertexNormals();const n=g.attributes.normal,L=(dir||new V3(0.4,0.8,0.5)).normalize(),c=new THREE.Color(base),o=new THREE.Color();
   return tint(g,(x,y,z,i)=>{const d=n.getX(i)*L.x+n.getY(i)*L.y+n.getZ(i)*L.z;return o.copy(c).multiplyScalar(1-k+k*(0.5+0.5*d));});}
 function gemGeo(r){const crown=new THREE.CylinderGeometry(r*0.55,r,r*0.42,8,1),pav=new THREE.ConeGeometry(r,r*0.95,8,1);crown.translate(0,r*0.21,0);pav.rotateX(Math.PI);pav.translate(0,-r*0.475,0);
-  const g=new THREE.Group(),cm=flatMat({vertexColors:true});cm.userData.gem=1;g.add(new THREE.Mesh(facetShade(crown,0xf6f9fb,0.35),cm));g.add(new THREE.Mesh(facetShade(pav,0xdfe8ee,0.45,new V3(-0.3,-0.6,0.7)),flatMat({vertexColors:true})));
+  const g=new THREE.Group(),cm=flatMat({vertexColors:true});g.add(new THREE.Mesh(facetShade(crown,0xf6f9fb,0.35),cm));g.add(new THREE.Mesh(facetShade(pav,0xdfe8ee,0.45,new V3(-0.3,-0.6,0.7)),flatMat({vertexColors:true})));
   const tab=new THREE.Mesh(new THREE.CircleGeometry(r*0.55,8),flatMat({color:0xffffff}));tab.rotation.x=-Math.PI/2;tab.position.y=r*0.425;g.add(tab);return g;}
 const RING={id:'ring',name:'winner ring',price:50,prize:true,make:()=>{const g=new THREE.Group(),GOLD=0xe9d9b6,R0=0.1;
   const ring=new THREE.Group();ring.position.y=R0+0.012;ring.rotation.y=0.35;g.add(ring);
@@ -1757,10 +1759,7 @@ const RING={id:'ring',name:'winner ring',price:50,prize:true,make:()=>{const g=n
     const tip=new THREE.Mesh(new THREE.SphereGeometry(0.005,8,6),flatMat({color:0xeee2c8}));tip.position.set(Math.cos(a)*0.021,R0+0.06,Math.sin(a)*0.021);ring.add(tip);}
   // side stones on the shoulders
   for(const sd of [-1,1]){const sgm=gemGeo(0.011),a=Math.PI/2+sd*0.42;sgm.position.set(Math.cos(a)*(R0+0.012),Math.sin(a)*(R0+0.012),0);sgm.rotation.z=a-Math.PI/2;ring.add(sgm);}
-    // light catching the stone: a soft glow around it that swells and fades (no drawn sparkle)
-  const gl=new THREE.Sprite(new THREE.SpriteMaterial({map:glowTex(),color:0xfffaf0,transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,opacity:0.6}));gl.position.set(0,R0+0.062,0.01);gl.scale.setScalar(0.09);gl.userData.glint=1;ring.add(gl);return g;}};
-function glowTex(){if(glowTex.t)return glowTex.t;const c=document.createElement('canvas');c.width=c.height=64;const x=c.getContext('2d'),gr=x.createRadialGradient(32,32,0,32,32,32);
-  gr.addColorStop(0,'rgba(255,255,255,1)');gr.addColorStop(0.18,'rgba(255,255,255,.75)');gr.addColorStop(0.5,'rgba(255,255,255,.18)');gr.addColorStop(1,'rgba(255,255,255,0)');x.fillStyle=gr;x.fillRect(0,0,64,64);return glowTex.t=new THREE.CanvasTexture(c);}
+    return g;}};
 const ALLDECO=()=>SHOP.concat([RING]);
 function makeThumbs(){if(THUMBS)return THUMBS;THUMBS=thumbsOf(ALLDECO());return THUMBS;}
 function thumbsOf(list){const out={};const tr=new THREE.WebGLRenderer({antialias:true,alpha:true,preserveDrawingBuffer:true});tr.setPixelRatio(1);tr.setSize(240,240,false);tr.setClearColor(0xffffff,0);tr.clippingPlanes=[new THREE.Plane(new V3(0,1,0),0)];
@@ -1770,10 +1769,12 @@ function thumbsOf(list){const out={};const tr=new THREE.WebGLRenderer({antialias
   tr.dispose();if(tr.forceContextLoss)tr.forceContextLoss();return out;}
 function renderShop(){const t=save.tank,th=makeThumbs();
   $('#wallet').textContent=PROG?'level '+PROG.level+' \u00b7 '+wallet()+' xp to spend \u00b7 buying uses up xp, so your level can go down':'sign in to collect decorations';
-  $('#shopList').innerHTML=SHOP.concat(t.owned.ring?[RING]:[]).map(d=>{const own=t.owned[d.id],on=t.items.some(i=>i.id===d.id),can=PROG&&wallet()>=d.price;
+  $('#shopList').innerHTML=SHOP.map(d=>{const own=t.owned[d.id],on=t.items.some(i=>i.id===d.id),can=PROG&&wallet()>=d.price;
     const after=can?(()=>{let L=PROG.level,e=PROG.exp-d.price;while(e<0&&L>1){L--;e+=need(L);}return L;})():0;
     const act=!own?(can?'<button data-buy="'+d.id+'">buy \u00b7 '+d.price+' xp'+(after<PROG.level?' (to lv '+after+')':'')+'</button>':'<em>'+d.price+' xp</em>'+(PROG?'<small class="need">'+(d.price-wallet())+' xp more</small>':'')):on?'<button data-off="'+d.id+'">put away</button>':'<button data-on="'+d.id+'">place in tank</button>';
-    return '<div class="item'+(!own&&!can?' locked':'')+'" data-id="'+d.id+'"><img src="'+th[d.id]+'" alt="'+d.name+'"><b>'+d.name+'</b>'+act+'</div>';}).join('');}
+    return '<div class="item'+(!own&&!can?' locked':'')+'" data-id="'+d.id+'"><img src="'+th[d.id]+'" alt="'+d.name+'"><b>'+d.name+'</b>'+act+'</div>';}).join('')
+    +'<p class="small shophead">rings · won in duels</p>'+(()=>{const own=t.owned.ring,on=t.items.some(i=>i.id==='ring'),n=PROG&&PROG.life.rings||0;
+      return '<div class="item'+(own?'':' locked')+'" data-id="ring"><img src="'+th.ring+'" alt="winner ring"><b>winner ring'+(n>1?' ×'+n:'')+'</b>'+(!own?'<small class="need">win a duel</small>':on?'<button data-off="ring">put away</button>':'<button data-on="ring">place in tank</button>')+'</div>';})();}
 $('#shopBtn').onclick=()=>{renderShop();$('#decorMenu').hidden=true;$('#shop').hidden=false;};
 $('#editBtn').onclick=()=>openTank();
 /* tapping anywhere outside a menu's box closes the menu */
@@ -2125,7 +2126,9 @@ function duelTick(dt){const D=DX;if(!D)return;D.t+=dt;duelGuest(dt);
     if(D.win){awardRing();duelCap('you won · winner ring +50 xp');}else duelCap('@'+D.n+' won');
     if(DB&&USER){const body={fields:{from:{stringValue:USER},kind:{stringValue:'duel'},item:{stringValue:D.kind+'.'+(D.win?'w':'l')},at:{timestampValue:new Date().toISOString()}}};fetch(GBOX(D.n)+'?key='+DB.apiKey,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}).catch(()=>{});}}
   if(D.ring){const r=D.ring;r.t+=dt;r.g.scale.setScalar(1.9*Math.min(1,r.t*2.2)*(1+0.25*Math.max(0,Math.sin(Math.min(1,r.t*2.2)*Math.PI))));r.g.position.y=r.y+Math.sin(r.t*2)*0.03;r.g.rotation.y+=dt*1.2;}
-  if(D.phase==='result'&&D.t-D.endT>5)endDuel();}
+  if(D.phase==='result'&&D.t-D.endT>(D.win?3.5:5)){const won=D.win;endDuel();if(won)goHomeWithRing();}}
+function goHomeWithRing(){const f=$('#fade');f.hidden=false;requestAnimationFrame(()=>f.classList.add('on'));
+  setTimeout(()=>{leaveVisit();const o=ITEMS_ON.find(g=>g.userData.isRing);growIn(o);duelCap('winner ring'+((PROG.life.rings||0)>1?' ×'+PROG.life.rings:''));f.classList.remove('on');setTimeout(()=>{f.hidden=true;},500);setTimeout(()=>duelCap(''),3000);},500);}
 function endDuel(){const D=DX;if(!D)return;DX=null;for(const P of [D.me,D.host])for(const q of P.src)world.remove(q.m);world.remove(D.me.G.g);if(D.ring)world.remove(D.ring.g);
   FRIENDS.forEach(f=>f.g.visible=true);for(const m of D.hid)m.visible=true;S.pitch=0;S.mode='idle';duelCap('');renderUI();}
 function awardRing(){addXP(50);const home=VISIT?VISIT.mine:save.tank;PROG.life.rings=(PROG.life.rings||0)+1;
@@ -2582,8 +2585,7 @@ function lampShadows(N,on){if(LSH&&LSH.env!==ENV){world.remove(LSH.g);LSH=null;}
   const fy=S.pos.y,hf=Math.max(0,fy-F),fw=0.434*youth(growStage()).size*1.1;place(LSH.fish,S.pos.x,S.pos.z,fw,hf*0.5,0.12*clamp(1-hf/2.2));}
 function frame(){requestAnimationFrame(frame);
   if(DX){const nw=performance.now();duelTick(Math.min(0.05,(nw-(DX.last||nw))/1000));if(DX)DX.last=nw;}
-  for(const o of [...ITEMS_ON,...(DX&&DX.ring?[DX.ring.g]:[])])if(o.userData.isRing)o.traverse(c=>{const k=Math.pow(Math.max(0,Math.sin(T*1.3+o.position.x*3)),3);
-    if(c.userData.glint){c.material.opacity=0.25+0.6*k;c.scale.setScalar(0.07+0.07*k);}if(c.material&&c.material.userData&&c.material.userData.gem)c.material.color.setScalar(1+0.35*k);});const nowF=performance.now(),busy=ptr.down||toy||foods.length||T-(S.lastTouch||-9)<4||(TV.t>0&&TV.t<1),minF=busy?0:(lightsOff&&S.asleep?62:30);
+  const nowF=performance.now(),busy=ptr.down||toy||foods.length||T-(S.lastTouch||-9)<4||(TV.t>0&&TV.t<1)||DX,minF=busy?0:(lightsOff&&S.asleep?62:30);
   if(nowF-(frame.last||0)<minF)return;frame.last=nowF;const dt=Math.min(clock.getDelta(),0.07);T+=dt;
   needs(dt);behave(dt);physics(dt);animate(dt);keepAboveFloor();if(FRIENDS.length)friendsTick(dt);updateFoods(dt);updateToy(dt);updateRocks(dt);updateFX(dt);updateSay(dt);sunTick(dt);nightTick(dt);
   const lt=lightsOff?0.35:1;hemi.intensity=damp(hemi.intensity,0.85*lt,2,dt);keyL.intensity=damp(keyL.intensity,0.7*lt,2,dt);
