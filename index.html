@@ -1733,7 +1733,7 @@ setInterval(()=>{if(cloudDirty)cloudPut();else if(!document.hidden)pull();},3000
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)pull();});
 /* the home-screen app keeps an old copy of the page open (and iOS caches it), so check for a newer build when it opens or comes back,
    and reload past the cache if there is one */
-const BUILD='20261117111834';
+const BUILD='20261117112335';
 function checkBuild(){fetch('version.json?t='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{if(!j||!j.b||j.b===BUILD)return;
   try{if(sessionStorage.getItem('gf-build')===j.b)return;sessionStorage.setItem('gf-build',j.b);}catch(e){}
   try{persistLocal();}catch(e){}location.replace(location.pathname+'?v='+encodeURIComponent(j.b));}).catch(()=>{});}
@@ -2184,7 +2184,7 @@ function runSteps(P,dt){const st=P.steps[0];if(!st)return null;
   if(!st.target){const g=typeof st.go==='function'?st.go():{p:st.go};st.target=g.p;st.face=g.face||null;st.age=0;}
   st.age+=dt;const d=posOf(P).distanceTo(st.target);if(d<(st.loose||0.04)||st.age>(st.max||2.4)){P.steps.shift();return runSteps(P,dt);}return st;}
 // the host fish (the one that lives in this tank) is driven from behave()
-function duelHost(dt){const P=DX.host,st=runSteps(P,dt);S.faceT=null;S.mode='tidy';
+function duelHost(dt){if(DX.phase==='outro'){S.mode='idle';S.pitch=damp(S.pitch,0,2,dt);auto(dt);return;}const P=DX.host,st=runSteps(P,dt);S.faceT=null;S.mode='tidy';
   if(!st||st.hold){brake(dt);if(P.face)S.faceT=P.face;}else{const d=st.target.clone().sub(S.pos),L=d.length(),sp=st.v*Math.min(1,L/0.22),k=L>1e-4?sp/L:0;
     S.vel.x=damp(S.vel.x,d.x*k,5,dt);S.vel.y=damp(S.vel.y,d.y*k,5,dt);S.vel.z=damp(S.vel.z,d.z*k,5,dt);P.face=st.face;if(st.face&&L<0.3)S.faceT=st.face;}
   S.pitch=damp(S.pitch,-0.32*P.droop,2,dt);if(P.spin>0){P.spin-=dt;S.wantH+=dt*9;}}
@@ -2218,11 +2218,19 @@ function duelTick(dt){const D=DX;if(!D)return;D.t+=dt;duelGuest(dt);
     q.m.position.x=clamp(q.m.position.x,-B.x*0.98,B.x*0.98);}
   // result: once the loser's stack is down and the winner has finished building
   const W=D.win?D.me:D.host,L=D.win?D.host:D.me;
-  if(D.phase!=='result'&&L.fallen&&(W.done||D.kind==='balance')&&D.fall.every(q=>q.fall.done)){D.phase='result';D.endT=D.t;cheer(W);ringPop(W);
+  if((D.phase==='build'||D.phase==='sway')&&L.fallen&&(W.done||D.kind==='balance')&&D.fall.every(q=>q.fall.done)){D.phase='result';D.endT=D.t;cheer(W);ringPop(W);
     if(D.win){awardRing();duelCap('you won · winner ring +50 xp');}else duelCap('@'+D.n+' won');
     if(DB&&USER){const body={fields:{from:{stringValue:USER},kind:{stringValue:'duel'},item:{stringValue:D.kind+'.'+(D.win?'w':'l')},at:{timestampValue:new Date().toISOString()}}};fetch(GBOX(D.n)+'?key='+DB.apiKey,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}).catch(()=>{});}}
   if(D.ring){const r=D.ring;r.t+=dt;r.g.scale.setScalar(1.9*Math.min(1,r.t*2.2)*(1+0.25*Math.max(0,Math.sin(Math.min(1,r.t*2.2)*Math.PI))));r.g.position.y=r.y+Math.sin(r.t*2)*0.03;r.g.rotation.y+=dt*1.2;}
-  if(D.phase==='result'&&D.t-D.endT>(D.win?3.5:5)){const won=D.win;endDuel();if(won)goHomeWithRing();}}
+  // wind-down instead of a cut: your fish turns and swims out (the ring trailing it if you won), the stones fade into the sand,
+  // the host fish goes back to its own business, then (if you won) a soft fade home
+  if(D.phase==='result'&&D.t-D.endT>3.2){D.phase='outro';D.outT=0;duelCap('');
+    D.me.droop=0;D.me.steps=[{go:new V3(-B.x*1.35,B.ymin+0.5,0.2),v:1.1,max:6}];D.host.steps=[];D.host.droop=0;
+    for(const P of [D.me,D.host])for(const q of P.src){q.m.material=q.m.material.clone();q.m.material.transparent=true;}}
+  if(D.phase==='outro'){D.outT+=dt;const k=Math.min(1,D.outT/1.6);
+    for(const P of [D.me,D.host])for(const q of P.src){q.m.material.opacity=1-k;q.m.position.y-=dt*0.02;}
+    if(D.ring){const g=D.ring.g;if(D.win){g.position.lerp(D.me.pos.clone().add(new V3(0.05,0.18,0)),Math.min(1,dt*2.5));}g.scale.multiplyScalar(Math.max(0,1-dt*(D.win?0.5:1.2)));}
+    if(D.outT>1.8&&(D.me.pos.x<-B.x*1.15||D.outT>4.5)){const won=D.win;endDuel();if(won)goHomeWithRing();}}}
 function goHomeWithRing(){const f=$('#fade');f.hidden=false;requestAnimationFrame(()=>f.classList.add('on'));
   setTimeout(()=>{leaveVisit();const o=ITEMS_ON.find(g=>g.userData.isRing);dropIn(o);duelCap('winner ring'+((PROG.life.rings||0)>1?' ×'+PROG.life.rings:''));f.classList.remove('on');setTimeout(()=>{f.hidden=true;},500);setTimeout(()=>duelCap(''),3000);},500);}
 function endDuel(){const D=DX;if(!D)return;DX=null;for(const P of [D.me,D.host])for(const q of P.src)world.remove(q.m);world.remove(D.me.G.g);if(D.ring)world.remove(D.ring.g);
