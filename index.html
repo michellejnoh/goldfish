@@ -90,6 +90,8 @@ body.visiting .ui,body.visiting #say{display:none}
   padding-top:calc(env(safe-area-inset-top,0px) + 12px);padding-left:max(20px,env(safe-area-inset-left,0px));padding-right:max(20px,env(safe-area-inset-right,0px))}
 #visitTitle{margin:0;flex:1;font-size:19px;line-height:1.2;color:var(--ink)}
 .giftrow{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:4px}
+.duelopts{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0 4px}.duelopts .gbtn{display:flex;flex-direction:column;align-items:flex-start;gap:4px;padding:14px;text-align:left;width:auto;height:auto}
+.duelopts small{opacity:.6;font-size:13px}#duelCv{width:100%;height:auto;display:block;margin:6px 0 2px}#duelMsg{min-height:1.3em;text-align:center;font-size:16px}
 .gbtn{display:flex;align-items:center;gap:8px;padding:6px 10px;border:1px solid #e3e3e3;border-radius:12px;font-size:17px;color:#111;cursor:pointer}
 .gbtn:disabled{opacity:.35;cursor:default}
 .gi svg{display:block}
@@ -227,7 +229,7 @@ body.lookdock #viewArrows{display:flex}
 <div id="tour" hidden><div class="arrow"><svg viewBox="0 0 44 24" width="44" height="24" fill="none" stroke="#111" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12h36M31 5l8 7-8 7"/></svg></div><div class="tip"><p id="tourText"></p><div class="row2"><button type="button" class="link" id="tourSkip">skip</button><span id="tourStep"></span></div></div></div>
 <div id="giftPlaceBar" hidden><p id="gpTitle"></p><p class="small">drag it where you like · twist or use the arrows to turn it</p>
   <div class="gprow"><button type="button" class="go" data-gpturn="1" aria-label="turn left">‹</button><button type="button" class="go" data-gpturn="-1" aria-label="turn right">›</button><span></span><button type="button" class="go" id="gpCancel">cancel</button><button type="button" class="go" id="gpSend">send</button></div></div>
-<div id="visitBar" hidden><p id="visitTitle"></p><button type="button" class="go" id="giftBtn">send a gift</button><button type="button" class="go" id="visitHome">home</button></div>
+<div id="visitBar" hidden><p id="visitTitle"></p><button type="button" class="go" id="giftBtn">send a gift</button><button type="button" class="go" id="duelBtn">duel</button><button type="button" class="go" id="visitHome">home</button></div>
 <div class="sheet" id="visitAsk" hidden>
   <div class="card">
     <h2>visit a keeper</h2>
@@ -235,6 +237,19 @@ body.lookdock #viewArrows{display:flex}
     <form id="visitForm" autocomplete="off"><input id="visitName" placeholder="username" maxlength="16" autocapitalize="none" spellcheck="false" aria-label="Username">
     <p class="small" id="visitErr"></p>
     <div class="row2"><button type="button" class="link" id="visitCancel">cancel</button><button type="submit" class="go">visit</button></div></form>
+  </div>
+</div>
+<div class="sheet" id="duel" hidden>
+  <div class="card">
+    <h2 id="duelTitle">duel</h2>
+    <div id="duelPick">
+      <p class="small">pick a game. winning is pure luck · the winner gets a shiny winner ring (+50 xp)</p>
+      <div class="duelopts"><button type="button" class="gbtn" data-duel="stack"><b>rock stacking</b><small>who stacks the tallest tower</small></button>
+      <button type="button" class="gbtn" data-duel="balance"><b>rock balancing</b><small>whose stack stays up longer</small></button></div>
+    </div>
+    <canvas id="duelCv" width="600" height="380" hidden></canvas>
+    <p id="duelMsg" class="small"></p>
+    <div class="row2 topclose"><span></span><button type="button" class="go" id="duelClose">close</button></div>
   </div>
 </div>
 <div class="sheet" id="giftOut" hidden>
@@ -462,7 +477,7 @@ const KO={
 'gifts need the new database rules (see the guide)':'선물을 보내려면 새 저장 서버 규칙이 필요해요','visiting needs the online save':'방문하려면 온라인 저장이 필요해요',
 'heart':'하트','sparkle':'반짝','fishy':'물고기','bubbles':'방울','cucumber':'오이','yum':'냠','crunch':'아삭','zucchini':'애호박','banana':'바나나',
 'a little fish like yours · 50 xp':'내 금붕어를 닮은 작은 물고기 · 50 xp','send · 50 xp':'보내기 · 50 xp','friends’ fish':'친구 물고기','tap a fish to show or hide it in your tank':'물고기를 탭해서 어항에 보이거나 숨겨요','no skin':'스킨 없음','little fish your friends send you swim here':'친구가 보낸 작은 물고기가 여기서 헤엄쳐요',
-'visit · type a friend’s username to visit their tank and send gifts. fish you’re sent swim with yours':'방문 · 친구 사용자 이름을 입력해 어항에 놀러 가고 선물을 보내요. 선물받은 물고기는 내 물고기랑 같이 놀아요','skin':'스킨','special looks, like christmas':'크리스마스 같은 특별한 모습','a skin is worn over your color and pattern · tap it again to reshuffle':'스킨은 색과 무늬 위에 입혀져요 · 한 번 더 누르면 모양이 바뀌어요','none':'없음','christmas':'크리스마스','at least 20 stones stay in the tank':'어항에는 돌이 최소 20개 남아 있어야 해요','skip':'건너뛰기',
+'visit · type a friend’s username to visit their tank, send gifts, or challenge them to a duel. fish you’re sent swim with yours':'방문 · 친구 아이디를 입력해 어항에 놀러 가서 선물을 보내거나 결투를 신청해요. 선물받은 물고기는 내 물고기랑 같이 놀아요','duel':'결투','rock stacking':'돌 쌓기','rock balancing':'돌 균형 잡기','who stacks the tallest tower':'누가 더 높이 쌓나','whose stack stays up longer':'누구 탑이 더 오래 버티나','pick a game. winning is pure luck · the winner gets a shiny winner ring (+50 xp)':'게임을 골라요. 승패는 순전히 운 · 이기면 반짝이는 승리 반지 (+50 xp)','winner ring':'승리 반지','skin':'스킨','special looks, like christmas':'크리스마스 같은 특별한 모습','a skin is worn over your color and pattern · tap it again to reshuffle':'스킨은 색과 무늬 위에 입혀져요 · 한 번 더 누르면 모양이 바뀌어요','none':'없음','christmas':'크리스마스','at least 20 stones stay in the tank':'어항에는 돌이 최소 20개 남아 있어야 해요','skip':'건너뛰기',
 'hand · drag to lead your fish, tap to call it, tap the fish to say hi':'손 · 끌어서 금붕어를 데려가고, 탭해서 부르고, 금붕어를 탭하면 인사해요',
 'food · tap the water to sprinkle flakes':'먹이 · 물을 탭해서 먹이를 뿌려요','clean · when the glass gets dirty, rub it clean':'청소 · 유리가 더러워지면 문질러서 닦아요',
 'toy · drag the lure and let your fish chase it':'장난감 · 미끼를 끌면 금붕어가 쫓아와요','sleep · turns the lights off so your fish can rest':'재우기 · 불을 꺼서 금붕어를 쉬게 해요',
@@ -990,7 +1005,7 @@ function buildEnv(){
   // the heap sits in the open toward the front, where it can be seen
   PILE=new V3((save.tank.pileSide||(save.tank.pileSide=Math.random()<0.5?-1:1))*B.x*0.4,F,0.45);if(save.tank.pile){PILE.x=save.tank.pile[0]*B.x;PILE.z=save.tank.pile[1];}PILE.n=PEBBLES.filter(p=>p.inPile).length;
   if(PILE.n){let sx=0,sz=0;for(const p of PEBBLES)if(p.inPile){sx+=p.m.position.x;sz+=p.m.position.z;}PILE.x=sx/PILE.n;PILE.z=sz/PILE.n;}// keep growing an existing heap where it is
-  ITEMS_ON=[];for(const it of save.tank.items){const def=SHOP.find(d=>d.id===it.id);if(!def)continue;const g=def.make();g.scale.setScalar(1.8);g.position.set(it.x*B.x,F,it.z);g.rotation.y=it.r||0;g.userData.item=it;e.add(g);ITEMS_ON.push(g);}
+  ITEMS_ON=[];for(const it of save.tank.items){const def=ALLDECO().find(d=>d.id===it.id);if(!def)continue;const g=def.make();g.userData.isRing=def.id==='ring';g.scale.setScalar(1.8);g.position.set(it.x*B.x,F,it.z);g.rotation.y=it.r||0;g.userData.item=it;e.add(g);ITEMS_ON.push(g);}
   {const bg=stoneGeo(0.1,7,false,1);const cc2=new THREE.Color();tint(bg,()=>cc2.setRGB(0.5,0.5,0.5));const bm=new THREE.Mesh(bg,MAT);bm.position.set(B.x*0.25,F+0.1,-0.1);e.add(bm);BALL={m:bm,pos:bm.position,vel:new V3(),r:0.1,floor:F+0.1};}
   BIGROCKS=[];[[-B.x*0.75,-1.0,0.42],[B.x*0.6,-1.2,0.55],[B.x*0.95,-0.7,0.26]].forEach(([x,z,r])=>{const s=new THREE.Mesh(stoneGeo(r,rnd(0,9),false,0.72),MAT);s.position.set(x,F+r*0.3,z);s.rotation.y=rnd(0,6);e.add(s);BIGROCKS.push(s);});
   // ribbon grass (vallisneria) in clusters
@@ -1467,7 +1482,7 @@ $('#namingForm').addEventListener('submit',e=>{e.preventDefault();const v=$('#fi
 $('#namingSkip').onclick=()=>{$('#naming').hidden=true;if(openNaming.first)maybeTour();};
 const TOUR=[['#t-hand','hand · drag to lead your fish, tap to call it, tap the fish to say hi'],
   ['#misBtn','missions · three goals a day for xp. your fish grows every 5 levels'],
-  ['#tvBtn','tank view · see your tank on its table in a little room, and turn it around'],['#visitBtn','visit · type a friend’s username to visit their tank and send gifts. fish you’re sent swim with yours']];
+  ['#tvBtn','tank view · see your tank on its table in a little room, and turn it around'],['#visitBtn','visit · type a friend’s username to visit their tank, send gifts, or challenge them to a duel. fish you’re sent swim with yours']];
 let tourI=-1;
 function maybeTour(){if(!USER||(save.tut&&save.tut.tour))return;save.tut=save.tut||{};save.tut.tour=1;persist();setTimeout(()=>{tourI=0;$('#tour').hidden=false;tourShow();},500);}
 function tourShow(){const st=TOUR[tourI],el=$(st[0]);if(!el||!el.offsetParent){tourNext();return;}const r=el.getBoundingClientRect(),tip=$('#tour .tip');
@@ -1570,9 +1585,14 @@ function mergeRec(a,b){if(!a)return b;if(!b)return a;const ua=a.changed||a.updat
   if(sv&&l.save&&l.save.tank){const st=sv.tank||{},lt=l.save.tank,mo=st.owned||{},own=Object.assign({},lt.owned||{},mo),items=(st.items||[]).slice();
     for(const it of lt.items||[])if(it&&!mo[it.id]&&!items.some(i=>i.id===it.id))items.push(it);sv=Object.assign({},sv,{tank:Object.assign({},st,{owned:own,items})});}
   return {updated:Math.max(ua,ub),save:sv,prog:mergeProg(a.prog,b.prog)};}
-const curRec=()=>({updated:lastChange,save,prog:PROG});
+// my own save as it should go online: while visiting, the tank on screen is the friend's, so put mine back in
+const homeSave=()=>VISIT?Object.assign({},save,{tank:VISIT.mine}):save;
+const curRec=()=>({updated:lastChange,save:homeSave(),prog:PROG});
 // bring a merged copy into the running game only if it actually adds something
-function takeMerged(c){if(!c)return false;const m=mergeRec(curRec(),c),more=(m.prog&&PROG&&(m.prog.total||0)>(PROG.total||0))||(m.prog&&PROG&&(m.prog.spent||0)>(PROG.spent||0))||(c.updated||0)>lastChange+500||(m.prog&&PROG&&(m.prog.grow||0)>(PROG.grow||0));
+function saveAdds(m){const a=(m&&m.save)||{},t=a.tank||{},h=homeSave(),ht=h.tank||{};
+  for(const k in t.owned||{})if(!(ht.owned||{})[k])return true;for(const it of t.items||[])if(!(ht.items||[]).some(i=>i.id===it.id))return true;
+  const fk=new Set(friendKeys(h.friends));return friendKeys(a.friends).some(k=>k&&!fk.has(k));}
+function takeMerged(c){if(!c)return false;if(VISIT){VISIT.cloud=c;return false;}const m=mergeRec(curRec(),c),more=saveAdds(m)||(m.prog&&PROG&&(m.prog.total||0)>(PROG.total||0))||(m.prog&&PROG&&(m.prog.spent||0)>(PROG.spent||0))||(c.updated||0)>lastChange+500||(m.prog&&PROG&&(m.prog.grow||0)>(PROG.grow||0));
   if(more){lastChange=m.updated;adopt(m);persistLocal();}return more;}
 let cloudReady=false;
 const BKEY=n=>'goldfish-best-'+n;
@@ -1588,21 +1608,21 @@ function cloudGet(n){if(!DB)return Promise.resolve(null);return fetch(docURL(n),
   .then(j=>{if(!j||!j.fields)return null;UTS[n]=j.updateTime;let rec=null;try{rec=JSON.parse(j.fields.data.stringValue);}catch(e){return null;}if(n===USER)checkAppVersion(rec);return rec;});}
 function cloudPut(keep){if(!DB||!USER||!cloudDirty||!cloudReady||VISIT)return;const who=USER;
   // read the online copy first and merge, so a device with older progress can never overwrite newer progress
-  if(!keep){cloudDirty=false;cloudGet(who).then(c=>{if(USER!==who)return;if(c)takeMerged(c);cloudDirty=true;cloudWrite(false,who);},()=>{if(USER===who)cloudDirty=true;});return;}
+  if(!keep){cloudDirty=false;cloudGet(who).then(c=>{if(USER!==who)return;if(VISIT){if(c)VISIT.cloud=c;cloudDirty=true;return;}if(c)takeMerged(c);cloudDirty=true;cloudWrite(false,who);},()=>{if(USER===who)cloudDirty=true;});return;}
   cloudWrite(true,who);}
-function cloudWrite(keep,who){if(!cloudDirty||who!==USER||UTS[who]===undefined)return;cloudDirty=false;rememberBest();const rec={updated:lastChange||Date.now(),save,prog:PROG,app:APP_V};
+function cloudWrite(keep,who){if(!cloudDirty||who!==USER||UTS[who]===undefined)return;cloudDirty=false;rememberBest();const rec={updated:lastChange||Date.now(),save:homeSave(),prog:PROG,app:APP_V};
   const body={fields:{name:{stringValue:USER},level:{integerValue:String(PROG.level)},data:{stringValue:JSON.stringify(rec)},updated:{timestampValue:new Date().toISOString()}}};
   // total xp ever earned and a format version go alongside, so the database rules can refuse any save that would go backwards (or comes from an old copy of the game)
-  if(!cloudWrite.legacy){body.fields.total={integerValue:String(Math.floor(PROG.total||0))};body.fields.v={integerValue:cloudWrite.noSpent?'3':String(APP_V)};if(!cloudWrite.noSpent)body.fields.spent={integerValue:String(Math.floor(PROG.spent||0))};}
+  body.fields.total={integerValue:String(Math.floor(PROG.total||0))};body.fields.v={integerValue:String(APP_V)};body.fields.spent={integerValue:String(Math.floor(PROG.spent||0))};
   // only write if the online copy is still the one we last read; if another device saved meanwhile, merge again first
   const ut=UTS[who],pre=cloudWrite.loose?'':ut==='none'?'&currentDocument.exists=false':ut?'&currentDocument.updateTime='+encodeURIComponent(ut):'';cloudWrite.loose=false;
   fetch(docURL(who)+pre,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify(body),keepalive:!!keep})
     .then(r=>{if(r.ok){cloudWrite.retry=0;cloudWrite.f403=0;SYNC={ok:true,msg:'',t:Date.now()};return r.json().then(j=>{if(j&&j.updateTime)UTS[who]=j.updateTime;},()=>{});}
       if(r.status===400||r.status===409||r.status===412){if(who!==USER)return;cloudWrite.retry=(cloudWrite.retry||0)+1;if(cloudWrite.retry>=3)cloudWrite.loose=true;
         cloudDirty=true;clearTimeout(pushT);pushT=setTimeout(()=>cloudPut(),1500);return;}
-      if(r.status===403&&who===USER&&(cloudWrite.f403=(cloudWrite.f403||0)+1)<4){cloudDirty=true;
-        // refused: first merge with the online copy and try again; if the database still uses the older rules, fall back to the older save format
-        if(cloudWrite.f403===1)cloudWrite.noSpent=true;if(cloudWrite.f403===3)cloudWrite.legacy=true;clearTimeout(pushT);pushT=setTimeout(()=>cloudPut(),1200);return;}
+      if(r.status===403&&who===USER){cloudDirty=true;cloudWrite.f403=(cloudWrite.f403||0)+1;
+        // refused (usually because another device saved more progress meanwhile): read and merge the online copy, then try again
+        clearTimeout(pushT);pushT=setTimeout(()=>cloudPut(),cloudWrite.f403<4?1200:60000);if(cloudWrite.f403<4)return;}
       {cloudDirty=true;return r.text().then(t=>{SYNC={ok:false,msg:'online save refused (error '+r.status+')'+(r.status===403?': check the Firestore rules':r.status===404?': is the Firestore database created?':''),t:Date.now()};console.warn('Goldfish save:',r.status,t);});}})
     .catch(()=>{if(who===USER)cloudDirty=true;SYNC={ok:false,msg:'offline: will save online when connected',t:Date.now()};});}
 // take the online copy when another device changed things more recently than this one
@@ -1659,7 +1679,7 @@ setInterval(()=>{if(cloudDirty)cloudPut();else if(!document.hidden)pull();},3000
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)pull();});
 /* the home-screen app keeps an old copy of the page open (and iOS caches it), so check for a newer build when it opens or comes back,
    and reload past the cache if there is one */
-const BUILD='20261116184146';
+const BUILD='20261117010028';
 function checkBuild(){fetch('version.json?t='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{if(!j||!j.b||j.b===BUILD)return;
   try{if(sessionStorage.getItem('gf-build')===j.b)return;sessionStorage.setItem('gf-build',j.b);}catch(e){}
   try{persistLocal();}catch(e){}location.replace(location.pathname+'?v='+encodeURIComponent(j.b));}).catch(()=>{});}
@@ -1704,7 +1724,18 @@ function renderTank(){const t=save.tank;document.querySelectorAll('#waterRow [da
   document.querySelectorAll('[data-p]').forEach(b=>b.setAttribute('aria-pressed',tool==='peb'&&S.pebMode===b.dataset.p));
 }
 let THUMBS=null;
-function makeThumbs(){if(THUMBS)return THUMBS;THUMBS=thumbsOf(SHOP);return THUMBS;}
+const RING={id:'ring',name:'winner ring',price:50,prize:true,make:()=>{const g=new THREE.Group();
+  const band=new THREE.Mesh(new THREE.TorusGeometry(0.1,0.022,12,40),flatMat({color:WC.gold}));band.position.y=0.085;band.rotation.y=0.3;g.add(band);
+  const seat=part(CYL,WC.gold,0,0.19,0,0.028,0.02,0.028);seat.rotation.y=0.3;g.add(seat);
+  const gem=new THREE.Mesh(new THREE.OctahedronGeometry(0.042,0),flatMat({color:0xeef6fa}));gem.position.y=0.225;gem.scale.y=1.15;g.add(gem);
+  const hi=new THREE.Mesh(new THREE.OctahedronGeometry(0.016,0),flatMat({color:0xffffff}));hi.position.set(-0.012,0.235,0.03);g.add(hi);
+  // a little glint that twinkles
+  const gl=new THREE.Sprite(new THREE.SpriteMaterial({map:glintTex(),transparent:true,depthWrite:false,opacity:0.9}));gl.position.set(0.03,0.27,0.03);gl.scale.setScalar(0.09);gl.userData.glint=1;g.add(gl);return g;}};
+function glintTex(){if(glintTex.t)return glintTex.t;const c=document.createElement('canvas');c.width=c.height=64;const x=c.getContext('2d');x.fillStyle='#fff';x.translate(32,32);
+  for(let i=0;i<2;i++){x.beginPath();x.moveTo(0,-30);x.quadraticCurveTo(2,-2,30,0);x.quadraticCurveTo(2,2,0,30);x.quadraticCurveTo(-2,2,-30,0);x.quadraticCurveTo(-2,-2,0,-30);x.fill();x.rotate(Math.PI/4);x.scale(0.55,0.55);}
+  return glintTex.t=new THREE.CanvasTexture(c);}
+const ALLDECO=()=>SHOP.concat([RING]);
+function makeThumbs(){if(THUMBS)return THUMBS;THUMBS=thumbsOf(ALLDECO());return THUMBS;}
 function thumbsOf(list){const out={};const tr=new THREE.WebGLRenderer({antialias:true,alpha:true,preserveDrawingBuffer:true});tr.setPixelRatio(1);tr.setSize(240,240,false);tr.setClearColor(0xffffff,0);tr.clippingPlanes=[new THREE.Plane(new V3(0,1,0),0)];
   const sc=new THREE.Scene(),cam=new THREE.PerspectiveCamera(30,1,0.01,20);
   for(const d of list){const g=d.make();g.rotation.y=d.ry!==undefined?d.ry:-0.5;sc.add(g);const box=new THREE.Box3().setFromObject(g),c=box.getCenter(new V3()),sz=box.getSize(new V3()),r=Math.max(sz.x,sz.y,sz.z);
@@ -1712,7 +1743,7 @@ function thumbsOf(list){const out={};const tr=new THREE.WebGLRenderer({antialias
   tr.dispose();if(tr.forceContextLoss)tr.forceContextLoss();return out;}
 function renderShop(){const t=save.tank,th=makeThumbs();
   $('#wallet').textContent=PROG?'level '+PROG.level+' \u00b7 '+wallet()+' xp to spend \u00b7 buying uses up xp, so your level can go down':'sign in to collect decorations';
-  $('#shopList').innerHTML=SHOP.map(d=>{const own=t.owned[d.id],on=t.items.some(i=>i.id===d.id),can=PROG&&wallet()>=d.price;
+  $('#shopList').innerHTML=SHOP.concat(t.owned.ring?[RING]:[]).map(d=>{const own=t.owned[d.id],on=t.items.some(i=>i.id===d.id),can=PROG&&wallet()>=d.price;
     const after=can?(()=>{let L=PROG.level,e=PROG.exp-d.price;while(e<0&&L>1){L--;e+=need(L);}return L;})():0;
     const act=!own?(can?'<button data-buy="'+d.id+'">buy \u00b7 '+d.price+' xp'+(after<PROG.level?' (to lv '+after+')':'')+'</button>':'<em>'+d.price+' xp</em>'+(PROG?'<small class="need">'+(d.price-wallet())+' xp more</small>':'')):on?'<button data-off="'+d.id+'">put away</button>':'<button data-on="'+d.id+'">place in tank</button>';
     return '<div class="item'+(!own&&!can?' locked':'')+'" data-id="'+d.id+'"><img src="'+th[d.id]+'" alt="'+d.name+'"><b>'+d.name+'</b>'+act+'</div>';}).join('');}
@@ -1749,7 +1780,7 @@ $('#shopList').addEventListener('click',e=>{const d=e.target.dataset||{};
   if(d.buy){const it=SHOP.find(x=>x.id===d.buy);const lv0=PROG?PROG.level:1;if(!spendXP(it.price))return;save.tank.owned[it.id]=true;placeItem(it.id);toast(it.name+' added to the tank'+(PROG.level<lv0?' \u00b7 now level '+PROG.level:''));}
   else if(d.on)placeItem(d.on);
   else if(d.off){save.tank.items=save.tank.items.filter(i=>i.id!==d.off);rebuildTank();persist();}
-  renderShop();const id=d.buy||d.on||d.off,def=id&&SHOP.find(x=>x.id===id);if(!def)return;
+  renderShop();const id=d.buy||d.on||d.off,def=id&&ALLDECO().find(x=>x.id===id);if(!def)return;
   if(!d.off)growIn(ITEMS_ON[ITEMS_ON.length-1]);});
 const FLOOR=new THREE.Plane(new V3(0,1,0),0);
 function floorPoint(){FLOOR.constant=-B.floor;const p=new V3();return ray.ray.intersectPlane(FLOOR,p)?p:null;}
@@ -1876,8 +1907,9 @@ function enterVisit(n,rec){if(TV.on)setTankView(false);if(toy)endToy(true);persi
   VISIT.lamp=rec.save.lamp;VISIT.clean=clamp(+(f.s&&f.s.clean)||80,0,100);VISIT.myLights=lightsOff;lightsOff=!!rec.save.night;document.body.classList.toggle('night',lightsOff);if(S)S.asleep=lightsOff;
   VISIT.friends=(rec.save.friends||[]).slice(0,6);{const vf=VISIT.friends,vn=n;refreshFriendLooks(vf,()=>{if(VISIT&&VISIT.n===vn)spawnFriends();});}save.tank=JSON.parse(JSON.stringify(rec.save.tank||{}));rebuildTank();spawnFriends();R.lookStage=null;S.grow=VISIT.stage/10;applyLook();
   document.body.classList.add('visiting');$('#visitBar').hidden=false;$('#visitTitle').textContent='@'+n+'’s tank · '+VISIT.fish+' · lv '+VISIT.level;say('');}
-function leaveVisit(){if(!VISIT)return;if(GPLACE)endGiftPlace(false);save.tank=VISIT.mine;lightsOff=VISIT.myLights;document.body.classList.toggle('night',lightsOff);if(S)S.asleep=lightsOff;VISIT=null;rebuildTank();spawnFriends();R.lookStage=null;S.grow=growStage()/10;applyLook();
-  document.body.classList.remove('visiting');$('#visitBar').hidden=true;$('#giftOut').hidden=true;persistLocal();if(cloudDirty)cloudPut();}
+let VISIT_CLOUD=null;
+function leaveVisit(){if(!VISIT)return;if(GPLACE)endGiftPlace(false);VISIT_CLOUD=VISIT.cloud||null;save.tank=VISIT.mine;lightsOff=VISIT.myLights;document.body.classList.toggle('night',lightsOff);if(S)S.asleep=lightsOff;VISIT=null;rebuildTank();spawnFriends();R.lookStage=null;S.grow=growStage()/10;applyLook();
+  document.body.classList.remove('visiting');$('#visitBar').hidden=true;$('#giftOut').hidden=true;persistLocal();{const c=VISIT_CLOUD;VISIT_CLOUD=null;if(c)takeMerged(c);}if(cloudDirty)cloudPut();}
 $('#visitHome').onclick=leaveVisit;
 // sending
 const PAT_CODE={plain:'a',fade:'b','dark fins':'c',patches:'d'};
@@ -1970,7 +2002,42 @@ function openGiftOut(){if(!VISIT)return;$('#giftTitle').textContent='send a gift
     const bt=document.createElement('button');bt.type='button';bt.textContent='send · '+d.price+' xp';bt.disabled=w<d.price;
     bt.onclick=()=>{if(wallet()<d.price)return;startGiftPlace(d);};it.append(im,nb,bt);gd.appendChild(it);}
   $('#giftOut').hidden=false;}
-$('#giftBtn').onclick=openGiftOut;$('#giftClose').onclick=()=>{$('#giftOut').hidden=true;};
+$('#giftBtn').onclick=openGiftOut;
+/* ---- duels: when visiting, challenge the keeper to rock stacking or rock balancing. It's a coin flip, shown as a little race of two stacks.
+   One duel per tank a day. The winner gets a shiny winner ring (the first one goes in your tank) worth +50 xp. ---- */
+let DUEL=null;
+function openDuel(){if(!VISIT||!USER)return;const n=VISIT.n,day=dayKey(),d=save.duels||{};$('#duelTitle').textContent='duel @'+n;$('#duelCv').hidden=true;
+  const done=d[n]===day;$('#duelPick').hidden=done;$('#duelMsg').textContent=done?'you already dueled @'+n+' today. come back tomorrow':'';$('#duel').hidden=false;}
+$('#duelBtn').onclick=openDuel;$('#duelClose').onclick=()=>{if(DUEL&&!DUEL.end)return;$('#duel').hidden=true;};
+document.querySelectorAll('[data-duel]').forEach(b=>b.onclick=()=>runDuel(b.dataset.duel));
+function runDuel(kind){if(!VISIT||DUEL&&!DUEL.end)return;const n=VISIT.n;save.duels=Object.assign({},save.duels);for(const k in save.duels)if(save.duels[k]!==dayKey())delete save.duels[k];save.duels[n]=dayKey();persist();
+  const win=Math.random()<0.5;$('#duelPick').hidden=true;$('#duelMsg').textContent=kind==='stack'?'stacking…':'balancing…';const cv=$('#duelCv');cv.hidden=false;
+  // each side: a list of rocks (width, height, offset). stacking: the loser's tower tops out lower and its last rock slides off; balancing: the loser's stack wobbles more and topples first
+  const mk=k=>{const a=[];let w=74;for(let i=0;i<k;i++){a.push({w:w*(0.8+Math.random()*0.35),h:16+Math.random()*9,o:(Math.random()-0.5)*10,sh:0.55+Math.random()*0.3});w*=0.9;}return a;};
+  const nW=kind==='stack'?7+Math.floor(Math.random()*3):6,nL=kind==='stack'?Math.max(3,nW-1-Math.floor(Math.random()*3)):6;
+  const me={rocks:mk(win?nW:nL+1),lose:!win},them={rocks:mk(win?nL+1:nW),lose:win};
+  DUEL={kind,t:0,me,them,win,n,end:false};requestAnimationFrame(duelFrame);}
+function duelFrame(){const D=DUEL;if(!D||$('#duel').hidden&&D.end)return;const cv=$('#duelCv'),x=cv.getContext('2d'),W=cv.width,H=cv.height,g=H-46,now=performance.now();D.t+=Math.min(0.1,(now-(D.last||now))/1000);D.last=now;
+  x.clearRect(0,0,W,H);x.fillStyle='#e9e9e9';x.beginPath();x.ellipse(W/2,g+8,W*0.46,14,0,0,Math.PI*2);x.fill();
+  const drop=0.42,stackT=Math.max(D.me.rocks.length,D.them.rocks.length)*drop+0.4,fallT=stackT+(D.kind==='balance'?1.6:0.2);
+  const side=(S2,cx,label)=>{let y=g,lean=0;const nShow=Math.min(S2.rocks.length,Math.floor(D.t/drop)+1);
+    // the losing stack: its last rock tips off (stacking), or the whole stack sways harder and falls over (balancing)
+    const wob=D.kind==='balance'&&D.t>stackT*0.6?Math.sin(D.t*(S2.lose?5:3.2))*(S2.lose?0.05+Math.min(0.25,(D.t-stackT*0.6)*0.08):0.02):0;
+    const fall=S2.lose&&D.t>fallT?Math.min(1,(D.t-fallT)/0.7):0;
+    x.save();x.translate(cx,g);x.rotate(D.kind==='balance'?wob+fall*fall*1.3*(cx<W/2?-1:1):0);x.translate(-cx,-g);
+    for(let i=0;i<nShow;i++){const r=S2.rocks[i],k=i===nShow-1?Math.min(1,(D.t-i*drop)/drop):1,yy=y-r.h/2-(1-k*k)*160;let ox=r.o+lean,rot=0,vy=0;
+      if(D.kind==='stack'&&S2.lose&&i===S2.rocks.length-1&&D.t>fallT){const f=Math.min(1,(D.t-fallT)/0.8);ox+=f*60*(cx<W/2?-1:1);rot=f*1.2*(cx<W/2?-1:1);vy=f*f*(g-yy);}
+      x.save();x.translate(cx+ox,yy+vy);x.rotate(rot);const v=Math.round(110+r.sh*90);x.fillStyle='rgb('+v+','+v+','+v+')';x.beginPath();x.ellipse(0,0,r.w/2,r.h/2,0,0,Math.PI*2);x.fill();
+      x.fillStyle='rgba(255,255,255,.22)';x.beginPath();x.ellipse(-r.w*0.12,-r.h*0.18,r.w*0.26,r.h*0.18,0,0,Math.PI*2);x.fill();x.restore();y-=r.h*0.92;lean+=r.o*0.15;}
+    x.restore();x.fillStyle='#555';x.font='26px '+getComputedStyle(document.body).fontFamily;x.textAlign='center';x.fillText(label,cx,H-8);};
+  side(D.me,W*0.28,'you');side(D.them,W*0.72,'@'+D.n);
+  if(!D.end&&D.t>fallT+0.9){D.end=true;duelResult();}
+  if(!D.end||D.t<fallT+3)requestAnimationFrame(duelFrame);}
+function duelResult(){const D=DUEL;if(!D)return;
+  if(D.win){addXP(50);const home=VISIT?VISIT.mine:save.tank;PROG.life.rings=(PROG.life.rings||0)+1;
+    if(!home.owned.ring){home.owned.ring=1;if(!home.items.some(i=>i.id==='ring'))home.items.push({id:'ring',x:+rnd(-0.6,0.6).toFixed(3),z:+rnd(-0.3,0.3).toFixed(2),r:0});}
+    $('#duelMsg').textContent='you won! a shiny winner ring (+50 xp)'+(PROG.life.rings>1?' · rings won: '+PROG.life.rings:' · it’s waiting in your tank');renderUI();persist();snd.pop&&snd.pop();}
+  else $('#duelMsg').textContent='@'+D.n+' won this time. try again tomorrow';}$('#giftClose').onclick=()=>{$('#giftOut').hidden=true;};
 $('#sendSnack').onclick=()=>{const g=giftDay();if(g.snack>=3)return;sendGift('snack','flakes',()=>{g.snack++;persist();openGiftOut();});};
 // receiving
 const SEEN_GIFTS=new Set();
@@ -2411,7 +2478,8 @@ function lampShadows(N,on){if(LSH&&LSH.env!==ENV){world.remove(LSH.g);LSH=null;}
     m.position.set(x+off,F+0.014,z+0.04);m.scale.set(len*1.3,w*0.75,1);m.material.opacity=N*k;};
   for(const q of LSH.list)place(q.m,q.x,q.z,q.w,q.h,0.2);
   const fy=S.pos.y,hf=Math.max(0,fy-F),fw=0.434*youth(growStage()).size*1.1;place(LSH.fish,S.pos.x,S.pos.z,fw,hf*0.5,0.12*clamp(1-hf/2.2));}
-function frame(){requestAnimationFrame(frame);const nowF=performance.now(),busy=ptr.down||toy||foods.length||T-(S.lastTouch||-9)<4||(TV.t>0&&TV.t<1),minF=busy?0:(lightsOff&&S.asleep?62:30);
+function frame(){requestAnimationFrame(frame);
+  for(const o of ITEMS_ON)if(o.userData.isRing)o.traverse(c=>{if(c.userData.glint){const k=Math.max(0,Math.sin(T*1.7+o.position.x*3));c.material.opacity=k*k*0.95;c.scale.setScalar(0.06+0.05*k);}});const nowF=performance.now(),busy=ptr.down||toy||foods.length||T-(S.lastTouch||-9)<4||(TV.t>0&&TV.t<1),minF=busy?0:(lightsOff&&S.asleep?62:30);
   if(nowF-(frame.last||0)<minF)return;frame.last=nowF;const dt=Math.min(clock.getDelta(),0.07);T+=dt;
   needs(dt);behave(dt);physics(dt);animate(dt);keepAboveFloor();if(FRIENDS.length)friendsTick(dt);updateFoods(dt);updateToy(dt);updateRocks(dt);updateFX(dt);updateSay(dt);sunTick(dt);nightTick(dt);
   const lt=lightsOff?0.35:1;hemi.intensity=damp(hemi.intensity,0.85*lt,2,dt);keyL.intensity=damp(keyL.intensity,0.7*lt,2,dt);
