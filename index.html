@@ -203,7 +203,7 @@ body.visiting .ui,body.visiting #say{display:none}
 #shop .card{max-width:440px}
 @media (max-height:700px){.shopgrid{grid-template-columns:repeat(5,minmax(0,1fr))}}
 .item{display:flex;flex-direction:column;gap:1px;min-width:0;align-items:center;text-align:center}
-.item img{width:100%;max-width:58px;aspect-ratio:1;display:block}
+.item img{width:100%;max-width:58px;aspect-ratio:1;display:block;background:#e6e6e6;border-radius:12px;box-sizing:border-box;padding:3px}
 .item b{font-weight:500;font-size:13px;line-height:1.05;color:#111}
 .item em{font-style:normal;color:#8a8a8a;font-size:12px;line-height:1.1}
 .item button{font:inherit;font-size:12px;line-height:1.1;color:#111;text-decoration:underline;text-underline-offset:3px;text-align:center;padding:2px 0}
@@ -305,7 +305,7 @@ body.lookdock #viewArrows{display:flex}
   </div>
 </div>
 <div id="viewBar" hidden><p id="viewHint">drag to turn · pinch to zoom</p><span class="zoombtns"><button type="button" class="icon" id="tvOut" aria-label="Zoom out">−</button><button type="button" class="icon" id="tvIn" aria-label="Zoom in">+</button></span><button type="button" class="go" id="viewDone">close</button></div>
-<div id="editBar" hidden><nav aria-label="Edit tools"><button type="button" data-e="add">add pebbles</button><button type="button" data-e="remove">remove pebbles</button><button type="button" data-e="arrange">move decorations</button><button type="button" class="done" id="editDone">done</button></nav><p id="editHint"></p><div id="turnRow" hidden><button type="button" data-turn="1">turn left</button><button type="button" data-turn="-1">turn right</button></div></div>
+<div id="editBar" hidden><nav aria-label="Edit tools"><button type="button" data-e="add">add pebbles</button><button type="button" data-e="remove">remove pebbles</button><button type="button" data-e="arrange">move decorations</button><button type="button" class="done" id="editDone">done</button></nav><p id="editHint"></p><div id="turnRow" hidden><button type="button" data-turn="1">turn left</button><button type="button" data-turn="-1">turn right</button><button type="button" id="putAway">put away</button></div></div>
 <div id="say" aria-live="polite"></div>
 <div class="ui top">
   <div class="who">
@@ -504,7 +504,7 @@ const KO={
 'gifts need the new database rules (see the guide)':'선물을 보내려면 새 저장 서버 규칙이 필요해요','visiting needs the online save':'방문하려면 온라인 저장이 필요해요',
 'heart':'하트','sparkle':'반짝','fishy':'물고기','bubbles':'방울','cucumber':'오이','yum':'냠','crunch':'아삭','zucchini':'애호박','banana':'바나나',
 'a little fish like yours · 50 xp':'내 금붕어를 닮은 작은 물고기 · 50 xp','send · 50 xp':'보내기 · 50 xp','friends’ fish':'친구 물고기','tap a fish to show or hide it in your tank':'물고기를 탭해서 어항에 보이거나 숨겨요','no skin':'스킨 없음','little fish your friends send you swim here':'친구가 보낸 작은 물고기가 여기서 헤엄쳐요',
-'visit · type a friend’s username to visit their tank, send gifts, or challenge them to a duel. fish you’re sent swim with yours':'방문 · 친구 아이디를 입력해 어항에 놀러 가서 선물을 보내거나 결투를 신청해요. 선물받은 물고기는 내 물고기랑 같이 놀아요','duel':'결투','notifications':'알림','nothing yet':'아직 없어요','my fish':'내 금붕어','tank':'어항','more':'더보기','tank view':'어항 뷰','see your tank in its room':'방 안의 어항 보기','photo':'사진','save a picture of your tank':'어항 사진 저장','sound':'소리','on':'켜짐','off':'꺼짐','account & language':'계정 · 언어','friends':'친구','visit a keeper by username, or tap one you’ve visited':'아이디로 놀러 가거나, 전에 갔던 친구를 눌러요','gift':'선물','home':'집','rings':'반지','won in duels':'결투에서 얻어요',
+'visit · type a friend’s username to visit their tank, send gifts, or challenge them to a duel. fish you’re sent swim with yours':'방문 · 친구 아이디를 입력해 어항에 놀러 가서 선물을 보내거나 결투를 신청해요. 선물받은 물고기는 내 물고기랑 같이 놀아요','duel':'결투','notifications':'알림','nothing yet':'아직 없어요','put away':'치우기','tap a decoration first':'먼저 장식을 눌러 주세요','my fish':'내 금붕어','tank':'어항','more':'더보기','tank view':'어항 뷰','see your tank in its room':'방 안의 어항 보기','photo':'사진','save a picture of your tank':'어항 사진 저장','sound':'소리','on':'켜짐','off':'꺼짐','account & language':'계정 · 언어','friends':'친구','visit a keeper by username, or tap one you’ve visited':'아이디로 놀러 가거나, 전에 갔던 친구를 눌러요','gift':'선물','home':'집','rings':'반지','won in duels':'결투에서 얻어요',
 'your level · tap for missions. your fish grows every 5 levels':'레벨 · 누르면 미션이 나와요. 5레벨마다 금붕어가 자라요','shop · winter decorations, crystals and rings':'상점 · 겨울 장식, 크리스탈, 반지','friends · visit a keeper, send gifts, or challenge them to a duel. fish you’re sent swim with yours':'친구 · 놀러 가서 선물을 보내거나 결투를 신청해요. 선물받은 물고기는 내 물고기랑 같이 놀아요','more · tank view, photos, sound, account and language':'더보기 · 어항 뷰, 사진, 소리, 계정과 언어','winter':'겨울','crystals':'크리스탈','amethyst':'자수정','rose quartz':'로즈 쿼츠','citrine':'시트린','aquamarine':'아쿠아마린','fluorite':'형석','rings · won in duels':'반지 · 결투에서 얻어요','win a duel':'결투에서 이기면','tallest tower wins':'더 높이 쌓으면 승리','keep the stones on your nose longest':'코 위 돌을 끝까지 지키면 승리','the fish play it out in the tank · pure luck · winner gets a winner ring (+50 xp)':'물고기들이 어항에서 직접 겨뤄요 · 순전히 운 · 이기면 승리 반지 (+50 xp)','notifications':'알림','turn on':'켜기','turn off':'끄기','notifications are on':'알림이 켜져 있어요','notifications · add Goldfish to your home screen first':'알림 · 먼저 Goldfish를 홈 화면에 추가해 주세요',"notifications aren’t available here":'여기서는 알림을 쓸 수 없어요','notifications are blocked in settings':'설정에서 알림이 꺼져 있어요','rock stacking':'돌 쌓기','rock balancing':'돌 균형 잡기','who stacks the tallest tower':'누가 더 높이 쌓나','whose stack stays up longer':'누구 탑이 더 오래 버티나','pick a game. winning is pure luck · the winner gets a shiny winner ring (+50 xp)':'게임을 골라요. 승패는 순전히 운 · 이기면 반짝이는 승리 반지 (+50 xp)','winner ring':'승리 반지','skin':'스킨','special looks, like christmas':'크리스마스 같은 특별한 모습','a skin is worn over your color and pattern · tap it again to reshuffle':'스킨은 색과 무늬 위에 입혀져요 · 한 번 더 누르면 모양이 바뀌어요','none':'없음','christmas':'크리스마스','at least 20 stones stay in the tank':'어항에는 돌이 최소 20개 남아 있어야 해요','skip':'건너뛰기',
 'hand · drag to lead your fish, tap to call it, tap the fish to say hi':'손 · 끌어서 금붕어를 데려가고, 탭해서 부르고, 금붕어를 탭하면 인사해요',
 'food · tap the water to sprinkle flakes':'먹이 · 물을 탭해서 먹이를 뿌려요','clean · when the glass gets dirty, rub it clean':'청소 · 유리가 더러워지면 문질러서 닦아요',
@@ -652,9 +652,9 @@ if(uN>0.001){vec3 dl=vSunP-uNL.xyz;float lm=exp(-dot(dl,dl)/(uNL.w*uNL.w));
    #endif
    vec3 cN=b0*(1.-uN*0.34+uN*0.62*lm)*mix(vec3(1.),uLC,tk);cN=min(cN,vec3(1.));
    float lmN=dot(cN,vec3(0.299,0.587,0.114));gl_FragColor.rgb=clamp(mix(vec3(lmN),cN,1.+0.3*uN),0.,1.);}
-{vec3 gl=vec3(0.);for(int i=0;i<5;i++){vec3 d=vSunP-uGP[i].xyz;gl+=uGC[i]*exp(-dot(d,d)/(uGP[i].w*uGP[i].w));}
+{vec3 gl=vec3(0.);for(int i=0;i<5;i++){vec3 d=vSunP-uGP[i].xyz;float q=dot(d,d)/(uGP[i].w*uGP[i].w);gl+=uGC[i]*exp(-q)/(1.+q*q);}
    // crystals' own soft light on whatever is near them
-   gl_FragColor.rgb=min(gl_FragColor.rgb*(1.+gl*(0.3+0.5*uN))+gl*(0.07+0.12*uN),vec3(1.));}
+   gl_FragColor.rgb=min(gl_FragColor.rgb*(1.+gl*(0.16+0.3*uN))+gl*(0.025+0.06*uN),vec3(1.));}
 #include <tonemapping_fragment>`);}
 function flatMat(o){o=Object.assign({},o);['roughness','metalness','envMap','envMapIntensity','bumpMap','bumpScale','emissive'].forEach(k=>delete o[k]);const m=new THREE.MeshBasicMaterial(o);m.onBeforeCompile=sunPatch;return m;}
 const FISH_COL=0xff7a3c,FIN_COL=0xff8d4f;
@@ -1733,7 +1733,7 @@ setInterval(()=>{if(cloudDirty)cloudPut();else if(!document.hidden)pull();},3000
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)pull();});
 /* the home-screen app keeps an old copy of the page open (and iOS caches it), so check for a newer build when it opens or comes back,
    and reload past the cache if there is one */
-const BUILD='20261117110844';
+const BUILD='20261117111204';
 function checkBuild(){fetch('version.json?t='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{if(!j||!j.b||j.b===BUILD)return;
   try{if(sessionStorage.getItem('gf-build')===j.b)return;sessionStorage.setItem('gf-build',j.b);}catch(e){}
   try{persistLocal();}catch(e){}location.replace(location.pathname+'?v='+encodeURIComponent(j.b));}).catch(()=>{});}
@@ -1861,6 +1861,17 @@ document.querySelectorAll('[data-p]').forEach(b=>b.onclick=()=>setEdit(b.dataset
 $('#arrangeBtn').onclick=()=>setEdit('arrange');
 document.querySelectorAll('[data-e]').forEach(b=>b.onclick=()=>setEdit(b.dataset.e));
 $('#editDone').onclick=endEdit;
+// put the selected decoration away (it stays yours in the shop and can be placed again)
+$('#putAway').onclick=()=>{const o=selItem&&ITEMS_ON.includes(selItem)?selItem:null;if(!o){$('#editHint').textContent='tap a decoration first';return;}const id=o.userData.item.id;
+  save.tank.items=save.tank.items.filter(i=>i!==o.userData.item);save.tank.gone=Object.assign({},save.tank.gone,{[id]:Date.now()});selItem=null;rebuildTank();persist();};
+/* the selected decoration: a soft ring on the sand around it and a gentle lift, so it's clear which one the buttons act on */
+let SELM=null;
+function selTick(){const on=tool==='arrange'&&selItem&&ITEMS_ON.includes(selItem);
+  if(!SELM){SELM=new THREE.Mesh(new THREE.RingGeometry(0.88,1,48),new THREE.MeshBasicMaterial({color:0x2a2a2a,transparent:true,depthWrite:false,depthTest:false,fog:false}));SELM.rotation.x=-Math.PI/2;SELM.renderOrder=2;SELM.userData.room=0;world.add(SELM);}
+  for(const o of ITEMS_ON){const k=o===selItem&&on?1:0;o.userData.lift=damp(o.userData.lift||0,k,8,1/60);if(o.userData.lift>0.002||o.userData.lifted){o.userData.lifted=o.userData.lift>0.002;o.position.y=(o.userData.baseY??(o.userData.baseY=o.position.y))+o.userData.lift*(0.035+0.012*Math.sin(T*3));}}
+  SELM.visible=!!on;if(!on){SELM.userData.of=null;return;}
+  if(SELM.userData.of!==selItem){const bx=new THREE.Box3().setFromObject(selItem),sz=bx.getSize(new V3());SELM.userData.r=Math.max(sz.x,sz.z)*0.62+0.05;SELM.userData.of=selItem;}
+  SELM.position.set(selItem.position.x,(selItem.userData.baseY??selItem.position.y)+0.01,selItem.position.z);SELM.scale.setScalar(SELM.userData.r*(1+0.04*Math.sin(T*3)));SELM.material.opacity=0.35+0.15*Math.sin(T*3);}
 document.querySelectorAll('[data-turn]').forEach(b=>b.onclick=()=>{const o=selItem&&ITEMS_ON.includes(selItem)?selItem:ITEMS_ON[ITEMS_ON.length-1];if(!o)return;selItem=o;turnItem(o,+b.dataset.turn*Math.PI/8);saveItemTurn(o);});
 function placeItem(id){const it={id,x:+rnd(-0.8,0.8).toFixed(3),z:+rnd(-0.45,0.45).toFixed(2),r:+rnd(-0.6,0.6).toFixed(2),t:Date.now()};save.tank.items.push(it);rebuildTank();persist();}
 $('#shopList').addEventListener('click',e=>{const d=e.target.dataset||{};
@@ -2071,7 +2082,7 @@ function peekTank(sel,show){const sh=$(sel);if(!sh||sh.hidden)return;clearTimeou
    land with a small bump and a puff of sand, and rock back to rest */
 const DROPS=[];
 function glowTick(){let k=0;for(const o of ITEMS_ON){if(!o.userData.glow||k>=5)continue;const c=o.userData.glow,br=0.75+0.25*Math.sin(T*0.8+o.position.x*4);
-    GLOWU.uGP.value[k].set(o.position.x,o.position.y+0.25,o.position.z,0.6);GLOWU.uGC.value[k].set(c[0]*br,c[1]*br,c[2]*br);k++;}
+    GLOWU.uGP.value[k].set(o.position.x,o.position.y+0.16,o.position.z,0.34);GLOWU.uGC.value[k].set(c[0]*br,c[1]*br,c[2]*br);k++;}
   for(;k<5;k++){GLOWU.uGP.value[k].y=-99;GLOWU.uGC.value[k].set(0,0,0);}}
 function dropIn(g){if(!g)return;const rest={y:g.position.y,x:g.position.x,rx:g.rotation.x,rz:g.rotation.z};g.userData.rest=rest;
   const d={g,rest,y:B.surf-0.08,vy:0,t:0,ph:rnd(0,6),tx:rnd(-0.7,0.7),tz:rnd(-0.7,0.7),landed:0};g.position.y=d.y;DROPS.push(d);}
@@ -2672,7 +2683,7 @@ function frame(){requestAnimationFrame(frame);
   if(DX){const nw=performance.now();duelTick(Math.min(0.05,(nw-(DX.last||nw))/1000));if(DX)DX.last=nw;}
   const nowF=performance.now(),busy=ptr.down||toy||foods.length||T-(S.lastTouch||-9)<4||(TV.t>0&&TV.t<1)||DX,minF=busy?0:(lightsOff&&S.asleep?62:30);
   if(nowF-(frame.last||0)<minF)return;frame.last=nowF;const dt=Math.min(clock.getDelta(),0.07);T+=dt;
-  needs(dt);if(DROPS.length)dropTick(dt);glowTick();behave(dt);physics(dt);animate(dt);keepAboveFloor();if(FRIENDS.length)friendsTick(dt);updateFoods(dt);updateToy(dt);updateRocks(dt);updateFX(dt);updateSay(dt);sunTick(dt);nightTick(dt);
+  needs(dt);if(DROPS.length)dropTick(dt);glowTick();selTick();behave(dt);physics(dt);animate(dt);keepAboveFloor();if(FRIENDS.length)friendsTick(dt);updateFoods(dt);updateToy(dt);updateRocks(dt);updateFX(dt);updateSay(dt);sunTick(dt);nightTick(dt);
   const lt=lightsOff?0.35:1;hemi.intensity=damp(hemi.intensity,0.85*lt,2,dt);keyL.intensity=damp(keyL.intensity,0.7*lt,2,dt);
   if(!tankViewCam(dt)){const d=camera.position.distanceTo(camLook);scene.fog.far=damp(scene.fog.far,d+lerp(3,40,cleanOf()/100),2,dt);
   camera.position.x=camBase.x+Math.sin(T*0.17)*0.05;camera.position.y=camBase.y+Math.sin(T*0.23)*0.03;camera.lookAt(camLook);}
