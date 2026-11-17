@@ -1733,7 +1733,7 @@ setInterval(()=>{if(cloudDirty)cloudPut();else if(!document.hidden)pull();},3000
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)pull();});
 /* the home-screen app keeps an old copy of the page open (and iOS caches it), so check for a newer build when it opens or comes back,
    and reload past the cache if there is one */
-const BUILD='20261117111204';
+const BUILD='20261117111436';
 function checkBuild(){fetch('version.json?t='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{if(!j||!j.b||j.b===BUILD)return;
   try{if(sessionStorage.getItem('gf-build')===j.b)return;sessionStorage.setItem('gf-build',j.b);}catch(e){}
   try{persistLocal();}catch(e){}location.replace(location.pathname+'?v='+encodeURIComponent(j.b));}).catch(()=>{});}
@@ -1809,12 +1809,12 @@ function glassMat(){return flatMat({vertexColors:true,transparent:true,opacity:0
 function rockBase(g,r,col){const m=new THREE.Mesh(facetShade(new THREE.DodecahedronGeometry(r,0),col,0.35),flatMat({vertexColors:true}));m.scale.set(1.2,0.45,1);m.position.y=r*0.2;g.add(m);return m;}
 const CRYSTALS=[
  {id:'amethyst',name:'amethyst',price:180,glow:[0.62,0.45,1],make:()=>{const g=new THREE.Group();
-   xtal(g,0.036,0.17,0.06,0x8e6cc9,0xe6dafa,0,0,0,0,0);xtal(g,0.028,0.11,0.05,0x9a7bd3,0xe6dafa,0.045,0,0.01,0.1,-0.4);xtal(g,0.026,0.09,0.045,0x8664c2,0xe6dafa,-0.042,0,-0.005,-0.05,0.42);return g;}},
+   xtal(g,0.045,0.18,0.075,0x8e6cc9,0xe6dafa,0,0,0,0,-0.04);return g;}},
  {id:'rosequartz',name:'rose quartz',price:220,glow:[1,0.62,0.72],make:()=>{const g=new THREE.Group();xtal(g,0.055,0.22,0.09,0xf0b3c3,0xfbe4ea,0,0,0,0,0.05);return g;}},
  {id:'citrine',name:'citrine',price:280,glow:[1,0.8,0.36],make:()=>{const g=new THREE.Group();xtal(g,0.06,0.1,0.08,0xe8a93c,0xfbe2a2,0,0,0,0,-0.08);return g;}},
  {id:'aquamarine',name:'aquamarine',price:320,glow:[0.5,0.85,1],make:()=>{const g=new THREE.Group();
-   xtal(g,0.028,0.26,0.05,0x8fcfe2,0xe3f6fb,-0.012,0,0,0,0.2);xtal(g,0.024,0.2,0.045,0x7fc2d8,0xdaf1f8,0.018,0,0.006,0.06,-0.26);return g;}},
- {id:'fluorite',name:'fluorite',price:380,glow:[0.45,1,0.66],make:()=>{const g=new THREE.Group();const m=new THREE.Mesh(facetShade(new THREE.OctahedronGeometry(0.09,0),0x6fcb9c,0.45),glassMat());m.renderOrder=3;m.position.y=0.085;m.rotation.set(0,0.4,0);m.scale.y=1.15;g.add(m);return g;}}];
+   xtal(g,0.034,0.26,0.06,0x8fcfe2,0xe3f6fb,0,0,0,0,0.07);return g;}},
+ {id:'fluorite',name:'fluorite',price:380,glow:[0.45,1,0.66],make:()=>{const g=new THREE.Group();xtal(g,0.05,0.14,0.07,0x6fcb9c,0xd8f5e6,0,0,0,0,0.03,4);return g;}}];
 const ALLDECO=()=>SHOP.concat([RING],CRYSTALS);
 function makeThumbs(){if(THUMBS)return THUMBS;THUMBS=thumbsOf(ALLDECO());return THUMBS;}
 function thumbsOf(list){const out={};const tr=new THREE.WebGLRenderer({antialias:true,alpha:true,preserveDrawingBuffer:true});tr.setPixelRatio(1);tr.setSize(240,240,false);tr.setClearColor(0xffffff,0);tr.clippingPlanes=[new THREE.Plane(new V3(0,1,0),0)];
