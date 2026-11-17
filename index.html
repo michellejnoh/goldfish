@@ -1315,20 +1315,29 @@ function moundSpot(pb,n){const Rn=0.08+0.045*Math.sqrt(n+1),H=Rn*0.95;let best=n
   for(let k=0;k<10;k++){const a=rnd(0,Math.PI*2),rr=Rn*Math.sqrt(Math.random()),x=PILE.x+Math.cos(a)*rr,z=PILE.z+Math.sin(a)*rr*0.75;
     const ideal=pb.rest+H*Math.pow(1-rr/Rn,1.35),cur=surf(x,z),gap=ideal-cur;if(gap>bestGap){bestGap=gap;best=new V3(x,Math.min(cur,B.floor+0.5),z);}}
   return best;}
+// is a point inside a rock or decoration (where avoidObst would push the fish back out)?
+function inObst(p){for(const o of OBST){const dx=(p.x-o.c.x)/(o.h.x+0.09),dy=(p.y-o.c.y)/(o.h.y+0.09),dz=(p.z-o.c.z)/(o.h.z+0.054);if(dx*dx+dy*dy+dz*dz<1)return true;}return false;}
+// where the body should go to take a stone in its mouth: the near side if it's clear, else the far side; null if both are blocked (stone wedged in a gap)
+function reachFor(pp){const mo=R.mouth.x*R.g.scale.x,s0=Math.sign(S.pos.x-pp.x)||1;for(const sd of [s0,-s0]){const t=new V3(pp.x+sd*mo,pp.y+0.035,pp.z);if(!inObst(t))return t;}return null;}
+// stuck: not getting any closer for a while
+function noProgress(d,dt,lim){if(S.prog===undefined||d<S.prog-0.04){S.prog=d;S.progT=0;return false;}S.progT=(S.progT||0)+dt;return S.progT>lim;}
 function tidy(dt){
-  if(!S.peb){let best=null,bd=1e9;for(const p of PEBBLES){if(p.inPile||p.state!=='floor'||(p.skipUntil||0)>T)continue;const d=p.m.position.distanceTo(S.pos)+Math.abs(p.m.position.x-PILE.x)*0.3;if(d<bd){bd=d;best=p;}}
-    if(!best||S.tidyLeft<=0||S.modeT<0){S.mode='idle';S.think=rnd(2,4);return;}S.peb=best;S.pebT=0;}
+  if(!S.peb){let best=null,bd=1e9;for(const p of PEBBLES){if(p.inPile||p.state!=='floor'||(p.skipUntil||0)>T)continue;if(!reachFor(p.m.position)){p.skipUntil=T+60;continue;}const d=p.m.position.distanceTo(S.pos)+Math.abs(p.m.position.x-PILE.x)*0.3;if(d<bd){bd=d;best=p;}}
+    if(!best||S.tidyLeft<=0||S.modeT<0){S.mode='idle';S.think=rnd(2,4);return;}S.peb=best;S.pebT=0;S.prog=undefined;}
   const pb=S.peb;
-  if(pb.state!=='carried'){const pp=pb.m.position,t=mouthTarget(pp);const d=move(t.x,t.y,t.z,0.9,dt,B.floor+0.06,B.surf);if(d<0.6)S.faceT=pp;
-    // a stone it can't get its mouth to (wedged by a rock) is left for later
-    S.pebT=(S.pebT||0)+dt;if(S.pebT>5){pb.skipUntil=T+90;S.peb=null;return;}
+  if(pb.state!=='carried'){const pp=pb.m.position,t=reachFor(pp);if(!t){pb.skipUntil=T+60;S.peb=null;return;}const d=move(t.x,t.y,t.z,0.9,dt,B.floor+0.06,B.surf);if(d<0.6)S.faceT=pp;
+    // a stone it can't get its mouth to (wedged by a rock), or one it stops getting closer to, is left for later straight away
+    S.pebT=(S.pebT||0)+dt;if(S.pebT>5||noProgress(d,dt,1.2)){pb.skipUntil=T+90;S.peb=null;S.prog=undefined;return;}
     {const md=mouthWorld().distanceTo(pp);if(md<0.32)CUR.mouth=Math.max(CUR.mouth||0,0.55*clamp(1-md/0.32));
-    if(md<0.045+pb.r*0.6){pb.state='carried';pb.grab=0;pb.from=pp.clone();squish(-1.5);snd.pop();}}
+    if(md<0.045+pb.r*0.6){S.prog=undefined;pb.state='carried';pb.grab=0;pb.from=pp.clone();squish(-1.5);snd.pop();}}
     if(S.modeT<0){S.peb=null;S.mode='idle';}return;}
-  const top=new V3(PILE.x,B.floor+0.35,PILE.z),t=mouthTarget(top);const d=move(t.x,t.y,t.z,0.8,dt,B.floor+0.06,B.surf);if(d<0.6)S.faceT=top;
-  if(mouthWorld().distanceTo(top)<0.22){const n=PILE.n++;const pos=moundSpot(pb,n);pb.target=pos;
+  const top=new V3(PILE.x,B.floor+0.35,PILE.z),t=reachFor(top)||mouthTarget(top);const d=move(t.x,t.y,t.z,0.8,dt,B.floor+0.06,B.surf);if(d<0.6)S.faceT=top;
+  // if the way to the heap is blocked, it lets the stone go from where it is and it still lands on the heap
+  if(mouthWorld().distanceTo(top)<0.22||noProgress(d,dt,1.6)){S.prog=undefined;const n=PILE.n++;const pos=moundSpot(pb,n);pb.target=pos;
     pb.state='fall';pb.vy=0;pb.inPile=true;S.peb=null;S.tidyLeft--;if(!document.hidden){track('pebble');if(PROG)checkAch('heapsize',PEBBLES.filter(p=>p.inPile).length);}squish(-1.5);snd.blub();
     if(Math.random()<0.4)say(pick(['mm','o']),1);}}
+// the play stone wedged where the fish can't get under it: it gives up rather than pressing against the rock, and nudges the stone loose for next time
+function jStuck(d,dt,b){if(!noProgress(d,dt,1.4))return false;S.prog=undefined;S.mode='idle';S.think=rnd(2,4);b.vel.x+=(Math.sign(-b.pos.x)||1)*0.6;b.vel.y+=0.35;b.vel.z+=(Math.sign(0.2-b.pos.z)||1)*0.3;return true;}
 function juggle(dt){const b=BALL;if(!b){S.mode='idle';return;}S.bumpCD-=dt;const bp=b.pos,m=mouthWorld();S.faceT=bp;
   const toward=p=>{const t=S.pos.clone().add(p.clone().sub(m));return move(t.x,t.y,t.z,2.6,dt,B.floor+0.03,B.surf);};
   if(S.jPhase==='balance'){// the stone rests on its nose for a moment, wobbling, then gets tossed
@@ -1337,14 +1346,14 @@ function juggle(dt){const b=BALL;if(!b){S.mode='idle';return;}S.bumpCD-=dt;const
     if(S.balT<=0){b.held=false;b.vel.set(rnd(-0.2,0.2),1.4,rnd(-0.1,0.1));S.foldYV=(S.foldYV||0)-5;squish(-3);snd.blub();S.jPhase='bounce';S.bumpCD=0.8;}
     if(S.modeT<0){b.held=false;S.mode='idle';}return;}
   if(S.jPhase==='push'){// nudge it along the floor with the nose
-    const dir=S.pushDir,side=new V3(bp.x-dir*(b.r+0.005),bp.y-0.01,bp.z);toward(side);S.faceT=new V3(bp.x+dir,bp.y,bp.z);
+    const dir=S.pushDir,side=new V3(bp.x-dir*(b.r+0.005),bp.y-0.01,bp.z),dd=toward(side);S.faceT=new V3(bp.x+dir,bp.y,bp.z);if(jStuck(dd,dt,b))return;
     if(S.bumpCD<=0&&m.distanceTo(side)<0.045){S.bumpCD=0.7;S.pushes++;b.vel.x+=dir*rnd(0.7,1.0);b.vel.y+=0.12;squish(-1.8);snd.pop();
       if(Math.abs(bp.x)>B.x*0.75)S.pushDir=-dir;if(S.pushes>=3)S.jPhase='bounce';}
     if(S.modeT<0){S.mode='idle';S.think=rnd(2,4);}return;}
   // bounce: nose right under the stone (or scooping it off the floor), tap it up only on contact
   const resting=bp.y<=b.floor+0.01,sg=Math.sign(S.pos.x-bp.x)||1;
-  const contact=resting?new V3(bp.x+sg*b.r*0.95,bp.y-b.r*0.2,bp.z):new V3(bp.x,bp.y-b.r,bp.z);toward(contact);
-  if(S.bumpCD<=0&&m.distanceTo(contact)<0.065&&b.vel.y<=0.25){S.bumpCD=0.55;S.bumps++;if(!document.hidden)track('bump');
+  const contact=resting?new V3(bp.x+sg*b.r*0.95,bp.y-b.r*0.2,bp.z):new V3(bp.x,bp.y-b.r,bp.z),dd=toward(contact);if(resting&&jStuck(dd,dt,b))return;
+  if(S.bumpCD<=0&&m.distanceTo(contact)<0.065&&b.vel.y<=0.25){S.prog=undefined;S.bumpCD=0.55;S.bumps++;if(!document.hidden)track('bump');
     if(S.bumps>=2&&!S.didBalance&&Math.random()<0.5&&bp.y>B.floor+0.4){S.jPhase='balance';S.balT=rnd(2,3.2);S.didBalance=true;return;}
     b.vel.y=rnd(0.85,1.15);b.vel.x+=resting?-sg*0.25:rnd(-0.15,0.15);b.vel.z+=rnd(-0.08,0.08);S.foldYV=(S.foldYV||0)-4;squish(-2.5);snd.blub();add('fun',3);
     if(S.bumps>=S.bumpGoal){S.mode='idle';S.think=rnd(2,4);if(S.sayCD<=0)say('o',1);}}
@@ -1359,7 +1368,7 @@ function auto(dt){const s=pet().s;S.think-=dt;S.modeT-=dt;
   if(move(S.target.x,S.target.y,S.target.z,s.energy<15?0.25:0.45,dt)<0.25)S.target=randPoint();
   if(S.think<=0){S.think=rnd(4,8);const r=Math.random();
     {const al=T-(S.lastTouch||0);if(al>12&&s.energy>15&&Math.random()<0.5){if(al>60&&Math.random()<0.6&&PEBBLES.some(p=>!p.inPile)){S.mode='tidy';S.modeT=45;S.tidyLeft=3+Math.floor(rnd(0,4));S.peb=null;}
-      else{S.mode='juggle';S.modeT=18;S.bumps=0;S.bumpGoal=4+Math.floor(rnd(0,4));S.bumpCD=0;S.jPhase=Math.random()<0.4?'push':'bounce';S.pushes=0;S.pushDir=Math.sign(-BALL.pos.x)||1;S.didBalance=false;}return;}}
+      else{S.mode='juggle';S.prog=undefined;S.modeT=18;S.bumps=0;S.bumpGoal=4+Math.floor(rnd(0,4));S.bumpCD=0;S.jPhase=Math.random()<0.4?'push':'bounce';S.pushes=0;S.pushDir=Math.sign(-BALL.pos.x)||1;S.didBalance=false;}return;}}
     if(r>=0.22&&r<0.42){S.mode='gaze';S.modeT=rnd(2.5,4.5);S.gazeTurns=2;S.gazeP=gazePoint();}
     else if(r<0.22){S.mode='nibble';S.modeT=6;S.target=new V3(rnd(-B.x,B.x),B.floor+0.02,rnd(-0.5,0.4));S.peckT=0;}
     else if(s.food<40&&r<0.45)S.target=new V3(rnd(-1,1),B.ymax,0);
@@ -1694,7 +1703,7 @@ setInterval(()=>{if(cloudDirty)cloudPut();else if(!document.hidden)pull();},3000
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)pull();});
 /* the home-screen app keeps an old copy of the page open (and iOS caches it), so check for a newer build when it opens or comes back,
    and reload past the cache if there is one */
-const BUILD='20261117021846';
+const BUILD='20261117025511';
 function checkBuild(){fetch('version.json?t='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{if(!j||!j.b||j.b===BUILD)return;
   try{if(sessionStorage.getItem('gf-build')===j.b)return;sessionStorage.setItem('gf-build',j.b);}catch(e){}
   try{persistLocal();}catch(e){}location.replace(location.pathname+'?v='+encodeURIComponent(j.b));}).catch(()=>{});}
