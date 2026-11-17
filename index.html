@@ -1724,7 +1724,7 @@ setInterval(()=>{if(cloudDirty)cloudPut();else if(!document.hidden)pull();},3000
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)pull();});
 /* the home-screen app keeps an old copy of the page open (and iOS caches it), so check for a newer build when it opens or comes back,
    and reload past the cache if there is one */
-const BUILD='20261117074526';
+const BUILD='20261117075002';
 function checkBuild(){fetch('version.json?t='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{if(!j||!j.b||j.b===BUILD)return;
   try{if(sessionStorage.getItem('gf-build')===j.b)return;sessionStorage.setItem('gf-build',j.b);}catch(e){}
   try{persistLocal();}catch(e){}location.replace(location.pathname+'?v='+encodeURIComponent(j.b));}).catch(()=>{});}
@@ -1794,7 +1794,9 @@ const RING={id:'ring',name:'winner ring',price:50,prize:true,make:()=>{const g=n
    that falls on the sand, stones and fish around it (stronger at night). ---- */
 function xtal(par,r,h,tip,base,lite,x,y,z,rx,rz,sides){const g=new THREE.Group();g.position.set(x,y,z);g.rotation.set(rx||0,0,rz||0);par.add(g);sides=sides||6;
   const body=new THREE.CylinderGeometry(r,r*1.04,h,sides,1);body.translate(0,h/2,0);const cap=new THREE.ConeGeometry(r,tip,sides,1);cap.translate(0,h+tip/2,0);
-  const c1=new THREE.Color(base),c2=new THREE.Color(lite);g.add(new THREE.Mesh(facetShade(body,c1.getHex(),0.45),flatMat({vertexColors:true})));g.add(new THREE.Mesh(facetShade(cap,c1.clone().lerp(c2,0.6).getHex(),0.4),flatMat({vertexColors:true})));return g;}
+  const c1=new THREE.Color(base),c2=new THREE.Color(lite);g.add(new THREE.Mesh(facetShade(body,c1.getHex(),0.45),glassMat()));g.add(new THREE.Mesh(facetShade(cap,c1.clone().lerp(c2,0.6).getHex(),0.4),glassMat()));g.traverse(o=>{if(o.isMesh)o.renderOrder=3;});return g;}
+// see-through crystal: both sides of each facet drawn faintly, so the far facets show through the near ones
+function glassMat(){return flatMat({vertexColors:true,transparent:true,opacity:0.5,side:THREE.DoubleSide,depthWrite:false});}
 function rockBase(g,r,col){const m=new THREE.Mesh(facetShade(new THREE.DodecahedronGeometry(r,0),col,0.35),flatMat({vertexColors:true}));m.scale.set(1.2,0.45,1);m.position.y=r*0.2;g.add(m);return m;}
 const CRYSTALS=[
  {id:'amethyst',name:'amethyst',price:180,glow:[0.62,0.45,1],make:()=>{const g=new THREE.Group();
@@ -1803,7 +1805,7 @@ const CRYSTALS=[
  {id:'citrine',name:'citrine',price:280,glow:[1,0.8,0.36],make:()=>{const g=new THREE.Group();xtal(g,0.06,0.1,0.08,0xe8a93c,0xfbe2a2,0,0,0,0,-0.08);return g;}},
  {id:'aquamarine',name:'aquamarine',price:320,glow:[0.5,0.85,1],make:()=>{const g=new THREE.Group();
    xtal(g,0.028,0.26,0.05,0x8fcfe2,0xe3f6fb,-0.012,0,0,0,0.2);xtal(g,0.024,0.2,0.045,0x7fc2d8,0xdaf1f8,0.018,0,0.006,0.06,-0.26);return g;}},
- {id:'fluorite',name:'fluorite',price:380,glow:[0.45,1,0.66],make:()=>{const g=new THREE.Group();const m=new THREE.Mesh(facetShade(new THREE.OctahedronGeometry(0.09,0),0x6fcb9c,0.45),flatMat({vertexColors:true}));m.position.y=0.085;m.rotation.set(0,0.4,0);m.scale.y=1.15;g.add(m);return g;}}];
+ {id:'fluorite',name:'fluorite',price:380,glow:[0.45,1,0.66],make:()=>{const g=new THREE.Group();const m=new THREE.Mesh(facetShade(new THREE.OctahedronGeometry(0.09,0),0x6fcb9c,0.45),glassMat());m.renderOrder=3;m.position.y=0.085;m.rotation.set(0,0.4,0);m.scale.y=1.15;g.add(m);return g;}}];
 const ALLDECO=()=>SHOP.concat([RING],CRYSTALS);
 function makeThumbs(){if(THUMBS)return THUMBS;THUMBS=thumbsOf(ALLDECO());return THUMBS;}
 function thumbsOf(list){const out={};const tr=new THREE.WebGLRenderer({antialias:true,alpha:true,preserveDrawingBuffer:true});tr.setPixelRatio(1);tr.setSize(240,240,false);tr.setClearColor(0xffffff,0);tr.clippingPlanes=[new THREE.Plane(new V3(0,1,0),0)];
