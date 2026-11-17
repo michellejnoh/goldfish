@@ -1733,7 +1733,7 @@ setInterval(()=>{if(cloudDirty)cloudPut();else if(!document.hidden)pull();},3000
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)pull();});
 /* the home-screen app keeps an old copy of the page open (and iOS caches it), so check for a newer build when it opens or comes back,
    and reload past the cache if there is one */
-const BUILD='20261117153523';
+const BUILD='20261117153822';
 function checkBuild(){fetch('version.json?t='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{if(!j||!j.b||j.b===BUILD)return;
   try{if(sessionStorage.getItem('gf-build')===j.b)return;sessionStorage.setItem('gf-build',j.b);}catch(e){}
   try{persistLocal();}catch(e){}location.replace(location.pathname+'?v='+encodeURIComponent(j.b));}).catch(()=>{});}
@@ -1827,25 +1827,35 @@ function limbGeo(curve,segs,r0,r1,knot,rs){rs=rs||6;const g=new THREE.TubeGeomet
    a flare of roots gripping the sand, and wide, twisting limbs that spread out sideways and fork into a few fine twigs. No leaves.
    Every tree is grown from its own seed (kept with the decoration, so it stays the same tree after a reload). */
 function makeTree(it){const R2=rng((it&&it.seed)||7),rr=(a,b)=>a+(b-a)*R2(),g=new THREE.Group(),
-    H=it&&typeof B!=='undefined'?((B.top-B.floor)*1.35+0.4)/1.8:1.15,bark=[0x6f635b,0x786b62,0x665a52],twig=0x857870,mat=()=>flatMat({vertexColors:true});
-  // trunk: big sideways S-bends that die down with height, plus a twist in depth
-  const side=R2()<0.5?-1:1,ph=rr(-0.4,0.4),pts=[];
-  // several tight, chunky bends rather than one long sweep, wider low down
-  for(let i=0;i<=20;i++){const u=i/20,env=Math.min(1,u/0.08),amp=H*(0.13-0.07*u)*env;pts.push(new V3(side*(Math.sin(u*Math.PI*3.2+ph*0.5)*amp+Math.sin(u*Math.PI*7.5+ph*3)*H*0.014*env),u*H,(Math.sin(u*Math.PI*2.6+ph)*H*0.04)*env));}
-  const trunk=new THREE.CatmullRomCurve3(pts),r0=rr(0.065,0.078);
-  const tm=new THREE.Mesh(facetShade(limbGeo(trunk,110,r0,r0*0.2,0.13,9),bark[0],0.45),mat());tm.userData.obst=1;g.add(tm);
+    H=it&&typeof B!=='undefined'?((B.top-B.floor)*1.35+0.4)/1.8:1.15,bark=[0x8b847f,0x938c87,0x857e79],twig=0x9c9692,mat=()=>flatMat({vertexColors:true}),// soft warm greys, in the tank's palette
+    lim=it&&typeof B!=='undefined'?B.x*0.55/1.8:0.35;
+  /* trunk: grown like a real one, step by step. It keeps its heading, and every so often it turns: a chunky bend one way, held, then
+     another. It always keeps climbing, and it's pulled back if it wanders too far sideways. */
+  const N=34,step=H/N*1.08,pts=[new V3()],turns=[];let p=new V3(),d=new V3(0,1,0),want=new V3(rr(-0.5,0.5),1,rr(-0.3,0.3)).normalize(),hold=0;
+  for(let i=1;i<=N;i++){if(--hold<=0){const a=rr(0,Math.PI*2),k=i<N*0.7?rr(0.45,0.85):rr(0.2,0.45);want=new V3(Math.cos(a)*k,1,Math.sin(a)*k*0.6);
+      if(Math.abs(p.x)>lim*0.6)want.x=-Math.sign(p.x)*Math.abs(want.x);want.normalize();hold=Math.floor(rr(3,6));}
+    const prev=d.clone();d.lerp(want,0.45).normalize();if(d.y<0.45){d.y=0.45;d.normalize();}p=p.clone().addScaledVector(d,step);pts.push(p);
+    turns.push({i,p:p.clone(),bend:d.clone().sub(prev)});}
+  const trunk=new THREE.CatmullRomCurve3(pts),r0=rr(0.06,0.072);
+  const tm=new THREE.Mesh(facetShade(limbGeo(trunk,140,r0,r0*0.18,0.14,9),bark[0],0.45),mat());tm.userData.obst=1;g.add(tm);
   // roots: thick at the trunk, twisting down and out into the sand
   const nr=4+Math.floor(rr(0,2));for(let i=0;i<nr;i++){const a=i/nr*Math.PI*2+rr(-0.3,0.3),L=r0*rr(2.2,3.4),c=new THREE.CatmullRomCurve3([new V3(0,r0*2.6,0),new V3(Math.cos(a)*r0*0.9,r0*1.3,Math.sin(a)*r0*0.9),new V3(Math.cos(a+0.2)*L*0.75,r0*0.3,Math.sin(a+0.2)*L*0.75),new V3(Math.cos(a+0.3)*L,-0.01,Math.sin(a+0.3)*L)]);
     g.add(new THREE.Mesh(facetShade(limbGeo(c,14,r0*0.85,r0*0.25,0.1,7),bark[1],0.45),mat()));}
-  // limbs and twigs: each bends as it goes, forking a few times; twigs stay sparse
-  const grow=(o,dir,len,r,depth)=>{const pts2=[o.clone()];let p=o.clone(),d=dir.clone();
-    for(let i=0;i<4;i++){d.add(new V3(rr(-0.45,0.45),rr(-0.15,0.32),rr(-0.4,0.4))).normalize();p=p.clone().addScaledVector(d,len/4);pts2.push(p);}
-    const c=new THREE.CatmullRomCurve3(pts2);g.add(new THREE.Mesh(facetShade(limbGeo(c,depth>1?14:8,r,r*0.4,depth>1?0.08:0,depth>1?6:4),depth>1?bark[Math.floor(rr(0,3))]:twig,0.4),mat()));
-    if(depth<=0||r<0.004)return;const n=depth>1?2:1+Math.floor(rr(0,2));
-    for(let k=0;k<n;k++){const u=rr(0.4,0.95),q=c.getPointAt(u),t=c.getTangentAt(u),sgn=k%2?1:-1,nd=t.clone().add(new V3(sgn*rr(0.4,0.9),rr(0,0.45),rr(-0.6,0.6))).normalize();grow(q,nd,len*rr(0.5,0.68),r*0.55,depth-1);}};
-  // main limbs: alternate sides up the upper two thirds of the trunk, reaching far out sideways and a little up
-  let u=rr(0.34,0.42),sd=-side;while(u<0.96){const q=trunk.getPointAt(u),rad=lerp(r0,r0*0.22,Math.pow(u,0.8)),dir=new V3(sd*rr(0.85,1),rr(0.05,0.32),rr(-0.5,0.5)).normalize();
-    grow(q,dir,(0.5*(1-u)+0.2)*rr(0.85,1.15)*Math.min(1.5,H/1.6),rad*rr(0.5,0.65),3);sd=-sd;u+=rr(0.06,0.11);}
+  /* a limb grows the same way: out from the trunk nearly level, sagging a little under its own weight and turning up again at the end
+     (the way bonsai branches are trained), with side shoots forking off at angles and thinning as they go */
+  const grow=(o,dir,len,r,depth)=>{const n=6,st=len/n,pp=[o.clone()];let q=o.clone(),dd=dir.clone();
+    for(let i=1;i<=n;i++){const u=i/n,tw=new V3(rr(-0.25,0.25),rr(-0.12,0.12),rr(-0.25,0.25));dd.add(tw);dd.y+=u<0.55?-0.07:0.11;dd.normalize();q=q.clone().addScaledVector(dd,st);pp.push(q);}
+    const c=new THREE.CatmullRomCurve3(pp);g.add(new THREE.Mesh(facetShade(limbGeo(c,depth>0?16:8,r,depth>0?r*0.45:r*0.2,depth>1?0.07:0,depth>0?6:4),depth>0?bark[Math.floor(rr(0,3))]:twig,0.4),mat()));
+    if(depth<=0)return;const forks=depth>1?2+Math.floor(rr(0,2)):1+Math.floor(rr(0,2));
+    for(let k=0;k<forks;k++){const u=rr(0.35,0.9),at=c.getPointAt(u),t=c.getTangentAt(u),sg=k%2?1:-1,ang=sg*rr(0.45,0.85),
+        nd=new V3(t.x*Math.cos(ang)-t.z*Math.sin(ang),t.y+rr(0,0.25),t.x*Math.sin(ang)+t.z*Math.cos(ang)).normalize();grow(at,nd,len*rr(0.42,0.62)*(1.1-u*0.5),r*rr(0.5,0.65),depth-1);}
+    // a little spray of twigs at the very tip
+    if(depth===1){const tip=c.getPointAt(1),t=c.getTangentAt(1);for(let k=0;k<2;k++){const sg=k?1:-1,nd=new V3(t.x+sg*rr(0.3,0.6),t.y+rr(0.2,0.5),t.z+rr(-0.3,0.3)).normalize();grow(tip,nd,len*rr(0.25,0.35),r*0.35,0);}}};
+  // main limbs come off the outside of the trunk's bends (as on a trained tree), spaced unevenly up its upper two thirds
+  let i0=Math.floor(N*rr(0.3,0.38)),last=0;
+  for(const t of turns){if(t.i<i0||t.i-last<Math.floor(rr(2,5))||t.i>N-2)continue;const out=new V3(-t.bend.x,0,-t.bend.z);if(out.lengthSq()<1e-6)continue;out.normalize();
+    const u=t.i/N,rad=lerp(r0,r0*0.18,Math.pow(u,0.8)),dir=new V3(out.x,rr(0.05,0.3),out.z*0.7).normalize();
+    grow(t.p,dir,(0.5*(1-u)+0.18)*rr(0.8,1.15)*Math.min(1.5,H/1.6),rad*rr(0.5,0.62),u<0.75?3:2);last=t.i;}
   g.userData.trunkOnly=true;g.userData.tall=true;return g;}
 const NATURE=[{id:'tree',name:'bonsai tree',price:400,make:it=>makeTree(it),fit:0.9}];
 const ALLDECO=()=>SHOP.concat([RING],CRYSTALS,NATURE);
