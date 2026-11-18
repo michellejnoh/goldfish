@@ -175,7 +175,11 @@ body.visiting .ui,body.visiting #say{display:none}
 .growrow span.now{color:#111}
 .mrow{display:flex;align-items:center;gap:14px;width:100%;text-align:left;padding:9px 0;border-bottom:1px solid #ececec;cursor:pointer}
 .mrow:last-of-type{border-bottom:0}
-@media (max-height:760px){#tank .mrow,html[lang="ko"] #tank .mrow{padding:6px 0}#tank .mrow small{display:none}#tank .sec{margin:8px 0 0}}
+/* edit menu: compact two-column tiles so everything fits on one screen */
+#tank .card{display:grid;grid-template-columns:1fr 1fr;gap:8px;align-content:start}#tank .card>h2,#tank .card>.sec,#tank .card>.row2{grid-column:1/-1}
+#tank .mrow,html[lang="ko"] #tank .mrow{flex-direction:row;align-items:center;gap:10px;padding:11px 12px;border:0;border-radius:14px;background:rgba(0,0,0,.045);min-height:0}
+#tank .mrow small{display:none}#tank .mrow .mi svg{width:24px;height:24px}#tank #decorMenuBtn{grid-column:1/-1;margin-top:6px}#tank #decorMenuBtn small{display:block}
+#tank .sec{margin:6px 0 -2px}
 .mi{width:40px;height:40px;flex:none;display:flex;align-items:center;justify-content:center;color:var(--ink)}
 .mt{display:flex;flex-direction:column;gap:0;min-width:0}
 .mt b{font-weight:500;font-size:22px;line-height:1.1;color:#111}
@@ -1747,7 +1751,7 @@ setInterval(()=>{if(cloudDirty)cloudPut();else if(!document.hidden)pull();},3000
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)pull();});
 /* the home-screen app keeps an old copy of the page open (and iOS caches it), so check for a newer build when it opens or comes back,
    and reload past the cache if there is one */
-const BUILD='20261118083359';
+const BUILD='20261118084151';
 function checkBuild(){fetch('version.json?t='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{if(!j||!j.b||j.b===BUILD)return;
   try{if(sessionStorage.getItem('gf-build')===j.b)return;sessionStorage.setItem('gf-build',j.b);}catch(e){}
   try{persistLocal();}catch(e){}location.replace(location.pathname+'?v='+encodeURIComponent(j.b));}).catch(()=>{});}
