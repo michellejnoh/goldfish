@@ -104,6 +104,8 @@ body.visiting .ui,body.visiting #say{display:none}
 #giftPlaceBar .gprow{display:flex;gap:18px;align-items:center;justify-content:center}#giftPlaceBar .gprow span{flex:1;max-width:40px}#giftPlaceBar [data-gpturn]{font-size:30px;line-height:1}
 #visitBar{position:fixed;left:0;right:0;top:0;z-index:4;display:flex;align-items:center;gap:16px;
   padding-top:calc(env(safe-area-inset-top,0px) + 12px);padding-left:max(20px,env(safe-area-inset-left,0px));padding-right:max(20px,env(safe-area-inset-right,0px))}
+/* phones: Safari blurs whatever sits right under the top edge, so the visit bar (and the duel caption) start lower there */
+@media (hover:none) and (pointer:coarse){#visitBar{padding-top:calc(env(safe-area-inset-top,0px) + 30px)}#duelCap{top:calc(env(safe-area-inset-top,0px) + 74px)}}
 #visitTitle{margin:0;flex:1;font-size:19px;line-height:1.2;color:var(--ink)}
 .giftrow{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:4px}
 .duelopts{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0 4px}.duelopts .gbtn{display:flex;flex-direction:column;align-items:flex-start;gap:4px;padding:14px;text-align:left;width:auto;height:auto}
@@ -1803,7 +1805,7 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden)setTimeout
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)pull();});
 /* the home-screen app keeps an old copy of the page open (and iOS caches it), so check for a newer build when it opens or comes back,
    and reload past the cache if there is one */
-const BUILD='20261118110425';
+const BUILD='20261118111008';
 function checkBuild(){fetch('version.json?t='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{if(!j||!j.b||j.b===BUILD)return;
   try{if(sessionStorage.getItem('gf-build')===j.b)return;sessionStorage.setItem('gf-build',j.b);}catch(e){}
   try{persistLocal();}catch(e){}location.replace(location.pathname+'?v='+encodeURIComponent(j.b));}).catch(()=>{});}
