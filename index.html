@@ -870,7 +870,7 @@ function buildFish(){
     g.userData.kind=mnx<-1.1?'tail':mxy>0.5?'dorsal':'fin';});
   return R;
 }
-function fishWave(ph,amp,bend,t,spd,lag,lagY,arch,jel,fold,st,foldY){arch=arch||0;jel=jel||0;fold=fold||0;st=st||0;foldY=foldY||0;const XH=0.02,XS=0.45;
+function fishWave(ph,amp,bend,t,spd,lag,lagY,arch,jel,fold,st,foldY,rig){arch=arch||0;jel=jel||0;fold=fold||0;st=st||0;foldY=foldY||0;const XH=0.02,XS=0.45;
   const sx=X=>X<XS?XS+(X-XS)*(1+st):X;
   const hinge=(X,Y,z)=>{const w=ss(0.14,-0.22,X);if(!w)return [X,Y,z];let dx=X-XH;
     if(foldY){const a=foldY*w,c=Math.cos(a),s=Math.sin(a),n=dx*c-Y*s;Y=dx*s+Y*c;dx=n;}
@@ -879,7 +879,7 @@ function fishWave(ph,amp,bend,t,spd,lag,lagY,arch,jel,fold,st,foldY){arch=arch||
   // the tail swings from a joint at the base of the tail (caudal peduncle) instead of the whole back half of the body waving
   const XP=-0.64,envP=0.9*Math.pow(clamp((0.3-XP)/2.2),1.3)*0.4,zP=amp*envP*Math.sin(ph+XP*3.6),ta=clamp(amp*2.4,0,0.55)*Math.sin(ph+XP*3.6-0.9);
   const tailJoint=(X,z)=>{const w=ss(XP+0.07,XP-0.05,X);if(!w)return [X,z];const a=ta*w,c=Math.cos(a),s=Math.sin(a),dx=X-XP,dz=z-zP;return [XP+dx*c-dz*s,zP+dx*s+dz*c];};
-  for(const g of R.wave){const p=g.attributes.position,b=g.userData.base0,f=g.userData.flex,kind=g.userData.kind;
+  for(const g of (rig||R).wave){const p=g.attributes.position,b=g.userData.base0,f=g.userData.flex,kind=g.userData.kind;
     for(let i=0;i<p.count;i++){const x=b[i*3],y0=b[i*3+1],k=clamp((0.3-x)/2.2),y=y0*(1+jel*Math.sin(x*4.5+t*9)*clamp((0.25-x)/0.6)),env=0.9*Math.pow(k,1.3)*0.4;let z=b[i*3+2]+amp*env*Math.sin(ph+x*3.6)+bend*k*k*2;
       if(!f){const tj=tailJoint(x,z*(1+0.018*Math.sin(t*2.1)));const hz=hinge(sx(tj[0]),y+arch*k*k,tj[1]);p.setXYZ(i,hz[0],hz[1],hz[2]);continue;}
       const q=f[i],q2=q*q;let X=x,Y=y+arch*k*k;
@@ -1756,7 +1756,7 @@ setInterval(()=>{if(cloudDirty)cloudPut();else if(!document.hidden)pull();},3000
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)pull();});
 /* the home-screen app keeps an old copy of the page open (and iOS caches it), so check for a newer build when it opens or comes back,
    and reload past the cache if there is one */
-const BUILD='20261118090744';
+const BUILD='20261118091630';
 function checkBuild(){fetch('version.json?t='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{if(!j||!j.b||j.b===BUILD)return;
   try{if(sessionStorage.getItem('gf-build')===j.b)return;sessionStorage.setItem('gf-build',j.b);}catch(e){}
   try{persistLocal();}catch(e){}location.replace(location.pathname+'?v='+encodeURIComponent(j.b));}).catch(()=>{});}
@@ -1940,8 +1940,7 @@ function snailTick(dt){const night=lightsOff||nightAmt()>0.5;
     if(food&&sn.st!=='hide'&&sn.sf==='floor'){sn.st='crawl';sn.stT=Math.max(sn.stT,2);}
     // where to: a spot on the surface it's on; from the sand it sometimes heads for a glass wall and climbs, and from the glass it comes back down
     let SF=snailSurf(sn.sf);
-    if(sn.lead&&ptr.down&&ptr.world){const w=ptr.world.clone().sub(SF.o);sn.tgt={u:clamp(w.dot(SF.a1),SF.u[0],SF.u[1]),v:clamp(w.dot(SF.a2),SF.v[0],SF.v[1])};sn.st='look';sn.stT=1.2;}
-    else if(food&&sn.sf==='floor'&&sn.st!=='hide')sn.tgt={u:food.pos.x,v:-food.pos.z};
+    if(!sn.free&&food&&sn.sf==='floor'&&sn.st!=='hide')sn.tgt={u:food.pos.x,v:-food.pos.z};
     if(sn.st==='crawl'&&(!sn.tgt||Math.hypot(sn.tgt.u-sn.u,sn.tgt.v-sn.v)<0.05)){
       if(sn.tgt&&sn.tgt.edge){// reached the edge: step over onto the next surface
         const ed=sn.tgt.edge;if(sn.sf==='floor'){const W=snailSurf(ed),p=SF.o.clone().addScaledVector(SF.a1,sn.u).addScaledVector(SF.a2,sn.v).sub(W.o);sn.sf=ed;sn.u=clamp(p.dot(W.a1),W.u[0],W.u[1]);sn.v=W.v[0]+0.01;sn.th=Math.PI/2;}
@@ -1960,15 +1959,32 @@ function snailTick(dt){const night=lightsOff||nightAmt()>0.5;
     if(sn.tgt){const want=Math.atan2(sn.tgt.v-sn.v,sn.tgt.u-sn.u);let dh=want-sn.th;dh=Math.atan2(Math.sin(dh),Math.cos(dh));sn.th+=clamp(dh,-0.6*dt,0.6*dt)*Math.max(0.2,sn.mv);}
     // glide: slow and steady, no bobbing; a little slower climbing up glass than going down it
     // carried in your fingers: lifted a little off the surface, it goes wherever you take it (as fast as the fish follows), turning to face the way it's moved, and is set down when you let go
-    sn.lift=damp(sn.lift||0,sn.lead?1:0,sn.lead?10:6,dt);
-    if(sn.lead&&sn.tgt){const du=sn.tgt.u-sn.u,dv=sn.tgt.v-sn.v,k=1-Math.exp(-14*dt);sn.u+=du*k;sn.v+=dv*k;if(Math.hypot(du,dv)>0.03){let dh=Math.atan2(dv,du)-sn.th;dh=Math.atan2(Math.sin(dh),Math.cos(dh));sn.th+=dh*(1-Math.exp(-5*dt));}sn.sway=(sn.sway||0)*0.9+clamp(du*k/Math.max(dt,1e-3),-1,1)*0.1;}
-    else{const up=sn.sf==='floor'?0:Math.sin(sn.th),sp=0.035*(night?1.25:1)*(1-0.3*Math.max(0,up))*sn.mv;sn.u=clamp(sn.u+Math.cos(sn.th)*sp*dt,SF.u[0],SF.u[1]);sn.v=clamp(sn.v+Math.sin(sn.th)*sp*dt,SF.v[0],SF.v[1]);sn.sway=(sn.sway||0)*0.9;}
+    let fw,side;
+    if(sn.free){
+      // picked up: it hangs from your fingers anywhere in the tank, at the depth you grabbed it, turning the way you move it;
+      // let go and it tucks in and sinks slowly through the water, landing on the sand, or catching hold of the glass if you let go right by it
+      const fp=sn.fp,xw=B.hw-0.08,sy=sandAt(fp.x,fp.z);
+      if(sn.lead&&ptr.down){const p=new V3();if(ray.ray.intersectPlane(new THREE.Plane(new V3(0,0,1),-sn.grabZ),p)){p.y-=0.05;p.x=clamp(p.x,-xw,xw);p.y=clamp(p.y,sy+0.03,B.surf-0.12);p.z=sn.grabZ;
+          const k=1-Math.exp(-14*dt),dx=(p.x-fp.x)*k;fp.lerp(p,k);if(Math.abs(dx)>0.0015){let dh=(dx>0?0:Math.PI)-sn.fth;dh=Math.atan2(Math.sin(dh),Math.cos(dh));sn.fth+=dh*(1-Math.exp(-6*dt));}sn.sway=(sn.sway||0)*0.9+clamp(dx/Math.max(dt,1e-3),-1,1)*0.1;}
+        sn.st='look';sn.stT=1.5;sn.fv.set(0,0,0);}
+      else{sn.st='hide';sn.stT=1.6;sn.fv.y=Math.max(-0.45,sn.fv.y-0.7*dt);fp.addScaledVector(sn.fv,dt);sn.sway=(sn.sway||0)*0.95;
+        const wall=fp.y>sy+0.15?(fp.x<-xw+0.06?'left':fp.x>xw-0.06?'right':fp.z>0.84?'front':fp.z<-1.66?'back':null):null;
+        if(wall){const W=snailSurf(wall),q=fp.clone().sub(W.o);sn.sf=wall;sn.u=clamp(q.dot(W.a1),W.u[0],W.u[1]);sn.v=clamp(q.dot(W.a2),W.v[0],W.v[1]);sn.th=Math.PI/2;sn.free=false;}
+        else if(fp.y<=sy+0.006){sn.sf='floor';const Fl=snailSurf('floor');sn.u=clamp(fp.x,Fl.u[0],Fl.u[1]);sn.v=clamp(-fp.z,Fl.v[0],Fl.v[1]);sn.th=sn.fth;sn.free=false;sn.wob=0.6;sandPuffAt(new V3(fp.x,B.floor,fp.z));}}
+      SF=snailSurf(sn.sf);}
+    if(sn.free){const fp=sn.fp,sy=sandAt(fp.x,fp.z),hgt=fp.y-sy;fw=new V3(Math.cos(sn.fth),0,-Math.sin(sn.fth));const up=new V3(0,1,0);side=fw.clone().cross(up);
+      g.position.copy(fp);_sm.makeBasis(fw,up,side);g.quaternion.setFromRotationMatrix(_sm);g.rotateZ(sn.lead?0.2:-0.25);g.rotateX(clamp(sn.sway,-1,1)*0.4);
+      const sd=sn.shadow;_sm.makeBasis(fw,side.clone().negate(),up);sd.quaternion.setFromRotationMatrix(_sm);sd.position.set(fp.x,sy+0.004,fp.z);const f=1+Math.min(1.2,hgt*1.5);sd.scale.set(0.21*f,0.1*f,1);sd.material.opacity=0.13*Math.max(0.2,1-hgt*1.3);}
+    else{
+    if(sn.lead&&ptr.down){sn.free=true;sn.fp=g.position.clone();sn.fv=new V3();sn.grabZ=clamp(g.position.z,-1.6,0.8);sn.fth=Math.abs(Math.cos(sn.th))>0.3&&sn.sf==='floor'?(Math.cos(sn.th)>0?0:Math.PI):0;}
+    {const up=sn.sf==='floor'?0:Math.sin(sn.th),sp=0.035*(night?1.25:1)*(1-0.3*Math.max(0,up))*sn.mv;sn.u=clamp(sn.u+Math.cos(sn.th)*sp*dt,SF.u[0],SF.u[1]);sn.v=clamp(sn.v+Math.sin(sn.th)*sp*dt,SF.v[0],SF.v[1]);}
     // place and orient on the surface: foot flat against it, head the way it's going
-    const fw=SF.a1.clone().multiplyScalar(Math.cos(sn.th)).addScaledVector(SF.a2,Math.sin(sn.th)),side=fw.clone().cross(SF.n);
-    g.position.copy(SF.o).addScaledVector(SF.a1,sn.u).addScaledVector(SF.a2,sn.v).addScaledVector(SF.n,0.004);if(sn.sf==='floor')g.position.y=sandAt(g.position.x,g.position.z)+0.006;g.position.addScaledVector(SF.n,0.05*sn.lift);
-    _sm.makeBasis(fw,SF.n,side);g.quaternion.setFromRotationMatrix(_sm);if(sn.lift>0.01){g.rotateZ(0.18*sn.lift);g.rotateX(clamp(sn.sway,-1,1)*0.35*sn.lift);}
-    // a faint soft shadow on the surface under it, fading and spreading as it's lifted away
-    {const sd=sn.shadow;_sm.makeBasis(fw,side.clone().negate(),SF.n);sd.quaternion.setFromRotationMatrix(_sm);sd.position.copy(g.position).addScaledVector(SF.n,-0.05*sn.lift+0.004).addScaledVector(fw,-0.02);const f=1+0.5*sn.lift;sd.scale.set(0.21*f,0.1*f,1);sd.material.opacity=0.13*(1-0.5*sn.lift);}
+    fw=SF.a1.clone().multiplyScalar(Math.cos(sn.th)).addScaledVector(SF.a2,Math.sin(sn.th));side=fw.clone().cross(SF.n);
+    g.position.copy(SF.o).addScaledVector(SF.a1,sn.u).addScaledVector(SF.a2,sn.v).addScaledVector(SF.n,0.004);if(sn.sf==='floor')g.position.y=sandAt(g.position.x,g.position.z)+0.006;
+    _sm.makeBasis(fw,SF.n,side);g.quaternion.setFromRotationMatrix(_sm);
+    // a faint soft shadow on the surface under it
+    {const sd=sn.shadow;_sm.makeBasis(fw,side.clone().negate(),SF.n);sd.quaternion.setFromRotationMatrix(_sm);sd.position.copy(g.position).addScaledVector(SF.n,0.004).addScaledVector(fw,-0.02);sd.scale.set(0.21,0.1,1);sd.material.opacity=0.13;}
+    }
     if(food&&sn.sf==='floor'&&g.position.distanceTo(new V3(food.pos.x,B.floor,food.pos.z))<0.08){sn.look=Math.sin(sn.ph*7)*0.12;}
     // the foot: waves of muscle running from tail to head while moving
     const kk=sn.kick||0,st=1+0.06*sn.mv+0.14*kk*Math.sin((1-kk)*22)+(sn.hello>0?0.06:0),o=sn.out;
@@ -2199,9 +2215,8 @@ function spawnFriends(){for(const f of FRIENDS)world.remove(f.g);FRIENDS=[];cons
   if(!VISIT)friendsFix();
   for(const it of list){if(it.hide)continue;const st=fstage(it),F=buildFish();poseYouth(F,st,true);applyLook(F,it.look,st);F.g.scale.setScalar(0.434*youth(st).size*0.8);
     F.g.traverse(o=>{if(o.userData&&o.userData.proxy)o.visible=false;});
-    const piv=[];for(const m of F.tails||[]){const p=new THREE.Group();p.position.x=-0.66;F.inner.add(p);F.inner.remove(m);m.position.x+=0.66;p.add(m);piv.push(p);}
     const pos=new V3(rnd(-B.x*0.8,B.x*0.8),rnd(B.ymin,B.ymax-0.3),rnd(-1.2,0.5));F.g.position.copy(pos);world.add(F.g);
-    FRIENDS.push({src:it,g:F.g,piv,pos,vel:new V3(),tgt:pos.clone(),head:rnd(0,6),ph:rnd(0,6),t:0});}}
+    FRIENDS.push({src:it,g:F.g,F,pos,vel:new V3(),tgt:pos.clone(),head:rnd(0,6),ph:rnd(0,6),t:0});}}
 /* gifted fish and your fish do a few things together: swim along behind it, come over for a nose-to-nose "hello" with bubbles,
    circle it, gather where flakes land, and settle down near it when the lights are off. One at a time, every so often. */
 let IACT=null,iactT=10;
@@ -2240,8 +2255,17 @@ function friendsTick(dt){iactT-=dt;if(IACT){IACT.t-=dt;if(IACT.t<=0){IACT=null;i
       if(P.k==='hi'){const D=1.6,e=Math.sin(Math.PI*sm(P.t/D));let toCam=-Math.PI/2-f.head;toCam=Math.atan2(Math.sin(toCam),Math.cos(toCam));yo=toCam*e;dy=0.05*Math.sin(Math.PI*clamp(P.t/0.55,0,1))+0.02*Math.sin(Math.PI*clamp((P.t-0.55)/0.4,0,1));rl=0.25*Math.sin(P.t*9)*e;if(P.t>D)f.poke=null;}
       else if(P.k==='spin'){const D=1.0;yo=Math.PI*2*sm(P.t/D);dy=0.035*Math.sin(Math.PI*clamp(P.t/D,0,1));rl=0.35*Math.sin(Math.PI*clamp(P.t/D,0,1));if(P.t>D)f.poke=null;}
       else{const D=1.8;dy=0.02*Math.sin(Math.PI*clamp(P.t/D,0,1));rl=0.12*Math.sin(P.t*3)*(1-P.t/D);if(P.t>D)f.poke=null;}}
-    f.ph+=dt*(night?2:4+sp*14+wg*6);f.g.position.copy(f.pos);f.g.position.y+=Math.sin(f.ph*0.3)*0.01+dy;f.g.rotation.set(rl,f.head+yo+Math.sin(f.ph)*0.08,clamp(f.vel.y*1.5,-0.5,0.5));
-    for(const p of f.piv)p.rotation.y=Math.sin(f.ph+0.6)*0.35;});}
+    // swims exactly like your fish: the same body wave down to the tail in beats and glides, the body folding into turns, pitching up and down with its course, the same fin strokes
+    {const F=f.F,hs=Math.hypot(f.vel.x,f.vel.z),tr=dt>0?angDiff(f.lastH===undefined?f.head:f.lastH,f.head)/dt:0;f.lastH=f.head;f.tr=damp(f.tr||0,tr,10,dt);
+     f.ph+=dt*(4.5+sp*10+wg*6)*(night?0.5:1);
+     const pulse=sp>0.5||night?1:0.4+0.6*ss(-0.4,0.5,Math.sin(T*0.85+i*1.7)+0.4*Math.sin(T*2.3+i));f.amp=damp(f.amp||0.08,(0.08+Math.min(0.14,sp*0.1)+wg*0.05)*pulse*(night?0.5:1),5,dt);
+     const ft=clamp(f.tr*0.55,-1.25,1.25);f.foldV=(f.foldV||0)+((ft-(f.fold||0))*60-(f.foldV||0)*7)*dt;f.fold=clamp((f.fold||0)+f.foldV*dt,-1.3,1.3);
+     f.pitch=damp(f.pitch||0,sp<0.08?0:Math.atan2(f.vel.y,hs+0.01),4.5,dt);f.arch=damp(f.arch||0,clamp(f.vel.y*0.12,-0.08,0.08),4,dt);
+     const A=f.amp;f.g.position.copy(f.pos);f.g.position.y+=dy;
+     f.g.rotation.set(rl+A*0.15*Math.sin(f.ph+0.6),f.head+yo-A*0.22*Math.sin(f.ph+0.3)+f.fold*0.15,f.pitch+0.02*Math.sin(T*0.9+i));
+     const sway=0.025*Math.sin(T*0.55+i)+0.015*Math.sin(T*1.3+1+i);
+     fishWave(f.ph,A,clamp(-f.tr*0.02,-0.06,0.06)+sway,T,sp,0,0,f.arch,0,f.fold,0,0,F);
+     const w=sp<0.3?7.5:3.6;F.fins.forEach((fn,j)=>{const sg=fn.userData.s,ph=T*w+j*1.3+i,main=j<2;fn.rotation.y=sg*((main?0.36:0.22)+(main?0.3:0.16)*Math.sin(ph)+0.06*Math.sin(ph*2.3+1))*(1+0.25*(1-clamp(sp/0.9)));fn.rotation.z=(main?0:-0.35)+0.14*Math.sin(ph+1.2);});}});}
 /* quiet feedback: a gift image that rises and fades with a short line of text, and a peek at the tank after a change made in a menu */
 function giftFly(src,from,label){const K=[{opacity:0,y:8,offset:0},{opacity:1,y:0,offset:.18},{opacity:1,y:-4,offset:.72},{opacity:0,y:-14,offset:1}],D={duration:2000,easing:'ease-out'};
   if(src){const W=110,im=document.createElement('img');im.className='fx-fly';im.src=src;im.alt='';
