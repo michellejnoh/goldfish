@@ -76,7 +76,9 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
 .icon svg{display:block}
 .card .icon{padding:6px 0 6px 12px}
 .mini{font-size:15px;color:var(--soft);padding:6px 0;letter-spacing:.02em}
-.bottom{bottom:0;padding-bottom:calc(env(safe-area-inset-bottom,0px) + 8px);display:flex;flex-direction:column;align-items:center;gap:2px}
+.bottom{bottom:0;padding-bottom:calc(env(safe-area-inset-bottom,0px) + 8px);}
+html.standalone .bottom{padding-bottom:calc(env(safe-area-inset-bottom,0px)*0.4 + 2px);}
+.bottom{display:flex;flex-direction:column;align-items:center;gap:2px}
 #cap{pointer-events:none;margin:0;text-wrap:balance;font-size:16px;color:var(--soft);text-align:center;min-height:1.3em;max-width:34ch;letter-spacing:.01em}
 .tools{display:flex;justify-content:space-between;width:100%;max-width:440px}
 .tools button.nudge{position:relative}
@@ -159,7 +161,7 @@ body.visiting .ui,body.visiting #say{display:none}
 #touch{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:9}
 .side{display:flex;flex-direction:column;align-items:flex-end;gap:0}
 .sheet{position:fixed;inset:0;z-index:6;background:rgba(255,255,255,.96);display:flex;align-items:center;justify-content:center;
-  padding-block:24px;padding-left:max(28px,env(safe-area-inset-left,0px));padding-right:max(28px,env(safe-area-inset-right,0px));text-shadow:0 0 1.2px rgba(0,0,0,.28);color:#111}
+  padding-top:max(24px,calc(env(safe-area-inset-top,0px) + 10px));padding-bottom:max(24px,calc(env(safe-area-inset-bottom,0px) + 6px));padding-left:max(28px,env(safe-area-inset-left,0px));padding-right:max(28px,env(safe-area-inset-right,0px));text-shadow:0 0 1.2px rgba(0,0,0,.28);color:#111}
 .card{max-width:340px;width:100%;padding-right:8px;box-sizing:border-box;display:flex;flex-direction:column;gap:14px;max-height:100%;overflow-y:auto}
 .card h2{font:500 32px/1.05 var(--font);margin:0;letter-spacing:-.01em}
 .card p{margin:0;font-size:16px;color:#6b6b6b;line-height:1.4}
@@ -169,6 +171,13 @@ body.visiting .ui,body.visiting #say{display:none}
 .langrow .link[aria-pressed="true"]{color:#111;text-decoration-thickness:2px}
 .card{position:relative}
 .row2.topclose{position:absolute;top:20px;right:22px;margin:0;width:auto}
+#letter{position:fixed;inset:0;z-index:30;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.5)}
+.env{position:relative;width:230px;height:140px;margin-top:90px;animation:envIn .45s cubic-bezier(.3,1.5,.6,1)}.env i{position:absolute;inset:0;border-radius:8px}
+.env .eb{background:#ece4d6}.env .ef{background:#f6f0e6;clip-path:polygon(0 0,50% 52%,100% 0,100% 100%,0 100%);z-index:3;box-shadow:0 6px 18px rgba(0,0,0,.08)}
+.env .flap{bottom:auto;height:62%;background:#e6dccb;clip-path:polygon(0 0,100% 0,50% 100%);transform-origin:top;z-index:4;animation:flap .45s .5s ease-in forwards}
+.paper{position:absolute;left:14px;right:14px;bottom:8px;height:118px;background:#fff;border-radius:6px;padding:12px 14px;box-sizing:border-box;z-index:2;text-align:center;box-shadow:0 1px 4px rgba(0,0,0,.06);animation:paper .6s .95s cubic-bezier(.3,1.3,.6,1) forwards}
+.paper small{font-size:15px;opacity:.55}.paper p{margin:6px 0 0;font-size:24px;line-height:1.2}
+@keyframes envIn{from{transform:translateY(40px) scale(.6);opacity:0}}@keyframes flap{to{transform:rotateX(180deg);z-index:1}}@keyframes paper{to{transform:translateY(-104px)}}
 .notelist{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}.notelist button{font:inherit;font-size:16px;text-align:left;padding:5px 10px;border:0;border-radius:6px;background:rgba(0,0,0,.06);color:inherit;cursor:pointer;line-height:1.2}.notelist button:active{background:rgba(0,0,0,.12)}.notelist button:disabled{opacity:.4}
 .sheet.dock.top .row2.topclose{top:calc(16px + env(safe-area-inset-top,0px))}
 .card h2{padding-right:64px}
@@ -334,6 +343,7 @@ body.lookdock #viewArrows{display:flex}
 </div>
 <div id="viewBar" hidden><p id="viewHint">drag to turn · pinch to zoom</p><span class="zoombtns"><button type="button" class="icon" id="tvOut" aria-label="Zoom out">−</button><button type="button" class="icon" id="tvIn" aria-label="Zoom in">+</button></span><button type="button" class="go" id="viewDone">close</button></div>
 <div id="editBar" hidden><nav aria-label="Edit tools"><button type="button" data-e="add">add pebbles</button><button type="button" data-e="remove">remove pebbles</button><button type="button" data-e="arrange">move decorations</button><button type="button" class="done" id="editDone">done</button></nav><p id="editHint"></p><div id="turnRow" hidden><button type="button" data-turn="1">turn left</button><button type="button" data-turn="-1">turn right</button><button type="button" id="putAway">put away</button></div></div>
+<div id="letter" hidden><div class="env"><i class="eb"></i><div class="paper"><small id="lFrom"></small><p id="lMsg"></p></div><i class="ef"></i><i class="flap"></i></div></div>
 <div id="say" aria-live="polite"></div>
 <div class="ui top">
   <div class="who">
@@ -553,7 +563,8 @@ const KO={'my friends':'내 친구','everyone':'전체','search username':'아�
 'edit · your fish’s color and pattern, the water, decorations, and the night lamp':'편집 · 금붕어 색과 무늬, 물 색, 장식, 무드등을 바꿔요','tank view · see your tank on its table in a little room, and turn it around':'어항 보기 · 작은 방 탁자 위의 어항을 보고 돌려 봐요',
 'camera · take a picture of your tank':'카메라 · 어항 사진을 찍어요','your keeper name · tap to switch keepers':'키퍼 이름 · 탭하면 다른 키퍼로 바꿔요','growth':'성장','drag it where you like · twist or use the arrows to turn it':'원하는 곳으로 끌어 놓고, 비틀거나 화살표로 돌려요','send':'보내기','cancel':'취소','turn your fish':'물고기 돌리기','language':'언어','growth · by level':'성장 · 레벨별','Take picture':'사진 찍기','Sound on':'소리 켜짐','Sound off':'소리 꺼짐','Tank view':'어항 보기','drag to turn · pinch to zoom':'끌어서 돌리기 · 두 손가락으로 확대','Zoom in':'확대','Zoom out':'축소','Goldfish tank. Tap, drag and feed to interact.':'금붕어 수조. 탭하고 끌고 먹이를 주며 놀아 주세요.',
 ': check the Firestore rules':': Firestore 규칙을 확인해 주세요',': is the Firestore database created?':': Firestore 데이터베이스가 만들어졌는지 확인해 주세요'};
-const KO_RX=[[/^friend request sent to @(.+)$/,'@$1에게 친구 신청을 보냈어요'],[/^you and @(.+) are friends now$/,'이제 @$1와(과) 친구예요'],[/^@(.+) sent you a friend request$/,'@$1님이 친구 신청을 보냈어요'],[/^@(.+) accepted your friend request$/,'@$1님이 친구 신청을 수락했어요'],[/^you can visit @(.+) once you’re friends$/,'친구가 되면 @$1의 어항에 놀러 갈 수 있어요'],[/^that real name doesn’t match @(.+)$/,'@$1 계정의 본명과 맞지 않아요'],
+const KO_RX=[[/^from @(.+)$/,'@$1에게서'],
+[/^friend request sent to @(.+)$/,'@$1에게 친구 신청을 보냈어요'],[/^you and @(.+) are friends now$/,'이제 @$1와(과) 친구예요'],[/^@(.+) sent you a friend request$/,'@$1님이 친구 신청을 보냈어요'],[/^@(.+) accepted your friend request$/,'@$1님이 친구 신청을 수락했어요'],[/^you can visit @(.+) once you’re friends$/,'친구가 되면 @$1의 어항에 놀러 갈 수 있어요'],[/^that real name doesn’t match @(.+)$/,'@$1 계정의 본명과 맞지 않아요'],
 [/^leave a note for @(.+)$/,'@$1에게 쪽지 남기기'],[/^note left for @(.+)$/,'@$1에게 쪽지를 남겼어요'],[/^@(.+) left a note: “(.+)”$/,'@$1의 쪽지: “$2”'],
 
 [/^(.+) is nosing at the surface\.$/,'$1, 수면에서 뻐끔거리고 있어요.'],[/^(.+) is drifting low\.$/,'$1, 바닥 가까이 떠 있어요.'],
@@ -918,12 +929,14 @@ function fishWave(ph,amp,bend,t,spd,lag,lagY,arch,jel,fold,st,foldY,rig){arch=ar
 
 /* ================= the tank (monotone) ================= */
 const B={x:1.5,floor:0,surf:3,ymin:0.4,ymax:2.6,hw:2};
+// opened from the iPhone home screen (not Safari, not a computer)
+const STANDALONE=!!(navigator.standalone||(window.matchMedia&&matchMedia('(display-mode: standalone)').matches));if(STANDALONE)document.documentElement.classList.add('standalone');
 const camLook=new V3(0,1.5,0),camBase=new V3(),DIR=new V3(0.04,0.1,1).normalize();
 function fit(){const w=innerWidth,h=innerHeight;renderer.setPixelRatio(resFor());renderer.setSize(w,h,false);camera.aspect=w/h;
   const t=Math.tan(camera.fov*Math.PI/360),d=Math.max(3.8/2/t,3.4/2/(t*camera.aspect));
   camBase.copy(camLook).addScaledVector(DIR,d);camera.position.copy(camBase);camera.lookAt(camLook);camera.updateProjectionMatrix();
   const hh=t*d,hw=hh*camera.aspect,px=2*hh/h;
-  B.hw=hw;B.x=hw-0.3;B.floor=camLook.y-hh+150*px;B.surf=camLook.y+hh-160*px;B.top=camLook.y+hh;B.ymin=B.floor+0.32;B.ymax=B.surf-0.15;}
+  B.hw=hw;B.x=hw-0.3;B.floor=camLook.y-hh+(STANDALONE?128:150)*px;B.surf=camLook.y+hh-160*px;B.top=camLook.y+hh;B.ymin=B.floor+0.32;B.ymax=B.surf-0.15;}
 
 const shTex=(()=>{const c=document.createElement('canvas');c.width=c.height=128;const x=c.getContext('2d');const g=x.createRadialGradient(64,64,2,64,64,64);
   g.addColorStop(0,'rgba(0,0,0,0.22)');g.addColorStop(1,'rgba(0,0,0,0)');x.fillStyle=g;x.fillRect(0,0,128,128);return new THREE.CanvasTexture(c);})();
@@ -1023,7 +1036,8 @@ function applyWater(){const c=WATER[(save.tank&&save.tank.water)||'clear']||WATE
 // the browser's top bar (and the iPhone status bar area) takes this colour, so keep it matching the water, or dark at night
 function syncTheme(){let night=false;try{night=lightsOff;}catch(e){}const c=night?'#0f0f12':syncTheme.over||(WATER[(save.tank&&save.tank.water)||'clear']||WATER.clear);if(syncTheme.c===c)return;syncTheme.c=c;
   document.querySelectorAll('meta[name="theme-color"]').forEach(m=>m.setAttribute('content',c));}
-function rebuildTank(){if(!ENV)return;DROPS.length=0;world.remove(ENV);PEBBLES=[];ENV=buildEnv();world.add(ENV);applyWater();computeObst();applyLook();}
+function freeTree(o){o.traverse(m=>{if(m.geometry)m.geometry.dispose();if(m.material)[].concat(m.material).forEach(x=>x.dispose());});}
+function rebuildTank(){if(!ENV)return;DROPS.length=0;world.remove(ENV);freeTree(ENV);PEBBLES=[];ENV=buildEnv();world.add(ENV);applyWater();computeObst();applyLook();}
 /* solid things in the tank (big rocks, decorations) as soft ellipsoids the fish slides around instead of swimming through */
 let BIGROCKS=[],OBST=[];const _bx=new THREE.Box3(),_wInv=new THREE.Matrix4(),_m4=new THREE.Matrix4(),_v=new V3();
 function computeObst(){OBST=[];if(!ENV)return;world.updateMatrixWorld(true);_wInv.copy(world.matrixWorld).invert();
@@ -1608,7 +1622,7 @@ const ACH=[
   {id:'catch100',t:'caught the lure 100 times',ty:'catch',g:100,xp:300},{id:'trick50',t:'50 tricks',ty:'trick',g:50,xp:200},
   {id:'heap20',t:'a heap of 20 pebbles',ty:'heapsize',g:20,xp:200},{id:'wipe100',t:'100 smudges wiped',ty:'smudge',g:100,xp:250},
   {id:'streak7',t:'7 days in a row',ty:'streak',g:7,xp:200},{id:'streak30',t:'30 days in a row',ty:'streak',g:30,xp:800}];
-const PASSIVE={eat:1,hello:1,trick:2,catch:2,smudge:2,pebble:1};
+const PASSIVE={eat:1,hello:1,trick:2,catch:2,smudge:2,pebble:1},PXCD={eat:3,hello:5,trick:8,catch:3,smudge:1,pebble:1},PXCAP=120;
 let USER=null,PROG=null,cloudT=0,cloudDirty=false,lastChange=0,pushT=0,SYNC={ok:null,msg:'',t:0};
 const dayKey=(d=new Date())=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 function newProg(){return {level:1,exp:0,total:0,spent:0,ea:{},sp:{},daily:null,life:{},ach:{},streak:{last:null,n:0}};}
@@ -1645,8 +1659,9 @@ function levelUp(){const g0=PROG.grow||0,g1=growStage();if(g1>g0){showPolaroid(g
 function checkAch(ty,val){for(const a of ACH){if(a.ty!==ty||PROG.ach[a.id])continue;if(val>=a.g){PROG.ach[a.id]=dayKey();addXP(a.xp);toast('achievement: '+a.t+' +'+a.xp+' xp');}}}
 function track(ty,n=1){if(!PROG||!USER||VISIT)return;ensureDaily();
   PROG.life[ty]=(PROG.life[ty]||0)+n;
-  if(ty==='lead'){S.leadAcc=(S.leadAcc||0)+n;if(S.leadAcc>=10){S.leadAcc-=10;addXP(1);}}else if(PASSIVE[ty])addXP(PASSIVE[ty]);
-  const d=PROG.daily;for(const id of d.ids){const m=MISSIONS.find(x=>x.id===id);if(!m||m.ty!==ty||d.done[id])continue;
+  const d=PROG.daily,px=v=>{if((d.px||0)>=PXCAP)return;d.px=(d.px||0)+v;addXP(v);};
+  // small everyday xp (petting, tricks, feeding, leading...) can't be farmed by tapping: each kind has a cooldown, and it all stops at a daily cap
+  if(ty==='lead'){S.leadAcc=(S.leadAcc||0)+n;if(S.leadAcc>=10){S.leadAcc-=10;px(1);}}else if(PASSIVE[ty]){S.pxT=S.pxT||{};if(T-(S.pxT[ty]??-99)>=(PXCD[ty]||1)){S.pxT[ty]=T;px(PASSIVE[ty]);}}for(const id of d.ids){const m=MISSIONS.find(x=>x.id===id);if(!m||m.ty!==ty||d.done[id])continue;
     d.pd=d.pd||{};d.pd[id]=d.pd[id]||{};d.pd[id][DEV]=(d.pd[id][DEV]||0)+n;d.prog[id]=Math.min(m.g,Math.max((d.prog[id]||0)+n,sumO(d.pd[id])));if(d.prog[id]>=m.g){d.done[id]=true;addXP(m.xp);toast('mission done: '+fill(m.t)+' +'+m.xp+' xp');}}
   if(!d.bonus&&d.ids.every(id=>d.done[id])){d.bonus=true;addXP(50);toast('all of today’s missions done +50 xp',3.6);}
   checkAch(ty,PROG.life[ty]);if(!$('#missions').hidden)renderMissions();}
@@ -1786,7 +1801,7 @@ setInterval(()=>{if(cloudDirty)cloudPut();else if(!document.hidden)pull();},3000
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)pull();});
 /* the home-screen app keeps an old copy of the page open (and iOS caches it), so check for a newer build when it opens or comes back,
    and reload past the cache if there is one */
-const BUILD='20261118104834';
+const BUILD='20261118105726';
 function checkBuild(){fetch('version.json?t='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{if(!j||!j.b||j.b===BUILD)return;
   try{if(sessionStorage.getItem('gf-build')===j.b)return;sessionStorage.setItem('gf-build',j.b);}catch(e){}
   try{persistLocal();}catch(e){}location.replace(location.pathname+'?v='+encodeURIComponent(j.b));}).catch(()=>{});}
@@ -1996,111 +2011,104 @@ function makeSnail(k){const g=new THREE.Group(),body=new THREE.Group(),dark=new 
   g.userData={head,eyes,feel,sh,body,pose,J};return g;}
 let SNAILS=[];
 // each surface a snail can crawl on: a point on it, its two in-plane directions and the way it faces into the tank
-function snailSurf(k){const F=B.floor,zf=0.9,zb=-1.72,xw=B.hw-0.04;
-  return {floor:{o:new V3(0,F,0),a1:new V3(1,0,0),a2:new V3(0,0,-1),n:new V3(0,1,0),u:[-B.x*0.9,B.x*0.9],v:[-zf+0.06,-zb-0.06]},
-    front:{o:new V3(0,0,zf),a1:new V3(1,0,0),a2:new V3(0,1,0),n:new V3(0,0,-1),u:[-xw+0.08,xw-0.08],v:[F+0.02,B.surf-0.25]},
-    back:{o:new V3(0,0,zb),a1:new V3(-1,0,0),a2:new V3(0,1,0),n:new V3(0,0,1),u:[-xw+0.08,xw-0.08],v:[F+0.02,B.surf-0.25]},
-    left:{o:new V3(-xw,0,0),a1:new V3(0,0,1),a2:new V3(0,1,0),n:new V3(1,0,0),u:[zb+0.08,zf-0.08],v:[F+0.02,B.surf-0.25]},
-    right:{o:new V3(xw,0,0),a1:new V3(0,0,-1),a2:new V3(0,1,0),n:new V3(-1,0,0),u:[-zf+0.08,-zb-0.08],v:[F+0.02,B.surf-0.25]}}[k];}
-const _sm=new THREE.Matrix4(),_snRc=new THREE.Raycaster();let _sst=null;
+// the two surfaces a snail crawls on: the sand and the back glass. Each: a point on it, its two in-plane directions, the way it faces into the tank,
+// and the range of each coordinate. Rebuilt only when the tank is resized.
+let SURF=null,SURF_K='';
+function snailSurf(k){const key=B.floor+'|'+B.hw+'|'+B.surf;if(key!==SURF_K){SURF_K=key;const F=B.floor,zf=0.9,zb=-1.72,xw=B.hw-0.04;
+  SURF={floor:{o:new V3(0,F,0),a1:new V3(1,0,0),a2:new V3(0,0,-1),n:new V3(0,1,0),u:[-B.x*0.9,B.x*0.9],v:[-zf+0.06,-zb-0.06]},
+    back:{o:new V3(0,0,zb),a1:new V3(-1,0,0),a2:new V3(0,1,0),n:new V3(0,0,1),u:[-xw+0.08,xw-0.08],v:[F+0.02,B.surf-0.25]}};}return SURF[k];}
+const onSurf=(W,u,v)=>W.o.clone().addScaledVector(W.a1,u).addScaledVector(W.a2,v);
+// put a point (already near the surface) into that surface's u,v, clamped to it
+function toSurf(sn,k,p){const W=snailSurf(k),q=p.clone().sub(W.o);sn.sf=k;sn.u=clamp(q.dot(W.a1),W.u[0],W.u[1]);sn.v=clamp(q.dot(W.a2),W.v[0],W.v[1]);}
+const _sm=new THREE.Matrix4(),_snRc=new THREE.Raycaster(),_v2=new THREE.Vector2(),UPY=new V3(0,1,0),UPZ=new V3(0,0,1),
+  PL_FLOOR=new THREE.Plane(new V3(0,1,0),0),PL_BACK=new THREE.Plane(new V3(0,0,1),1.66);let _sst=null,TRAILG=null;
 const snailShadowTex=()=>{if(_sst)return _sst;const c=document.createElement('canvas');c.width=c.height=64;const x=c.getContext('2d'),gr=x.createRadialGradient(32,32,0,32,32,32);gr.addColorStop(0,'rgba(255,255,255,1)');gr.addColorStop(0.45,'rgba(255,255,255,.6)');gr.addColorStop(1,'rgba(255,255,255,0)');x.fillStyle=gr;x.fillRect(0,0,64,64);return _sst=new THREE.CanvasTexture(c);};
 const snailList=()=>(VISIT?VISIT.snails:save.snails)||[];
 const snailMax=()=>2*(1+((save.friends||[]).length));
-function buildSnails(e){SNAILS=[];for(const sn of snailList()){const k=SNAILK.find(x=>x.id===sn.k);if(!k)continue;const g=makeSnail(k);g.scale.setScalar(2.42);
-    const x=rnd(-B.x*0.8,B.x*0.8),z=rnd(-0.9,0.6);g.position.set(x,B.floor,z);g.rotation.y=rnd(0,6.28);e.add(g);
+// lay a flat mark (shadow or slime) on a surface, facing along fw
+function layFlat(m,fw,n){const sd=fw.clone().cross(n);_sm.makeBasis(fw,sd.negate(),n);m.quaternion.setFromRotationMatrix(_sm);}
+function buildSnails(e){SNAILS=[];if(!TRAILG)TRAILG=new THREE.CircleGeometry(0.012,10);
+  for(const sn of snailList()){const k=SNAILK.find(x=>x.id===sn.k);if(!k)continue;const g=makeSnail(k);g.scale.setScalar(2.42);
+    const x=rnd(-B.x*0.8,B.x*0.8),z=rnd(-0.9,0.6);g.position.set(x,B.floor,z);e.add(g);
     const sd=new THREE.Mesh(new THREE.CircleGeometry(1,24),new THREE.MeshBasicMaterial({map:snailShadowTex(),color:0x000000,transparent:true,opacity:0.13,depthWrite:false,fog:false}));e.add(sd);
-    const trail=[];for(let i=0;i<40;i++){const m=new THREE.Mesh(new THREE.CircleGeometry(0.012,10),new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:0,depthWrite:false,fog:false}));m.rotation.x=-Math.PI/2;m.scale.set(1.4,0.8,1);e.add(m);trail.push({m,t:99});}
-    const sf=snailSurf('floor');SNAILS.push({g,k,shadow:sd,sf:'floor',u:x,v:-z,th:rnd(0,6.28),st:'crawl',stT:rnd(4,9),tgt:null,ph:rnd(0,6),eyeK:1,look:0,trail,ti:0,tp:g.position.clone(),out:1});}}
+    const trail=[];for(let i=0;i<40;i++){const m=new THREE.Mesh(TRAILG,new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:0,depthWrite:false,fog:false}));m.scale.set(1.4,0.8,1);m.visible=false;e.add(m);trail.push({m,t:99});}
+    SNAILS.push({g,k,shadow:sd,sf:'floor',u:x,v:-z,th:rnd(0,6.28),st:'crawl',stT:rnd(4,9),tgt:null,ph:rnd(0,6),eyeK:1,look:0,trail,ti:0,tp:g.position.clone(),out:1,mv:0});}}
 // a snail and your finger: a tap and it lifts its head and waves its eye stalks at you (coming out first if it was tucked in);
-// tap again quickly and it's had enough and tucks into its shell; drag from it and it slowly follows your finger
+// tap again quickly and it's had enough and tucks into its shell; drag from it and you pick it up
 function snailPoke(sn){const dbl=T-(sn.tapT||-9)<0.4;sn.tapT=T;if(dbl){sn.st='hide';sn.stT=rnd(3,5);sn.hello=0;sn.snap=1;sn.wob=1;return;}
-  if(sn.st==='hide'){sn.st='look';sn.stT=3;sn.out=Math.max(sn.out,0.35);}else{sn.st='look';sn.stT=2.8;}sn.hello=2.4;sn.kick=1;}
+  if(sn.st==='hide')sn.out=Math.max(sn.out,0.35);sn.st='look';sn.stT=3;sn.hello=2.4;sn.kick=1;}
+const angTo=(a,b)=>Math.atan2(Math.sin(b-a),Math.cos(b-a));
 function snailTick(dt){const night=lightsOff||nightAmt()>0.5;
   for(const sn of SNAILS){const g=sn.g,u=g.userData;sn.stT-=dt;sn.ph+=dt;
-    // what is it doing: crawling somewhere, stopping to look around, or tucked in the shell
-    const fishNear=S&&R.g.visible&&S.pos.distanceTo(g.position)<0.32;if(!ptr.down||ptr.onSnail!==sn)sn.lead=false;if(sn.hello>0)sn.hello-=dt;
-    if(sn.stT<=0){const r=Math.random();if(sn.st==='hide'||sn.st==='look'||r<(night?0.75:0.55)){sn.st='crawl';sn.stT=rnd(6,14);sn.tgt=null;}else if(r<(night?0.92:0.8)){sn.st='look';sn.stT=rnd(2.5,5);}else{sn.st='hide';sn.stT=rnd(night?4:8,night?8:20);}}
+    // what is it doing: crawling somewhere, stopping to look around, or tucked in the shell (more resting by day)
+    const fishNear=R.g.visible&&S.pos.distanceTo(g.position)<0.32;if(!ptr.down||ptr.onSnail!==sn)sn.lead=false;if(sn.hello>0)sn.hello-=dt;
+    if(sn.stT<=0){const r=Math.random();if(sn.st!=='crawl'||r<(night?0.75:0.55)){sn.st='crawl';sn.stT=rnd(6,14);sn.tgt=null;}else if(r<(night?0.92:0.8)){sn.st='look';sn.stT=rnd(2.5,5);}else{sn.st='hide';sn.stT=rnd(night?4:8,night?8:20);}}
     // food on the sand draws it over
-    let food=null;for(const f of foods){if(f.snack&&f.snack.float)continue;if(f.pos.y<B.floor+0.12&&f.pos.distanceTo(g.position)<1.2){food=f;break;}}
-    if(food&&sn.st!=='hide'&&sn.sf==='floor'){sn.st='crawl';sn.stT=Math.max(sn.stT,2);}
-    // where to: a spot on the surface it's on; from the sand it sometimes heads for a glass wall and climbs, and from the glass it comes back down
-    let SF=snailSurf(sn.sf);
-    if(!sn.free&&food&&sn.sf==='floor'&&sn.st!=='hide')sn.tgt={u:food.pos.x,v:-food.pos.z};
-    if(sn.st==='crawl'&&(!sn.tgt||Math.hypot(sn.tgt.u-sn.u,sn.tgt.v-sn.v)<0.05)){
-      if(sn.tgt&&sn.tgt.edge){// reached the edge: step over onto the next surface
-        const ed=sn.tgt.edge;if(sn.sf==='floor'){const W=snailSurf(ed),p=SF.o.clone().addScaledVector(SF.a1,sn.u).addScaledVector(SF.a2,sn.v).sub(W.o);sn.sf=ed;sn.u=clamp(p.dot(W.a1),W.u[0],W.u[1]);sn.v=W.v[0]+0.01;sn.th=Math.PI/2;}
-        else{const p=SF.o.clone().addScaledVector(SF.a1,sn.u).addScaledVector(SF.a2,sn.v).addScaledVector(SF.n,0.03),Fl=snailSurf('floor');sn.u=clamp(p.x,Fl.u[0],Fl.u[1]);sn.v=clamp(-p.z,Fl.v[0],Fl.v[1]);sn.th=Math.atan2(SF.n.dot(Fl.a2),SF.n.dot(Fl.a1));sn.sf='floor';}
-        SF=snailSurf(sn.sf);sn.tgt=null;}
-      if(!sn.tgt){const r=Math.random();
-        if(sn.sf==='floor'&&r<(night?0.35:0.22)){// climb a wall: walk to the bottom edge of one
-          const ed=Math.random()<0.6?'back':'front',W=snailSurf(ed),p=W.o.clone().addScaledVector(W.a1,lerp(W.u[0],W.u[1],rnd(0.2,0.8))).addScaledVector(W.a2,0).addScaledVector(W.n,0.04);
-          sn.tgt={u:clamp(p.x,SF.u[0],SF.u[1]),v:clamp(-p.z,SF.v[0],SF.v[1]),edge:ed};}
-        else if(sn.sf!=='floor'&&r<0.4)sn.tgt={u:clamp(sn.u+rnd(-0.3,0.3),SF.u[0],SF.u[1]),v:SF.v[0],edge:'floor'};
-        else{let t=null;for(let i=0;i<8&&!t;i++){const c={u:clamp(sn.u+rnd(-0.8,0.8),SF.u[0],SF.u[1]),v:clamp(sn.v+rnd(-0.6,0.6),SF.v[0],SF.v[1])};
-            if(sn.sf!=='floor'||!inObst(SF.o.clone().addScaledVector(SF.a1,c.u).addScaledVector(SF.a2,c.v).setY(B.floor+0.05)))t=c;}sn.tgt=t||{u:sn.u,v:sn.v};}}}
+    const food=sn.sf==='floor'&&!sn.free&&sn.st!=='hide'?foods.find(f=>!(f.snack&&f.snack.float)&&f.pos.y<B.floor+0.12&&f.pos.distanceTo(g.position)<1.2):null;
+    if(food){sn.st='crawl';sn.stT=Math.max(sn.stT,2);sn.tgt={u:food.pos.x,v:-food.pos.z};}
+    let SF=snailSurf(sn.sf),fw,n;
+    // choose where to go next; reaching the bottom of the back glass it climbs on, and from the glass it comes back down onto the sand
+    if(!sn.free&&sn.st==='crawl'&&(!sn.tgt||Math.hypot(sn.tgt.u-sn.u,sn.tgt.v-sn.v)<0.05)){
+      if(sn.tgt&&sn.tgt.edge){if(sn.sf==='floor'){toSurf(sn,'back',onSurf(SF,sn.u,sn.v));sn.v=snailSurf('back').v[0]+0.01;sn.th=Math.PI/2;}
+        else{const p=onSurf(SF,sn.u,sn.v).addScaledVector(SF.n,0.03);toSurf(sn,'floor',p);sn.th=-Math.PI/2;}SF=snailSurf(sn.sf);sn.tgt=null;}
+      const r=Math.random();
+      if(sn.sf==='floor'&&r<(night?0.35:0.22)){const W=snailSurf('back'),p=onSurf(W,lerp(W.u[0],W.u[1],rnd(0.2,0.8)),0);sn.tgt={u:clamp(p.x,SF.u[0],SF.u[1]),v:SF.v[1],edge:1};}
+      else if(sn.sf==='back'&&r<0.4)sn.tgt={u:clamp(sn.u+rnd(-0.3,0.3),SF.u[0],SF.u[1]),v:SF.v[0],edge:1};
+      else{let t=null;for(let i=0;i<8&&!t;i++){const c={u:clamp(sn.u+rnd(-0.8,0.8),SF.u[0],SF.u[1]),v:clamp(sn.v+rnd(-0.6,0.6),SF.v[0],SF.v[1])};
+          if(sn.sf!=='floor'||!inObst(onSurf(SF,c.u,c.v).setY(B.floor+0.05)))t=c;}sn.tgt=t||{u:sn.u,v:sn.v};}}
     // body out of the shell (1) or pulled in (0); eye stalks out (1) or pulled in (0)
-    sn.out=damp(sn.out,sn.st==='hide'?0:1,sn.st==='hide'?(sn.snap?12:3):sn.hello>0?2.5:0.8,dt);if(sn.out<0.05)sn.snap=0;sn.kick=Math.max(0,(sn.kick||0)-dt*0.9);sn.wob=Math.max(0,(sn.wob||0)-dt*1.2);sn.eyeK=damp(sn.eyeK,sn.st==='hide'||fishNear?0.15:sn.hello>0?1.4:sn.lead?1.2:1,fishNear||sn.st==='hide'?(sn.snap?14:6):sn.hello>0?3:0.9,dt);
-    const moving=sn.st==='crawl'&&sn.out>0.85&&!fishNear?1:0;sn.mv=damp(sn.mv||0,moving,1.5,dt);
-    if(sn.tgt){const want=Math.atan2(sn.tgt.v-sn.v,sn.tgt.u-sn.u);let dh=want-sn.th;dh=Math.atan2(Math.sin(dh),Math.cos(dh));sn.th+=clamp(dh,-0.6*dt,0.6*dt)*Math.max(0.2,sn.mv);}
-    // glide: slow and steady, no bobbing; a little slower climbing up glass than going down it
-    // carried in your fingers: lifted a little off the surface, it goes wherever you take it (as fast as the fish follows), turning to face the way it's moved, and is set down when you let go
-    let fw,side;
-    if(sn.free){
-      // picked up: you move it like a decoration - drag left/right and up/down on the screen to move it across and front-to-back over the sand,
-      // held a little above it; keep dragging up past the back of the sand and it goes onto the back glass, up and down that.
-      // Let go over the sand and it tucks in and drops onto it; let go on the back glass and it holds on there.
-      const fp=sn.fp,xw=B.x*0.95;
-      if(sn.lead&&ptr.down){const p=new V3();let hm=sn.hm||'floor';_snRc.setFromCamera(new THREE.Vector2(ndc.x+sn.go.x,ndc.y+sn.go.y),camera);const rr=_snRc.ray;
-        // on the front glass it stays on the glass, under your finger, until you pull it down off the bottom edge
-        if(hm==='front'){if(rr.intersectPlane(new THREE.Plane(new V3(0,0,1),-0.86),p)&&p.y>B.floor-0.9){p.z=0.86;p.y=clamp(p.y,B.floor+0.03,B.surf-0.12);}else{hm='floor';sn.noFront=true;}}
-        if(hm!=='front'){const pf=new V3(),hit=rr.intersectPlane(new THREE.Plane(new V3(0,1,0),-(B.floor+0.06)),pf);
-          if(hit&&pf.z>-1.58){if(pf.z>0.9&&!sn.noFront){hm='front';p.set(pf.x,B.floor+0.03,0.86);}else{hm='floor';p.copy(pf);if(pf.z<0.7)sn.noFront=false;}}
-          else{hm='back';if(!rr.intersectPlane(new THREE.Plane(new V3(0,0,1),1.66),p))p.copy(fp);p.z=-1.66;}}
-        p.x=clamp(p.x,-xw,xw);if(hm==='floor'){p.z=clamp(p.z,-1.58,0.82);p.y=sandAt(p.x,p.z)+0.06;}else if(hm==='back')p.y=clamp(p.y,B.floor+0.08,B.surf-0.12);else p.y=Math.max(p.y,B.floor+0.03);
-        const k=1-Math.exp(-14*dt),dx=(p.x-fp.x)*k,dz=(p.z-fp.z)*k,dyy=(p.y-fp.y)*k;fp.lerp(p,k);if(hm!==sn.hm&&hm!=='floor')sn.wth=Math.PI/2;sn.hm=hm;
-        if(hm==='floor'&&Math.hypot(dx,dz)>0.0015){let dh=Math.atan2(-dz,dx)-sn.fth;dh=Math.atan2(Math.sin(dh),Math.cos(dh));sn.fth+=dh*(1-Math.exp(-6*dt));}
-        if(hm!=='floor'&&Math.hypot(dx,dyy)>0.0015){let dh=Math.atan2(dyy,hm==='back'?-dx:dx)-sn.wth;dh=Math.atan2(Math.sin(dh),Math.cos(dh));sn.wth+=dh*(1-Math.exp(-6*dt));}
-        sn.sway=(sn.sway||0)*0.9+clamp(dx/Math.max(dt,1e-3),-1,1)*0.1;sn.st='look';sn.stT=1.5;sn.fv.set(0,0,0);}
-      else if(sn.hm==='front'&&fp.y>B.floor+0.04){const W=snailSurf('front'),q=fp.clone().sub(W.o);sn.sf='front';sn.u=clamp(q.dot(W.a1),W.u[0],W.u[1]);sn.v=clamp(q.dot(W.a2),W.v[0],W.v[1]);sn.th=sn.wth;sn.free=false;sn.st='look';sn.stT=1.2;}
-      else if(sn.hm==='back'&&fp.y>B.floor+0.1){const W=snailSurf('back'),q=fp.clone().sub(W.o);sn.sf='back';sn.u=clamp(q.dot(W.a1),W.u[0],W.u[1]);sn.v=clamp(q.dot(W.a2),W.v[0],W.v[1]);sn.th=sn.wth;sn.free=false;sn.st='look';sn.stT=1.2;}
+    const hid=sn.st==='hide';sn.out=damp(sn.out,hid?0:1,hid?(sn.snap?12:3):sn.hello>0?2.5:0.8,dt);if(sn.out<0.05)sn.snap=0;sn.kick=Math.max(0,(sn.kick||0)-dt*0.9);sn.wob=Math.max(0,(sn.wob||0)-dt*1.2);
+    sn.eyeK=damp(sn.eyeK,hid||fishNear?0.15:sn.hello>0?1.4:sn.lead?1.2:1,fishNear||hid?(sn.snap?14:6):sn.hello>0?3:0.9,dt);
+    sn.mv=damp(sn.mv,sn.st==='crawl'&&sn.out>0.85&&!fishNear?1:0,1.5,dt);
+    // picked up: you move it like a decoration - across and front-to-back over the sand, held just above it; drag on up past the back
+    // of the sand and it goes onto the back glass. Let go over the sand and it tucks in and drops; let go on the glass and it holds on.
+    if(sn.lead&&ptr.down&&!sn.free){sn.free=true;sn.fp=g.position.clone();const v=g.getWorldPosition(new V3()).project(camera);sn.go=new THREE.Vector2(v.x-ndc.x,v.y-ndc.y);sn.fv=new V3();sn.hm=sn.sf;sn.fth=sn.sf==='floor'?sn.th:0;sn.wth=sn.sf==='back'?sn.th:Math.PI/2;}
+    if(sn.free){const fp=sn.fp,xw=B.x*0.95;
+      if(sn.lead&&ptr.down){_snRc.setFromCamera(_v2.set(ndc.x+sn.go.x,ndc.y+sn.go.y),camera);const rr=_snRc.ray,p=new V3();PL_FLOOR.constant=-(B.floor+0.06);
+        let hm='floor';if(!(rr.intersectPlane(PL_FLOOR,p)&&p.z>-1.58)){hm='back';if(!rr.intersectPlane(PL_BACK,p))p.copy(fp);}
+        p.x=clamp(p.x,-xw,xw);if(hm==='floor'){p.z=clamp(p.z,-1.58,0.82);p.y=sandAt(p.x,p.z)+0.06;}else{p.z=-1.66;p.y=clamp(p.y,B.floor+0.08,B.surf-0.12);}
+        const k=1-Math.exp(-14*dt),d=p.clone().sub(fp).multiplyScalar(k);fp.add(d);if(hm!==sn.hm&&hm==='back')sn.wth=Math.PI/2;sn.hm=hm;
+        if(hm==='floor'&&Math.hypot(d.x,d.z)>0.0015)sn.fth+=angTo(sn.fth,Math.atan2(-d.z,d.x))*(1-Math.exp(-6*dt));
+        if(hm==='back'&&Math.hypot(d.x,d.y)>0.0015)sn.wth+=angTo(sn.wth,Math.atan2(d.y,-d.x))*(1-Math.exp(-6*dt));
+        sn.sway=(sn.sway||0)*0.9+clamp(d.x/Math.max(dt,1e-3),-1,1)*0.1;sn.st='look';sn.stT=1.5;sn.fv.set(0,0,0);}
+      else if(sn.hm==='back'&&fp.y>B.floor+0.1){toSurf(sn,'back',fp);sn.th=sn.wth;sn.free=false;sn.st='look';sn.stT=1.2;}
       else{const sy=sandAt(fp.x,fp.z);sn.st='hide';sn.stT=1.4;sn.fv.y=Math.max(-0.45,sn.fv.y-0.7*dt);fp.addScaledVector(sn.fv,dt);sn.sway=(sn.sway||0)*0.95;
-        if(fp.y<=sy+0.006){sn.sf='floor';const Fl=snailSurf('floor');sn.u=clamp(fp.x,Fl.u[0],Fl.u[1]);sn.v=clamp(-fp.z,Fl.v[0],Fl.v[1]);sn.th=sn.fth;sn.free=false;sn.wob=0.6;sandPuffAt(new V3(fp.x,B.floor,fp.z));}}
+        if(fp.y<=sy+0.006){toSurf(sn,'floor',fp);sn.th=sn.fth;sn.free=false;sn.wob=0.6;sandPuffAt(new V3(fp.x,B.floor,fp.z));}}
       SF=snailSurf(sn.sf);}
-    if(sn.free){const fp=sn.fp,sy=sandAt(fp.x,fp.z),hgt=fp.y-sy;let up;
-      if(sn.hm==='back'){up=new V3(0,0,1);fw=new V3(-Math.cos(sn.wth),Math.sin(sn.wth),0);}else if(sn.hm==='front'){up=new V3(0,0,-1);fw=new V3(Math.cos(sn.wth),Math.sin(sn.wth),0);}else{up=new V3(0,1,0);fw=new V3(Math.cos(sn.fth),0,-Math.sin(sn.fth));}side=fw.clone().cross(up);
-      g.position.copy(fp);if(sn.hm==='back')g.position.z+=0.05;else if(sn.hm==='front')g.position.z-=0.05;_sm.makeBasis(fw,up,side);g.quaternion.setFromRotationMatrix(_sm);g.rotateZ(sn.lead?0.2:-0.25);g.rotateX(clamp(sn.sway,-1,1)*0.4);
-      const sd=sn.shadow;if(sn.hm==='front'){sd.material.opacity=0;}else if(sn.hm==='back'){_sm.makeBasis(fw,side.clone().negate(),up);sd.quaternion.setFromRotationMatrix(_sm);sd.position.set(fp.x,fp.y,-1.715);sd.scale.set(0.27,0.13,1);sd.material.opacity=0.07;}
-      else{const u2=new V3(0,1,0);_sm.makeBasis(fw,side.clone().negate(),u2);sd.quaternion.setFromRotationMatrix(_sm);sd.position.set(fp.x,sy+0.004,fp.z);const f=1+Math.min(1.2,hgt*1.5);sd.scale.set(0.21*f,0.1*f,1);sd.material.opacity=0.13*Math.max(0.2,1-hgt*1.3);}}
+    const sd=sn.shadow;
+    if(sn.free){const fp=sn.fp,sy=sandAt(fp.x,fp.z),bk=sn.hm==='back';n=bk?UPZ:UPY;fw=bk?new V3(-Math.cos(sn.wth),Math.sin(sn.wth),0):new V3(Math.cos(sn.fth),0,-Math.sin(sn.fth));
+      g.position.copy(fp);if(bk)g.position.z+=0.05;_sm.makeBasis(fw,n,fw.clone().cross(n));g.quaternion.setFromRotationMatrix(_sm);g.rotateZ(sn.lead?0.2:-0.25);g.rotateX(clamp(sn.sway,-1,1)*0.4);
+      layFlat(sd,fw,n);if(bk){sd.position.set(fp.x,fp.y,-1.715);sd.scale.set(0.27,0.13,1);sd.material.opacity=0.07;}
+      else{const h=fp.y-sy,f=1+Math.min(1.2,h*1.5);sd.position.set(fp.x,sy+0.004,fp.z);sd.scale.set(0.21*f,0.1*f,1);sd.material.opacity=0.13*Math.max(0.2,1-h*1.3);}}
     else{
-    if(sn.lead&&ptr.down){sn.free=true;sn.fp=g.position.clone();{const v=g.getWorldPosition(new V3()).project(camera);sn.go=new THREE.Vector2(v.x-ndc.x,v.y-ndc.y);}sn.fv=new V3();sn.hm=sn.sf==='floor'?'floor':sn.sf;sn.noFront=false;sn.fth=sn.sf==='floor'?sn.th:0;sn.wth=sn.sf!=='floor'?sn.th:Math.PI/2;}
-    {const up=sn.sf==='floor'?0:Math.sin(sn.th),sp=0.035*(night?1.25:1)*(1-0.3*Math.max(0,up))*sn.mv;sn.u=clamp(sn.u+Math.cos(sn.th)*sp*dt,SF.u[0],SF.u[1]);sn.v=clamp(sn.v+Math.sin(sn.th)*sp*dt,SF.v[0],SF.v[1]);}
-    // place and orient on the surface: foot flat against it, head the way it's going
-    fw=SF.a1.clone().multiplyScalar(Math.cos(sn.th)).addScaledVector(SF.a2,Math.sin(sn.th));side=fw.clone().cross(SF.n);
-    g.position.copy(SF.o).addScaledVector(SF.a1,sn.u).addScaledVector(SF.a2,sn.v).addScaledVector(SF.n,0.004);if(sn.sf==='floor')g.position.y=sandAt(g.position.x,g.position.z)+0.006;
-    _sm.makeBasis(fw,SF.n,side);g.quaternion.setFromRotationMatrix(_sm);
-    // a faint soft shadow on the surface under it
-    {const sd=sn.shadow;_sm.makeBasis(fw,side.clone().negate(),SF.n);sd.quaternion.setFromRotationMatrix(_sm);sd.position.copy(g.position).addScaledVector(SF.n,0.004).addScaledVector(fw,-0.02);sd.scale.set(0.21,0.1,1);sd.material.opacity=sn.sf==='front'?0:0.13;}
-    }
-    if(food&&sn.sf==='floor'&&g.position.distanceTo(new V3(food.pos.x,B.floor,food.pos.z))<0.08){sn.look=Math.sin(sn.ph*7)*0.12;}
-    // the foot: waves of muscle running from tail to head while moving
-    const kk=sn.kick||0,st=1+0.06*sn.mv+0.14*kk*Math.sin((1-kk)*22)+(sn.hello>0?0.06:0),o=sn.out;
-    // looking around when stopped: the head swings slowly and lifts
-    const hi=sn.hello>0?Math.min(1,sn.hello):0;let lk=sn.st==='look'?Math.sin(sn.ph*0.8)*0.5:sn.look;sn.look=damp(sn.look,0,1,dt);
-    if(hi>0){const c=g.worldToLocal(camera.position.clone()),fy=Math.max(-1.1,Math.min(1.1,Math.atan2(-c.z,c.x)));lk=lk*(1-hi)+hi*(fy+Math.sin(sn.ph*4)*0.18);}
-    sn.hy=damp(sn.hy||0,lk,4,dt);sn.hp=damp(sn.hp||0,(sn.st==='look'?0.18:0.05*Math.sin(sn.ph))+hi*(0.55+Math.sin(sn.ph*6)*0.08)+(sn.lead?0.25:0),4,dt);{const th=sn.free?(sn.hm==='back'?sn.wth:sn.fth):sn.th;let d=th-(sn.lth===undefined?th:sn.lth);d=Math.atan2(Math.sin(d),Math.cos(d));sn.lth=th;sn.trate=damp(sn.trate||0,dt>0?d/dt:0,8,dt);}
-    let cA=99,cB=99;if(!sn.free&&fw){const sc=g.scale.x,walls=sn.sf==='floor'?['front','back']:['floor'];
-      for(const w of walls){const W=w==='floor'?{o:new V3(0,B.floor,0),n:new V3(0,1,0)}:snailSurf(w),dp=g.position.clone().sub(W.o).dot(W.n),k=fw.dot(W.n);
-        if(k<-0.3)cA=Math.min(cA,dp/(-k)/sc);else if(k>0.3)cB=Math.min(cB,dp/k/sc);}
-      cA=cA<0.1?Math.max(0.004,cA):99;cB=cB<0.1?Math.max(0.004,cB):99;}
-    u.head.rotation.set(0,sn.hy,sn.hp);u.pose(o,st,sn.ph,sn.mv,dt,sn.trate,sn.kick||0,cA,cB);
-    // eye stalks: sway gently, each a little out of step, and shrink right down when it's startled
+      // glide: slow and steady; a little slower climbing up the glass than coming down it; turning a little at a time toward where it's going
+      if(sn.tgt)sn.th+=clamp(angTo(sn.th,Math.atan2(sn.tgt.v-sn.v,sn.tgt.u-sn.u)),-0.6*dt,0.6*dt)*Math.max(0.2,sn.mv);
+      const sp=0.035*(night?1.25:1)*(1-0.3*Math.max(0,sn.sf==='floor'?0:Math.sin(sn.th)))*sn.mv;sn.u=clamp(sn.u+Math.cos(sn.th)*sp*dt,SF.u[0],SF.u[1]);sn.v=clamp(sn.v+Math.sin(sn.th)*sp*dt,SF.v[0],SF.v[1]);
+      // place and orient on the surface: foot flat against it, head the way it's going; a faint soft shadow under it
+      n=SF.n;fw=SF.a1.clone().multiplyScalar(Math.cos(sn.th)).addScaledVector(SF.a2,Math.sin(sn.th));
+      g.position.copy(onSurf(SF,sn.u,sn.v)).addScaledVector(n,0.004);if(sn.sf==='floor')g.position.y=sandAt(g.position.x,g.position.z)+0.006;
+      _sm.makeBasis(fw,n,fw.clone().cross(n));g.quaternion.setFromRotationMatrix(_sm);
+      layFlat(sd,fw,n);sd.position.copy(g.position).addScaledVector(n,0.004).addScaledVector(fw,-0.02);sd.scale.set(0.21,0.1,1);sd.material.opacity=0.13;
+      if(food&&Math.hypot(g.position.x-food.pos.x,g.position.z-food.pos.z)<0.08)sn.look=Math.sin(sn.ph*7)*0.12;}
+    // head: swings slowly when it stops to look; on a hello it turns to face you and lifts
+    const kk=sn.kick||0,st=1+0.06*sn.mv+0.14*kk*Math.sin((1-kk)*22)+(sn.hello>0?0.06:0),o=sn.out,hi=sn.hello>0?Math.min(1,sn.hello):0;
+    let lk=sn.st==='look'?Math.sin(sn.ph*0.8)*0.5:sn.look;sn.look=damp(sn.look,0,1,dt);
+    if(hi>0){const c=g.worldToLocal(camera.position.clone());lk=lk*(1-hi)+hi*(clamp(Math.atan2(-c.z,c.x),-1.1,1.1)+Math.sin(sn.ph*4)*0.18);}
+    sn.hy=damp(sn.hy||0,lk,4,dt);sn.hp=damp(sn.hp||0,(sn.st==='look'?0.18:0.05*Math.sin(sn.ph))+hi*(0.55+Math.sin(sn.ph*6)*0.08)+(sn.lead?0.25:0),4,dt);
+    {const th=sn.free?(sn.hm==='back'?sn.wth:sn.fth):sn.th,d=angTo(sn.lth===undefined?th:sn.lth,th);sn.lth=th;sn.trate=damp(sn.trate||0,dt>0?d/dt:0,8,dt);}
+    // corners: how far ahead / behind (in the snail's own units) the line where sand meets back glass is, so the body can curl round it
+    let cA=99,cB=99;if(!sn.free){const W=sn.sf==='floor'?snailSurf('back'):snailSurf('floor'),dp=g.position.clone().sub(W.o).dot(W.n)/g.scale.x,k=fw.dot(W.n);
+      if(k<-0.3&&dp/-k<0.1)cA=Math.max(0.004,dp/-k);else if(k>0.3&&dp/k<0.1)cB=Math.max(0.004,dp/k);}
+    u.head.rotation.set(0,sn.hy,sn.hp);u.pose(o,st,sn.ph,sn.mv,dt,sn.trate,kk,cA,cB);
+    // eye stalks sway, each a little out of step, and shrink right down when it's startled
     u.eyes.forEach((e,i)=>{e.scale.y=Math.max(0.05,sn.eyeK*o);e.rotation.x=(i?-0.35:0.35)*(1+hi*0.5)+Math.sin(sn.ph*(1.3+hi*3)+i*1.7)*(0.18+hi*0.2);e.rotation.z=-0.45+Math.sin(sn.ph*0.9+i)*0.15;});
     u.feel.forEach((e,i)=>{e.scale.y=Math.max(0.05,(0.4+0.6*sn.eyeK)*o);e.rotation.x=(i?-0.5:0.5)+Math.sin(sn.ph*2+i)*0.15;});
-    // the shell rides along, rocking slightly as the foot moves, and settles down onto the sand when it tucks in
-    u.sh.rotation.z=(u.J.tilt||0)+Math.sin(sn.ph*2.5)*0.03*sn.mv+Math.sin(sn.wob*28)*0.12*sn.wob;u.sh.rotation.x=Math.sin(sn.wob*23)*0.08*sn.wob;u.sh.position.y=0.05*(0.55+0.45*o)+(u.J.hump-1)*0.022*o+Math.abs(u.J.tilt||0)*0.012;u.sh.position.x=-0.012-0.01*(1-o)-0.03*Math.max(0,u.J.tilt||0);
+    // the shell rides on the hump, rocking as the foot moves, wobbling when it ducks in, tipping as the body goes round a corner
+    const tl=u.J.tilt||0;u.sh.rotation.z=tl+Math.sin(sn.ph*2.5)*0.03*sn.mv+Math.sin(sn.wob*28)*0.12*sn.wob;u.sh.rotation.x=Math.sin(sn.wob*23)*0.08*sn.wob;
+    u.sh.position.y=0.05*(0.55+0.45*o)+(u.J.hump-1)*0.022*o+Math.abs(tl)*0.012;u.sh.position.x=-0.012-0.01*(1-o)-0.03*Math.max(0,tl);
     // slime trail: faint shiny marks left behind, fading over half a minute
-    if(sn.mv>0.3&&g.position.distanceTo(sn.tp)>0.022){sn.tp.copy(g.position);const q=sn.trail[sn.ti++%sn.trail.length];q.t=0;q.m.position.copy(g.position).addScaledVector(fw,-0.15).addScaledVector(SF.n,0.003);_sm.makeBasis(fw,side.clone().negate(),SF.n);q.m.quaternion.setFromRotationMatrix(_sm);}
-    for(const q of sn.trail){if(q.t>30){q.m.visible=false;continue;}q.t+=dt;q.m.visible=true;q.m.material.opacity=0.28*(1-q.t/30);}}}
+    if(sn.mv>0.3&&!sn.free&&g.position.distanceTo(sn.tp)>0.022){sn.tp.copy(g.position);const q=sn.trail[sn.ti++%sn.trail.length];q.t=0;q.m.visible=true;q.m.position.copy(g.position).addScaledVector(fw,-0.15).addScaledVector(n,0.003);layFlat(q.m,fw,n);}
+    for(const q of sn.trail)if(q.m.visible){q.t+=dt;if(q.t>30)q.m.visible=false;else q.m.material.opacity=0.28*(1-q.t/30);}}}
 function makeThumbs(){if(THUMBS)return THUMBS;THUMBS=thumbsOf(ALLDECO());return THUMBS;}
 function thumbsOf(list){const out={};const tr=new THREE.WebGLRenderer({antialias:true,alpha:true,preserveDrawingBuffer:true});tr.setPixelRatio(1);tr.setSize(240,240,false);tr.setClearColor(0xffffff,0);tr.clippingPlanes=[new THREE.Plane(new V3(0,1,0),0)];
   const sc=new THREE.Scene(),cam=new THREE.PerspectiveCamera(30,1,0.01,20);
@@ -2333,7 +2341,7 @@ function palMigrate(){if(DB&&USER&&USER!==ADMIN&&!save.adminPal&&myReal()&&cloud
 // the friends sheet: "my friends" (requests waiting for you, the admin, then your friends with their real names) and "everyone" (every keeper A-Z),
 // both searchable and paged with the arrows
 let FTAB='f',FPG=0,ALLK=null,ALLK_T=0;const FPER=6;
-function loadAll(){if(!DB)return;if(ALLK&&Date.now()-ALLK_T<60000)return;ALLK_T=Date.now();
+function loadAll(){if(!DB)return;if(ALLK&&Date.now()-ALLK_T<300000)return;ALLK_T=Date.now();
   fetch('https://firestore.googleapis.com/v1/projects/'+DB.projectId+'/databases/(default)/documents:runQuery?key='+DB.apiKey,{method:'POST',headers:{'Content-Type':'application/json'},
     body:JSON.stringify({structuredQuery:{from:[{collectionId:'players'}],select:{fields:[{fieldPath:'name'},{fieldPath:'level'}]},orderBy:[{field:{fieldPath:'name'},direction:'ASCENDING'}],limit:1000}})})
     .then(r=>{if(!r.ok)throw r.status;return r.json();}).then(j=>{ALLK=(j||[]).filter(x=>x.document).map(x=>{const f=x.document.fields||{};return {n:f.name&&f.name.stringValue,lv:+(f.level&&f.level.integerValue)||1};}).filter(x=>x.n&&NAME_RE.test(x.n));renderFriends();})
@@ -2402,7 +2410,7 @@ const fstage=f=>f&&f.stage!==undefined?f.stage:10,fthumb=(lk,st)=>fishThumb(lk,s
 function unpackLook(s){const [c,p,sd,sk,st]=String(s||'').split('.'),P=Object.keys(PAT_CODE).find(k=>PAT_CODE[k]===p)||'plain';return {c:LOOK_COLORS[c]?c:'orange',p:P,seed:+sd||0,skin:sk==='x'?'christmas':''};}
 let FRIENDS=[];
 // gifted fish: a fifth of an adult's size, in the sender's colors; they just potter about and can't be played with
-function spawnFriends(){for(const f of FRIENDS)world.remove(f.g);FRIENDS=[];const list=(VISIT?VISIT.friends:save.friends)||[];
+function spawnFriends(){for(const f of FRIENDS){world.remove(f.g);freeTree(f.g);}FRIENDS=[];const list=(VISIT?VISIT.friends:save.friends)||[];
   if(!VISIT)friendsFix();
   for(const it of list){if(it.hide)continue;const st=fstage(it),F=buildFish(),Yf=poseYouth(F,st,true);applyLook(F,it.look,st);F.g.scale.setScalar(0.434*youth(st).size*0.8);
     F.g.traverse(o=>{if(o.userData&&o.userData.proxy)o.visible=false;});
@@ -2554,6 +2562,10 @@ function openGiftOut(){if(!VISIT)return;$('#giftTitle').textContent='send a gift
 $('#giftBtn').onclick=openGiftOut;$('#giftClose').onclick=()=>{$('#giftOut').hidden=true;};
 // notes: when visiting, leave one of ten short messages in the keeper's box; it shows up with their gifts and in their notifications.
 // (sent through the gift box as a "sticker" called note.N, so it works with the existing database rules)
+// notes arrive one at a time in a little envelope; tap to open the next
+const LETTERS=[];function showLetter(f,m){LETTERS.push([f,m]);if($('#letter').hidden)nextLetter();}
+function nextLetter(){const L=LETTERS.shift(),el=$('#letter');if(!L){el.hidden=true;return;}$('#lFrom').textContent='from @'+L[0];$('#lMsg').textContent=L[1];el.hidden=true;void el.offsetWidth;el.hidden=false;snd.pop&&snd.pop();}
+$('#letter').onclick=nextLetter;
 const NOTES=['hi 👋','cute tank!','adorable <33','impressive :o','come visit mine ;)','thx for the giftt','👀','have a good dayy 💕','gn 🌙','why ru up?????','good morning ☀️😎'];
 function openNote(){if(!VISIT)return;$('#noteTitle').textContent='leave a note for @'+VISIT.n;$('#noteMsg').textContent='';const l=$('#noteList');l.textContent='';
   NOTES.forEach((t,i)=>{const b=document.createElement('button');b.type='button';b.textContent=t;b.onclick=()=>{l.querySelectorAll('button').forEach(x=>x.disabled=true);
@@ -2690,7 +2702,7 @@ function openGifts(list){const el=$('#giftInList');if($('#giftIn').hidden)el.tex
       pic='<img alt="" src="'+img+'" style="width:56px;height:40px">';txt='@'+g.from+' sent a little fish';setTimeout(spawnFriends,50);}
     else if(g.kind==='duel'){const [dk,res]=String(g.item).split('.'),gm=dk==='balance'?'rock balancing':'rock stacking',th=makeThumbs();pic='<img alt="" src="'+th.ring+'">';
       if(res==='l'){const r=awardRing();placedGift=!!(r&&r.id==='ring');if(r)pic='<img alt="" src="'+th[r.id]+'">';txt='you beat @'+g.from+' at '+gm+' · '+(r?r.name+(r.id==='ring'?'':' (in your shop)')+' ':'')+'+50 xp';}else txt='@'+g.from+' beat you at '+gm;}
-    else if(g.kind==='sticker'&&/^note\.\d+$/.test(g.item)&&NOTES[+g.item.slice(5)]){pic='<svg viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6.5h16v11H4z"/><path d="M4.5 7l7.5 6 7.5-6"/></svg>';txt='@'+g.from+' left a note: “'+NOTES[+g.item.slice(5)]+'”';}
+    else if(g.kind==='sticker'&&/^note\.\d+$/.test(g.item)&&NOTES[+g.item.slice(5)]){const m=NOTES[+g.item.slice(5)];(save.inbox=save.inbox||[]).unshift({t:g.at||Date.now(),x:'@'+g.from+' left a note: “'+m+'”',n:1});bellDot();showLetter(g.from,m);continue;}
     else if(g.kind==='sticker'&&STICKERS[g.item]){pic=stk(g.item,40);txt='@'+g.from+' sent a '+g.item;}
     else if(g.kind==='deco'){const pd=parseDecoItem(g.item),d=ALLDECO().find(x=>x.id===pd.id&&!x.prize);if(!d)continue;const th=makeThumbs();pic='<img alt="" src="'+th[d.id]+'">';
       if(save.tank.owned[d.id]){addXP(Math.round(d.price/2));txt='@'+g.from+' sent a '+d.name+' (you had one, so +'+Math.round(d.price/2)+' xp)';}else{save.tank.owned[d.id]=1;txt='@'+g.from+' sent a '+d.name;
@@ -2708,7 +2720,7 @@ $('#bellBtn').onclick=()=>{if(VISIT)return;const l=$('#inboxList'),ib=save.inbox
   for(const i of ib){const r=document.createElement('div');r.className='ib'+(i.n?' new':'');const b=document.createElement('b');b.textContent=i.x;const sm=document.createElement('small');sm.textContent=ago(i.t);r.append(b,sm);l.appendChild(r);}
   $('#inbox').hidden=false;if(ib.some(i=>i.n)){ib.forEach(i=>{i.n=0;});bellDot();persist();}};
 $('#inboxClose').onclick=()=>{$('#inbox').hidden=true;};
-setInterval(()=>{if(!document.hidden)checkGifts();},10000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)setTimeout(checkGifts,1500);});
+setInterval(()=>{if(!document.hidden)checkGifts();},20000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)setTimeout(checkGifts,1500);});
 
 /* ---- tank view: pull back to see the whole tank as a small glass box in the middle, and turn it by dragging ---- */
 const TVCLIP=[];
@@ -3176,7 +3188,7 @@ function frameErr(e){if((frameErr.n=(frameErr.n||0)+1)<=3)console.error(e);}
 function frame(){requestAnimationFrame(frame);
   if(DX){const nw=performance.now();try{duelTick(Math.min(0.05,(nw-(DX.last||nw))/1000));}catch(e){frameErr(e);if(DX)endDuel();}if(DX)DX.last=nw;}
   const nowF=performance.now(),busy=ptr.down||toy||foods.length||T-(S.lastTouch||-9)<4||(TV.t>0&&TV.t<1)||DX,minF=busy?0:(lightsOff&&S.asleep?62:30);
-  if(nowF-(frame.last||0)<minF)return;frame.last=nowF;const dt=Math.min(clock.getDelta(),0.07);T+=dt;
+  if(nowF-(frame.last||0)<minF)return;frame.last=nowF;frame.cap=minF>0;const dt=Math.min(clock.getDelta(),0.07);T+=dt;
   try{sunTick(dt);}catch(e){frameErr(e);}try{nightTick(dt);}catch(e){frameErr(e);}
   try{needs(dt);if(DROPS.length)dropTick(dt);glowTick();selTick();if(SNAILS.length)snailTick(dt);behave(dt);physics(dt);animate(dt);keepAboveFloor();if(FRIENDS.length)friendsTick(dt);updateFoods(dt);updateToy(dt);updateRocks(dt);updateFX(dt);updateSay(dt);}catch(e){frameErr(e);}
   const lt=lightsOff?0.35:1;hemi.intensity=damp(hemi.intensity,0.85*lt,2,dt);keyL.intensity=damp(keyL.intensity,0.7*lt,2,dt);
@@ -3190,7 +3202,7 @@ function frame(){requestAnimationFrame(frame);
   if((saveT+=dt)>5){saveT=0;persistLocal();}
   renderer.render(scene,camera);perfWatch();}
 // if the device can't keep up (frames over ~28 ms for a couple of seconds), render at a lower resolution; never below 60% of normal
-function perfWatch(){const now=performance.now(),P=perfWatch;if(P.t){const d=now-P.t;if(d<250){P.sum=(P.sum||0)+d;P.n=(P.n||0)+1;}}P.t=now;
+function perfWatch(){const now=performance.now(),P=perfWatch;if(frame.cap){P.t=0;return;}if(P.t){const d=now-P.t;if(d<250){P.sum=(P.sum||0)+d;P.n=(P.n||0)+1;}}P.t=now;
   if((P.n||0)>=90){const avg=P.sum/P.n;P.sum=0;P.n=0;if(avg>28&&RES>LOWRES*0.6){RES=Math.max(LOWRES*0.6,RES*0.85);fit();}}}
 setup();
 if(lightsOff){document.body.classList.add('night');S.asleep=true;S.pos.set(-B.x*0.5,B.ymin+0.05,-0.4);S.heading=S.wantH=0;hemi.intensity=0.3;keyL.intensity=0.25;renderUI();}else hint();
