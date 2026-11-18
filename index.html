@@ -560,7 +560,7 @@ const KO={'my friends':'내 친구','everyone':'전체','search username':'아�
 'a little fish like yours · 50 xp':'내 금붕어를 닮은 작은 물고기 · 50 xp','send · 50 xp':'보내기 · 50 xp','friends’ fish':'친구 물고기','tap a fish to show or hide it in your tank':'물고기를 탭해서 어항에 보이거나 숨겨요','no skin':'스킨 없음','little fish your friends send you swim here':'친구가 보낸 작은 물고기가 여기서 헤엄쳐요',
 'visit · type a friend’s username to visit their tank, send gifts, or challenge them to a duel. fish you’re sent swim with yours':'방문 · 친구 아이디를 입력해 어항에 놀러 가서 선물을 보내거나 결투를 신청해요. 선물받은 물고기는 내 물고기랑 같이 놀아요','duel':'결투','notifications':'알림','nothing yet':'아직 없어요','snails':'달팽이','up to two for each fish':'물고기 한 마리당 두 마리까지','gold shell':'금와','white body':'백와','black & brown':'흑백와','black & gold':'흑금와','all black':'흑와','put away':'치우기','tap a decoration first':'먼저 장식을 눌러 주세요','my fish':'내 금붕어','tank':'어항','more':'더보기','tank view':'어항 뷰','see your tank in its room':'방 안의 어항 보기','photo':'사진','save a picture of your tank':'어항 사진 저장','sound':'소리','on':'켜짐','off':'꺼짐','account & language':'계정 · 언어','friends':'친구','visit a keeper by username, or tap one you’ve visited':'아이디로 놀러 가거나, 전에 갔던 친구를 눌러요','gift':'선물','home':'집','rings':'반지','won in duels':'결투에서 얻어요',
 'your level · tap for missions. your fish grows every 5 levels':'레벨 · 누르면 미션이 나와요. 5레벨마다 금붕어가 자라요','shop · winter decorations, crystals and rings':'상점 · 겨울 장식, 크리스탈, 반지','friends · visit a keeper, send gifts, or challenge them to a duel. fish you’re sent swim with yours':'친구 · 놀러 가서 선물을 보내거나 결투를 신청해요. 선물받은 물고기는 내 물고기랑 같이 놀아요','more · tank view, photos, sound, account and language':'더보기 · 어항 뷰, 사진, 소리, 계정과 언어','winter':'겨울','crystals':'크리스탈','amethyst':'자수정','rose quartz':'로즈 쿼츠','citrine':'시트린','aquamarine':'아쿠아마린','fluorite':'형석','rings · won in duels':'반지 · 결투에서 얻어요','win a duel':'결투에서 이기면','tallest tower wins':'더 높이 쌓으면 승리','keep the stones on your nose longest':'코 위 돌을 끝까지 지키면 승리','the fish play it out in the tank · pure luck · winner gets a ring (+100 xp)':'물고기들이 어항에서 직접 겨뤄요 · 순전히 운 · 이기면 반지 (+100 xp)','notifications':'알림','turn on':'켜기','turn off':'끄기','notifications are on':'알림이 켜져 있어요','notifications · add Goldfish to your home screen first':'알림 · 먼저 Goldfish를 홈 화면에 추가해 주세요',"notifications aren’t available here":'여기서는 알림을 쓸 수 없어요','notifications are blocked in settings':'설정에서 알림이 꺼져 있어요','rock stacking':'돌 쌓기','rock balancing':'돌 균형 잡기','who stacks the tallest tower':'누가 더 높이 쌓나','whose stack stays up longer':'누구 탑이 더 오래 버티나','pick a game. winning is pure luck · the winner gets a shiny winner ring (+50 xp)':'게임을 골라요. 승패는 순전히 운 · 이기면 반짝이는 승리 반지 (+50 xp)','winner ring':'승리 반지','skin':'스킨','special looks, like christmas':'크리스마스 같은 특별한 모습','a skin is worn over your color and pattern · tap it again to reshuffle':'스킨은 색과 무늬 위에 입혀져요 · 한 번 더 누르면 모양이 바뀌어요','none':'없음','christmas':'크리스마스','at least 20 stones stay in the tank':'어항에는 돌이 최소 20개 남아 있어야 해요','skip':'건너뛰기',
-'hand · drag to lead your fish, tap to call it, tap the fish to say hi, hold a snail to send your fish over':'손 · 끌어서 금붕어를 데려가고, 탭해서 부르고, 금붕어를 탭하면 인사해요. 달팽이를 꾹 누르면 금붕어가 놀러 가요',
+'hand · drag to lead your fish, tap to call it, tap the fish or a snail to say hi':'손 · 끌어서 금붕어를 데려가고, 탭해서 부르고, 금붕어나 달팽이를 탭하면 인사해요',
 'food · tap the water to sprinkle flakes':'먹이 · 물을 탭해서 먹이를 뿌려요','clean · when the glass gets dirty, rub it clean':'청소 · 유리가 더러워지면 문질러서 닦아요',
 'toy · drag the lure and let your fish chase it':'장난감 · 미끼를 끌면 금붕어가 쫓아와요','sleep · turns the lights off so your fish can rest':'재우기 · 불을 꺼서 금붕어를 쉬게 해요',
 'missions · three goals a day for xp. your fish grows every 5 levels':'미션 · 하루 세 가지 목표로 xp를 모아요. 5레벨마다 금붕어가 자라요',
@@ -1595,7 +1595,7 @@ addEventListener('resize',fitName);if(document.fonts)document.fonts.ready.then(f
 $('#namingForm').addEventListener('submit',e=>{e.preventDefault();const v=$('#fishName').value.replace(/[\u0000-\u001f<>]/g,'').trim().slice(0,14);
   if(v){pet().name=v;persist();renderUI();toast('hello, '+v+'.',2.4);}$('#naming').hidden=true;if(openNaming.first)maybeTour();});
 $('#namingSkip').onclick=()=>{$('#naming').hidden=true;if(openNaming.first)maybeTour();};
-const TOUR=[['#t-hand','hand · drag to lead your fish, tap to call it, tap the fish to say hi, hold a snail to send your fish over'],
+const TOUR=[['#t-hand','hand · drag to lead your fish, tap to call it, tap the fish or a snail to say hi'],
   ['#lvBadge','your level · tap for missions. your fish grows every 5 levels'],
   ['#bagBtn','shop · winter decorations, crystals and rings'],
   ['#visitBtn','friends · visit a keeper, send gifts, or challenge them to a duel. fish you’re sent swim with yours'],
@@ -1815,7 +1815,7 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden)setTimeout
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)pull();});
 /* the home-screen app keeps an old copy of the page open (and iOS caches it), so check for a newer build when it opens or comes back,
    and reload past the cache if there is one */
-const BUILD='20261118144729';
+const BUILD='20261118152655';
 function checkBuild(){fetch('version.json?t='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{if(!j||!j.b||j.b===BUILD)return;
   try{if(sessionStorage.getItem('gf-build')===j.b)return;sessionStorage.setItem('gf-build',j.b);}catch(e){}
   try{persistLocal();}catch(e){}location.replace(location.pathname+'?v='+encodeURIComponent(j.b));}).catch(()=>{});}
@@ -2062,16 +2062,16 @@ function buildSnails(e){SNAILS=[];if(!TRAILG)TRAILG=new THREE.CircleGeometry(0.0
     const sd=new THREE.Mesh(new THREE.CircleGeometry(1,24),new THREE.MeshBasicMaterial({map:snailShadowTex(),color:0x000000,transparent:true,opacity:0.13,depthWrite:false,fog:false}));e.add(sd);
     const trail=[];for(let i=0;i<40;i++){const m=new THREE.Mesh(TRAILG,new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:0,depthWrite:false,fog:false}));m.scale.set(1.4,0.8,1);m.visible=false;e.add(m);trail.push({m,t:99});}
     SNAILS.push({g,k,shadow:sd,sf:'floor',u:x,v:-z,th:rnd(0,6.28),st:'crawl',stT:rnd(4,9),tgt:null,ph:rnd(0,6),eyeK:1,look:0,trail,ti:0,tp:g.position.clone(),out:1,mv:0});}}
-// a snail and your finger: a tap and it lifts its head and waves its eye stalks at you (coming out first if it was tucked in);
+// a snail and your finger: a tap and it lifts its head and waves its eye stalks at you (coming out first if it was tucked in) and your fish comes over;
 // tap again quickly and it's had enough and tucks into its shell; drag from it and you pick it up
-function snailPoke(sn){const dbl=T-(sn.tapT||-9)<0.4;sn.tapT=T;if(dbl){sn.st='hide';sn.stT=rnd(3,5);sn.hello=0;sn.snap=1;sn.wob=1;return;}
-  if(sn.st==='hide')sn.out=Math.max(sn.out,0.35);sn.st='look';sn.stT=3;sn.hello=2.4;sn.kick=1;}
+function snailPoke(sn){const dbl=T-(sn.tapT||-9)<0.4;sn.tapT=T;if(dbl){sn.st='hide';sn.stT=rnd(3,5);sn.hello=0;sn.snap=1;sn.wob=1;if(SNI&&SNI.sn===sn)SNI=null;return;}
+  if(sn.st==='hide')sn.out=Math.max(sn.out,0.35);sn.st='look';sn.stT=3;sn.hello=2.4;sn.kick=1;
+  // ...and your fish rushes over to see it
+  if(!VISIT||R.g.visible){IACT=null;SNI={who:'me',sn,k:sn.sf==='back'?'nibble':'peek',ph:'go',t:0,max:10,fast:1};squish(2);bubble(sn.g.position.clone().add(new V3(0,0.15,0)));}}
 const angTo=(a,b)=>Math.atan2(Math.sin(b-a),Math.cos(b-a));
 function snailTick(dt){const night=lightsOff||nightAmt()>0.5;if(!SNI&&!VISIT&&(sniT-=dt)<=0){sniPick();if(!SNI)sniT=6;}
   for(const sn of SNAILS){const g=sn.g,u=g.userData;sn.stT-=dt;sn.ph+=dt;
     // what is it doing: crawling somewhere, stopping to look around, or tucked in the shell (more resting by day)
-    if(!ptr.down)sn.lpd=false;else if(ptr.onSnail===sn&&!sn.lpd&&!sn.free&&ptr.moved<=8&&performance.now()-ptr.t0>500){sn.lpd=true;sn.kick=0.6;sn.lead=false;IACT=null;
-      SNI={who:'me',sn,k:sn.sf==='back'?'nibble':'peek',ph:'go',t:0,max:14};bubble(g.position.clone().add(new V3(0,0.15,0)));if(navigator.vibrate)navigator.vibrate(12);}
     const fishNear=R.g.visible&&S.pos.distanceTo(g.position)<0.32&&!(SNI&&SNI.sn===sn);if(!ptr.down||ptr.onSnail!==sn)sn.lead=false;if(sn.hello>0)sn.hello-=dt;
     if(sn.stT<=0){const r=Math.random();if(sn.st!=='crawl'||r<(night?0.75:0.55)){sn.st='crawl';sn.stT=rnd(6,14);sn.tgt=null;}else if(r<(night?0.92:0.8)){sn.st='look';sn.stT=rnd(2.5,5);}else{sn.st='hide';sn.stT=rnd(night?4:8,night?8:20);}}
     // food on the sand draws it over
@@ -2467,13 +2467,13 @@ function sniStep(dt,mouth){const I=SNI;if(!I)return null;I.t+=dt;const sn=I.sn,g
   if(I.k==='escort'){if(sn.st!=='crawl'&&I.t>2)I.max=0;return {p:g.position.clone().addScaledVector(fw,0.12).add(new V3(0,0.3,0.05)),v:0.25,face:g.position.clone().addScaledVector(fw,0.6)};}
   if(I.k==='nibble'){const p=new V3(clamp(g.position.x+(g.position.x>0?-0.28:0.28),-B.x,B.x),g.position.y,-1.6);
     if(mouth.distanceTo(p)<0.13){sn.look=damp(sn.look,Math.sign(p.x-g.position.x)*0.6,3,dt);if(Math.random()<dt*2.5)bubble(mouth.clone());return {p:p.clone().add(new V3(0,0,0.02*Math.max(0,Math.sin(I.t*9)))),v:0.4,face:new V3(p.x,p.y,-3)};}
-    return {p,v:0.6,face:null};}
+    return {p,v:I.fast?1.3:0.7,face:null};}
   // peek
   const front=head.clone().addScaledVector(fw,0.2).add(new V3(0,0.2,0)),top=shell.clone().add(new V3(0,0.12,0));
-  if(I.ph==='go'){if(mouth.distanceTo(front)<0.2||I.t>6){I.ph='look';I.t2=0;sn.st='look';sn.stT=4;sn.hello=2.2;sn.kick=0.6;}return {p:front,v:0.6,face:null};}
-  if(I.ph==='look'){I.t2+=dt;if(I.t2>2.2)I.ph='boop';return {p:front,v:0.3,face:head,hold:mouth.distanceTo(front)<0.05};}
-  if(I.ph==='boop'){I.t3=(I.t3||0)+dt;if(mouth.distanceTo(top)<0.16||I.t3>2.5){I.ph='back';I.t2=0;sn.st='hide';sn.stT=rnd(1.8,2.6);sn.hello=0;sn.snap=1;sn.wob=1;for(let i=0;i<5;i++)setTimeout(()=>bubble(shell.clone().add(new V3(0,0.05,0))),i*90);}return {p:top,v:0.5,face:shell};}
-  I.t2+=dt;if(I.t2>1.6)I.max=0;return {p:shell.clone().add(new V3(-fw.x*0.1,0.45,0.25)),v:1.1,face:shell};}
+  if(I.ph==='go'){if(mouth.distanceTo(front)<0.2||I.t>5){I.ph='look';I.t2=0;sn.st='look';sn.stT=4;sn.hello=2.2;sn.kick=1;if(I.who==='me'){squish(-3.5);CUR.burst=1;}for(let i=0;i<3;i++)setTimeout(()=>bubble(front.clone()),i*110);}return {p:front,v:I.fast?1.5:0.8,face:null};}
+  if(I.ph==='look'){I.t2+=dt;if(I.t2>1.3)I.ph='boop';return {p:front.clone().add(new V3(0,0.03*Math.sin(I.t2*12),0)),v:0.5,face:head,hold:false};}
+  if(I.ph==='boop'){I.t3=(I.t3||0)+dt;if(mouth.distanceTo(top)<0.16||I.t3>2.5){I.ph='back';I.t2=0;sn.st='hide';sn.stT=rnd(1.8,2.6);sn.hello=0;sn.snap=1;sn.wob=1;if(I.who==='me')squish(4);for(let i=0;i<8;i++)setTimeout(()=>bubble(shell.clone().add(new V3(rnd(-0.05,0.05),0.05,0))),i*70);}return {p:top,v:1.2,face:shell};}
+  I.t2+=dt;if(I.t2>1.4)I.max=0;return {p:shell.clone().add(new V3(-fw.x*0.15,0.5,0.3)),v:1.6,face:shell};}
 function iactPick(){if(VISIT||!FRIENDS.length||lightsOff||toy||foods.length||S.react||S.hold||S.call||(ptr.down&&ptr.moved>10))return;
   const f=FRIENDS[Math.floor(Math.random()*FRIENDS.length)],k=['follow','boop','circle','boop'][Math.floor(Math.random()*4)];
   IACT={k,f,t:k==='follow'?9:k==='circle'?7:8,a:Math.atan2(f.pos.z-S.pos.z,f.pos.x-S.pos.x),done:false};}
