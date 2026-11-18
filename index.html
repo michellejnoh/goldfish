@@ -1795,13 +1795,16 @@ $('#misClose').onclick=()=>{$('#missions').hidden=true;};
 /* ---- start-up: last keeper on this device loads instantly, then the online copy if it's newer ---- */
 {const last=(()=>{try{return localStorage.getItem('goldfish-user')}catch(e){return null}})();
   if(last&&NAME_RE.test(last)){USER=last;const local=mergeRec(readLocal(last),readBest(last));save=normalizeSave(local&&local.save);PROG=normProg(local&&local.prog);lastChange=(local&&(local.changed||local.updated))||0;
-    cloudGet(last).then(c=>{cloudReady=true;setTimeout(checkGifts,2500);if(c)takeMerged(c);setTimeout(()=>{needReal();palMigrate();},800);if(!c||(PROG.total||0)>((c.prog&&c.prog.total)||0)||(PROG.spent||0)>((c.prog&&c.prog.spent)||0)||lastChange>(c.updated||0)+500){cloudDirty=true;cloudPut();}},()=>{setTimeout(()=>{cloudReady=true;needReal();},20000);});}
+    cloudGet(last).then(c=>{cloudReady=true;setTimeout(checkGifts,2500);if(c)takeMerged(c);setTimeout(()=>{needReal();palMigrate();},800);setTimeout(seenNow,6000);if(!c||(PROG.total||0)>((c.prog&&c.prog.total)||0)||(PROG.spent||0)>((c.prog&&c.prog.spent)||0)||lastChange>(c.updated||0)+500){cloudDirty=true;cloudPut();}},()=>{setTimeout(()=>{cloudReady=true;needReal();},20000);});}
   else{PROG=null;}}
 setInterval(()=>{if(cloudDirty)cloudPut();else if(!document.hidden)pull();},30000);
+// note when this keeper was last on (friends lists sort by it): one save when the game opens, and when it comes back after a while away
+let seenT=0;function seenNow(){if(!USER||!cloudReady||Date.now()-seenT<600000)return;seenT=Date.now();cloudDirty=true;cloudPut();}
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)setTimeout(seenNow,3000);});
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)pull();});
 /* the home-screen app keeps an old copy of the page open (and iOS caches it), so check for a newer build when it opens or comes back,
    and reload past the cache if there is one */
-const BUILD='20261118105726';
+const BUILD='20261118105941';
 function checkBuild(){fetch('version.json?t='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{if(!j||!j.b||j.b===BUILD)return;
   try{if(sessionStorage.getItem('gf-build')===j.b)return;sessionStorage.setItem('gf-build',j.b);}catch(e){}
   try{persistLocal();}catch(e){}location.replace(location.pathname+'?v='+encodeURIComponent(j.b));}).catch(()=>{});}
@@ -2343,8 +2346,8 @@ function palMigrate(){if(DB&&USER&&USER!==ADMIN&&!save.adminPal&&myReal()&&cloud
 let FTAB='f',FPG=0,ALLK=null,ALLK_T=0;const FPER=6;
 function loadAll(){if(!DB)return;if(ALLK&&Date.now()-ALLK_T<300000)return;ALLK_T=Date.now();
   fetch('https://firestore.googleapis.com/v1/projects/'+DB.projectId+'/databases/(default)/documents:runQuery?key='+DB.apiKey,{method:'POST',headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({structuredQuery:{from:[{collectionId:'players'}],select:{fields:[{fieldPath:'name'},{fieldPath:'level'}]},orderBy:[{field:{fieldPath:'name'},direction:'ASCENDING'}],limit:1000}})})
-    .then(r=>{if(!r.ok)throw r.status;return r.json();}).then(j=>{ALLK=(j||[]).filter(x=>x.document).map(x=>{const f=x.document.fields||{};return {n:f.name&&f.name.stringValue,lv:+(f.level&&f.level.integerValue)||1};}).filter(x=>x.n&&NAME_RE.test(x.n));renderFriends();})
+    body:JSON.stringify({structuredQuery:{from:[{collectionId:'players'}],select:{fields:[{fieldPath:'name'},{fieldPath:'level'},{fieldPath:'updated'}]},orderBy:[{field:{fieldPath:'name'},direction:'ASCENDING'}],limit:1000}})})
+    .then(r=>{if(!r.ok)throw r.status;return r.json();}).then(j=>{ALLK=(j||[]).filter(x=>x.document).map(x=>{const f=x.document.fields||{};return {n:f.name&&f.name.stringValue,lv:+(f.level&&f.level.integerValue)||1,up:f.updated&&f.updated.timestampValue?Date.parse(f.updated.timestampValue):0};}).filter(x=>x.n&&NAME_RE.test(x.n));renderFriends();})
     .catch(e=>{ALLK=ALLK||[];$('#visitErr').textContent=e===403?'the full list needs the new database rules':'couldn’t load the list of keepers';renderFriends();});}
 function openVisit(){if(!DB){toast('visiting needs the online save');return;}$('#visitErr').textContent='';$('#visitName').value='';FPG=0;$('#visitAsk').hidden=false;loadAll();renderFriends();
   for(const n in pals())if(pals()[n].e&&PNAMES[n]===undefined){PNAMES[n]='';unseal(pals()[n].e).then(t=>{PNAMES[n]=t;renderFriends();});}
@@ -2356,7 +2359,8 @@ function renderFriends(){if($('#visitAsk').hidden)return;document.querySelectorA
   if(FTAB==='f'){if(USER!==ADMIN)for(const n of Object.keys(save.preqIn||{}).sort())rows.push({n,kind:'in',sub:PNAMES['?'+n]||'wants to be friends'});
     if(USER!==ADMIN)rows.push({n:ADMIN,kind:'admin'});
     const pn=new Set(Object.keys(pals()));if(USER===ADMIN)for(const k of ALLK||[])pn.add(k.n);pn.delete(USER);pn.delete(ADMIN);
-    for(const n of [...pn].sort())rows.push({n,kind:'pal',sub:PNAMES[n]||''});}
+    const upOf=n=>{const k=(ALLK||[]).find(x=>x.n===n);return k?k.up:0;};
+    for(const n of [...pn].sort().sort((a,b)=>upOf(b)-upOf(a)))rows.push({n,kind:'pal',sub:PNAMES[n]||''});}
   else{if(USER!==ADMIN)rows.push({n:ADMIN,kind:'admin'});for(const k of ALLK||[])if(k.n!==ADMIN&&k.n!==USER)rows.push({n:k.n,kind:pals()[k.n]||USER===ADMIN?'pal':(save.preqIn||{})[k.n]?'in':(save.preqOut||{})[k.n]?'out':'none',sub:pals()[k.n]?(PNAMES[k.n]||''):''});
     if(q&&NAME_RE.test(q)&&q!==USER&&!rows.some(r=>r.n===q)&&ALLK&&!ALLK.length)rows.push({n:q,kind:pals()[q]?'pal':'none'});}
   const list=rows.filter(r=>!q||r.n.includes(q)||(r.sub||'').toLowerCase().includes(q)),pages=Math.max(1,Math.ceil(list.length/FPER));FPG=clamp(FPG,0,pages-1);
