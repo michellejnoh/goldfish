@@ -166,6 +166,7 @@ body.visiting .ui,body.visiting #say{display:none}
 .langrow .link[aria-pressed="true"]{color:#111;text-decoration-thickness:2px}
 .card{position:relative}
 .row2.topclose{position:absolute;top:20px;right:22px;margin:0;width:auto}
+.notelist{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:6px}.notelist button{font:inherit;font-size:15px;text-align:left;padding:10px 12px;border:1px solid rgba(0,0,0,.1);border-radius:12px;background:none;color:inherit;cursor:pointer;line-height:1.25}.notelist button:active{background:rgba(0,0,0,.05)}.notelist button:disabled{opacity:.4}
 .sheet.dock.top .row2.topclose{top:calc(16px + env(safe-area-inset-top,0px))}
 .card h2{padding-right:64px}
 .growrow{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));align-items:end;gap:4px 6px;margin-top:0}
@@ -250,7 +251,7 @@ body.lookdock #viewArrows{display:flex}
 <div id="tour" hidden><div class="arrow"><svg viewBox="0 0 44 24" width="44" height="24" fill="none" stroke="#111" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12h36M31 5l8 7-8 7"/></svg></div><div class="tip"><p id="tourText"></p><div class="row2"><button type="button" class="link" id="tourSkip">skip</button><span id="tourStep"></span></div></div></div>
 <div id="giftPlaceBar" hidden><p id="gpTitle"></p><p class="small">drag it where you like · twist or use the arrows to turn it</p>
   <div class="gprow"><button type="button" class="go" data-gpturn="1" aria-label="turn left">‹</button><button type="button" class="go" data-gpturn="-1" aria-label="turn right">›</button><span></span><button type="button" class="go" id="gpCancel">cancel</button><button type="button" class="go" id="gpSend">send</button></div></div>
-<div id="visitBar" hidden><p id="visitTitle"></p><button type="button" class="vb" id="giftBtn"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 10h16v10H4z"/><path d="M3 7h18v3H3z"/><path d="M12 7v13"/><path d="M12 7c-1.5-3-5-3-5-1s3 1 5 1c2 0 5 1 5-1s-3.5-2-5 1"/></svg><span>gift</span></button><button type="button" class="vb" id="duelBtn"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><ellipse cx="12" cy="18.5" rx="6" ry="2"/><ellipse cx="12" cy="13.8" rx="4.4" ry="1.9"/><ellipse cx="12" cy="9.6" rx="3" ry="1.6"/><ellipse cx="12" cy="6.2" rx="1.8" ry="1.2"/></svg><span>duel</span></button><button type="button" class="vb" id="visitHome"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 11.5L12 5l8 6.5"/><path d="M6 10v9h12v-9"/></svg><span>home</span></button></div>
+<div id="visitBar" hidden><p id="visitTitle"></p><button type="button" class="vb" id="giftBtn"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 10h16v10H4z"/><path d="M3 7h18v3H3z"/><path d="M12 7v13"/><path d="M12 7c-1.5-3-5-3-5-1s3 1 5 1c2 0 5 1 5-1s-3.5-2-5 1"/></svg><span>gift</span></button><button type="button" class="vb" id="noteBtn"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6.5h16v11H4z"/><path d="M4.5 7l7.5 6 7.5-6"/></svg><span>note</span></button><button type="button" class="vb" id="duelBtn"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><ellipse cx="12" cy="18.5" rx="6" ry="2"/><ellipse cx="12" cy="13.8" rx="4.4" ry="1.9"/><ellipse cx="12" cy="9.6" rx="3" ry="1.6"/><ellipse cx="12" cy="6.2" rx="1.8" ry="1.2"/></svg><span>duel</span></button><button type="button" class="vb" id="visitHome"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 11.5L12 5l8 6.5"/><path d="M6 10v9h12v-9"/></svg><span>home</span></button></div>
 <div class="sheet" id="visitAsk" hidden>
   <div class="card">
     <h2>friends</h2>
@@ -301,6 +302,14 @@ body.lookdock #viewArrows{display:flex}
     <div class="shopgrid" id="giftDeco"></div>
     <p class="small" id="giftMsg"></p>
     <div class="row2 topclose"><span></span><button type="button" class="go" id="giftClose">close</button></div>
+  </div>
+</div>
+<div class="sheet" id="noteOut" hidden>
+  <div class="card">
+    <h2 id="noteTitle">leave a note</h2>
+    <div class="notelist" id="noteList"></div>
+    <p class="small" id="noteMsg"></p>
+    <div class="row2 topclose"><span></span><button type="button" class="go" id="noteClose">close</button></div>
   </div>
 </div>
 <div class="sheet" id="giftIn" hidden>
@@ -464,7 +473,8 @@ body.lookdock #viewArrows{display:flex}
 <script>
 /* ================= language: English / 한국어 =================
    The UI is written in English; in Korean mode every text node and label is swapped through this table as it appears. */
-const KO={
+const KO={'note':'쪽지','leave a note':'쪽지 남기기','hi! just stopped by':'안녕! 잠깐 들렀어','your tank is so pretty':'어항 너무 예쁘다','your fish is adorable':'물고기 너무 귀여워','love the decorations':'장식 진짜 좋다','come visit my tank!':'내 어항에도 놀러 와!','thanks for the gift':'선물 고마워','miss you!':'보고 싶어!','good luck today':'오늘 화이팅','have a great day':'좋은 하루 보내','good night, sleep well':'잘 자, 좋은 꿈 꿔',
+
 'blub':'뻐끔','blub blub':'뻐끔뻐끔','ok':'응','nom':'냠','nom nom':'냠냠','munch':'오물오물','mm':'음',
 'hand':'손','food':'먹이','wash':'청소','toy':'장난감','sleep':'재우기','wake':'깨우기',
 'full':'배부름','clean':'청결','energy':'기운','fun':'재미',
@@ -529,7 +539,8 @@ const KO={
 'edit · your fish’s color and pattern, the water, decorations, and the night lamp':'편집 · 금붕어 색과 무늬, 물 색, 장식, 무드등을 바꿔요','tank view · see your tank on its table in a little room, and turn it around':'어항 보기 · 작은 방 탁자 위의 어항을 보고 돌려 봐요',
 'camera · take a picture of your tank':'카메라 · 어항 사진을 찍어요','your keeper name · tap to switch keepers':'키퍼 이름 · 탭하면 다른 키퍼로 바꿔요','growth':'성장','drag it where you like · twist or use the arrows to turn it':'원하는 곳으로 끌어 놓고, 비틀거나 화살표로 돌려요','send':'보내기','cancel':'취소','turn your fish':'물고기 돌리기','language':'언어','growth · by level':'성장 · 레벨별','Take picture':'사진 찍기','Sound on':'소리 켜짐','Sound off':'소리 꺼짐','Tank view':'어항 보기','drag to turn · pinch to zoom':'끌어서 돌리기 · 두 손가락으로 확대','Zoom in':'확대','Zoom out':'축소','Goldfish tank. Tap, drag and feed to interact.':'금붕어 수조. 탭하고 끌고 먹이를 주며 놀아 주세요.',
 ': check the Firestore rules':': Firestore 규칙을 확인해 주세요',': is the Firestore database created?':': Firestore 데이터베이스가 만들어졌는지 확인해 주세요'};
-const KO_RX=[
+const KO_RX=[[/^leave a note for @(.+)$/,'@$1에게 쪽지 남기기'],[/^note left for @(.+)$/,'@$1에게 쪽지를 남겼어요'],[/^@(.+) left a note: “(.+)”$/,'@$1의 쪽지: “$2”'],
+
 [/^(.+) is nosing at the surface\.$/,'$1, 수면에서 뻐끔거리고 있어요.'],[/^(.+) is drifting low\.$/,'$1, 바닥 가까이 떠 있어요.'],
 [/^(.+) is pacing the glass\.$/,'$1, 유리 앞을 왔다 갔다 해요.'],[/^(.+) is gliding around\.$/,'$1, 여유롭게 헤엄치고 있어요.'],
 [/^(.+) is full right now\.$/,'$1, 지금은 배불러요.'],[/^(.+) is too tired to play\. Try sleep\.$/,'$1, 너무 피곤해서 못 놀아요. 재워 주세요.'],
@@ -1752,7 +1763,7 @@ setInterval(()=>{if(cloudDirty)cloudPut();else if(!document.hidden)pull();},3000
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)pull();});
 /* the home-screen app keeps an old copy of the page open (and iOS caches it), so check for a newer build when it opens or comes back,
    and reload past the cache if there is one */
-const BUILD='20261118092009';
+const BUILD='20261118100132';
 function checkBuild(){fetch('version.json?t='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{if(!j||!j.b||j.b===BUILD)return;
   try{if(sessionStorage.getItem('gf-build')===j.b)return;sessionStorage.setItem('gf-build',j.b);}catch(e){}
   try{persistLocal();}catch(e){}location.replace(location.pathname+'?v='+encodeURIComponent(j.b));}).catch(()=>{});}
@@ -1913,7 +1924,7 @@ function snailSurf(k){const F=B.floor,zf=0.9,zb=-1.72,xw=B.hw-0.04;
     back:{o:new V3(0,0,zb),a1:new V3(-1,0,0),a2:new V3(0,1,0),n:new V3(0,0,1),u:[-xw+0.08,xw-0.08],v:[F+0.02,B.surf-0.25]},
     left:{o:new V3(-xw,0,0),a1:new V3(0,0,1),a2:new V3(0,1,0),n:new V3(1,0,0),u:[zb+0.08,zf-0.08],v:[F+0.02,B.surf-0.25]},
     right:{o:new V3(xw,0,0),a1:new V3(0,0,-1),a2:new V3(0,1,0),n:new V3(-1,0,0),u:[-zf+0.08,-zb-0.08],v:[F+0.02,B.surf-0.25]}}[k];}
-const _sm=new THREE.Matrix4();let _sst=null;
+const _sm=new THREE.Matrix4(),_snRc=new THREE.Raycaster();let _sst=null;
 const snailShadowTex=()=>{if(_sst)return _sst;const c=document.createElement('canvas');c.width=c.height=64;const x=c.getContext('2d'),gr=x.createRadialGradient(32,32,0,32,32,32);gr.addColorStop(0,'rgba(255,255,255,1)');gr.addColorStop(0.45,'rgba(255,255,255,.6)');gr.addColorStop(1,'rgba(255,255,255,0)');x.fillStyle=gr;x.fillRect(0,0,64,64);return _sst=new THREE.CanvasTexture(c);};
 const snailList=()=>(VISIT?VISIT.snails:save.snails)||[];
 const snailMax=()=>2*(1+((save.friends||[]).length));
@@ -1944,7 +1955,7 @@ function snailTick(dt){const night=lightsOff||nightAmt()>0.5;
         SF=snailSurf(sn.sf);sn.tgt=null;}
       if(!sn.tgt){const r=Math.random();
         if(sn.sf==='floor'&&r<(night?0.35:0.22)){// climb a wall: walk to the bottom edge of one
-          const ed=['front','back','left','right'][Math.floor(rnd(0,4))],W=snailSurf(ed),p=W.o.clone().addScaledVector(W.a1,lerp(W.u[0],W.u[1],rnd(0.2,0.8))).addScaledVector(W.a2,0).addScaledVector(W.n,0.04);
+          const ed=Math.random()<0.6?'back':'front',W=snailSurf(ed),p=W.o.clone().addScaledVector(W.a1,lerp(W.u[0],W.u[1],rnd(0.2,0.8))).addScaledVector(W.a2,0).addScaledVector(W.n,0.04);
           sn.tgt={u:clamp(p.x,SF.u[0],SF.u[1]),v:clamp(-p.z,SF.v[0],SF.v[1]),edge:ed};}
         else if(sn.sf!=='floor'&&r<0.4)sn.tgt={u:clamp(sn.u+rnd(-0.3,0.3),SF.u[0],SF.u[1]),v:SF.v[0],edge:'floor'};
         else{let t=null;for(let i=0;i<8&&!t;i++){const c={u:clamp(sn.u+rnd(-0.8,0.8),SF.u[0],SF.u[1]),v:clamp(sn.v+rnd(-0.6,0.6),SF.v[0],SF.v[1])};
@@ -1957,22 +1968,28 @@ function snailTick(dt){const night=lightsOff||nightAmt()>0.5;
     // carried in your fingers: lifted a little off the surface, it goes wherever you take it (as fast as the fish follows), turning to face the way it's moved, and is set down when you let go
     let fw,side;
     if(sn.free){
-      // picked up: it hangs from your fingers anywhere in the tank, at the depth you grabbed it, turning the way you move it;
-      // let go and it tucks in and sinks slowly through the water, landing on the sand, or catching hold of the glass if you let go right by it
-      const fp=sn.fp,xw=B.hw-0.08,sy=sandAt(fp.x,fp.z);
-      if(sn.lead&&ptr.down){const p=new V3();if(ray.ray.intersectPlane(new THREE.Plane(new V3(0,0,1),-sn.grabZ),p)){p.y-=0.05;p.x=clamp(p.x,-xw,xw);p.y=clamp(p.y,sy+0.03,B.surf-0.12);p.z=sn.grabZ;
-          const k=1-Math.exp(-14*dt),dx=(p.x-fp.x)*k;fp.lerp(p,k);if(Math.abs(dx)>0.0015){let dh=(dx>0?0:Math.PI)-sn.fth;dh=Math.atan2(Math.sin(dh),Math.cos(dh));sn.fth+=dh*(1-Math.exp(-6*dt));}sn.sway=(sn.sway||0)*0.9+clamp(dx/Math.max(dt,1e-3),-1,1)*0.1;}
-        sn.st='look';sn.stT=1.5;sn.fv.set(0,0,0);}
-      else{sn.st='hide';sn.stT=1.6;sn.fv.y=Math.max(-0.45,sn.fv.y-0.7*dt);fp.addScaledVector(sn.fv,dt);sn.sway=(sn.sway||0)*0.95;
-        const wall=fp.y>sy+0.15?(fp.x<-xw+0.06?'left':fp.x>xw-0.06?'right':fp.z>0.84?'front':fp.z<-1.66?'back':null):null;
-        if(wall){const W=snailSurf(wall),q=fp.clone().sub(W.o);sn.sf=wall;sn.u=clamp(q.dot(W.a1),W.u[0],W.u[1]);sn.v=clamp(q.dot(W.a2),W.v[0],W.v[1]);sn.th=Math.PI/2;sn.free=false;}
-        else if(fp.y<=sy+0.006){sn.sf='floor';const Fl=snailSurf('floor');sn.u=clamp(fp.x,Fl.u[0],Fl.u[1]);sn.v=clamp(-fp.z,Fl.v[0],Fl.v[1]);sn.th=sn.fth;sn.free=false;sn.wob=0.6;sandPuffAt(new V3(fp.x,B.floor,fp.z));}}
+      // picked up: you move it like a decoration - drag left/right and up/down on the screen to move it across and front-to-back over the sand,
+      // held a little above it; keep dragging up past the back of the sand and it goes onto the back glass, up and down that.
+      // Let go over the sand and it tucks in and drops onto it; let go on the back glass and it holds on there.
+      const fp=sn.fp,xw=B.x*0.95;
+      if(sn.lead&&ptr.down){const p=new V3();let hm='floor';_snRc.setFromCamera(new THREE.Vector2(ndc.x+sn.go.x,ndc.y+sn.go.y),camera);const rr=_snRc.ray;
+        if(!(rr.intersectPlane(new THREE.Plane(new V3(0,1,0),-(B.floor+0.06)),p)&&p.z>-1.58)){hm='back';if(!rr.intersectPlane(new THREE.Plane(new V3(0,0,1),1.66),p))p.copy(fp);p.z=-1.66;}
+        p.x=clamp(p.x,-xw,xw);if(hm==='floor'){p.z=clamp(p.z,-1.58,0.82);p.y=sandAt(p.x,p.z)+0.06;}else p.y=clamp(p.y,B.floor+0.08,B.surf-0.12);
+        const k=1-Math.exp(-14*dt),dx=(p.x-fp.x)*k,dz=(p.z-fp.z)*k,dyy=(p.y-fp.y)*k;fp.lerp(p,k);sn.hm=hm;
+        if(hm==='floor'&&Math.hypot(dx,dz)>0.0015){let dh=Math.atan2(-dz,dx)-sn.fth;dh=Math.atan2(Math.sin(dh),Math.cos(dh));sn.fth+=dh*(1-Math.exp(-6*dt));}
+        if(hm==='back'&&Math.hypot(dx,dyy)>0.0015){let dh=Math.atan2(dyy,-dx)-sn.wth;dh=Math.atan2(Math.sin(dh),Math.cos(dh));sn.wth+=dh*(1-Math.exp(-6*dt));}
+        sn.sway=(sn.sway||0)*0.9+clamp(dx/Math.max(dt,1e-3),-1,1)*0.1;sn.st='look';sn.stT=1.5;sn.fv.set(0,0,0);}
+      else if(sn.hm==='back'&&fp.y>B.floor+0.1){const W=snailSurf('back'),q=fp.clone().sub(W.o);sn.sf='back';sn.u=clamp(q.dot(W.a1),W.u[0],W.u[1]);sn.v=clamp(q.dot(W.a2),W.v[0],W.v[1]);sn.th=sn.wth;sn.free=false;sn.st='look';sn.stT=1.2;}
+      else{const sy=sandAt(fp.x,fp.z);sn.st='hide';sn.stT=1.4;sn.fv.y=Math.max(-0.45,sn.fv.y-0.7*dt);fp.addScaledVector(sn.fv,dt);sn.sway=(sn.sway||0)*0.95;
+        if(fp.y<=sy+0.006){sn.sf='floor';const Fl=snailSurf('floor');sn.u=clamp(fp.x,Fl.u[0],Fl.u[1]);sn.v=clamp(-fp.z,Fl.v[0],Fl.v[1]);sn.th=sn.fth;sn.free=false;sn.wob=0.6;sandPuffAt(new V3(fp.x,B.floor,fp.z));}}
       SF=snailSurf(sn.sf);}
-    if(sn.free){const fp=sn.fp,sy=sandAt(fp.x,fp.z),hgt=fp.y-sy;fw=new V3(Math.cos(sn.fth),0,-Math.sin(sn.fth));const up=new V3(0,1,0);side=fw.clone().cross(up);
-      g.position.copy(fp);_sm.makeBasis(fw,up,side);g.quaternion.setFromRotationMatrix(_sm);g.rotateZ(sn.lead?0.2:-0.25);g.rotateX(clamp(sn.sway,-1,1)*0.4);
-      const sd=sn.shadow;_sm.makeBasis(fw,side.clone().negate(),up);sd.quaternion.setFromRotationMatrix(_sm);sd.position.set(fp.x,sy+0.004,fp.z);const f=1+Math.min(1.2,hgt*1.5);sd.scale.set(0.21*f,0.1*f,1);sd.material.opacity=0.13*Math.max(0.2,1-hgt*1.3);}
+    if(sn.free){const fp=sn.fp,sy=sandAt(fp.x,fp.z),hgt=fp.y-sy;let up;
+      if(sn.hm==='back'){up=new V3(0,0,1);fw=new V3(-Math.cos(sn.wth),Math.sin(sn.wth),0);}else{up=new V3(0,1,0);fw=new V3(Math.cos(sn.fth),0,-Math.sin(sn.fth));}side=fw.clone().cross(up);
+      g.position.copy(fp);if(sn.hm==='back')g.position.z+=0.05;_sm.makeBasis(fw,up,side);g.quaternion.setFromRotationMatrix(_sm);g.rotateZ(sn.lead?0.2:-0.25);g.rotateX(clamp(sn.sway,-1,1)*0.4);
+      const sd=sn.shadow;if(sn.hm==='back'){_sm.makeBasis(fw,side.clone().negate(),up);sd.quaternion.setFromRotationMatrix(_sm);sd.position.set(fp.x,fp.y,-1.715);sd.scale.set(0.27,0.13,1);sd.material.opacity=0.07;}
+      else{const u2=new V3(0,1,0);_sm.makeBasis(fw,side.clone().negate(),u2);sd.quaternion.setFromRotationMatrix(_sm);sd.position.set(fp.x,sy+0.004,fp.z);const f=1+Math.min(1.2,hgt*1.5);sd.scale.set(0.21*f,0.1*f,1);sd.material.opacity=0.13*Math.max(0.2,1-hgt*1.3);}}
     else{
-    if(sn.lead&&ptr.down){sn.free=true;sn.fp=g.position.clone();sn.fv=new V3();sn.grabZ=clamp(g.position.z,-1.6,0.8);sn.fth=Math.abs(Math.cos(sn.th))>0.3&&sn.sf==='floor'?(Math.cos(sn.th)>0?0:Math.PI):0;}
+    if(sn.lead&&ptr.down){sn.free=true;sn.fp=g.position.clone();{const v=g.getWorldPosition(new V3()).project(camera);sn.go=new THREE.Vector2(v.x-ndc.x,v.y-ndc.y);}sn.fv=new V3();sn.hm=sn.sf==='back'?'back':'floor';sn.fth=sn.sf==='floor'?sn.th:0;sn.wth=sn.sf==='back'?sn.th:Math.PI/2;if(sn.sf==='front'){sn.fp.z=0.8;}}
     {const up=sn.sf==='floor'?0:Math.sin(sn.th),sp=0.035*(night?1.25:1)*(1-0.3*Math.max(0,up))*sn.mv;sn.u=clamp(sn.u+Math.cos(sn.th)*sp*dt,SF.u[0],SF.u[1]);sn.v=clamp(sn.v+Math.sin(sn.th)*sp*dt,SF.v[0],SF.v[1]);}
     // place and orient on the surface: foot flat against it, head the way it's going
     fw=SF.a1.clone().multiplyScalar(Math.cos(sn.th)).addScaledVector(SF.a2,Math.sin(sn.th));side=fw.clone().cross(SF.n);
@@ -2198,7 +2215,7 @@ function enterVisit(n,rec){if(TV.on)setTankView(false);if(toy)endToy(true);persi
   document.body.classList.add('visiting');$('#visitBar').hidden=false;$('#visitTitle').textContent='@'+n+'’s tank · '+VISIT.fish+' · lv '+VISIT.level;say('');}
 let VISIT_CLOUD=null;
 function leaveVisit(){if(!VISIT)return;if(DX)endDuel();if(GPLACE)endGiftPlace(false);VISIT_CLOUD=VISIT.cloud||null;save.tank=VISIT.mine;lightsOff=VISIT.myLights;document.body.classList.toggle('night',lightsOff);if(S)S.asleep=lightsOff;VISIT=null;rebuildTank();spawnFriends();R.lookStage=null;S.grow=growStage()/10;applyLook();
-  document.body.classList.remove('visiting');$('#visitBar').hidden=true;$('#giftOut').hidden=true;persistLocal();{const c=VISIT_CLOUD;VISIT_CLOUD=null;if(c)takeMerged(c);}if(cloudDirty)cloudPut();}
+  document.body.classList.remove('visiting');$('#visitBar').hidden=true;$('#giftOut').hidden=true;$('#noteOut').hidden=true;persistLocal();{const c=VISIT_CLOUD;VISIT_CLOUD=null;if(c)takeMerged(c);}if(cloudDirty)cloudPut();}
 $('#visitHome').onclick=leaveVisit;
 // sending
 const PAT_CODE={plain:'a',fade:'b','dark fins':'c',patches:'d'};
@@ -2331,7 +2348,7 @@ function refreshFriendLooks(list,done){if(!DB||!list||!list.length)return;refres
     const lk=rec&&rec.save&&rec.save.pets&&rec.save.pets.fish&&rec.save.pets.fish.look;if(!lk)return;const nl=unpackLook(packLook(lk)),st=recStage(rec);
     for(const f of list)if(f.from===n&&(packLook(f.look||{})!==packLook(nl)||fstage(f)!==st)){f.look=nl;f.stage=st;changed=true;}}).catch(()=>{}).finally(()=>{if(--left===0&&changed)done&&done();}));}
 function giftDay(){if(!PROG.gday||PROG.gday.d!==dayKey())PROG.gday={d:dayKey(),snack:0};return PROG.gday;}
-function giftMsg(t){$('#giftMsg').textContent=t;if($('#giftOut').hidden&&t&&t!=='sending…'&&!/^sent to/.test(t))toast(t,3);}
+function giftMsg(t){$('#giftMsg').textContent=t;$('#noteMsg').textContent=t;if($('#giftOut').hidden&&$('#noteOut').hidden&&t&&t!=='sending…'&&!/^sent to/.test(t))toast(t,3);}
 /* placing a decoration gift: it appears in your friend's tank, you drag it where you like (twist or the arrows turn it), then send */
 let GPLACE=null;
 function startGiftPlace(d){if(!VISIT)return;$('#giftOut').hidden=true;const it={id:d.id,x:0,z:0.1,r:0};save.tank.items=(save.tank.items||[]).filter(i=>i.id!==d.id).concat([it]);rebuildTank();
@@ -2356,7 +2373,15 @@ function openGiftOut(){if(!VISIT)return;$('#giftTitle').textContent='send a gift
     const bt=document.createElement('button');bt.type='button';bt.textContent='send · '+d.price+' xp';bt.disabled=w<d.price;
     bt.onclick=()=>{if(wallet()<d.price)return;startGiftPlace(d);};it.append(im,nb,bt);gd.appendChild(it);}
   $('#giftOut').hidden=false;}
-$('#giftBtn').onclick=openGiftOut;
+$('#giftBtn').onclick=openGiftOut;$('#giftClose').onclick=()=>{$('#giftOut').hidden=true;};
+// notes: when visiting, leave one of ten short messages in the keeper's box; it shows up with their gifts and in their notifications.
+// (sent through the gift box as a "sticker" called note.N, so it works with the existing database rules)
+const NOTES=['hi! just stopped by','your tank is so pretty','your fish is adorable','love the decorations','come visit my tank!','thanks for the gift','miss you!','good luck today','have a great day','good night, sleep well'];
+function openNote(){if(!VISIT)return;$('#noteTitle').textContent='leave a note for @'+VISIT.n;$('#noteMsg').textContent='';const l=$('#noteList');l.textContent='';
+  NOTES.forEach((t,i)=>{const b=document.createElement('button');b.type='button';b.textContent=t;b.onclick=()=>{l.querySelectorAll('button').forEach(x=>x.disabled=true);
+    sendGift('sticker','note.'+i,()=>{$('#noteOut').hidden=true;giftFly('',null,'note left for @'+VISIT.n);});setTimeout(()=>l.querySelectorAll('button').forEach(x=>x.disabled=false),1500);};l.appendChild(b);});
+  $('#noteOut').hidden=false;}
+$('#noteBtn').onclick=openNote;$('#noteClose').onclick=()=>{$('#noteOut').hidden=true;};
 
 /* ---- duels: when visiting, challenge the keeper to rock stacking or rock balancing. Your fish swims in and the two fish play it out
    in the tank: fetching stones from the sand and stacking them. It's a coin flip. One duel per tank a day; the winner gets a winner ring (+50 xp). ---- */
@@ -2483,6 +2508,7 @@ function openGifts(list){const el=$('#giftInList');if($('#giftIn').hidden)el.tex
       pic='<img alt="" src="'+img+'" style="width:56px;height:40px">';txt='@'+g.from+' sent a little fish';setTimeout(spawnFriends,50);}
     else if(g.kind==='duel'){const [dk,res]=String(g.item).split('.'),gm=dk==='balance'?'rock balancing':'rock stacking',th=makeThumbs();pic='<img alt="" src="'+th.ring+'">';
       if(res==='l'){awardRing();placedGift=true;txt='you beat @'+g.from+' at '+gm+' · winner ring +50 xp';}else txt='@'+g.from+' beat you at '+gm;}
+    else if(g.kind==='sticker'&&/^note\.\d$/.test(g.item)&&NOTES[+g.item.slice(5)]){pic='<svg viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6.5h16v11H4z"/><path d="M4.5 7l7.5 6 7.5-6"/></svg>';txt='@'+g.from+' left a note: “'+NOTES[+g.item.slice(5)]+'”';}
     else if(g.kind==='sticker'&&STICKERS[g.item]){pic=stk(g.item,40);txt='@'+g.from+' sent a '+g.item;}
     else if(g.kind==='deco'){const pd=parseDecoItem(g.item),d=ALLDECO().find(x=>x.id===pd.id&&!x.prize);if(!d)continue;const th=makeThumbs();pic='<img alt="" src="'+th[d.id]+'">';
       if(save.tank.owned[d.id]){addXP(Math.round(d.price/2));txt='@'+g.from+' sent a '+d.name+' (you had one, so +'+Math.round(d.price/2)+' xp)';}else{save.tank.owned[d.id]=1;txt='@'+g.from+' sent a '+d.name;
