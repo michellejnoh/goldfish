@@ -301,7 +301,6 @@ body.lookdock #viewArrows{display:flex}
     <button type="button" class="mrow" id="mTank"><span class="mi"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 8.5h12.5v11.5H3.5z"/><path d="M3.5 8.5L7.5 4.5h12.5v11.5l-4 4"/><path d="M16 8.5l4-4"/></svg></span><span class="mt"><b>tank view</b><small>see your tank in its room</small></span></button>
     <button type="button" class="mrow" id="mPhoto"><span class="mi"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8.5h3.2L8.8 6h6.4l1.6 2.5H20v10H4z"/><circle cx="12" cy="13.2" r="3.3"/></svg></span><span class="mt"><b>photo</b><small>save a picture of your tank</small></span></button>
     <button type="button" class="mrow" id="mSound"><span class="mi"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9.5v5h3.5L12 18.5v-13L7.5 9.5H4z"/><path d="M15.5 9.5a3.5 3.5 0 0 1 0 5"/></svg></span><span class="mt"><b>sound</b><small id="mSoundTxt">on</small></span></button>
-    <button type="button" class="mrow" id="mAcct"><span class="mi"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8.5" r="3.5"/><path d="M5 20c.8-3.6 3.6-5.5 7-5.5s6.2 1.9 7 5.5"/></svg></span><span class="mt"><b>account & language</b><small id="mAcctTxt">sign in</small></span></button>
     <div class="row2 topclose"><span></span><button type="button" class="go" id="moreClose">close</button></div>
   </div>
 </div>
@@ -1804,7 +1803,7 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden)setTimeout
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)pull();});
 /* the home-screen app keeps an old copy of the page open (and iOS caches it), so check for a newer build when it opens or comes back,
    and reload past the cache if there is one */
-const BUILD='20261118105941';
+const BUILD='20261118110425';
 function checkBuild(){fetch('version.json?t='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{if(!j||!j.b||j.b===BUILD)return;
   try{if(sessionStorage.getItem('gf-build')===j.b)return;sessionStorage.setItem('gf-build',j.b);}catch(e){}
   try{persistLocal();}catch(e){}location.replace(location.pathname+'?v='+encodeURIComponent(j.b));}).catch(()=>{});}
@@ -2393,10 +2392,10 @@ $('#visitBtn').onclick=openVisit;
 function unshift(){if(window.scrollY||document.documentElement.scrollTop||document.body.scrollTop){window.scrollTo(0,0);document.documentElement.scrollTop=0;document.body.scrollTop=0;}}
 document.addEventListener('focusout',()=>setTimeout(unshift,60));if(window.visualViewport){visualViewport.addEventListener('resize',()=>setTimeout(unshift,60));visualViewport.addEventListener('scroll',()=>{if(!document.activeElement||!/INPUT|TEXTAREA/.test(document.activeElement.tagName))unshift();});}
 window.addEventListener('scroll',()=>{if(!document.activeElement||!/INPUT|TEXTAREA/.test(document.activeElement.tagName))unshift();});document.addEventListener('visibilitychange',()=>{if(!document.hidden)setTimeout(unshift,100);});setInterval(()=>{if(!document.activeElement||!/INPUT|TEXTAREA/.test(document.activeElement.tagName))unshift();},2000);
-function openMore(){$('#mSoundTxt').textContent=save.sound?'on':'off';$('#mAcctTxt').textContent=USER?'@'+USER+' · '+(LANG==='ko'?'한국어':'English'):'sign in';$('#more').hidden=false;}
+function openMore(){$('#mSoundTxt').textContent=save.sound?'on':'off';$('#more').hidden=false;}
 $('#moreBtn').onclick=openMore;$('#moreClose').onclick=()=>{$('#more').hidden=true;};
 $('#mTank').onclick=()=>{$('#more').hidden=true;$('#tvBtn').click();};$('#mPhoto').onclick=()=>{$('#more').hidden=true;$('#captureBtn').click();};
-$('#mSound').onclick=()=>{$('#snd').click();$('#mSoundTxt').textContent=save.sound?'on':'off';};$('#mAcct').onclick=()=>{$('#more').hidden=true;$('#who').click();}
+$('#mSound').onclick=()=>{$('#snd').click();$('#mSoundTxt').textContent=save.sound?'on':'off';};
 function enterVisit(n,rec){if(TV.on)setTankView(false);if(toy)endToy(true);persistLocal();
   const f=(rec.save.pets&&rec.save.pets.fish)||{},pr=normProg(rec.prog);
   VISIT_REC(n);VISIT={n,mine:save.tank,look:Object.assign({c:'orange',p:'plain',seed:1},f.look||{}),stage:Math.min(10,Math.max(pr.grow||0,Math.floor(pr.level/5))),fish:f.name||DEF,level:pr.level};
