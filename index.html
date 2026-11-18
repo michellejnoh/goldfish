@@ -59,7 +59,7 @@ body.night #dark{opacity:.55}
 .sec{font-size:13px;opacity:.5;margin:12px 0 2px;letter-spacing:.02em}.sec:first-of-type{margin-top:4px}
 #snailMine{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 2px}#snailMine button{background:none;border:1px solid rgba(0,0,0,.15);border-radius:999px;padding:6px 12px;font:inherit;font-size:14px;color:inherit}
 .ftabs{display:flex;gap:18px;margin:2px 0 8px}.ftabs button{background:none;border:0;font:inherit;font-size:19px;color:inherit;opacity:.45;padding:2px 0}.ftabs button[aria-selected="true"]{opacity:1;text-decoration:underline;text-underline-offset:5px}
-#flist{min-height:300px;margin-top:8px}.frow{display:flex;align-items:center;gap:8px;padding:7px 2px;border-bottom:1px solid rgba(0,0,0,.07);min-height:34px}.frow b{font-weight:500;font-size:18px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.frow small{opacity:.55;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;min-width:0}
+#flist{min-height:300px;margin-top:8px}.frow{display:flex;align-items:center;gap:8px;padding:7px 2px;border-bottom:1px solid rgba(0,0,0,.07);min-height:34px}.frow b{font-weight:500;font-size:18px;white-space:nowrap;padding-right:.2em;flex:none}.frow small{opacity:.55;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;min-width:0}
 .frow .tag{font-size:13px;border:1px solid currentColor;border-radius:999px;padding:0 7px;opacity:.7;flex:none}.frow button{flex:none;background:none;border:1px solid rgba(0,0,0,.18);border-radius:999px;padding:4px 12px;font:inherit;font-size:15px;color:inherit}.frow button.no{border:0;opacity:.5;padding:4px 6px}.frow em{flex:none;font-style:normal;opacity:.5;font-size:15px}
 .fsec{font-size:15px;opacity:.5;margin:8px 0 0}.fpager{display:flex;align-items:center;justify-content:center;gap:18px;margin-top:6px}.fpager button{background:none;border:0;font:inherit;font-size:28px;line-height:1;padding:0 12px;color:inherit}.fpager button:disabled{opacity:.2}.fpager span{font-size:15px;opacity:.55}
 .shoptabs{display:flex;gap:6px;justify-content:center;margin:4px 0 10px}.shoptabs button{background:none;border:0;border-bottom:1.5px solid transparent;padding:4px 10px;font:inherit;font-size:16px;color:inherit;opacity:.5}.shoptabs button[aria-selected=true]{opacity:1;border-color:currentColor}
@@ -1786,7 +1786,7 @@ setInterval(()=>{if(cloudDirty)cloudPut();else if(!document.hidden)pull();},3000
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)pull();});
 /* the home-screen app keeps an old copy of the page open (and iOS caches it), so check for a newer build when it opens or comes back,
    and reload past the cache if there is one */
-const BUILD='20261118104233';
+const BUILD='20261118104834';
 function checkBuild(){fetch('version.json?t='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{if(!j||!j.b||j.b===BUILD)return;
   try{if(sessionStorage.getItem('gf-build')===j.b)return;sessionStorage.setItem('gf-build',j.b);}catch(e){}
   try{persistLocal();}catch(e){}location.replace(location.pathname+'?v='+encodeURIComponent(j.b));}).catch(()=>{});}
@@ -2316,6 +2316,8 @@ async function acceptFriend(n){const inn=(save.preqIn||{})[n];if(!inn)return;if(
 function declineFriend(n){const o=Object.assign({},save.preqIn);delete o[n];save.preqIn=o;persist();renderFriends();}
 // a friend message arriving in the gift box
 async function takeFriendMsg(g){const [k,...rest]=String(g.item||'').split('|'),nm=cleanReal(rest.join('|')),from=g.from;if(!from||from===USER)return null;
+  // the admin is everyone's friend: any request or name that arrives is simply kept
+  if(USER===ADMIN&&(k==='req'||k==='ok')){const had=!!pals()[from];pals()[from]=Object.assign({t:Date.now()},pals()[from],nm?{e:await seal(nm)}:{});if(save.preqIn)delete save.preqIn[from];return had?null:'you and @'+from+' are friends now';}
   if(k==='req'){if(pals()[from]){if(nm&&!pals()[from].e){pals()[from].e=await seal(nm);}return null;}
     if((save.preqOut||{})[from]){pals()[from]={t:Date.now(),e:await seal(nm)};delete save.preqOut[from];sendTo(from,'friend','ok|'+myReal().slice(0,20)).catch(()=>{});return 'you and @'+from+' are friends now';}
     save.preqIn=Object.assign({},save.preqIn,{[from]:{t:g.at||Date.now(),e:await seal(nm)}});return '@'+from+' sent you a friend request';}
@@ -2324,7 +2326,8 @@ async function takeFriendMsg(g){const [k,...rest]=String(g.item||'').split('|'),
     save.okHold=Object.assign({},save.okHold,{[from]:e});return null;}
   return null;}
 // keepers who visited each other before friendships existed are friends already (checked once per account)
-function palMigrate(){if(!DB||!USER||save.palMig||!myReal()||!cloudReady)return;const me=USER,list=(save.recent||[]).filter(n=>n!==me);save.palMig=1;persist();
+function palMigrate(){if(DB&&USER&&USER!==ADMIN&&!save.adminPal&&myReal()&&cloudReady){save.adminPal=1;persist();sendTo(ADMIN,'friend','ok|'+myReal().slice(0,20)).catch(()=>{save.adminPal=0;});}
+  if(!DB||!USER||save.palMig||!myReal()||!cloudReady)return;const me=USER,list=(save.recent||[]).filter(n=>n!==me);save.palMig=1;persist();
   list.forEach(n=>cloudGet(n).then(async rec=>{if(USER!==me||!rec||!rec.save)return;if(!(rec.save.recent||[]).includes(me)||pals()[n])return;
     pals()[n]={t:Date.now(),e:(save.okHold||{})[n]||'',mig:1};if(save.okHold)delete save.okHold[n];persist();sendTo(n,'friend','ok|'+myReal().slice(0,20)).catch(()=>{});},()=>{}));}
 // the friends sheet: "my friends" (requests waiting for you, the admin, then your friends with their real names) and "everyone" (every keeper A-Z),
@@ -2342,10 +2345,11 @@ function goVisit(n){if(n===USER){$('#visitErr').textContent='that’s your own t
   $('#visitErr').textContent='looking…';cloudGet(n).then(rec=>{if(!rec||!rec.save){$('#visitErr').textContent='no keeper called “'+n+'” yet';return;}$('#visitAsk').hidden=true;enterVisit(n,rec);},()=>{$('#visitErr').textContent='couldn’t reach the online save';});}
 function renderFriends(){if($('#visitAsk').hidden)return;document.querySelectorAll('.ftabs [data-ft]').forEach(b=>b.setAttribute('aria-selected',b.dataset.ft===FTAB));
   const q=$('#visitName').value.trim().toLowerCase(),rows=[],lvOf=n=>{const k=(ALLK||[]).find(x=>x.n===n);return k?k.lv:null;};
-  if(FTAB==='f'){for(const n of Object.keys(save.preqIn||{}).sort())rows.push({n,kind:'in',sub:PNAMES['?'+n]||'wants to be friends'});
+  if(FTAB==='f'){if(USER!==ADMIN)for(const n of Object.keys(save.preqIn||{}).sort())rows.push({n,kind:'in',sub:PNAMES['?'+n]||'wants to be friends'});
     if(USER!==ADMIN)rows.push({n:ADMIN,kind:'admin'});
-    for(const n of Object.keys(pals()).sort())if(n!==ADMIN)rows.push({n,kind:'pal',sub:PNAMES[n]||''});}
-  else{if(USER!==ADMIN)rows.push({n:ADMIN,kind:'admin'});for(const k of ALLK||[])if(k.n!==ADMIN&&k.n!==USER)rows.push({n:k.n,kind:pals()[k.n]?'pal':(save.preqIn||{})[k.n]?'in':(save.preqOut||{})[k.n]?'out':'none',sub:pals()[k.n]?(PNAMES[k.n]||''):''});
+    const pn=new Set(Object.keys(pals()));if(USER===ADMIN)for(const k of ALLK||[])pn.add(k.n);pn.delete(USER);pn.delete(ADMIN);
+    for(const n of [...pn].sort())rows.push({n,kind:'pal',sub:PNAMES[n]||''});}
+  else{if(USER!==ADMIN)rows.push({n:ADMIN,kind:'admin'});for(const k of ALLK||[])if(k.n!==ADMIN&&k.n!==USER)rows.push({n:k.n,kind:pals()[k.n]||USER===ADMIN?'pal':(save.preqIn||{})[k.n]?'in':(save.preqOut||{})[k.n]?'out':'none',sub:pals()[k.n]?(PNAMES[k.n]||''):''});
     if(q&&NAME_RE.test(q)&&q!==USER&&!rows.some(r=>r.n===q)&&ALLK&&!ALLK.length)rows.push({n:q,kind:pals()[q]?'pal':'none'});}
   const list=rows.filter(r=>!q||r.n.includes(q)||(r.sub||'').toLowerCase().includes(q)),pages=Math.max(1,Math.ceil(list.length/FPER));FPG=clamp(FPG,0,pages-1);
   const el=$('#flist');el.textContent='';
