@@ -92,6 +92,8 @@ html.standalone .bottom{padding-bottom:calc(env(safe-area-inset-bottom,0px)*0.4 
 button:focus-visible,#name:focus-visible{outline:1.5px solid var(--ink);outline-offset:3px}
 body.evening{background:radial-gradient(ellipse 95% 55% at 102% 58%,rgba(var(--lampc,255,236,206),calc(.62*var(--lampA,1))),rgba(var(--lampc,255,236,206),calc(.26*var(--lampA,1))) 45%,rgba(var(--lampc,255,236,206),0) 75%),var(--nMid)!important;transition:background .6s}
 body.night{--ink:#ededed;--dim:#7d7d7d;--soft:#b3b3b3;--track:#4a4a4a}
+/* the menus keep their light card at night, so they keep the day ink too (otherwise icons go pale on white) */
+body.night .sheet{--ink:#111111;--dim:#a3a3a3;--soft:#6b6b6b;--track:#dedede}
 body.night #say{color:#e0e0e0}
 @media (min-width:700px){#name{font-size:46px}}
 @media (min-width:700px) and (min-height:700px){.ui{zoom:1.5}.sheet .card{zoom:1.35}#visitBar,#duelCap,#giftPlaceBar{zoom:1.4}.sheet.dock .card{zoom:1.2}}
@@ -1772,7 +1774,7 @@ $('#loginForm').addEventListener('submit',async e=>{e.preventDefault();const n=$
   if(pending){if(real.length<2){$('#loginMsg').textContent='type your real name too · it keeps others out of your account';return;}
     const idh=pending.rec&&pending.rec.save&&pending.rec.save.idh,h=await idHash(pending.n,real);
     if(idh&&idh!==h){$('#loginMsg').textContent='that real name doesn’t match @'+pending.n;return;}
-    const pn=pending.n,pr=pending.rec;signIn(pn,pr);setMyReal(real);if(!save.idh){save.idh=h;persist();cloudDirty=true;cloudPut();}palMigrate();return;}
+    const pn=pending.n,pr=pending.rec;signIn(pn,pr);setMyReal(real);if(!save.idh){save.idh=h;persist();cloudDirty=true;cloudPut();}keepIdh();palMigrate();return;}
   if(!NAME_RE.test(n)){$('#loginMsg').textContent='use 2 to 16 letters, numbers or _';return;}
   if(n===USER){$('#login').hidden=true;return;}
   $('#loginGo').textContent='\u2026';const local=readLocal(n);
@@ -1815,7 +1817,7 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden)setTimeout
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)pull();});
 /* the home-screen app keeps an old copy of the page open (and iOS caches it), so check for a newer build when it opens or comes back,
    and reload past the cache if there is one */
-const BUILD='20261118153147';
+const BUILD='20261118155145';
 function checkBuild(){fetch('version.json?t='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{if(!j||!j.b||j.b===BUILD)return;
   try{if(sessionStorage.getItem('gf-build')===j.b)return;sessionStorage.setItem('gf-build',j.b);}catch(e){}
   try{persistLocal();}catch(e){}location.replace(location.pathname+'?v='+encodeURIComponent(j.b));}).catch(()=>{});}
@@ -2424,10 +2426,13 @@ $('#visitForm').addEventListener('submit',e=>{e.preventDefault();const n=$('#vis
 $('#visitCancel').onclick=()=>{$('#visitAsk').hidden=true;};
 // asking for the real name: on sign-in, and once for accounts made before names were asked for (or on a device that doesn't know it yet)
 function askReal(){if(!USER)return;$('#realName').value='';$('#realMsg').textContent='only your friends can see it';$('#realAsk').hidden=false;}
-function needReal(){if(!USER||!$('#login').hidden)return;if(!save.idh||!myReal())askReal();}
+// only accounts that never had a real name entered are asked (the name check is also kept on this device, in case an older copy of the game saved over it)
+const IDHK=u=>'goldfish-idh-'+u;
+function keepIdh(){try{if(save.idh)localStorage.setItem(IDHK(USER),save.idh);else{const h=localStorage.getItem(IDHK(USER));if(h){save.idh=h;persist();cloudDirty=true;}}}catch(e){}}
+function needReal(){if(!USER||!$('#login').hidden)return;keepIdh();if(!save.idh)askReal();}
 $('#realForm').addEventListener('submit',async e=>{e.preventDefault();const t=cleanReal($('#realName').value);if(t.length<2){$('#realMsg').textContent='please type your real name';return;}
   const h=await idHash(USER,t);if(save.idh&&save.idh!==h){$('#realMsg').textContent='that doesn’t match the name on this account';return;}
-  setMyReal(t);if(!save.idh){save.idh=h;persist();cloudDirty=true;cloudPut();}$('#realAsk').hidden=true;palMigrate();});
+  setMyReal(t);if(!save.idh){save.idh=h;persist();cloudDirty=true;cloudPut();}keepIdh();$('#realAsk').hidden=true;palMigrate();});
 $('#realSwitch').onclick=()=>{$('#realAsk').hidden=true;openLogin();};
 $('#visitBtn').onclick=openVisit;
 /* iOS (especially the home-screen app) scrolls the whole page up when the keyboard opens and doesn't always scroll it back, so the
