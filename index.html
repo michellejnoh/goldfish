@@ -106,7 +106,7 @@ body.visiting .ui,body.visiting #say{display:none}
   padding-top:calc(env(safe-area-inset-top,0px) + 12px);padding-left:max(20px,env(safe-area-inset-left,0px));padding-right:max(20px,env(safe-area-inset-right,0px))}
 /* phones: Safari blurs whatever sits right under the top edge, so the visit bar (and the duel caption) start lower there */
 @media (hover:none) and (pointer:coarse){body #visitBar{padding-top:calc(env(safe-area-inset-top,0px) + 30px)}body #duelCap{top:calc(env(safe-area-inset-top,0px) + 74px)}}
-#visitTitle{margin:0;flex:1;font-size:19px;line-height:1.2;color:var(--ink)}
+#visitTitle{margin:0;flex:1;font-size:19px;line-height:1.2;color:var(--ink);white-space:pre-line}
 .giftrow{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:4px}
 .duelopts{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0 4px}.duelopts .gbtn{display:flex;flex-direction:column;align-items:flex-start;gap:4px;padding:14px;text-align:left;width:auto;height:auto}
 .duelopts small{opacity:.6;font-size:13px}#duelCap{position:fixed;left:0;right:0;top:calc(env(safe-area-inset-top,0px) + 54px);z-index:4;margin:0;text-align:center;font-size:17px;color:var(--ink);opacity:.8;pointer-events:none;transition:opacity .4s}
@@ -289,7 +289,7 @@ body.lookdock #viewArrows{display:flex}
 <div class="sheet" id="duel" hidden>
   <div class="card">
     <h2 id="duelTitle">duel</h2>
-    <p class="small" id="duelNote">the fish play it out in the tank · pure luck · winner gets a winner ring (+50 xp)</p>
+    <p class="small" id="duelNote">the fish play it out in the tank · pure luck · winner gets a ring (+100 xp)</p>
     <div class="duelopts" id="duelPick"><button type="button" class="gbtn" data-duel="stack"><b>rock stacking</b><small>tallest tower wins</small></button>
     <button type="button" class="gbtn" data-duel="balance"><b>rock balancing</b><small>keep the stones on your nose longest</small></button></div>
     <div class="row2 topclose"><span></span><button type="button" class="go" id="duelClose">close</button></div>
@@ -556,7 +556,7 @@ const KO={'my friends':'내 친구','everyone':'전체','search username':'아�
 'heart':'하트','sparkle':'반짝','fishy':'물고기','bubbles':'방울','cucumber':'오이','yum':'냠','crunch':'아삭','zucchini':'애호박','banana':'바나나',
 'a little fish like yours · 50 xp':'내 금붕어를 닮은 작은 물고기 · 50 xp','send · 50 xp':'보내기 · 50 xp','friends’ fish':'친구 물고기','tap a fish to show or hide it in your tank':'물고기를 탭해서 어항에 보이거나 숨겨요','no skin':'스킨 없음','little fish your friends send you swim here':'친구가 보낸 작은 물고기가 여기서 헤엄쳐요',
 'visit · type a friend’s username to visit their tank, send gifts, or challenge them to a duel. fish you’re sent swim with yours':'방문 · 친구 아이디를 입력해 어항에 놀러 가서 선물을 보내거나 결투를 신청해요. 선물받은 물고기는 내 물고기랑 같이 놀아요','duel':'결투','notifications':'알림','nothing yet':'아직 없어요','snails':'달팽이','up to two for each fish':'물고기 한 마리당 두 마리까지','gold shell':'금와','white body':'백와','black & brown':'흑백와','black & gold':'흑금와','all black':'흑와','put away':'치우기','tap a decoration first':'먼저 장식을 눌러 주세요','my fish':'내 금붕어','tank':'어항','more':'더보기','tank view':'어항 뷰','see your tank in its room':'방 안의 어항 보기','photo':'사진','save a picture of your tank':'어항 사진 저장','sound':'소리','on':'켜짐','off':'꺼짐','account & language':'계정 · 언어','friends':'친구','visit a keeper by username, or tap one you’ve visited':'아이디로 놀러 가거나, 전에 갔던 친구를 눌러요','gift':'선물','home':'집','rings':'반지','won in duels':'결투에서 얻어요',
-'your level · tap for missions. your fish grows every 5 levels':'레벨 · 누르면 미션이 나와요. 5레벨마다 금붕어가 자라요','shop · winter decorations, crystals and rings':'상점 · 겨울 장식, 크리스탈, 반지','friends · visit a keeper, send gifts, or challenge them to a duel. fish you’re sent swim with yours':'친구 · 놀러 가서 선물을 보내거나 결투를 신청해요. 선물받은 물고기는 내 물고기랑 같이 놀아요','more · tank view, photos, sound, account and language':'더보기 · 어항 뷰, 사진, 소리, 계정과 언어','winter':'겨울','crystals':'크리스탈','amethyst':'자수정','rose quartz':'로즈 쿼츠','citrine':'시트린','aquamarine':'아쿠아마린','fluorite':'형석','rings · won in duels':'반지 · 결투에서 얻어요','win a duel':'결투에서 이기면','tallest tower wins':'더 높이 쌓으면 승리','keep the stones on your nose longest':'코 위 돌을 끝까지 지키면 승리','the fish play it out in the tank · pure luck · winner gets a winner ring (+50 xp)':'물고기들이 어항에서 직접 겨뤄요 · 순전히 운 · 이기면 승리 반지 (+50 xp)','notifications':'알림','turn on':'켜기','turn off':'끄기','notifications are on':'알림이 켜져 있어요','notifications · add Goldfish to your home screen first':'알림 · 먼저 Goldfish를 홈 화면에 추가해 주세요',"notifications aren’t available here":'여기서는 알림을 쓸 수 없어요','notifications are blocked in settings':'설정에서 알림이 꺼져 있어요','rock stacking':'돌 쌓기','rock balancing':'돌 균형 잡기','who stacks the tallest tower':'누가 더 높이 쌓나','whose stack stays up longer':'누구 탑이 더 오래 버티나','pick a game. winning is pure luck · the winner gets a shiny winner ring (+50 xp)':'게임을 골라요. 승패는 순전히 운 · 이기면 반짝이는 승리 반지 (+50 xp)','winner ring':'승리 반지','skin':'스킨','special looks, like christmas':'크리스마스 같은 특별한 모습','a skin is worn over your color and pattern · tap it again to reshuffle':'스킨은 색과 무늬 위에 입혀져요 · 한 번 더 누르면 모양이 바뀌어요','none':'없음','christmas':'크리스마스','at least 20 stones stay in the tank':'어항에는 돌이 최소 20개 남아 있어야 해요','skip':'건너뛰기',
+'your level · tap for missions. your fish grows every 5 levels':'레벨 · 누르면 미션이 나와요. 5레벨마다 금붕어가 자라요','shop · winter decorations, crystals and rings':'상점 · 겨울 장식, 크리스탈, 반지','friends · visit a keeper, send gifts, or challenge them to a duel. fish you’re sent swim with yours':'친구 · 놀러 가서 선물을 보내거나 결투를 신청해요. 선물받은 물고기는 내 물고기랑 같이 놀아요','more · tank view, photos, sound, account and language':'더보기 · 어항 뷰, 사진, 소리, 계정과 언어','winter':'겨울','crystals':'크리스탈','amethyst':'자수정','rose quartz':'로즈 쿼츠','citrine':'시트린','aquamarine':'아쿠아마린','fluorite':'형석','rings · won in duels':'반지 · 결투에서 얻어요','win a duel':'결투에서 이기면','tallest tower wins':'더 높이 쌓으면 승리','keep the stones on your nose longest':'코 위 돌을 끝까지 지키면 승리','the fish play it out in the tank · pure luck · winner gets a ring (+100 xp)':'물고기들이 어항에서 직접 겨뤄요 · 순전히 운 · 이기면 반지 (+100 xp)','notifications':'알림','turn on':'켜기','turn off':'끄기','notifications are on':'알림이 켜져 있어요','notifications · add Goldfish to your home screen first':'알림 · 먼저 Goldfish를 홈 화면에 추가해 주세요',"notifications aren’t available here":'여기서는 알림을 쓸 수 없어요','notifications are blocked in settings':'설정에서 알림이 꺼져 있어요','rock stacking':'돌 쌓기','rock balancing':'돌 균형 잡기','who stacks the tallest tower':'누가 더 높이 쌓나','whose stack stays up longer':'누구 탑이 더 오래 버티나','pick a game. winning is pure luck · the winner gets a shiny winner ring (+50 xp)':'게임을 골라요. 승패는 순전히 운 · 이기면 반짝이는 승리 반지 (+50 xp)','winner ring':'승리 반지','skin':'스킨','special looks, like christmas':'크리스마스 같은 특별한 모습','a skin is worn over your color and pattern · tap it again to reshuffle':'스킨은 색과 무늬 위에 입혀져요 · 한 번 더 누르면 모양이 바뀌어요','none':'없음','christmas':'크리스마스','at least 20 stones stay in the tank':'어항에는 돌이 최소 20개 남아 있어야 해요','skip':'건너뛰기',
 'hand · drag to lead your fish, tap to call it, tap the fish to say hi':'손 · 끌어서 금붕어를 데려가고, 탭해서 부르고, 금붕어를 탭하면 인사해요',
 'food · tap the water to sprinkle flakes':'먹이 · 물을 탭해서 먹이를 뿌려요','clean · when the glass gets dirty, rub it clean':'청소 · 유리가 더러워지면 문질러서 닦아요',
 'toy · drag the lure and let your fish chase it':'장난감 · 미끼를 끌면 금붕어가 쫓아와요','sleep · turns the lights off so your fish can rest':'재우기 · 불을 꺼서 금붕어를 쉬게 해요',
@@ -1038,6 +1038,12 @@ function applyWater(){const c=WATER[(save.tank&&save.tank.water)||'clear']||WATE
 function syncTheme(){let night=false;try{night=lightsOff;}catch(e){}const c=night?'#0f0f12':syncTheme.over||(WATER[(save.tank&&save.tank.water)||'clear']||WATER.clear);if(syncTheme.c===c)return;syncTheme.c=c;
   document.querySelectorAll('meta[name="theme-color"]').forEach(m=>m.setAttribute('content',c));}
 function freeTree(o){o.traverse(m=>{if(m.geometry)m.geometry.dispose();if(m.material)[].concat(m.material).forEach(x=>x.dispose());});}
+// rings lie where they fall: each one rests on the highest thing under it - the sand, another ring or a decoration (checked from above at a few points across it)
+const RINGPTS=[[0,0]].concat([...Array(8)].map((_,i)=>[Math.cos(i*Math.PI/4)*0.17,Math.sin(i*Math.PI/4)*0.17]));
+function settleRings(e){const rc=new THREE.Raycaster(),down=new V3(0,-1,0),done=ITEMS_ON.filter(g=>!g.userData.isRing),o=new V3();e.updateMatrixWorld(true);
+  for(const g of ITEMS_ON.filter(g=>g.userData.isRing)){let y=B.floor;for(const [dx,dz] of RINGPTS){o.set(g.position.x+dx,B.surf,g.position.z+dz);e.localToWorld(o);rc.set(o,down);
+      const h=rc.intersectObjects(done,true)[0];if(h)y=Math.max(y,e.worldToLocal(h.point.clone()).y-0.006);}
+    g.position.y=y;g.updateMatrixWorld(true);done.push(g);}}
 function rebuildTank(){if(!ENV)return;DROPS.length=0;world.remove(ENV);freeTree(ENV);PEBBLES=[];ENV=buildEnv();world.add(ENV);applyWater();computeObst();applyLook();}
 /* solid things in the tank (big rocks, decorations) as soft ellipsoids the fish slides around instead of swimming through */
 let BIGROCKS=[],OBST=[];const _bx=new THREE.Box3(),_wInv=new THREE.Matrix4(),_m4=new THREE.Matrix4(),_v=new V3();
@@ -1098,7 +1104,8 @@ function buildEnv(){
   // the heap sits in the open toward the front, where it can be seen
   PILE=new V3((save.tank.pileSide||(save.tank.pileSide=Math.random()<0.5?-1:1))*B.x*0.4,F,0.45);if(save.tank.pile){PILE.x=save.tank.pile[0]*B.x;PILE.z=save.tank.pile[1];}PILE.n=PEBBLES.filter(p=>p.inPile).length;
   if(PILE.n){let sx=0,sz=0;for(const p of PEBBLES)if(p.inPile){sx+=p.m.position.x;sz+=p.m.position.z;}PILE.x=sx/PILE.n;PILE.z=sz/PILE.n;}// keep growing an existing heap where it is
-  ITEMS_ON=[];for(const it of save.tank.items){const def=ALLDECO().find(d=>d.id===it.id);if(!def)continue;const g=def.make(it);g.userData.isRing=def.id==='ring';g.userData.ringId=def.prize?def.id:null;if(def.glow)g.userData.glow=def.glow;if(g.userData.isRing){const rg=g.children[0];rg.rotation.set(Math.PI/2-0.18,0,0);rg.position.y=0.031;}g.scale.setScalar(1.8);g.position.set(it.x*B.x,F,it.z);g.rotation.y=it.r||0;g.userData.item=it;e.add(g);ITEMS_ON.push(g);}
+  ITEMS_ON=[];for(const it of save.tank.items){const def=ALLDECO().find(d=>d.id===it.id);if(!def)continue;const g=def.make(it);g.userData.isRing=!!def.prize;g.userData.ringId=def.prize?def.id:null;if(def.glow)g.userData.glow=def.glow;if(g.userData.isRing){const rg=g.children[0];rg.rotation.set(Math.PI/2-0.18,0,0);rg.position.y=0.031;}g.scale.setScalar(1.8);g.position.set(it.x*B.x,F,it.z);g.rotation.y=it.r||0;g.userData.item=it;e.add(g);ITEMS_ON.push(g);}
+  e.updateMatrixWorld(true);settleRings(e);
   {const bg=stoneGeo(0.1,7,false,1);const cc2=new THREE.Color();tint(bg,()=>cc2.setRGB(0.5,0.5,0.5));const bm=new THREE.Mesh(bg,MAT);bm.position.set(B.x*0.25,F+0.1,-0.1);e.add(bm);BALL={m:bm,pos:bm.position,vel:new V3(),r:0.1,floor:F+0.1};}
   BIGROCKS=[];[[-B.x*0.75,-1.0,0.42],[B.x*0.6,-1.2,0.55],[B.x*0.95,-0.7,0.26]].forEach(([x,z,r])=>{const s=new THREE.Mesh(stoneGeo(r,rnd(0,9),false,0.72),MAT);s.position.set(x,F+r*0.3,z);s.rotation.y=rnd(0,6);e.add(s);BIGROCKS.push(s);});
   // ribbon grass (vallisneria) in clusters
@@ -1318,7 +1325,7 @@ cv.addEventListener('pointermove',e=>{setNDC(e);ptr.world=worldPoint();ptr.seen=
   else if(tool==='peb')pebbleBrush(false);
   else if(tool==='arrange'&&dragItem){const fp=floorPoint();if(fp){dragItem.position.x=clamp(fp.x,-B.x,B.x);dragItem.position.z=clamp(fp.z,-1.3,0.7);}}});
 function up(){if(!ptr.down)return;ptr.down=false;lastPeb=null;if(pebDirty){pebDirty=false;persist();}
-  if(dragItem){const it=dragItem.userData.item;it.x=+(dragItem.position.x/B.x).toFixed(3);it.z=+dragItem.position.z.toFixed(2);it.t=Date.now();dragItem=null;computeObst();persist();}if(ptr.moved<12&&performance.now()-ptr.t0<380)tap();if(tool==='toy')endToy(false);}
+  if(dragItem){const it=dragItem.userData.item;it.x=+(dragItem.position.x/B.x).toFixed(3);it.z=+dragItem.position.z.toFixed(2);it.t=Date.now();dragItem=null;settleRings(ENV);computeObst();persist();}if(ptr.moved<12&&performance.now()-ptr.t0<380)tap();if(tool==='toy')endToy(false);}
 cv.addEventListener('pointerup',up);cv.addEventListener('pointercancel',up);
 cv.addEventListener('pointerleave',e=>{if(e.pointerType==='mouse'&&!ptr.down)ptr.seen=-9;});
 function tap(){
@@ -1623,7 +1630,7 @@ const ACH=[
   {id:'catch100',t:'caught the lure 100 times',ty:'catch',g:100,xp:300},{id:'trick50',t:'50 tricks',ty:'trick',g:50,xp:200},
   {id:'heap20',t:'a heap of 20 pebbles',ty:'heapsize',g:20,xp:200},{id:'wipe100',t:'100 smudges wiped',ty:'smudge',g:100,xp:250},
   {id:'streak7',t:'7 days in a row',ty:'streak',g:7,xp:200},{id:'streak30',t:'30 days in a row',ty:'streak',g:30,xp:800}];
-const PASSIVE={eat:1,hello:1,trick:2,catch:2,smudge:2,pebble:1},PXCD={eat:3,hello:5,trick:8,catch:3,smudge:1,pebble:1},PXCAP=120;
+const PASSIVE={eat:1,hello:1,trick:2,catch:2,smudge:2,pebble:1};
 let USER=null,PROG=null,cloudT=0,cloudDirty=false,lastChange=0,pushT=0,SYNC={ok:null,msg:'',t:0};
 const dayKey=(d=new Date())=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 function newProg(){return {level:1,exp:0,total:0,spent:0,ea:{},sp:{},daily:null,life:{},ach:{},streak:{last:null,n:0}};}
@@ -1660,9 +1667,8 @@ function levelUp(){const g0=PROG.grow||0,g1=growStage();if(g1>g0){showPolaroid(g
 function checkAch(ty,val){for(const a of ACH){if(a.ty!==ty||PROG.ach[a.id])continue;if(val>=a.g){PROG.ach[a.id]=dayKey();addXP(a.xp);toast('achievement: '+a.t+' +'+a.xp+' xp');}}}
 function track(ty,n=1){if(!PROG||!USER||VISIT)return;ensureDaily();
   PROG.life[ty]=(PROG.life[ty]||0)+n;
-  const d=PROG.daily,px=v=>{if((d.px||0)>=PXCAP)return;d.px=(d.px||0)+v;addXP(v);};
-  // small everyday xp (petting, tricks, feeding, leading...) can't be farmed by tapping: each kind has a cooldown, and it all stops at a daily cap
-  if(ty==='lead'){S.leadAcc=(S.leadAcc||0)+n;if(S.leadAcc>=10){S.leadAcc-=10;px(1);}}else if(PASSIVE[ty]){S.pxT=S.pxT||{};if(T-(S.pxT[ty]??-99)>=(PXCD[ty]||1)){S.pxT[ty]=T;px(PASSIVE[ty]);}}for(const id of d.ids){const m=MISSIONS.find(x=>x.id===id);if(!m||m.ty!==ty||d.done[id])continue;
+  if(ty==='lead'){S.leadAcc=(S.leadAcc||0)+n;if(S.leadAcc>=10){S.leadAcc-=10;addXP(1);}}else if(PASSIVE[ty])addXP(PASSIVE[ty]);
+  const d=PROG.daily;for(const id of d.ids){const m=MISSIONS.find(x=>x.id===id);if(!m||m.ty!==ty||d.done[id])continue;
     d.pd=d.pd||{};d.pd[id]=d.pd[id]||{};d.pd[id][DEV]=(d.pd[id][DEV]||0)+n;d.prog[id]=Math.min(m.g,Math.max((d.prog[id]||0)+n,sumO(d.pd[id])));if(d.prog[id]>=m.g){d.done[id]=true;addXP(m.xp);toast('mission done: '+fill(m.t)+' +'+m.xp+' xp');}}
   if(!d.bonus&&d.ids.every(id=>d.done[id])){d.bonus=true;addXP(50);toast('all of today’s missions done +50 xp',3.6);}
   checkAch(ty,PROG.life[ty]);if(!$('#missions').hidden)renderMissions();}
@@ -1805,7 +1811,7 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden)setTimeout
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)pull();});
 /* the home-screen app keeps an old copy of the page open (and iOS caches it), so check for a newer build when it opens or comes back,
    and reload past the cache if there is one */
-const BUILD='20261118111017';
+const BUILD='20261118114626';
 function checkBuild(){fetch('version.json?t='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{if(!j||!j.b||j.b===BUILD)return;
   try{if(sessionStorage.getItem('gf-build')===j.b)return;sessionStorage.setItem('gf-build',j.b);}catch(e){}
   try{persistLocal();}catch(e){}location.replace(location.pathname+'?v='+encodeURIComponent(j.b));}).catch(()=>{});}
@@ -2403,7 +2409,7 @@ function enterVisit(n,rec){if(TV.on)setTankView(false);if(toy)endToy(true);persi
   VISIT_REC(n);VISIT={n,mine:save.tank,look:Object.assign({c:'orange',p:'plain',seed:1},f.look||{}),stage:Math.min(10,Math.max(pr.grow||0,Math.floor(pr.level/5))),fish:f.name||DEF,level:pr.level};
   VISIT.lamp=rec.save.lamp;VISIT.clean=clamp(+(f.s&&f.s.clean)||80,0,100);VISIT.myLights=lightsOff;lightsOff=!!rec.save.night;document.body.classList.toggle('night',lightsOff);if(S)S.asleep=lightsOff;
   VISIT.snails=(rec.save.snails||[]).slice(0,14);VISIT.friends=(rec.save.friends||[]).slice(0,6);{const vf=VISIT.friends,vn=n;refreshFriendLooks(vf,()=>{if(VISIT&&VISIT.n===vn)spawnFriends();});}save.tank=JSON.parse(JSON.stringify(rec.save.tank||{}));rebuildTank();spawnFriends();R.lookStage=null;S.grow=VISIT.stage/10;applyLook();
-  document.body.classList.add('visiting');$('#visitBar').hidden=false;$('#visitTitle').textContent='@'+n+'’s tank · '+VISIT.fish+' · lv '+VISIT.level;say('');}
+  document.body.classList.add('visiting');$('#visitBar').hidden=false;$('#visitTitle').textContent='@'+n+'’s tank · '+VISIT.fish+'\nlv '+VISIT.level;say('');}
 let VISIT_CLOUD=null;
 function leaveVisit(){if(!VISIT)return;if(DX)endDuel();if(GPLACE)endGiftPlace(false);VISIT_CLOUD=VISIT.cloud||null;save.tank=VISIT.mine;lightsOff=VISIT.myLights;document.body.classList.toggle('night',lightsOff);if(S)S.asleep=lightsOff;VISIT=null;rebuildTank();spawnFriends();R.lookStage=null;S.grow=growStage()/10;applyLook();
   document.body.classList.remove('visiting');$('#visitBar').hidden=true;$('#giftOut').hidden=true;$('#noteOut').hidden=true;persistLocal();{const c=VISIT_CLOUD;VISIT_CLOUD=null;if(c)takeMerged(c);}if(cloudDirty)cloudPut();}
@@ -2448,6 +2454,31 @@ const fMouth=f=>{const v=new V3();f.F.mouthObj.getWorldPosition(v);world.worldTo
 function eyeSmile(rig,sm){if(Math.abs(sm-(rig.smDone||0))<=0.002)return;rig.smDone=sm;for(const o of rig.eyes){const pm=o.pup.children[0],p=pm.geometry.attributes.position;if(!pm.userData.b)pm.userData.b=p.array.slice();
   if(!o.up){const q=o.e.quaternion.clone().invert(),u3=new V3(0,1,0).applyQuaternion(q);o.up=new THREE.Vector2(u3.x,u3.y).normalize();o.sd=new THREE.Vector2(o.up.y,-o.up.x);}
   const b=pm.userData.b,ER0=0.052,U=o.up,D=o.sd;for(let i=0;i<p.count;i++){const x=b[i*3],y=b[i*3+1];const a=x*D.x+y*D.y;let v=x*U.x+y*U.y;const vc=-ER0+sm*0.8*ER0;if(v<vc)v=vc;p.setXY(i,a*D.x+v*U.x,a*D.y+v*U.y);}p.needsUpdate=true;}}
+// one fish rig swimming exactly like your own fish: turning on a spring, pitching with its course, the body wave in beats and glides,
+// folding into turns, squash & stretch, fin strokes. Used by friend fish and by your fish when it goes to a duel.
+function swimRig(f,F,dt,i,sp,hs,faceT,curl,night,pitchAdd){
+  if(f.wantH===undefined)f.wantH=f.head;const tk=f.rx&&f.rx.type==='trick';
+    // turning: the same spring your fish turns on
+    {const kf=lerp(24,85,clamp(f.flick*1.4)),cf=2*Math.sqrt(kf)*0.95;f.hv=(f.hv||0)+(angDiff(f.head,f.wantH)*kf-(f.hv||0)*cf)*dt;f.hv=clamp(f.hv,-9,9);f.head+=f.hv*dt;}
+    const tr=f.hv;
+    // pitch toward what it's looking at or the way it's heading; the trick's roll
+    {const op=f.pitch||0;f.pitch=damp(op,(tk?0.22*Math.sin(Math.PI*clamp(f.rx.t/f.rx.dur)):faceT?Math.atan2(faceT.y-f.pos.y,Math.hypot(faceT.x-f.pos.x,faceT.z-f.pos.z)+0.01):(sp<0.08?0:Math.atan2(f.vel.y,hs+0.01)))+(pitchAdd||0),4.5,dt);f.pitchV=damp(f.pitchV||0,(f.pitch-op)/Math.max(dt,1e-4),8,dt);}
+    if(tk)f.roll=Math.PI*2*ss(0.05,0.85,f.rx.t/f.rx.dur);else if(f.roll){const tg=Math.round(f.roll/(Math.PI*2))*Math.PI*2;f.roll=damp(f.roll,tg,6,dt);if(Math.abs(f.roll-tg)<0.01)f.roll=0;}
+    {
+     f.ph+=dt*(4.5+sp*10+f.burst*8)*(night?0.5:1);
+     const pulse=sp>0.5||night?1:0.4+0.6*ss(-0.4,0.5,Math.sin(T*0.85+i*1.7)+0.4*Math.sin(T*2.3+i));f.amp=damp(f.amp||0.08,(0.08+Math.min(0.14,sp*0.1)+f.burst*0.1)*pulse*(night?0.5:1),5,dt);
+     // squash & stretch, the same jelly springs
+     const ft=clamp(tr*0.55,-1.25,1.25)+curl*2.2;f.foldV=(f.foldV||0)+((ft-(f.fold||0))*60-(f.foldV||0)*7)*dt;f.fold=clamp((f.fold||0)+f.foldV*dt,-1.3,1.3);
+     const fyt=tk?0:clamp(-(f.pitchV||0)*0.9-clamp(f.vel.y*0.35,-0.25,0.25)*(f.flick>0.2?1:0.3),-0.95,0.95);f.foldYV=(f.foldYV||0)+((fyt-(f.foldY||0))*55-(f.foldYV||0)*6.5)*dt;f.foldY=clamp((f.foldY||0)+f.foldYV*dt,-1.05,1.05);
+     const af=Math.abs(f.fold),spr=(v,vv,tg,k,c)=>{vv+=((tg-v)*k-vv*c)*dt;return [clamp(v+vv*dt,-0.45,0.6),vv];};let r;
+     r=spr(f.sqY||0,f.sqYV||0,af*0.12+clamp(f.vel.y*0.25,-0.15,0.2),120,6);f.sqY=r[0];f.sqYV=r[1];r=spr(f.sqZ||0,f.sqZV||0,af*0.16-clamp((sp-1.1)*0.12,0,0.12),80,5.5);f.sqZ=r[0];f.sqZV=r[1];
+     {const yy=1+f.sqY,zz=1+f.sqZ,q=Math.sqrt(Math.max(0.2,yy*zz)),Y=f.Y;F.inner.scale.set(Y.lx,yy/q*Y.ly,zz/q*Y.lz);}
+     f.arch=damp(f.arch||0,clamp(f.vel.y*0.12,-0.08,0.08),4,dt);
+     const A=f.amp;f.g.position.copy(f.pos);
+     f.g.rotation.set((f.roll||0)+A*0.15*Math.sin(f.ph+0.6),f.head-A*0.22*Math.sin(f.ph+0.3)+f.fold*0.15,f.pitch+0.02*Math.sin(T*0.9+i));
+     const sway=0.025*Math.sin(T*0.55+i)+0.015*Math.sin(T*1.3+1+i);
+     fishWave(f.ph,A,clamp(-tr*0.02,-0.06,0.06)+sway,T,sp,0,0,f.arch,clamp((f.sqYV||0)*0.03,-0.2,0.2),f.fold,0,f.foldY,F);
+     const w=sp<0.3?7.5:3.6;F.fins.forEach((fn,j)=>{const sg=fn.userData.s,ph=T*w+j*1.3+i,main=j<2;fn.rotation.y=sg*((main?0.36:0.22)+(main?0.3:0.16)*Math.sin(ph)+0.06*Math.sin(ph*2.3+1))*(1+0.25*(1-clamp(sp/0.9)));fn.rotation.z=(main?0:-0.35)+0.14*Math.sin(ph+1.2);});}}
 function friendsTick(dt){iactT-=dt;if(IACT){IACT.t-=dt;if(IACT.t<=0){IACT=null;iactT=rnd(14,26);}}else if(iactT<=0){iactPick();if(!IACT)iactT=4;}
   const night=lightsOff,camL=world.worldToLocal(camera.position.clone());
   FRIENDS.forEach((f,i)=>{f.t-=dt;let cap=0.35,rate=1.8,faceT=null;const it=iactTarget(f,dt);
@@ -2470,28 +2501,8 @@ function friendsTick(dt){iactT-=dt;if(IACT){IACT.t-=dt;if(IACT.t<=0){IACT=null;i
     const sp=f.vel.length(),hs=Math.hypot(f.vel.x,f.vel.z);
     if(it&&IACT.k==='boop'&&!IACT.done&&L<0.25)faceT=S.pos;
     if(faceT){const fx=faceT.x-f.pos.x,fz=faceT.z-f.pos.z;if(Math.hypot(fx,fz)>0.05)f.wantH=Math.atan2(-fz,fx);}else if(hs>0.12)f.wantH=Math.atan2(-f.vel.z,f.vel.x);
-    if(f.wantH===undefined)f.wantH=f.head;
-    // turning: the same spring your fish turns on
-    {const kf=lerp(24,85,clamp(f.flick*1.4)),cf=2*Math.sqrt(kf)*0.95;f.hv=(f.hv||0)+(angDiff(f.head,f.wantH)*kf-(f.hv||0)*cf)*dt;f.hv=clamp(f.hv,-9,9);f.head+=f.hv*dt;}
-    const tr=f.hv;
-    // pitch toward what it's looking at or the way it's heading; the trick's roll
-    {const op=f.pitch||0;f.pitch=damp(op,f.rx&&f.rx.type==='trick'?0.22*Math.sin(Math.PI*clamp(f.rx.t/f.rx.dur)):faceT?Math.atan2(faceT.y-f.pos.y,Math.hypot(faceT.x-f.pos.x,faceT.z-f.pos.z)+0.01):(sp<0.08?0:Math.atan2(f.vel.y,hs+0.01)),4.5,dt);f.pitchV=damp(f.pitchV||0,(f.pitch-op)/Math.max(dt,1e-4),8,dt);}
-    if(f.rx&&f.rx.type==='trick')f.roll=Math.PI*2*ss(0.05,0.85,f.rx.t/f.rx.dur);else if(f.roll){const tg=Math.round(f.roll/(Math.PI*2))*Math.PI*2;f.roll=damp(f.roll,tg,6,dt);if(Math.abs(f.roll-tg)<0.01)f.roll=0;}
+    swimRig(f,f.F,dt,i,sp,hs,faceT,curl,night);
     {const F=f.F;
-     f.ph+=dt*(4.5+sp*10+f.burst*8)*(night?0.5:1);
-     const pulse=sp>0.5||night?1:0.4+0.6*ss(-0.4,0.5,Math.sin(T*0.85+i*1.7)+0.4*Math.sin(T*2.3+i));f.amp=damp(f.amp||0.08,(0.08+Math.min(0.14,sp*0.1)+f.burst*0.1)*pulse*(night?0.5:1),5,dt);
-     // squash & stretch, the same jelly springs
-     const ft=clamp(tr*0.55,-1.25,1.25)+curl*2.2;f.foldV=(f.foldV||0)+((ft-(f.fold||0))*60-(f.foldV||0)*7)*dt;f.fold=clamp((f.fold||0)+f.foldV*dt,-1.3,1.3);
-     const fyt=f.rx&&f.rx.type==='trick'?0:clamp(-(f.pitchV||0)*0.9-clamp(f.vel.y*0.35,-0.25,0.25)*(f.flick>0.2?1:0.3),-0.95,0.95);f.foldYV=(f.foldYV||0)+((fyt-(f.foldY||0))*55-(f.foldYV||0)*6.5)*dt;f.foldY=clamp((f.foldY||0)+f.foldYV*dt,-1.05,1.05);
-     const af=Math.abs(f.fold),spr=(v,vv,tg,k,c)=>{vv+=((tg-v)*k-vv*c)*dt;return [clamp(v+vv*dt,-0.45,0.6),vv];};let r;
-     r=spr(f.sqY||0,f.sqYV||0,af*0.12+clamp(f.vel.y*0.25,-0.15,0.2),120,6);f.sqY=r[0];f.sqYV=r[1];r=spr(f.sqZ||0,f.sqZV||0,af*0.16-clamp((sp-1.1)*0.12,0,0.12),80,5.5);f.sqZ=r[0];f.sqZV=r[1];
-     {const yy=1+f.sqY,zz=1+f.sqZ,q=Math.sqrt(Math.max(0.2,yy*zz)),Y=f.Y;F.inner.scale.set(Y.lx,yy/q*Y.ly,zz/q*Y.lz);}
-     f.arch=damp(f.arch||0,clamp(f.vel.y*0.12,-0.08,0.08),4,dt);
-     const A=f.amp;f.g.position.copy(f.pos);
-     f.g.rotation.set((f.roll||0)+A*0.15*Math.sin(f.ph+0.6),f.head-A*0.22*Math.sin(f.ph+0.3)+f.fold*0.15,f.pitch+0.02*Math.sin(T*0.9+i));
-     const sway=0.025*Math.sin(T*0.55+i)+0.015*Math.sin(T*1.3+1+i);
-     fishWave(f.ph,A,clamp(-tr*0.02,-0.06,0.06)+sway,T,sp,0,0,f.arch,clamp((f.sqYV||0)*0.03,-0.2,0.2),f.fold,0,f.foldY,F);
-     const w=sp<0.3?7.5:3.6;F.fins.forEach((fn,j)=>{const sg=fn.userData.s,ph=T*w+j*1.3+i,main=j<2;fn.rotation.y=sg*((main?0.36:0.22)+(main?0.3:0.16)*Math.sin(ph)+0.06*Math.sin(ph*2.3+1))*(1+0.25*(1-clamp(sp/0.9)));fn.rotation.z=(main?0:-0.35)+0.14*Math.sin(ph+1.2);});
      // eyes: little darting glances and looking at your finger; smiling on a hello or trick and now and then when content
      f.eyeT=(f.eyeT||0)-dt;if(f.eyeT<=0){f.eyeT=rnd(1.4,4);f.eyeDX=rnd(-0.8,0.8);f.eyeDY=rnd(-0.4,0.4);}
      const look=(T-ptr.seen<2.5&&ptr.world)?ptr.world:null;
@@ -2579,24 +2590,24 @@ function openNote(){if(!VISIT)return;$('#noteTitle').textContent='leave a note f
 $('#noteBtn').onclick=openNote;$('#noteClose').onclick=()=>{$('#noteOut').hidden=true;};
 
 /* ---- duels: when visiting, challenge the keeper to rock stacking or rock balancing. Your fish swims in and the two fish play it out
-   in the tank: fetching stones from the sand and stacking them. It's a coin flip. One duel per tank a day; the winner gets a winner ring (+50 xp). ---- */
+   in the tank: fetching stones from the sand and stacking them. It's a coin flip. One duel per tank a day; the winner gets a ring (+100 xp). ---- */
 let DX=null;
 function openDuel(){if(!VISIT||!USER||DX)return;const n=VISIT.n,done=(save.duels||{})[n]===dayKey();$('#duelTitle').textContent='duel @'+n;
-  $('#duelPick').hidden=done;$('#duelNote').textContent=done?'you already dueled @'+n+' today':'the fish play it out in the tank · pure luck · winner gets a winner ring (+50 xp)';$('#duel').hidden=false;}
+  $('#duelPick').hidden=done;$('#duelNote').textContent=done?'you already dueled @'+n+' today':'the fish play it out in the tank · pure luck · winner gets a ring (+100 xp)';$('#duel').hidden=false;}
 $('#duelBtn').onclick=openDuel;$('#duelClose').onclick=()=>{$('#duel').hidden=true;};
 document.querySelectorAll('[data-duel]').forEach(b=>b.onclick=()=>{$('#duel').hidden=true;startDuel(b.dataset.duel);});
 function duelCap(t){const c=$('#duelCap');c.textContent=t;c.hidden=!t;}
 function startDuel(kind){if(!VISIT||DX)return;const n=VISIT.n;save.duels=Object.assign({},save.duels);for(const k in save.duels)if(save.duels[k]!==dayKey())delete save.duels[k];save.duels[n]=dayKey();persist();
   if(toy)endToy(true);const win=Math.random()<0.5,F=B.floor,z=0.4,sx=B.x*0.38;
   // your fish, full size, swimming in from the left
-  const st=myStage(),G=buildFish();poseYouth(G,st,true);applyLook(G,pet().look||{c:'orange',p:'plain',seed:1},st);G.g.scale.setScalar(0.434*youth(st).size);
-  G.g.traverse(o=>{if(o.userData&&o.userData.proxy)o.visible=false;});const piv=[];for(const m of G.tails||[]){const p=new THREE.Group();p.position.x=-0.66;G.inner.add(p);G.inner.remove(m);m.position.x+=0.66;p.add(m);piv.push(p);}
+  const st=myStage(),G=buildFish(),Yg=poseYouth(G,st,true);applyLook(G,pet().look||{c:'orange',p:'plain',seed:1},st);G.g.scale.setScalar(0.434*youth(st).size);
+  G.g.traverse(o=>{if(o.userData&&o.userData.proxy)o.visible=false;});
   world.add(G.g);FRIENDS.forEach(f=>f.g.visible=false);
   const hid=[];for(const pb of PEBBLES){const p=pb.m.position;if(pb.m.visible&&p.z>-0.25&&Math.abs(Math.abs(p.x)-sx)<B.x*0.55){pb.m.visible=false;hid.push(pb.m);}}for(const d of DECOS){const p=d.m.position;if(d.m.visible&&p.z>-0.25){d.m.visible=false;hid.push(d.m);}}
   const mk=(side,cnt)=>{const src=[];for(let i=0;i<cnt;i++){const r=(kind==='stack'?rnd(0.1,0.12):rnd(0.07,0.082))*(1-i*0.035),fl=rnd(0.42,0.5),g=stoneGeo(r,i*3+side,false,fl),v=rnd(0.55,0.8);tint(g,()=>pebbleCol.setRGB(v,v,v));
       const m=new THREE.Mesh(g,MAT),x=side*B.x*(0.72+(i%3)*0.09),zz=0.05+Math.floor(i/3)*0.22+(i%2)*0.07;m.position.set(x,F+r*fl*0.9,zz);m.rotation.y=rnd(0,6);world.add(m);src.push({m,r,fl,h:r*fl*1.8});}return src;};
   const nW=kind==='stack'?6:3,nL=kind==='stack'?5:3;
-  const me={side:-1,G,piv,pos:new V3(-B.x*1.1,B.ymin+0.7,z),vel:new V3(),head:0,ph:0,base:new V3(-sx,F,z),stack:[],steps:[],face:null,droop:0,carry:null,lose:!win};
+  const me={side:-1,G,g:G.g,Y:Yg,flick:0,burst:0,pos:new V3(-B.x*1.1,B.ymin+0.7,z),vel:new V3(),head:0,ph:0,base:new V3(-sx,F,z),stack:[],steps:[],face:null,droop:0,carry:null,lose:!win};
   const host={side:1,host:true,base:new V3(sx,F,z),stack:[],steps:[],face:null,droop:0,carry:null,lose:win};
   me.src=mk(-1,win?nW:nL);host.src=mk(1,win?nL:nW);
   DX={kind,win,me,host,t:0,n,stones:[],fall:[],sway:0,ring:null,phase:'build',endT:0,hid};
@@ -2607,7 +2618,7 @@ const posOf=P=>P.host?S.pos:P.pos;
 // where the body goes so the mouth lands on point p, approaching from the side it's already on
 function bodyAt(P,p,side){side=side||Math.sign(posOf(P).x-p.x)||P.side;return {p:new V3(p.x+side*mouthOf(P),p.y+0.03,p.z),face:p};}
 function fetchSteps(P,st){const top=()=>st.m.position.clone().add(new V3(0,st.h*0.5+0.02,0));
-  P.steps.push({go:()=>{const b=bodyAt(P,top(),-P.side);b.p.y+=0.18;return b;},v:2.1,loose:0.07},{go:()=>bodyAt(P,top(),-P.side),v:1.2},{wait:0.14},{fn:()=>{P.carry=st;sandPuffAt(st.m.position);}},{go:()=>{const b=bodyAt(P,top(),-P.side);b.p.y+=0.22;return b;},v:1.6,loose:0.08});}
+  P.steps.push({go:()=>{const b=bodyAt(P,top(),-P.side);b.p.y+=0.18;return b;},v:2.1,loose:0.07},{go:()=>bodyAt(P,top(),-P.side),v:1.2},{wait:0.14},{fn:()=>{P.carry=st;st.ck=0;st.cfrom=st.m.position.clone();sandPuffAt(st.m.position);}},{go:()=>{const b=bodyAt(P,top(),-P.side);b.p.y+=0.22;return b;},v:1.6,loose:0.08});}
 // the tip of the nose, just above the mouth, where the balanced stones sit
 function headTop(P){const F=P.host?R:P.G;F.g.updateMatrixWorld(true);return F.inner.localToWorld(F.mouth.clone().add(new V3(-0.1,0.22,0)));}
 function stackTop(P){let y=P.nose?headTop(P).y:P.base.y;for(const q of P.stack)y+=q.h*0.92;return y;}
@@ -2627,7 +2638,7 @@ function topple(P){if(P.fallen)return;P.fallen=true;P.steps=[];const o=DX.kind==
 function cheer(P){if(DX.kind==='balance'){P.sway=0;const h0=posOf(P).clone();P.steps=[];for(let i=0;i<3;i++)P.steps.push({go:h0.clone().add(new V3(0,0.07,0)),v:0.7,loose:0.02},{go:h0.clone(),v:0.7,loose:0.02});P.steps.push({fn:()=>{for(let i=0;i<6;i++)setTimeout(()=>bubble(posOf(P).clone().add(new V3(rnd(-0.1,0.1),0.05,0))),i*110);}},{wait:9});return;}
   const c=P.base.clone(),h=stackTop(P);P.steps=[];const pts=[];for(let i=0;i<=10;i++){const a=i/10*Math.PI*2+(P.side>0?0:Math.PI);pts.push(new V3(c.x+Math.cos(a)*0.38,h+0.15+i*0.025,c.z+Math.sin(a)*0.3));}
   pts.forEach(p=>P.steps.push({go:p,v:1.7,loose:0.12}));P.steps.push({fn:()=>{for(let i=0;i<8;i++)setTimeout(()=>bubble(posOf(P).clone().add(new V3(rnd(-0.1,0.1),0.1,0))),i*90);P.spin=1;}},{wait:1},{go:new V3(c.x+P.side*0.3,h+0.35,c.z+0.2),v:0.8},{wait:9});}
-function ringPop(P){const g=RING.make();g.scale.setScalar(0.001);const h=stackTop(P),x=P.nose?posOf(P).x:P.base.x,z=P.nose?posOf(P).z:P.base.z;g.position.set(x,h+0.3,z);g.userData.isRing=true;world.add(g);DX.ring={g,t:0,y:h+0.35};}
+function ringPop(P){const own=(P.host?save.tank:VISIT.mine).owned||{},def=RINGS.find(r=>!own[r.id])||RING,g=def.make();g.scale.setScalar(0.001);const h=stackTop(P),x=P.nose?posOf(P).x:P.base.x,z=P.nose?posOf(P).z:P.base.z;g.position.set(x,h+0.3,z);world.add(g);DX.ring={g,t:0,y:h+0.35,P};}
 function runSteps(P,dt){const st=P.steps[0];if(!st)return null;
   if(st.wait!==undefined){st.wait-=dt;if(st.wait<=0)P.steps.shift();return {hold:true};}
   if(st.fn){P.steps.shift();st.fn();return runSteps(P,dt);}
@@ -2635,19 +2646,20 @@ function runSteps(P,dt){const st=P.steps[0];if(!st)return null;
   st.age+=dt;const d=posOf(P).distanceTo(st.target);if(d<(st.loose||0.04)||st.age>(st.max||2.4)){P.steps.shift();return runSteps(P,dt);}return st;}
 // the host fish (the one that lives in this tank) is driven from behave()
 function duelHost(dt){if(DX.phase==='outro'){S.mode='idle';S.pitch=damp(S.pitch,0,2,dt);auto(dt);return;}const P=DX.host,st=runSteps(P,dt);S.faceT=null;S.mode='tidy';
-  if(!st||st.hold){brake(dt);if(P.face)S.faceT=P.face;}else{const d=st.target.clone().sub(S.pos),L=d.length(),sp=st.v*Math.min(1,L/0.22),k=L>1e-4?sp/L:0;
-    S.vel.x=damp(S.vel.x,d.x*k,5,dt);S.vel.y=damp(S.vel.y,d.y*k,5,dt);S.vel.z=damp(S.vel.z,d.z*k,5,dt);P.face=st.face;if(st.face&&L<0.3)S.faceT=st.face;}
+  if(!st||st.hold){brake(dt);if(P.face)S.faceT=P.face;}else{const d=st.target.clone().sub(S.pos),L=d.length(),k=L>1e-4?stepSpeed(P,st,L)/L:0;
+    S.vel.x=damp(S.vel.x,d.x*k,3.5,dt);S.vel.y=damp(S.vel.y,d.y*k,3.5,dt);S.vel.z=damp(S.vel.z,d.z*k,3.5,dt);P.face=st.face;if(st.face&&L<0.3)S.faceT=st.face;}
   S.pitch=damp(S.pitch,-0.32*P.droop,2,dt);if(P.spin>0){P.spin-=dt;S.wantH+=dt*9;}}
-function duelGuest(dt){const P=DX.me,G=P.G,st=runSteps(P,dt);let want=new V3();
-  if(st&&!st.hold){const d=st.target.clone().sub(P.pos),L=d.length(),sp=st.v*Math.min(1,L/0.22);want=d.multiplyScalar(L>1e-4?sp/L:0);P.face=st.face;}
-  P.vel.lerp(want,1-Math.exp(-dt*5));P.pos.addScaledVector(P.vel,dt);const spd=P.vel.length();
-  let h=null;if(P.face&&(!st||st.hold||P.pos.distanceTo(st.target)<0.3))h=Math.atan2(-(P.face.z-P.pos.z),P.face.x-P.pos.x);else if(spd>0.04)h=Math.atan2(-P.vel.z,P.vel.x);
-  if(P.spin>0){P.spin-=dt;P.head+=dt*9;}else if(h!==null){let dh=h-P.head;dh=Math.atan2(Math.sin(dh),Math.cos(dh));P.head+=dh*Math.min(1,dt*5);}
-  P.ph+=dt*(4+spd*12)*(P.droop?0.5:1);G.g.position.copy(P.pos);G.g.position.y+=Math.sin(P.ph*0.3)*0.008;
-  G.g.rotation.order='YZX';G.g.rotation.set(0,P.head+Math.sin(P.ph)*0.06,clamp(P.vel.y*1.2,-0.4,0.4)-0.32*P.droop);for(const p of P.piv)p.rotation.y=Math.sin(P.ph+0.6)*0.35;}
+function stepSpeed(P,st,L){return st.v*clamp(L/0.3,P.steps.length>1&&st.loose?0.45:0,1);}
+function duelGuest(dt){const P=DX.me,st=runSteps(P,dt);let want=new V3();
+  if(st&&!st.hold){const d=st.target.clone().sub(P.pos),L=d.length();want=d.multiplyScalar(L>1e-4?stepSpeed(P,st,L)/L:0);P.face=st.face;}
+  P.vel.lerp(want,1-Math.exp(-dt*3.5));P.pos.addScaledVector(P.vel,dt);const sp=P.vel.length(),hs=Math.hypot(P.vel.x,P.vel.z);
+  const faceT=P.face&&(!st||st.hold||P.pos.distanceTo(st.target)<0.3)?P.face:null;
+  if(faceT)P.wantH=Math.atan2(-(faceT.z-P.pos.z),faceT.x-P.pos.x);else if(hs>0.06)P.wantH=Math.atan2(-P.vel.z,P.vel.x);
+  if(P.spin>0){P.spin-=dt;P.wantH=P.head+1.2;}
+  swimRig(P,P.G,dt,7,sp,hs,faceT,0,false,-0.32*P.droop);}
 function duelTick(dt){const D=DX;if(!D)return;D.t+=dt;duelGuest(dt);
   const mw=P=>{if(P.host)return mouthWorld();P.G.g.updateMatrixWorld(true);return P.G.inner.localToWorld(P.G.mouth.clone());};
-  for(const P of [D.me,D.host]){if(P.carry){const m=mw(P);P.carry.m.position.set(m.x,m.y-P.carry.h*0.45,m.z);}
+  for(const P of [D.me,D.host]){if(P.carry){const m=mw(P),c=P.carry;m.y-=c.h*0.45;if((c.ck??1)<1){c.ck=Math.min(1,c.ck+dt/0.25);c.m.position.lerpVectors(c.cfrom,m,1-Math.pow(1-c.ck,3));}else c.m.position.copy(m);}
     // stones being set down ease onto the stack and rock a little before settling
     if(P.nose&&!P.fallen){const hb=headTop(P),sp=posOf(P)===S.pos?S.vel.x:P.vel.x;P.lean=damp(P.lean||0,clamp(-sp*0.25,-0.25,0.25)+(P.sway||0),6,dt);let y=0;
       P.stack.forEach((q,i)=>{const cy=y+q.h*0.5,tx=hb.x+Math.sin(P.lean)*cy*(1+i*0.15),ty=hb.y+Math.cos(P.lean)*cy,tz=hb.z;
@@ -2669,9 +2681,12 @@ function duelTick(dt){const D=DX;if(!D)return;D.t+=dt;duelGuest(dt);
   // result: once the loser's stack is down and the winner has finished building
   const W=D.win?D.me:D.host,L=D.win?D.host:D.me;
   if((D.phase==='build'||D.phase==='sway')&&L.fallen&&(W.done||D.kind==='balance')&&D.fall.every(q=>q.fall.done)){D.phase='result';D.endT=D.t;cheer(W);ringPop(W);
-    if(D.win){const r=awardRing();duelCap('you won · '+(r?r.name+' ':'')+'+50 xp');}else duelCap('@'+D.n+' won');
+    if(D.win){const r=awardRing();duelCap('you won · '+(r?r.name+' ':'')+'+100 xp');}else duelCap('@'+D.n+' won');
     if(DB&&USER){const body={fields:{from:{stringValue:USER},kind:{stringValue:'duel'},item:{stringValue:D.kind+'.'+(D.win?'w':'l')},at:{timestampValue:new Date().toISOString()}}};fetch(GBOX(D.n)+'?key='+DB.apiKey,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}).catch(()=>{});}}
-  if(D.ring){const r=D.ring;r.t+=dt;r.g.scale.setScalar(1.9*Math.min(1,r.t*2.2)*(1+0.25*Math.max(0,Math.sin(Math.min(1,r.t*2.2)*Math.PI))));r.g.position.y=r.y+Math.sin(r.t*2)*0.03;r.g.rotation.y+=dt*1.2;}
+  if(D.ring){const r=D.ring,g=r.g;r.t+=dt;
+    if(r.t<1.6){g.scale.setScalar(1.9*Math.min(1,r.t*2.2)*(1+0.25*Math.max(0,Math.sin(Math.min(1,r.t*2.2)*Math.PI))));g.position.y=r.y+Math.sin(r.t*2)*0.03;g.rotation.y+=dt*1.2;}
+    else{const P=r.P,F=P.host?R:P.G,top=headTop(P).add(new V3(0,0.035,0)),k=1-Math.exp(-dt*(r.t<2.6?4:14));g.position.lerp(top,k);g.scale.setScalar(damp(g.scale.x,1.15,4,dt));
+      g.rotation.y=damp(g.rotation.y,F.g.rotation.y+Math.PI/2,6,dt);g.rotation.z=damp(g.rotation.z,-0.15,4,dt);}}
   // wind-down instead of a cut: your fish turns and swims out (the ring trailing it if you won), the stones fade into the sand,
   // the host fish goes back to its own business, then (if you won) a soft fade home
   if(D.phase==='result'&&D.t-D.endT>3.2){D.phase='outro';D.outT=0;duelCap('');
@@ -2679,15 +2694,15 @@ function duelTick(dt){const D=DX;if(!D)return;D.t+=dt;duelGuest(dt);
     for(const P of [D.me,D.host])for(const q of P.src){q.m.material=q.m.material.clone();q.m.material.transparent=true;}}
   if(D.phase==='outro'){D.outT+=dt;const k=Math.min(1,D.outT/1.6);
     for(const P of [D.me,D.host])for(const q of P.src){q.m.material.opacity=1-k;q.m.position.y-=dt*0.02;}
-    if(D.ring){const g=D.ring.g;if(D.win){g.position.lerp(D.me.pos.clone().add(new V3(0.05,0.18,0)),Math.min(1,dt*2.5));}g.scale.multiplyScalar(Math.max(0,1-dt*(D.win?0.5:1.2)));}
+    if(D.ring&&!D.win)D.ring.g.scale.multiplyScalar(Math.max(0,1-dt*0.8));
     if(D.outT>1.8&&(D.me.pos.x<-B.x*1.15||D.outT>4.5)){const won=D.win;endDuel();if(won)goHomeWithRing();}}}
 function goHomeWithRing(){const f=$('#fade');f.hidden=false;requestAnimationFrame(()=>f.classList.add('on'));
-  setTimeout(()=>{leaveVisit();const L=LASTRING;if(L&&L.id==='ring'){const o=ITEMS_ON.find(g=>g.userData.isRing);if(o)dropIn(o);duelCap('winner ring');}else if(L){inboxAdd(L.name+' added to your shop');duelCap(L.name+' · in your shop');}else duelCap('you won · +50 xp');f.classList.remove('on');setTimeout(()=>{f.hidden=true;},500);setTimeout(()=>duelCap(''),3000);},500);}
-function endDuel(){const D=DX;if(!D)return;DX=null;for(const P of [D.me,D.host])for(const q of P.src)world.remove(q.m);world.remove(D.me.G.g);if(D.ring)world.remove(D.ring.g);
+  setTimeout(()=>{leaveVisit();const L=LASTRING;if(L){const o=ITEMS_ON.find(g=>g.userData.ringId===L.id);if(o)dropIn(o);duelCap(L.name);}else duelCap('you won · +100 xp');f.classList.remove('on');setTimeout(()=>{f.hidden=true;},500);setTimeout(()=>duelCap(''),3000);},500);}
+function endDuel(){const D=DX;if(!D)return;DX=null;for(const P of [D.me,D.host])for(const q of P.src)world.remove(q.m);world.remove(D.me.G.g);freeTree(D.me.G.g);if(D.ring){world.remove(D.ring.g);freeTree(D.ring.g);}
   FRIENDS.forEach(f=>f.g.visible=true);for(const m of D.hid)m.visible=true;S.pitch=0;S.mode='idle';duelCap('');renderUI();}
-function awardRing(){addXP(50);const home=VISIT?VISIT.mine:save.tank;PROG.life.rings=(PROG.life.rings||0)+1;const nx=RINGS.find(r=>!home.owned[r.id]);LASTRING=nx||null;if(!nx)return null;home.owned[nx.id]=1;
-  if(nx.id==='ring'){if(!home.items.some(i=>i.id==='ring'))home.items.push({id:'ring',x:+rnd(-0.6,0.6).toFixed(3),z:+rnd(-0.3,0.3).toFixed(2),r:0,t:Date.now()});if(!VISIT)rebuildTank();}
-  return nx;}
+function awardRing(){addXP(100);const home=VISIT?VISIT.mine:save.tank;PROG.life.rings=(PROG.life.rings||0)+1;const nx=RINGS.find(r=>!home.owned[r.id]);LASTRING=nx||null;if(!nx)return null;home.owned[nx.id]=1;
+  const rs=home.items.filter(i=>RINGS.some(r=>r.id===i.id)),near=rs.length&&Math.random()<0.6?rs[Math.floor(Math.random()*rs.length)]:null;
+  home.items=home.items.filter(i=>i.id!==nx.id).concat([{id:nx.id,x:+(near?near.x+rnd(-0.03,0.03):rnd(-0.6,0.6)).toFixed(3),z:+(near?near.z+rnd(-0.05,0.05):rnd(-0.3,0.3)).toFixed(2),r:+rnd(0,6.28).toFixed(2),t:Date.now()}]);if(!VISIT)rebuildTank();return nx;}
 let LASTRING=null;
 $('#sendSnack').onclick=()=>{const g=giftDay();if(g.snack>=3)return;sendGift('snack','flakes',()=>{g.snack++;persist();openGiftOut();});};
 // receiving
@@ -2706,7 +2721,7 @@ function openGifts(list){const el=$('#giftInList');if($('#giftIn').hidden)el.tex
     else if(g.kind==='fish'){const lk=unpackLook(g.item),pst=String(g.item).split('.')[4],st=pst===undefined||pst===''?10:clamp(+pst||0,0,10);save.friends=(save.friends||[]).concat([{id:g.id||(g.from+'-'+Date.now()),from:g.from,look:lk,stage:st}]).slice(-6);const img=fthumb(lk,st);
       pic='<img alt="" src="'+img+'" style="width:56px;height:40px">';txt='@'+g.from+' sent a little fish';setTimeout(spawnFriends,50);}
     else if(g.kind==='duel'){const [dk,res]=String(g.item).split('.'),gm=dk==='balance'?'rock balancing':'rock stacking',th=makeThumbs();pic='<img alt="" src="'+th.ring+'">';
-      if(res==='l'){const r=awardRing();placedGift=!!(r&&r.id==='ring');if(r)pic='<img alt="" src="'+th[r.id]+'">';txt='you beat @'+g.from+' at '+gm+' · '+(r?r.name+(r.id==='ring'?'':' (in your shop)')+' ':'')+'+50 xp';}else txt='@'+g.from+' beat you at '+gm;}
+      if(res==='l'){const r=awardRing();placedGift=!!r;if(r)pic='<img alt="" src="'+th[r.id]+'">';txt='you beat @'+g.from+' at '+gm+' · '+(r?r.name+' ':'')+'+100 xp';}else txt='@'+g.from+' beat you at '+gm;}
     else if(g.kind==='sticker'&&/^note\.\d+$/.test(g.item)&&NOTES[+g.item.slice(5)]){const m=NOTES[+g.item.slice(5)];(save.inbox=save.inbox||[]).unshift({t:g.at||Date.now(),x:'@'+g.from+' left a note: “'+m+'”',n:1});bellDot();showLetter(g.from,m);continue;}
     else if(g.kind==='sticker'&&STICKERS[g.item]){pic=stk(g.item,40);txt='@'+g.from+' sent a '+g.item;}
     else if(g.kind==='deco'){const pd=parseDecoItem(g.item),d=ALLDECO().find(x=>x.id===pd.id&&!x.prize);if(!d)continue;const th=makeThumbs();pic='<img alt="" src="'+th[d.id]+'">';
