@@ -1031,7 +1031,7 @@ const SHOP=[
    part(CYL,WC.cream,0.09,0.03,0.05,0.03,0.06,0.03),part(CYL,WC.cream,0.09,0.03,-0.05,0.03,0.06,0.03),part(CYL,WC.cream,-0.09,0.03,0.05,0.03,0.06,0.03),part(CYL,WC.cream,-0.09,0.03,-0.05,0.03,0.06,0.03))},
  {id:'globe',name:'snow globe',price:400,make:()=>{const g=grp(part(CYL,WC.wood,0,0.03,0,0.11,0.06,0.11),part(CONE,WC.pine,0,0.13,0,0.04,0.1,0.04),part(SPH,WC.snow,0.04,0.08,0.02,0.025,0.02,0.025));
    const gl=new THREE.Mesh(SPH,flatMat({color:0xdfeef3,transparent:true,opacity:0.35,depthWrite:false}));gl.scale.setScalar(0.12);gl.position.y=0.16;g.add(gl);
-   for(let i=0;i<8;i++)g.add(part(SPH,WC.snow,Math.cos(i*2.4)*0.06,0.12+((i*37)%7)/70,Math.sin(i*2.4)*0.06,0.006,0.006,0.006));return g;}}];
+   g.userData.snow=[];for(let i=0;i<14;i++){const f=part(SPH,WC.snow,Math.cos(i*2.4)*0.06,0.11+((i*37)%7)/120,Math.sin(i*2.4)*0.06,0.006,0.006,0.006);f.userData.b=f.position.clone();g.userData.snow.push(f);g.add(f);}return g;}}];
 const WATER={clear:'#f1f2f3',blue:'#e2eaee',green:'#e5ebe0'};
 const WTINT=new THREE.Color(1,1,1);
 /* the water color tints everything in the tank (floor, stones, plants, decorations) the same way it tints the background,
@@ -1817,7 +1817,7 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden)setTimeout
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)pull();});
 /* the home-screen app keeps an old copy of the page open (and iOS caches it), so check for a newer build when it opens or comes back,
    and reload past the cache if there is one */
-const BUILD='20261118181902';
+const BUILD='20261118182328';
 function checkBuild(){fetch('version.json?t='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{if(!j||!j.b||j.b===BUILD)return;
   try{if(sessionStorage.getItem('gf-build')===j.b)return;sessionStorage.setItem('gf-build',j.b);}catch(e){}
   try{persistLocal();}catch(e){}location.replace(location.pathname+'?v='+encodeURIComponent(j.b));}).catch(()=>{});}
@@ -2072,11 +2072,39 @@ function snailPoke(sn){const dbl=T-(sn.tapT||-9)<0.4;sn.tapT=T;if(dbl){sn.st='hi
   if(sn.onFish)return;const base=sn.on||sn;if(base!==sn||sn.rider){say('!',1.4);squish(-3);}
   if(!VISIT||R.g.visible){IACT=null;SNI={who:'me',sn:base,k:base.sf==='back'?'nibble':'peek',ph:'go',t:0,max:10,fast:1};squish(2);bubble(sn.g.position.clone().add(new V3(0,0.15,0)));}}
 const angTo=(a,b)=>Math.atan2(Math.sin(b-a),Math.cos(b-a));
+/* snails playing with small things: set a snail down in front of one (or now and then it wanders over by itself) and it plays -
+   a ring: nudges it along the sand a couple of times, or curls up inside it like a nest; a snow globe: head-butts it, the globe rocks
+   and the snow inside swirls up and drifts down; the penguin turns round to look at it; a gift, candy cane or sled gets pushed or bumped;
+   a crystal rocks and chimes with a ripple of bubbles. */
+const TOYS=['globe','gift','cane','penguin','sled'];
+const isToy=o=>{const id=o.userData.item&&o.userData.item.id;return !!id&&(/^ring/.test(id)||TOYS.includes(id)||CRYSTALS.some(c=>c.id===id));};
+function toyNear(p,r){let best=null,bd=r;for(const o of ITEMS_ON||[])if(isToy(o)){const d=Math.hypot(o.position.x-p.x,o.position.z-p.z);if(d<bd){bd=d;best=o;}}return best;}
+function startPlay(sn,o){const id=o.userData.item.id,k=/^ring/.test(id)?(Math.random()<0.5?'push':'nest'):id==='globe'?'bump':id==='penguin'?'greet':TOYS.includes(id)?(Math.random()<0.6?'push':'bump'):'bump';
+  if(!o.userData.rad){const b=new THREE.Box3().setFromObject(o),sz=b.getSize(new V3());o.userData.rad=Math.max(sz.x,sz.z)/2;}sn.play={o,k,t:0,hits:0,cool:0};sn.st='crawl';sn.stT=99;}
+function playTick(sn,dt){const P=sn.play,o=P.o,g=sn.g;P.t+=dt;if(!ITEMS_ON.includes(o)||P.t>30||sn.sf!=='floor'){sn.play=null;sn.stT=1;return;}
+  const dx=o.position.x-g.position.x,dz=o.position.z-g.position.z,d=Math.hypot(dx,dz),ux=dx/(d||1),uz=dz/(d||1);
+  if(P.k==='nest'){sn.tgt={u:o.position.x,v:-o.position.z};if(d<0.05){sn.st='look';sn.stT=99;P.rest=(P.rest||0)+dt;if(P.rest>7){sn.play=null;sn.st='crawl';sn.stT=4;sn.tgt=null;}}return;}
+  if(P.cool>0){P.cool-=dt;sn.tgt={u:g.position.x-ux*0.3,v:-(g.position.z-uz*0.3)};return;}
+  sn.st='crawl';sn.stT=99;sn.tgt={u:o.position.x,v:-o.position.z};
+  if(d<o.userData.rad+0.2){P.hits++;const U=o.userData;sn.kick=1;sn.wob=0.6;
+    if(P.k==='push'){U.push={x:ux*0.16,z:uz*0.16,t:0,x0:o.position.x,z0:o.position.z};U.wob=0.5;}
+    else if(P.k==='greet'){U.look={t:3.5,a:Math.atan2(-(g.position.z-o.position.z),g.position.x-o.position.x)};U.wob=0.3;}
+    else{U.wob=1;if(U.snow)U.snowT=6;else for(let i=0;i<5;i++)setTimeout(()=>bubble(o.position.clone().add(new V3(rnd(-0.05,0.05),0.2,0))),i*80);sn.st='hide';sn.stT=0.9;}
+    if(P.hits>=(P.k==='push'?3:P.k==='bump'?2:1)){sn.play=null;sn.stT=1.5;sn.st='look';}else P.cool=1.4;}}
+// the toys' own motion: rocking, sliding after a nudge, the penguin turning, snow swirling
+function toysTick(dt){for(const o of ITEMS_ON||[]){const U=o.userData;
+  if(U.wob>0.001){U.wob=Math.max(0,U.wob-dt*0.7);U.wph=(U.wph||0)+dt*11;o.rotation.z=Math.sin(U.wph)*0.12*U.wob;o.rotation.x=Math.sin(U.wph*0.8+1)*0.08*U.wob;}else if(U.wph){o.rotation.x=o.rotation.z=0;U.wph=0;}
+  if(U.push){const q=U.push;q.t+=dt/0.5;const e=1-Math.pow(1-Math.min(1,q.t),3);o.position.x=q.x0+q.x*e;o.position.z=q.z0+q.z*e;o.rotation.y+=dt*0.6*(1-e);
+    if(q.t>=1){const it=U.item;o.position.x=clamp(o.position.x,-B.x*0.95,B.x*0.95);o.position.z=clamp(o.position.z,-1.5,0.8);it.x=+(o.position.x/B.x).toFixed(3);it.z=+o.position.z.toFixed(2);it.r=+o.rotation.y.toFixed(2);it.t=Date.now();U.push=null;settleRings(ENV);computeObst();persist();}}
+  if(U.look){U.look.t-=dt;const base=U.item.r||0,tg=U.look.t>0?U.look.a:base;o.rotation.y+=angTo(o.rotation.y,tg)*(1-Math.exp(-dt*4));if(U.look.t<=-1.5){o.rotation.y=base;U.look=null;}}
+  if(U.snow){const on=(U.snowT||0)>0;if(on)U.snowT-=dt;const k=on?Math.min(1,U.snowT/2):0;U.snow.forEach((f,i)=>{const b=f.userData.b;
+      if(on){const a=i*2.4+T*(1.2+i%3*0.3),r=0.025+0.035*((i*7)%5)/5,y=0.21-((T*0.035*(1+i%4*0.2)+i*0.017)%0.12);f.position.set(Math.cos(a)*r,y,Math.sin(a)*r);}
+      else f.position.lerp(b,1-Math.exp(-dt*1.5));});}}}
 function snailBlocked(x,z,r=0.07){for(const o of OBST){if(o.c.y-o.h.y/0.85>B.floor+0.2)continue;const dx=(x-o.c.x)/(o.h.x/0.85+r),dz=(z-o.c.z)/(o.h.z/0.85+r);if(dx*dx+dz*dz<1)return o;}return null;}
 const _grc=new THREE.Raycaster(),_gdn=new V3(0,-1,0),_go=new V3();
 function groundAt(x,z){const sy=sandAt(x,z);if(!ENV||!snailBlocked(x,z,0.02))return sy;_go.set(x,B.surf,z);ENV.localToWorld(_go);_grc.set(_go,_gdn);
   const h=_grc.intersectObjects([...BIGROCKS,...(ITEMS_ON||[])],true)[0];return h?Math.max(sy,ENV.worldToLocal(h.point.clone()).y):sy;}
-function snailTick(dt){const night=lightsOff||nightAmt()>0.5;if(!SNI&&!VISIT&&(sniT-=dt)<=0){sniPick();if(!SNI)sniT=6;}
+function snailTick(dt){toysTick(dt);const night=lightsOff||nightAmt()>0.5;if(!SNI&&!VISIT&&(sniT-=dt)<=0){sniPick();if(!SNI)sniT=6;}
   for(const sn of SNAILS){const g=sn.g,u=g.userData;sn.stT-=dt;sn.ph+=dt;
     // what is it doing: crawling somewhere, stopping to look around, or tucked in the shell (more resting by day)
     const fishNear=R.g.visible&&S.pos.distanceTo(g.position)<0.32&&!(SNI&&SNI.sn===sn);if(!ptr.down||ptr.onSnail!==sn)sn.lead=false;if(sn.hello>0)sn.hello-=dt;
@@ -2093,11 +2121,14 @@ function snailTick(dt){const night=lightsOff||nightAmt()>0.5;if(!SNI&&!VISIT&&(s
     // riding on your fish's head (dropped onto it): it stays about half a minute, then lets go and sinks back to the sand
     if(sn.dropT>0)sn.dropT-=dt;
     if(sn.onFish){sn.onFish-=dt;if(sn.onFish<=0||!R.g.visible||sn.lead&&ptr.moved>8){sn.onFish=0;sn.stT=1;sn.dropT=4;if(!sn.lead){sn.free=true;sn.fp=g.position.clone();sn.fv=new V3();sn.hm='floor';sn.fth=S.heading;}}}
-    if(!sn.free&&!sn.on&&!sn.onFish&&sn.st==='crawl'&&(!sn.tgt||Math.hypot(sn.tgt.u-sn.u,sn.tgt.v-sn.v)<0.05)){
+    if(sn.play&&!sn.free&&!sn.on&&!sn.onFish)playTick(sn,dt);
+    else if(!sn.free&&!sn.on&&!sn.onFish&&sn.st==='crawl'&&(!sn.tgt||Math.hypot(sn.tgt.u-sn.u,sn.tgt.v-sn.v)<0.05)){
       if(sn.tgt&&sn.tgt.edge){if(sn.sf==='floor'){toSurf(sn,'back',onSurf(SF,sn.u,sn.v));sn.v=snailSurf('back').v[0]+0.01;sn.th=Math.PI/2;}
         else{const p=onSurf(SF,sn.u,sn.v).addScaledVector(SF.n,0.03);toSurf(sn,'floor',p);sn.th=-Math.PI/2;}SF=snailSurf(sn.sf);sn.tgt=null;}
       const r=Math.random(),buddy=sn.sf==='floor'&&!sn.rider&&r<0.18?SNAILS.find(q=>q!==sn&&q.sf==='floor'&&!q.free&&!q.on&&!q.rider&&!q.onFish&&!sn.rider&&q.g.position.distanceTo(g.position)<1.1):null;
+      const toy=!buddy&&sn.sf==='floor'&&r>0.9?toyNear(g.position,1.4):null;
       if(buddy)sn.tgt={u:buddy.u,v:buddy.v,mount:buddy};
+      else if(toy)startPlay(sn,toy);
       else if(sn.sf==='floor'&&r<(night?0.35:0.22)){const W=snailSurf('back'),p=onSurf(W,lerp(W.u[0],W.u[1],rnd(0.2,0.8)),0);sn.tgt={u:clamp(p.x,SF.u[0],SF.u[1]),v:SF.v[1],edge:1};}
       else if(sn.sf==='back'&&r<0.4)sn.tgt={u:clamp(sn.u+rnd(-0.3,0.3),SF.u[0],SF.u[1]),v:SF.v[0],edge:1};
       else{let t=null;for(let i=0;i<8&&!t;i++){const c={u:clamp(sn.u+rnd(-0.8,0.8),SF.u[0],SF.u[1]),v:clamp(sn.v+rnd(-0.6,0.6),SF.v[0],SF.v[1])};
@@ -2108,7 +2139,7 @@ function snailTick(dt){const night=lightsOff||nightAmt()>0.5;if(!SNI&&!VISIT&&(s
     sn.mv=damp(sn.mv,sn.st==='crawl'&&sn.out>0.85&&!fishNear&&!sn.on&&!sn.onFish?1:0,1.5,dt);if((sn.on||sn.onFish)&&sn.st!=='hide'&&sn.stT>5){sn.st='look';sn.stT=99;}
     // picked up: you move it like a decoration - across and front-to-back over the sand, held just above it; drag on up past the back
     // of the sand and it goes onto the back glass. Let go over the sand and it tucks in and drops; let go on the glass and it holds on.
-    if(sn.lead&&ptr.down&&ptr.moved>8&&!sn.free){sn.on=null;sn.onFish=0;sn.free=true;sn.fp=g.position.clone();const v=g.getWorldPosition(new V3()).project(camera);sn.go=new THREE.Vector2(v.x-ndc.x,v.y-ndc.y);sn.fv=new V3();sn.hm=sn.sf;sn.fth=sn.sf==='floor'?sn.th:0;sn.wth=sn.sf==='back'?sn.th:Math.PI/2;}
+    if(sn.lead&&ptr.down&&ptr.moved>8&&!sn.free){sn.on=null;sn.onFish=0;sn.play=null;sn.free=true;sn.fp=g.position.clone();const v=g.getWorldPosition(new V3()).project(camera);sn.go=new THREE.Vector2(v.x-ndc.x,v.y-ndc.y);sn.fv=new V3();sn.hm=sn.sf;sn.fth=sn.sf==='floor'?sn.th:0;sn.wth=sn.sf==='back'?sn.th:Math.PI/2;}
     if(sn.free){const fp=sn.fp,xw=B.x*0.95;
       if(sn.lead&&ptr.down){_snRc.setFromCamera(_v2.set(ndc.x+sn.go.x,ndc.y+sn.go.y),camera);const rr=_snRc.ray,p=new V3();PL_FLOOR.constant=-(B.floor+0.06);
         let hm='floor';if(!(rr.intersectPlane(PL_FLOOR,p)&&p.z>-1.58)){hm='back';if(!rr.intersectPlane(PL_BACK,p))p.copy(fp);}
@@ -2120,7 +2151,7 @@ function snailTick(dt){const night=lightsOff||nightAmt()>0.5;if(!SNI&&!VISIT&&(s
       else if(R.g.visible&&!(sn.dropT>0)&&world.worldToLocal(headTop({host:true})).distanceTo(fp)<0.45){sn.free=false;sn.onFish=30;sn.st='look';sn.stT=99;sn.kick=1;say('!',1.4);squish(-3);for(let i=0;i<4;i++)setTimeout(()=>bubble(fp.clone()),i*100);}
       else if(sn.hm==='back'&&fp.y>B.floor+0.1){toSurf(sn,'back',fp);sn.th=sn.wth;sn.free=false;sn.st='look';sn.stT=1.2;}
       else{const sy=groundAt(fp.x,fp.z);sn.st='hide';sn.stT=1.4;sn.fv.y=Math.max(-0.45,sn.fv.y-0.7*dt);fp.addScaledVector(sn.fv,dt);sn.sway=(sn.sway||0)*0.95;
-        if(fp.y<=sy+0.006){toSurf(sn,'floor',fp);sn.gy=sy;sn.th=sn.fth;sn.free=false;sn.wob=0.6;sandPuffAt(new V3(fp.x,B.floor,fp.z));}}
+        if(fp.y<=sy+0.006){toSurf(sn,'floor',fp);sn.gy=sy;{const t=toyNear(fp,0.7);if(t){startPlay(sn,t);sn.th=Math.atan2(-(t.position.z-fp.z),t.position.x-fp.x);}}sn.th=sn.fth;sn.free=false;sn.wob=0.6;sandPuffAt(new V3(fp.x,B.floor,fp.z));}}
       SF=snailSurf(sn.sf);}
     const sd=sn.shadow;
     if(sn.on||sn.onFish){let ft;if(sn.on){const b=sn.on.g;g.position.copy(b.localToWorld(new V3(-0.012,0.118,0)));g.parent.worldToLocal(g.position);g.quaternion.copy(b.quaternion);g.rotateZ(0.12+0.03*Math.sin(sn.ph*1.3));n=new V3(0,1,0).applyQuaternion(g.quaternion);fw=new V3(1,0,0).applyQuaternion(g.quaternion);}
