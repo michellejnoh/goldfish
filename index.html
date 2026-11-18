@@ -1029,6 +1029,8 @@ function keepAboveFloor(){if(!R.g.visible)return;world.updateMatrixWorld(true);_
   if(touch&&!S.onGround&&T-(S.leftGround||-9)>0.8){const v=-(S.vyPre||0);if(v>0.15){S.sqYV=(S.sqYV||0)-Math.min(1.6,v*2.5);S.sqZV=(S.sqZV||0)+Math.min(1,v*1.5);}}
   if(!touch&&S.onGround)S.leftGround=T;
   S.onGround=touch;S.ground=lerp(S.ground||0,touch?1:0,touch?0.12:0.2);}
+// height of the rippled sand bed at a point (same formula the sand mesh is built from), so things crawling on it ride on top instead of sinking in
+const sandAt=(x,z)=>{const zl=z+0.3;return B.floor+0.025*Math.sin(x*5+Math.sin(zl*2.2)*2)+0.03*n3(x*1.5,0,zl*1.5);};
 function buildEnv(){
   const e=new THREE.Group();PEBBLES=[];DECOS=[];ribbons.length=0;ferns.length=0;
   const F=B.floor,span=B.hw+1.6;
@@ -1754,7 +1756,7 @@ setInterval(()=>{if(cloudDirty)cloudPut();else if(!document.hidden)pull();},3000
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)pull();});
 /* the home-screen app keeps an old copy of the page open (and iOS caches it), so check for a newer build when it opens or comes back,
    and reload past the cache if there is one */
-const BUILD='20261118085937';
+const BUILD='20261118090156';
 function checkBuild(){fetch('version.json?t='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{if(!j||!j.b||j.b===BUILD)return;
   try{if(sessionStorage.getItem('gf-build')===j.b)return;sessionStorage.setItem('gf-build',j.b);}catch(e){}
   try{persistLocal();}catch(e){}location.replace(location.pathname+'?v='+encodeURIComponent(j.b));}).catch(()=>{});}
@@ -1888,7 +1890,7 @@ function makeSnail(k){const g=new THREE.Group(),body=new THREE.Group(),dark=new 
   // the head is a little rig at the front of the body: the long eye stalks (dark eye beads on the tips) and short feelers by the mouth
   const head=new THREE.Group();body.add(head);
   const stalk=(x,y,z,len,r,ry,rz,eye)=>{const pv=new THREE.Group();pv.position.set(x,y,z);pv.rotation.set(rz,0,ry);head.add(pv);const c=new THREE.Mesh(new THREE.CylinderGeometry(r*0.55,r,len,7,4),bm);c.position.y=len/2;pv.add(c);
-    if(eye){const e=new THREE.Mesh(new THREE.SphereGeometry(r*1.75,12,9),flatMat({color:0x231f1d}));e.position.y=len+r*0.6;pv.add(e);const hl=new THREE.Mesh(new THREE.SphereGeometry(r*0.55,8,6),flatMat({color:0xffffff}));hl.position.set(r*0.9,len+r*1.3,r*0.9);pv.add(hl);}pv.userData.len=1;return pv;};
+    if(eye){const e=new THREE.Mesh(new THREE.SphereGeometry(r*1.75,12,9),flatMat({color:0x231f1d}));e.position.y=len+r*0.6;pv.add(e);}pv.userData.len=1;return pv;};
   const eyes=[stalk(-0.004,-0.002,0.006,0.034,0.0042,-0.45,0.3,true),stalk(-0.004,-0.002,-0.006,0.034,0.0042,-0.45,-0.3,true)],feel=[stalk(0.004,-0.011,0.006,0.008,0.003,-1.6,0.45,false),stalk(0.004,-0.011,-0.006,0.008,0.003,-1.6,-0.45,false)];
   // shell rides on the hump of the body, apex back and up, aperture down over the mantle, leaning to its right like a real right-handed shell
   const sh=new THREE.Group();sh.position.set(-0.012,0.05,0);body.add(sh);const shm=new THREE.Mesh(shellGeo(k),flatMat({vertexColors:true,side:THREE.DoubleSide}));
@@ -1918,7 +1920,7 @@ function snailSurf(k){const F=B.floor,zf=0.9,zb=-1.72,xw=B.hw-0.04;
 const _sm=new THREE.Matrix4();
 const snailList=()=>(VISIT?VISIT.snails:save.snails)||[];
 const snailMax=()=>2*(1+((save.friends||[]).length));
-function buildSnails(e){SNAILS=[];for(const sn of snailList()){const k=SNAILK.find(x=>x.id===sn.k);if(!k)continue;const g=makeSnail(k);g.scale.setScalar(2.2);
+function buildSnails(e){SNAILS=[];for(const sn of snailList()){const k=SNAILK.find(x=>x.id===sn.k);if(!k)continue;const g=makeSnail(k);g.scale.setScalar(2.42);
     const x=rnd(-B.x*0.8,B.x*0.8),z=rnd(-0.9,0.6);g.position.set(x,B.floor,z);g.rotation.y=rnd(0,6.28);e.add(g);
     const trail=[];for(let i=0;i<40;i++){const m=new THREE.Mesh(new THREE.CircleGeometry(0.012,10),new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:0,depthWrite:false,fog:false}));m.rotation.x=-Math.PI/2;m.scale.set(1.4,0.8,1);e.add(m);trail.push({m,t:99});}
     const sf=snailSurf('floor');SNAILS.push({g,k,sf:'floor',u:x,v:-z,th:rnd(0,6.28),st:'crawl',stT:rnd(4,9),tgt:null,ph:rnd(0,6),eyeK:1,look:0,trail,ti:0,tp:g.position.clone(),out:1});}}
@@ -1958,7 +1960,7 @@ function snailTick(dt){const night=lightsOff||nightAmt()>0.5;
     const up=sn.sf==='floor'?0:Math.sin(sn.th),sp=0.035*(night?1.25:1)*(sn.lead?2.4:1)*(1-0.3*Math.max(0,up))*sn.mv;sn.u=clamp(sn.u+Math.cos(sn.th)*sp*dt,SF.u[0],SF.u[1]);sn.v=clamp(sn.v+Math.sin(sn.th)*sp*dt,SF.v[0],SF.v[1]);
     // place and orient on the surface: foot flat against it, head the way it's going
     const fw=SF.a1.clone().multiplyScalar(Math.cos(sn.th)).addScaledVector(SF.a2,Math.sin(sn.th)),side=fw.clone().cross(SF.n);
-    g.position.copy(SF.o).addScaledVector(SF.a1,sn.u).addScaledVector(SF.a2,sn.v).addScaledVector(SF.n,0.004);if(sn.sf==='floor')g.position.y=B.floor;
+    g.position.copy(SF.o).addScaledVector(SF.a1,sn.u).addScaledVector(SF.a2,sn.v).addScaledVector(SF.n,0.004);if(sn.sf==='floor')g.position.y=sandAt(g.position.x,g.position.z)+0.006;
     _sm.makeBasis(fw,SF.n,side);g.quaternion.setFromRotationMatrix(_sm);
     if(food&&sn.sf==='floor'&&g.position.distanceTo(new V3(food.pos.x,B.floor,food.pos.z))<0.08){sn.look=Math.sin(sn.ph*7)*0.12;}
     // the foot: waves of muscle running from tail to head while moving
