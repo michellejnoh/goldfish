@@ -1056,7 +1056,7 @@ function computeObst(){OBST=[];if(!ENV)return;world.updateMatrixWorld(true);_wIn
   for(const o of [...BIGROCKS,...(ITEMS_ON||[])]){_bx.makeEmpty();o.traverse(c=>{if(!c.isMesh)return;if(!c.geometry.boundingBox)c.geometry.computeBoundingBox();
       _m4.multiplyMatrices(_wInv,c.matrixWorld);const b=c.geometry.boundingBox.clone().applyMatrix4(_m4);_bx.union(b);});
     if(_bx.isEmpty())continue;const c=_bx.getCenter(new V3()),h=_bx.getSize(new V3()).multiplyScalar(0.5*0.85);OBST.push({c,h});}
-  declutter();}
+  declutter();try{for(const sn of SNAILS)if(sn.sf==='floor'&&!sn.free&&!sn.on&&!sn.onFish)snailFree(sn);}catch(e){}}
 // keep loose pebbles and the scattered stones from sitting inside decorations or piling into each other
 function declutter(){const inside=(x,z,r)=>OBST.find(o=>Math.abs(x-o.c.x)<o.h.x/0.85+r*0.6&&Math.abs(z-o.c.z)<o.h.z/0.85+r*0.6);
   const kept=[];for(const d of DECOS){const p=d.m.position;let hide=!!inside(p.x,p.z,d.r);
@@ -1817,7 +1817,7 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden)setTimeout
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)pull();});
 /* the home-screen app keeps an old copy of the page open (and iOS caches it), so check for a newer build when it opens or comes back,
    and reload past the cache if there is one */
-const BUILD='20261118155145';
+const BUILD='20261118181548';
 function checkBuild(){fetch('version.json?t='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{if(!j||!j.b||j.b===BUILD)return;
   try{if(sessionStorage.getItem('gf-build')===j.b)return;sessionStorage.setItem('gf-build',j.b);}catch(e){}
   try{persistLocal();}catch(e){}location.replace(location.pathname+'?v='+encodeURIComponent(j.b));}).catch(()=>{});}
@@ -2072,6 +2072,9 @@ function snailPoke(sn){const dbl=T-(sn.tapT||-9)<0.4;sn.tapT=T;if(dbl){sn.st='hi
   if(sn.onFish)return;const base=sn.on||sn;if(base!==sn||sn.rider){say('!',1.4);squish(-3);}
   if(!VISIT||R.g.visible){IACT=null;SNI={who:'me',sn:base,k:base.sf==='back'?'nibble':'peek',ph:'go',t:0,max:10,fast:1};squish(2);bubble(sn.g.position.clone().add(new V3(0,0.15,0)));}}
 const angTo=(a,b)=>Math.atan2(Math.sin(b-a),Math.cos(b-a));
+function snailBlocked(x,z,r=0.07){for(const o of OBST){if(o.c.y-o.h.y/0.85>B.floor+0.2)continue;const dx=(x-o.c.x)/(o.h.x/0.85+r),dz=(z-o.c.z)/(o.h.z/0.85+r);if(dx*dx+dz*dz<1)return o;}return null;}
+// a snail standing inside something gets eased out to the nearest clear spot
+function snailFree(sn){const p=onSurf(snailSurf('floor'),sn.u,sn.v);if(!snailBlocked(p.x,p.z,0.04))return;for(let r=0.05;r<1.5;r+=0.05)for(let a=0;a<6.28;a+=0.4){const x=p.x+Math.cos(a)*r,z=p.z+Math.sin(a)*r;if(!snailBlocked(x,z,0.05)&&Math.abs(x)<B.x*0.9&&z<0.84&&z>-1.66){sn.u=x;sn.v=-z;return;}}}
 function snailTick(dt){const night=lightsOff||nightAmt()>0.5;if(!SNI&&!VISIT&&(sniT-=dt)<=0){sniPick();if(!SNI)sniT=6;}
   for(const sn of SNAILS){const g=sn.g,u=g.userData;sn.stT-=dt;sn.ph+=dt;
     // what is it doing: crawling somewhere, stopping to look around, or tucked in the shell (more resting by day)
@@ -2097,7 +2100,7 @@ function snailTick(dt){const night=lightsOff||nightAmt()>0.5;if(!SNI&&!VISIT&&(s
       else if(sn.sf==='floor'&&r<(night?0.35:0.22)){const W=snailSurf('back'),p=onSurf(W,lerp(W.u[0],W.u[1],rnd(0.2,0.8)),0);sn.tgt={u:clamp(p.x,SF.u[0],SF.u[1]),v:SF.v[1],edge:1};}
       else if(sn.sf==='back'&&r<0.4)sn.tgt={u:clamp(sn.u+rnd(-0.3,0.3),SF.u[0],SF.u[1]),v:SF.v[0],edge:1};
       else{let t=null;for(let i=0;i<8&&!t;i++){const c={u:clamp(sn.u+rnd(-0.8,0.8),SF.u[0],SF.u[1]),v:clamp(sn.v+rnd(-0.6,0.6),SF.v[0],SF.v[1])};
-          if(sn.sf!=='floor'||!inObst(onSurf(SF,c.u,c.v).setY(B.floor+0.05)))t=c;}sn.tgt=t||{u:sn.u,v:sn.v};}}
+          if(sn.sf!=='floor'||!snailBlocked(c.u,-c.v,0.12))t=c;}sn.tgt=t||{u:sn.u,v:sn.v};}}
     // body out of the shell (1) or pulled in (0); eye stalks out (1) or pulled in (0)
     const hid=sn.st==='hide';sn.out=damp(sn.out,hid?0:1,hid?(sn.snap?12:3):sn.hello>0?2.5:0.8,dt);if(sn.out<0.05)sn.snap=0;sn.kick=Math.max(0,(sn.kick||0)-dt*0.9);sn.wob=Math.max(0,(sn.wob||0)-dt*1.2);
     sn.eyeK=damp(sn.eyeK,hid||fishNear?0.15:sn.hello>0?1.4:sn.lead?1.2:1,fishNear||hid?(sn.snap?14:6):sn.hello>0?3:0.9,dt);
@@ -2116,7 +2119,7 @@ function snailTick(dt){const night=lightsOff||nightAmt()>0.5;if(!SNI&&!VISIT&&(s
       else if(R.g.visible&&!(sn.dropT>0)&&world.worldToLocal(headTop({host:true})).distanceTo(fp)<0.45){sn.free=false;sn.onFish=30;sn.st='look';sn.stT=99;sn.kick=1;say('!',1.4);squish(-3);for(let i=0;i<4;i++)setTimeout(()=>bubble(fp.clone()),i*100);}
       else if(sn.hm==='back'&&fp.y>B.floor+0.1){toSurf(sn,'back',fp);sn.th=sn.wth;sn.free=false;sn.st='look';sn.stT=1.2;}
       else{const sy=sandAt(fp.x,fp.z);sn.st='hide';sn.stT=1.4;sn.fv.y=Math.max(-0.45,sn.fv.y-0.7*dt);fp.addScaledVector(sn.fv,dt);sn.sway=(sn.sway||0)*0.95;
-        if(fp.y<=sy+0.006){toSurf(sn,'floor',fp);sn.th=sn.fth;sn.free=false;sn.wob=0.6;sandPuffAt(new V3(fp.x,B.floor,fp.z));}}
+        if(fp.y<=sy+0.006){toSurf(sn,'floor',fp);snailFree(sn);sn.th=sn.fth;sn.free=false;sn.wob=0.6;sandPuffAt(new V3(fp.x,B.floor,fp.z));}}
       SF=snailSurf(sn.sf);}
     const sd=sn.shadow;
     if(sn.on||sn.onFish){let ft;if(sn.on){const b=sn.on.g;g.position.copy(b.localToWorld(new V3(-0.012,0.118,0)));g.parent.worldToLocal(g.position);g.quaternion.copy(b.quaternion);g.rotateZ(0.12+0.03*Math.sin(sn.ph*1.3));n=new V3(0,1,0).applyQuaternion(g.quaternion);fw=new V3(1,0,0).applyQuaternion(g.quaternion);}
@@ -2129,8 +2132,12 @@ function snailTick(dt){const night=lightsOff||nightAmt()>0.5;if(!SNI&&!VISIT&&(s
       else{const h=fp.y-sy,f=1+Math.min(1.2,h*1.5);sd.position.set(fp.x,sy+0.004,fp.z);sd.scale.set(0.21*f,0.1*f,1);sd.material.opacity=0.13*Math.max(0.2,1-h*1.3);}}
     else{
       // glide: slow and steady; a little slower climbing up the glass than coming down it; turning a little at a time toward where it's going
-      if(sn.tgt)sn.th+=clamp(angTo(sn.th,Math.atan2(sn.tgt.v-sn.v,sn.tgt.u-sn.u)),-0.6*dt,0.6*dt)*Math.max(0.2,sn.mv);
-      const sp=0.035*(night?1.25:1)*(1-0.3*Math.max(0,sn.sf==='floor'?0:Math.sin(sn.th)))*sn.mv;sn.u=clamp(sn.u+Math.cos(sn.th)*sp*dt,SF.u[0],SF.u[1]);sn.v=clamp(sn.v+Math.sin(sn.th)*sp*dt,SF.v[0],SF.v[1]);
+      let want=sn.tgt?Math.atan2(sn.tgt.v-sn.v,sn.tgt.u-sn.u):sn.th;
+      if(sn.sf==='floor'&&sn.mv>0.05){const ah=a=>snailBlocked(sn.u+Math.cos(a)*0.16,-(sn.v+Math.sin(a)*0.16));if(ah(sn.th)||ah(want)){sn.av=sn.av||(Math.random()<0.5?1:-1);
+          for(let k=1;k<=8;k++){const a=sn.th+sn.av*k*0.35;if(!ah(a)){want=a;break;}}}else sn.av=0;}
+      sn.th+=clamp(angTo(sn.th,want),-0.9*dt,0.9*dt)*Math.max(0.2,sn.mv);
+      const sp=0.035*(night?1.25:1)*(1-0.3*Math.max(0,sn.sf==='floor'?0:Math.sin(sn.th)))*sn.mv,nu=clamp(sn.u+Math.cos(sn.th)*sp*dt,SF.u[0],SF.u[1]),nv=clamp(sn.v+Math.sin(sn.th)*sp*dt,SF.v[0],SF.v[1]);
+      if(sn.sf!=='floor'||!snailBlocked(nu+Math.cos(sn.th)*0.1,-(nv+Math.sin(sn.th)*0.1),0.03)){sn.u=nu;sn.v=nv;}else if(sn.tgt&&!sn.tgt.mount)sn.tgt=null;
       // place and orient on the surface: foot flat against it, head the way it's going; a faint soft shadow under it
       n=SF.n;fw=SF.a1.clone().multiplyScalar(Math.cos(sn.th)).addScaledVector(SF.a2,Math.sin(sn.th));
       g.position.copy(onSurf(SF,sn.u,sn.v)).addScaledVector(n,0.004);if(sn.sf==='floor')g.position.y=sandAt(g.position.x,g.position.z)+0.006;
