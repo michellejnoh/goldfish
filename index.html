@@ -58,7 +58,10 @@ body.night #dark{opacity:.55}
 #lvBadge{display:inline-flex;align-items:center;gap:7px;align-self:flex-start;background:none;border:0;padding:2px 0;font:inherit;font-size:15px;color:inherit}#lvBadge svg{display:block}
 .sec{font-size:13px;opacity:.5;margin:12px 0 2px;letter-spacing:.02em}.sec:first-of-type{margin-top:4px}
 #snailMine{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 2px}#snailMine button{background:none;border:1px solid rgba(0,0,0,.15);border-radius:999px;padding:6px 12px;font:inherit;font-size:14px;color:inherit}
-#recent{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 2px}#recent button{background:none;border:1px solid rgba(0,0,0,.15);border-radius:999px;padding:6px 12px;font:inherit;font-size:15px;color:inherit}
+.ftabs{display:flex;gap:18px;margin:2px 0 8px}.ftabs button{background:none;border:0;font:inherit;font-size:19px;color:inherit;opacity:.45;padding:2px 0}.ftabs button[aria-selected="true"]{opacity:1;text-decoration:underline;text-underline-offset:5px}
+#flist{min-height:300px;margin-top:8px}.frow{display:flex;align-items:center;gap:8px;padding:7px 2px;border-bottom:1px solid rgba(0,0,0,.07);min-height:34px}.frow b{font-weight:500;font-size:18px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.frow small{opacity:.55;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;min-width:0}
+.frow .tag{font-size:13px;border:1px solid currentColor;border-radius:999px;padding:0 7px;opacity:.7;flex:none}.frow button{flex:none;background:none;border:1px solid rgba(0,0,0,.18);border-radius:999px;padding:4px 12px;font:inherit;font-size:15px;color:inherit}.frow button.no{border:0;opacity:.5;padding:4px 6px}.frow em{flex:none;font-style:normal;opacity:.5;font-size:15px}
+.fsec{font-size:15px;opacity:.5;margin:8px 0 0}.fpager{display:flex;align-items:center;justify-content:center;gap:18px;margin-top:6px}.fpager button{background:none;border:0;font:inherit;font-size:28px;line-height:1;padding:0 12px;color:inherit}.fpager button:disabled{opacity:.2}.fpager span{font-size:15px;opacity:.55}
 .shoptabs{display:flex;gap:6px;justify-content:center;margin:4px 0 10px}.shoptabs button{background:none;border:0;border-bottom:1.5px solid transparent;padding:4px 10px;font:inherit;font-size:16px;color:inherit;opacity:.5}.shoptabs button[aria-selected=true]{opacity:1;border-color:currentColor}
 #visitBar .vb{display:inline-flex;flex-direction:column;align-items:center;gap:2px;background:none;border:0;font:inherit;font-size:12px;color:inherit;padding:2px 8px}#visitBar .vb svg{display:block}
 #name{cursor:pointer;font:500 40px/1 var(--font);letter-spacing:-.01em;color:var(--ink);background:transparent;border:0;padding:0;margin:0;width:100%;white-space:nowrap;
@@ -166,7 +169,7 @@ body.visiting .ui,body.visiting #say{display:none}
 .langrow .link[aria-pressed="true"]{color:#111;text-decoration-thickness:2px}
 .card{position:relative}
 .row2.topclose{position:absolute;top:20px;right:22px;margin:0;width:auto}
-.notelist{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:6px}.notelist button{font:inherit;font-size:17px;text-align:left;padding:10px 12px;border:1px solid rgba(0,0,0,.1);border-radius:12px;background:none;color:inherit;cursor:pointer;line-height:1.25}.notelist button:active{background:rgba(0,0,0,.05)}.notelist button:disabled{opacity:.4}
+.notelist{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}.notelist button{font:inherit;font-size:16px;text-align:left;padding:5px 10px;border:0;border-radius:6px;background:rgba(0,0,0,.06);color:inherit;cursor:pointer;line-height:1.2}.notelist button:active{background:rgba(0,0,0,.12)}.notelist button:disabled{opacity:.4}
 .sheet.dock.top .row2.topclose{top:calc(16px + env(safe-area-inset-top,0px))}
 .card h2{padding-right:64px}
 .growrow{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));align-items:end;gap:4px 6px;margin-top:0}
@@ -255,12 +258,22 @@ body.lookdock #viewArrows{display:flex}
 <div class="sheet" id="visitAsk" hidden>
   <div class="card">
     <h2>friends</h2>
-    <p class="small">visit a keeper by username, or tap one you’ve visited</p>
-    <form id="visitForm" autocomplete="off"><input id="visitName" placeholder="username" maxlength="16" autocapitalize="none" spellcheck="false" aria-label="Username">
-    <div id="recent"></div>
+    <div class="ftabs" role="tablist"><button type="button" role="tab" data-ft="f">my friends</button><button type="button" role="tab" data-ft="a">everyone</button></div>
+    <form id="visitForm" autocomplete="off"><input id="visitName" placeholder="search username" maxlength="16" autocapitalize="none" spellcheck="false" aria-label="Search username"></form>
+    <div id="flist"></div>
+    <div class="fpager" id="fPager"><button type="button" id="fPrev" aria-label="Previous page">‹</button><span id="fPage"></span><button type="button" id="fNext" aria-label="Next page">›</button></div>
     <p class="small" id="visitErr"></p>
-    <div class="row2"><button type="button" class="link" id="visitCancel">cancel</button><button type="submit" class="go">visit</button></div></form>
+    <div class="row2 topclose"><span></span><button type="button" class="go" id="visitCancel">close</button></div>
   </div>
+</div>
+<div class="sheet" id="realAsk" hidden>
+  <form class="card" id="realForm">
+    <h2>one more thing</h2>
+    <p id="realNote">Please enter your real name. We need it to keep your account secure.</p>
+    <input id="realName" maxlength="20" autocomplete="name" spellcheck="false" aria-label="Real name" placeholder="your real name">
+    <p class="small" id="realMsg">only your friends can see it</p>
+    <div class="row2"><button type="button" class="link" id="realSwitch">use another account</button><button type="submit" class="go">save</button></div>
+  </form>
 </div>
 <div class="sheet" id="duel" hidden>
   <div class="card">
@@ -340,6 +353,7 @@ body.lookdock #viewArrows{display:flex}
     <h2>who's keeping this fish?</h2>
     <p id="loginNote">Pick a username. Your fish, its level and missions are saved under it.</p>
     <input id="loginName" maxlength="16" autocomplete="off" autocapitalize="none" spellcheck="false" aria-label="Username" placeholder="username">
+    <input id="loginReal" maxlength="20" autocomplete="name" spellcheck="false" aria-label="Real name" placeholder="your real name" style="margin-top:8px">
     <p class="small" id="loginMsg">letters, numbers and _ · 2 to 16 characters</p>
     <div class="langrow"><span class="small">language</span><button type="button" class="link" data-lang="en">English</button><button type="button" class="link" data-lang="ko">한국어</button></div>
     <div class="row2"><button type="button" class="link" id="loginBack" hidden>pick another</button><button type="button" class="link" id="loginClose" hidden>close</button><button type="submit" class="go" id="loginGo">start</button></div>
@@ -473,7 +487,7 @@ body.lookdock #viewArrows{display:flex}
 <script>
 /* ================= language: English / 한국어 =================
    The UI is written in English; in Korean mode every text node and label is swapped through this table as it appears. */
-const KO={'note':'쪽지','leave a note':'쪽지 남기기',
+const KO={'my friends':'내 친구','everyone':'전체','search username':'아이디 검색','admin':'관리자','add':'신청','accept':'수락','requested':'신청함','wants to be friends':'친구 신청','one more thing':'잠깐만요','Please enter your real name. We need it to keep your account secure.':'본명을 입력해 주세요. 계정 보안 강화를 위해 필요해요.','your real name':'본명','only your friends can see it':'친구에게만 보여요','use another account':'다른 계정 사용','please type your real name':'본명을 입력해 주세요','that doesn’t match the name on this account':'이 계정의 본명과 맞지 않아요','type your real name too · it keeps others out of your account':'본명도 입력해 주세요 · 다른 사람이 내 계정에 들어오지 못하게 해 줘요','no friends yet · find keepers under “everyone”':'아직 친구가 없어요 · “전체”에서 찾아보세요','no friends match':'맞는 친구가 없어요','no keepers match':'맞는 키퍼가 없어요','loading…':'불러오는 중…','the full list needs the new database rules':'전체 목록을 보려면 새 데이터베이스 규칙이 필요해요','couldn’t load the list of keepers':'키퍼 목록을 불러오지 못했어요','friend requests need the new database rules':'친구 신청에는 새 데이터베이스 규칙이 필요해요','couldn’t send the request':'신청을 보내지 못했어요','leave a note':'쪽지 남기기',
 
 'blub':'뻐끔','blub blub':'뻐끔뻐끔','ok':'응','nom':'냠','nom nom':'냠냠','munch':'오물오물','mm':'음',
 'hand':'손','food':'먹이','wash':'청소','toy':'장난감','sleep':'재우기','wake':'깨우기',
@@ -539,7 +553,8 @@ const KO={'note':'쪽지','leave a note':'쪽지 남기기',
 'edit · your fish’s color and pattern, the water, decorations, and the night lamp':'편집 · 금붕어 색과 무늬, 물 색, 장식, 무드등을 바꿔요','tank view · see your tank on its table in a little room, and turn it around':'어항 보기 · 작은 방 탁자 위의 어항을 보고 돌려 봐요',
 'camera · take a picture of your tank':'카메라 · 어항 사진을 찍어요','your keeper name · tap to switch keepers':'키퍼 이름 · 탭하면 다른 키퍼로 바꿔요','growth':'성장','drag it where you like · twist or use the arrows to turn it':'원하는 곳으로 끌어 놓고, 비틀거나 화살표로 돌려요','send':'보내기','cancel':'취소','turn your fish':'물고기 돌리기','language':'언어','growth · by level':'성장 · 레벨별','Take picture':'사진 찍기','Sound on':'소리 켜짐','Sound off':'소리 꺼짐','Tank view':'어항 보기','drag to turn · pinch to zoom':'끌어서 돌리기 · 두 손가락으로 확대','Zoom in':'확대','Zoom out':'축소','Goldfish tank. Tap, drag and feed to interact.':'금붕어 수조. 탭하고 끌고 먹이를 주며 놀아 주세요.',
 ': check the Firestore rules':': Firestore 규칙을 확인해 주세요',': is the Firestore database created?':': Firestore 데이터베이스가 만들어졌는지 확인해 주세요'};
-const KO_RX=[[/^leave a note for @(.+)$/,'@$1에게 쪽지 남기기'],[/^note left for @(.+)$/,'@$1에게 쪽지를 남겼어요'],[/^@(.+) left a note: “(.+)”$/,'@$1의 쪽지: “$2”'],
+const KO_RX=[[/^friend request sent to @(.+)$/,'@$1에게 친구 신청을 보냈어요'],[/^you and @(.+) are friends now$/,'이제 @$1와(과) 친구예요'],[/^@(.+) sent you a friend request$/,'@$1님이 친구 신청을 보냈어요'],[/^@(.+) accepted your friend request$/,'@$1님이 친구 신청을 수락했어요'],[/^you can visit @(.+) once you’re friends$/,'친구가 되면 @$1의 어항에 놀러 갈 수 있어요'],[/^that real name doesn’t match @(.+)$/,'@$1 계정의 본명과 맞지 않아요'],
+[/^leave a note for @(.+)$/,'@$1에게 쪽지 남기기'],[/^note left for @(.+)$/,'@$1에게 쪽지를 남겼어요'],[/^@(.+) left a note: “(.+)”$/,'@$1의 쪽지: “$2”'],
 
 [/^(.+) is nosing at the surface\.$/,'$1, 수면에서 뻐끔거리고 있어요.'],[/^(.+) is drifting low\.$/,'$1, 바닥 가까이 떠 있어요.'],
 [/^(.+) is pacing the glass\.$/,'$1, 유리 앞을 왔다 갔다 해요.'],[/^(.+) is gliding around\.$/,'$1, 여유롭게 헤엄치고 있어요.'],
@@ -1068,7 +1083,7 @@ function buildEnv(){
   // the heap sits in the open toward the front, where it can be seen
   PILE=new V3((save.tank.pileSide||(save.tank.pileSide=Math.random()<0.5?-1:1))*B.x*0.4,F,0.45);if(save.tank.pile){PILE.x=save.tank.pile[0]*B.x;PILE.z=save.tank.pile[1];}PILE.n=PEBBLES.filter(p=>p.inPile).length;
   if(PILE.n){let sx=0,sz=0;for(const p of PEBBLES)if(p.inPile){sx+=p.m.position.x;sz+=p.m.position.z;}PILE.x=sx/PILE.n;PILE.z=sz/PILE.n;}// keep growing an existing heap where it is
-  ITEMS_ON=[];for(const it of save.tank.items){const def=ALLDECO().find(d=>d.id===it.id);if(!def)continue;const g=def.make(it);g.userData.isRing=def.id==='ring';if(def.glow)g.userData.glow=def.glow;if(g.userData.isRing){const rg=g.children[0];rg.rotation.set(Math.PI/2-0.18,0,0);rg.position.y=0.031;}g.scale.setScalar(1.8);g.position.set(it.x*B.x,F,it.z);g.rotation.y=it.r||0;g.userData.item=it;e.add(g);ITEMS_ON.push(g);}
+  ITEMS_ON=[];for(const it of save.tank.items){const def=ALLDECO().find(d=>d.id===it.id);if(!def)continue;const g=def.make(it);g.userData.isRing=def.id==='ring';g.userData.ringId=def.prize?def.id:null;if(def.glow)g.userData.glow=def.glow;if(g.userData.isRing){const rg=g.children[0];rg.rotation.set(Math.PI/2-0.18,0,0);rg.position.y=0.031;}g.scale.setScalar(1.8);g.position.set(it.x*B.x,F,it.z);g.rotation.y=it.r||0;g.userData.item=it;e.add(g);ITEMS_ON.push(g);}
   {const bg=stoneGeo(0.1,7,false,1);const cc2=new THREE.Color();tint(bg,()=>cc2.setRGB(0.5,0.5,0.5));const bm=new THREE.Mesh(bg,MAT);bm.position.set(B.x*0.25,F+0.1,-0.1);e.add(bm);BALL={m:bm,pos:bm.position,vel:new V3(),r:0.1,floor:F+0.1};}
   BIGROCKS=[];[[-B.x*0.75,-1.0,0.42],[B.x*0.6,-1.2,0.55],[B.x*0.95,-0.7,0.26]].forEach(([x,z,r])=>{const s=new THREE.Mesh(stoneGeo(r,rnd(0,9),false,0.72),MAT);s.position.set(x,F+r*0.3,z);s.rotation.y=rnd(0,6);e.add(s);BIGROCKS.push(s);});
   // ribbon grass (vallisneria) in clusters
@@ -1668,6 +1683,10 @@ function mergeRec(a,b){if(!a)return b;if(!b)return a;const ua=a.changed||a.updat
       let pick=null;if(a1&&ta>=tb)pick=a1;else if(b1&&tb>ta)pick=b1;else if(b1&&!a1&&!mo[id])pick=b1;
       if(pick&&tg>(pick.t||0))pick=null;if(pick)out.push(pick);}
     sv=Object.assign({},sv,{tank:Object.assign({},st,{owned:own,items:out,gone})});}
+  // friendships and requests from either copy are kept; the name check carries over from whichever copy has it
+  if(sv&&l.save){const A=sv,Bs=l.save,pl=Object.assign({},Bs.pals||{},A.pals||{});for(const k in Bs.pals||{})if(pl[k]&&!pl[k].e&&Bs.pals[k].e)pl[k]=Object.assign({},pl[k],{e:Bs.pals[k].e});
+    const pin=Object.assign({},Bs.preqIn||{},A.preqIn||{}),pout=Object.assign({},Bs.preqOut||{},A.preqOut||{});for(const k in pl){delete pin[k];delete pout[k];}
+    sv=Object.assign({},sv,{pals:pl,preqIn:pin,preqOut:pout,idh:A.idh||Bs.idh,palMig:A.palMig||Bs.palMig});}
   return {updated:Math.max(ua,ub),save:sv,prog:mergeProg(a.prog,b.prog)};}
 // my own save as it should go online: while visiting, the tank on screen is the friend's, so put mine back in
 const homeSave=()=>VISIT?Object.assign({},save,{tank:VISIT.mine}):save;
@@ -1675,6 +1694,7 @@ const curRec=()=>({updated:lastChange,save:homeSave(),prog:PROG});
 // bring a merged copy into the running game only if it actually adds something
 function saveAdds(m){const a=(m&&m.save)||{},t=a.tank||{},h=homeSave(),ht=h.tank||{};
   for(const k in t.owned||{})if(!(ht.owned||{})[k])return true;for(const it of t.items||[])if(!(ht.items||[]).some(i=>i.id===it.id))return true;
+  if(a.idh&&!h.idh)return true;for(const k in a.pals||{})if(!(h.pals||{})[k])return true;for(const k in a.preqIn||{})if(!(h.preqIn||{})[k])return true;
   const fk=new Set(friendKeys(h.friends));return friendKeys(a.friends).some(k=>k&&!fk.has(k));}
 function takeMerged(c){if(!c)return false;if(VISIT){VISIT.cloud=c;return false;}const m=mergeRec(curRec(),c),more=saveAdds(m)||(m.prog&&PROG&&(m.prog.total||0)>(PROG.total||0))||(m.prog&&PROG&&(m.prog.spent||0)>(PROG.spent||0))||(c.updated||0)>lastChange+500||(m.prog&&PROG&&(m.prog.grow||0)>(PROG.grow||0));
   if(more){lastChange=m.updated;adopt(m);persistLocal();}return more;}
@@ -1718,12 +1738,15 @@ function signIn(n,rec){USER=n;cloudReady=true;setTimeout(checkGifts,3000);adopt(
 /* ---- the username sheet ---- */
 let pending=null;
 document.querySelectorAll('[data-lang]').forEach(b=>b.onclick=()=>{langPicked=true;setLang(b.dataset.lang);});
-function openLogin(){pending=null;setLang(LANG);const f=$('#loginName');f.value='';$('#loginBack').hidden=true;$('#loginClose').hidden=!USER;$('#loginGo').textContent=USER?'switch':'start';
+function openLogin(){pending=null;setLang(LANG);const f=$('#loginName');f.value='';$('#loginReal').value='';$('#loginBack').hidden=true;$('#loginClose').hidden=!USER;$('#loginGo').textContent=USER?'switch':'start';
   $('#loginNote').textContent=DB?'Pick a username. Your fish, its level and missions are saved under it, so you can carry on from any device.':'Pick a username. Your fish, its level and missions are saved under it on this device.';
   $('#loginMsg').textContent='letters, numbers and _ · 2 to 16 characters'+(DB?' · anyone who types the same username opens the same fish':'');
   $('#login').hidden=false;setTimeout(()=>{try{f.focus()}catch(e){}},250);}
-$('#loginForm').addEventListener('submit',e=>{e.preventDefault();const n=$('#loginName').value.trim().toLowerCase();
-  if(pending){signIn(pending.n,pending.rec);return;}
+$('#loginForm').addEventListener('submit',async e=>{e.preventDefault();const n=$('#loginName').value.trim().toLowerCase(),real=cleanReal($('#loginReal').value);
+  if(pending){if(real.length<2){$('#loginMsg').textContent='type your real name too · it keeps others out of your account';return;}
+    const idh=pending.rec&&pending.rec.save&&pending.rec.save.idh,h=await idHash(pending.n,real);
+    if(idh&&idh!==h){$('#loginMsg').textContent='that real name doesn’t match @'+pending.n;return;}
+    const pn=pending.n,pr=pending.rec;signIn(pn,pr);setMyReal(real);if(!save.idh){save.idh=h;persist();cloudDirty=true;cloudPut();}palMigrate();return;}
   if(!NAME_RE.test(n)){$('#loginMsg').textContent='use 2 to 16 letters, numbers or _';return;}
   if(n===USER){$('#login').hidden=true;return;}
   $('#loginGo').textContent='\u2026';const local=readLocal(n);
@@ -1757,13 +1780,13 @@ $('#misClose').onclick=()=>{$('#missions').hidden=true;};
 /* ---- start-up: last keeper on this device loads instantly, then the online copy if it's newer ---- */
 {const last=(()=>{try{return localStorage.getItem('goldfish-user')}catch(e){return null}})();
   if(last&&NAME_RE.test(last)){USER=last;const local=mergeRec(readLocal(last),readBest(last));save=normalizeSave(local&&local.save);PROG=normProg(local&&local.prog);lastChange=(local&&(local.changed||local.updated))||0;
-    cloudGet(last).then(c=>{cloudReady=true;setTimeout(checkGifts,2500);if(c)takeMerged(c);if(!c||(PROG.total||0)>((c.prog&&c.prog.total)||0)||(PROG.spent||0)>((c.prog&&c.prog.spent)||0)||lastChange>(c.updated||0)+500){cloudDirty=true;cloudPut();}},()=>{setTimeout(()=>{cloudReady=true;},20000);});}
+    cloudGet(last).then(c=>{cloudReady=true;setTimeout(checkGifts,2500);if(c)takeMerged(c);setTimeout(()=>{needReal();palMigrate();},800);if(!c||(PROG.total||0)>((c.prog&&c.prog.total)||0)||(PROG.spent||0)>((c.prog&&c.prog.spent)||0)||lastChange>(c.updated||0)+500){cloudDirty=true;cloudPut();}},()=>{setTimeout(()=>{cloudReady=true;needReal();},20000);});}
   else{PROG=null;}}
 setInterval(()=>{if(cloudDirty)cloudPut();else if(!document.hidden)pull();},30000);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)pull();});
 /* the home-screen app keeps an old copy of the page open (and iOS caches it), so check for a newer build when it opens or comes back,
    and reload past the cache if there is one */
-const BUILD='20261118101720';
+const BUILD='20261118104233';
 function checkBuild(){fetch('version.json?t='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{if(!j||!j.b||j.b===BUILD)return;
   try{if(sessionStorage.getItem('gf-build')===j.b)return;sessionStorage.setItem('gf-build',j.b);}catch(e){}
   try{persistLocal();}catch(e){}location.replace(location.pathname+'?v='+encodeURIComponent(j.b));}).catch(()=>{});}
@@ -1823,20 +1846,50 @@ function facetShade(g,base,k,dir){g=g.index?g.toNonIndexed():g;g.computeVertexNo
 function gemGeo(r){const crown=new THREE.CylinderGeometry(r*0.55,r,r*0.42,8,1),pav=new THREE.ConeGeometry(r,r*0.95,8,1);crown.translate(0,r*0.21,0);pav.rotateX(Math.PI);pav.translate(0,-r*0.475,0);
   const g=new THREE.Group(),cm=flatMat({vertexColors:true});g.add(new THREE.Mesh(facetShade(crown,0xf6f9fb,0.35),cm));g.add(new THREE.Mesh(facetShade(pav,0xdfe8ee,0.45,new V3(-0.3,-0.6,0.7)),flatMat({vertexColors:true})));
   const tab=new THREE.Mesh(new THREE.CircleGeometry(r*0.55,8),flatMat({color:0xffffff}));tab.rotation.x=-Math.PI/2;tab.position.y=r*0.425;g.add(tab);return g;}
-const RING={id:'ring',name:'winner ring',price:50,prize:true,make:()=>{const g=new THREE.Group(),GOLD=0xe9d9b6,R0=0.1;
+/* ---- winner rings: one for each duel won, in this order. The first keeps the original look (gold, clear brilliant-cut stone);
+   then a ruby (oval cut, gold), a sapphire (emerald / step cut, white gold), a pearl (on a gold cup) and an onyx (princess cut, white gold).
+   The first one drops into your tank; the rest go to the rings page of the shop, ready to place. ---- */
+const METAL={gold:{band:0xe9d9b6,prong:0xdccaa2,tip:0xeee2c8},silver:{band:0xdfe3e8,prong:0xcbd1d8,tip:0xf1f3f6}};
+// a faceted stone of any outline: a crown (sides sloping in to a flat table) over a pavilion (sloping down to a point)
+function cutGeo(r,seg,sx,sz,col,deep,crownH){const crown=new THREE.CylinderGeometry(r*0.58,r,r*(crownH||0.42),seg,1),pav=new THREE.ConeGeometry(r,r*(deep||0.95),seg,1);
+  crown.translate(0,r*(crownH||0.42)/2,0);pav.rotateX(Math.PI);pav.translate(0,-r*(deep||0.95)/2,0);if(seg===4){crown.rotateY(Math.PI/4);pav.rotateY(Math.PI/4);}
+  const c=new THREE.Color(col),lite=c.clone().lerp(new THREE.Color(0xffffff),0.35).getHex(),dark=c.clone().multiplyScalar(0.7).getHex();
+  const g=new THREE.Group();g.add(new THREE.Mesh(facetShade(crown,lite,0.5),flatMat({vertexColors:true})));g.add(new THREE.Mesh(facetShade(pav,dark,0.55,new V3(-0.3,-0.6,0.7)),flatMat({vertexColors:true})));
+  const tab=new THREE.Mesh(new THREE.CircleGeometry(r*0.58,seg),flatMat({color:c.clone().lerp(new THREE.Color(0xffffff),0.55).getHex()}));tab.rotation.x=-Math.PI/2;if(seg===4)tab.rotation.z=Math.PI/4;tab.position.y=r*(crownH||0.42)+0.0002;g.add(tab);
+  g.scale.set(sx||1,1,sz||1);return g;}
+// emerald cut: a rectangular stone with cut corners and stepped sides, like terraces down to a long flat table
+function emeraldGeo(r,col){const g=new THREE.Group(),c=new THREE.Color(col);const steps=[[1,0],[0.86,0.012],[0.7,0.022]];
+  steps.forEach(([k,y],i)=>{const m=new THREE.Mesh(facetShade(new THREE.CylinderGeometry(r*k*0.9,r*k,0.011,8,1),c.clone().lerp(new THREE.Color(0xffffff),0.12*i+0.08).getHex(),0.5),flatMat({vertexColors:true}));m.rotation.y=Math.PI/8;m.position.y=y+0.0055;g.add(m);});
+  const pav=new THREE.Mesh(facetShade(new THREE.ConeGeometry(r,r*0.8,8,1),c.clone().multiplyScalar(0.62).getHex(),0.5,new V3(-0.3,-0.6,0.7)),flatMat({vertexColors:true}));pav.rotation.set(Math.PI,Math.PI/8,0);pav.position.y=-r*0.4;g.add(pav);
+  g.scale.set(1.38,1,0.95);return g;}
+// a pearl: a soft round bead with a pale sheen toward the light
+function pearlGeo(r){const geo=new THREE.SphereGeometry(r,24,18).toNonIndexed(),p=geo.attributes.position,col=[],L=new V3(0.4,0.8,0.5).normalize(),c0=new THREE.Color(0xfdfaf4),c1=new THREE.Color(0xebe2d8),hi=new THREE.Color(0xffffff),o=new THREE.Color();
+  for(let i=0;i<p.count;i++){const n=new V3(p.getX(i),p.getY(i),p.getZ(i)).normalize(),d=n.dot(L);o.copy(c1).lerp(c0,0.5+0.5*d).lerp(hi,Math.pow(Math.max(0,d),18)*0.9).lerp(new THREE.Color(0xf2dfe3),0.25*(1-Math.abs(d)));col.push(o.r,o.g,o.b);}
+  geo.setAttribute('color',new THREE.Float32BufferAttribute(col,3));return new THREE.Mesh(geo,flatMat({vertexColors:true}));}
+function makeRing(o){const g=new THREE.Group(),M=METAL[o.metal],R0=0.1;
   const ring=new THREE.Group();ring.position.y=R0+0.012;ring.rotation.y=0.35;g.add(ring);
   // band: a torus whose tube swells toward the top (the shoulders under the setting)
   const bg=new THREE.TorusGeometry(R0,0.011,14,72),bp=bg.attributes.position;for(let i=0;i<bp.count;i++){const x=bp.getX(i),y=bp.getY(i),z=bp.getZ(i),a=Math.atan2(y,x),cx=Math.cos(a)*R0,cy=Math.sin(a)*R0,
       sw=1+0.55*Math.pow(Math.max(0,Math.sin(a)),6);bp.setXYZ(i,cx+(x-cx)*sw,cy+(y-cy)*sw,z*(1+0.35*Math.pow(Math.max(0,Math.sin(a)),6)));}
-  ring.add(new THREE.Mesh(facetShade(bg,GOLD,0.4),flatMat({vertexColors:true})));
-  // setting: a small basket and four prongs
-  const cup=new THREE.Mesh(facetShade(new THREE.CylinderGeometry(0.02,0.012,0.018,8),GOLD,0.35),flatMat({vertexColors:true}));cup.position.y=R0+0.016;ring.add(cup);
-  const gem=gemGeo(0.036);gem.position.y=R0+0.05;ring.add(gem);
-  for(let i=0;i<4;i++){const a=i/4*Math.PI*2+Math.PI/4,pr=new THREE.Mesh(new THREE.CylinderGeometry(0.0035,0.0045,0.04,6),flatMat({color:0xdccaa2}));pr.position.set(Math.cos(a)*0.026,R0+0.04,Math.sin(a)*0.026);pr.rotation.set(Math.sin(a)*0.25,0,-Math.cos(a)*0.25);ring.add(pr);
-    const tip=new THREE.Mesh(new THREE.SphereGeometry(0.005,8,6),flatMat({color:0xeee2c8}));tip.position.set(Math.cos(a)*0.021,R0+0.06,Math.sin(a)*0.021);ring.add(tip);}
-  // side stones on the shoulders
-  for(const sd of [-1,1]){const sgm=gemGeo(0.011),a=Math.PI/2+sd*0.42;sgm.position.set(Math.cos(a)*(R0+0.012),Math.sin(a)*(R0+0.012),0);sgm.rotation.z=a-Math.PI/2;ring.add(sgm);}
-    return g;}};
+  ring.add(new THREE.Mesh(facetShade(bg,M.band,0.4),flatMat({vertexColors:true})));
+  const cup=new THREE.Mesh(facetShade(new THREE.CylinderGeometry(o.cut==='pearl'?0.016:0.02,0.012,0.018,o.cut==='pearl'?12:8),M.band,0.35),flatMat({vertexColors:true}));cup.position.y=R0+0.016;ring.add(cup);
+  let gem,pang=[1,3,5,7].map(i=>i*Math.PI/4),prx=0.026,prz=0.026;
+  if(o.cut==='brilliant')gem=gemGeo(0.036);
+  else if(o.cut==='oval'){gem=cutGeo(0.032,12,1.3,0.95,o.stone);prx=0.034;prz=0.025;}
+  else if(o.cut==='oval'){}
+  else if(o.cut==='emerald'){gem=emeraldGeo(0.028,o.stone);const a=0.62;pang=[a,Math.PI-a,Math.PI+a,-a];prx=0.037;prz=0.03;}
+  else if(o.cut==='princess'){gem=cutGeo(0.034,4,1,1,o.stone,1.0,0.32);prx=prz=0.03;}
+  else {gem=pearlGeo(0.03);pang=[];}
+  gem.position.y=R0+(o.cut==='pearl'?0.052:0.05);ring.add(gem);
+  for(const a of pang){const p=new THREE.Mesh(new THREE.CylinderGeometry(0.0035,0.0045,0.04,6),flatMat({color:M.prong}));p.position.set(Math.cos(a)*prx,R0+0.04,Math.sin(a)*prz);p.rotation.set(Math.sin(a)*0.25,0,-Math.cos(a)*0.25);ring.add(p);
+    const tip=new THREE.Mesh(new THREE.SphereGeometry(0.005,8,6),flatMat({color:M.tip}));tip.position.set(Math.cos(a)*(prx-0.005),R0+0.06,Math.sin(a)*(prz-0.005));ring.add(tip);}
+  // side stones on the shoulders (little clear ones, except on the pearl)
+  if(o.cut!=='pearl')for(const sd of [-1,1]){const sgm=gemGeo(0.011),a=Math.PI/2+sd*0.42;sgm.position.set(Math.cos(a)*(R0+0.012),Math.sin(a)*(R0+0.012),0);sgm.rotation.z=a-Math.PI/2;ring.add(sgm);}
+  return g;}
+const RINGS=[{id:'ring',name:'winner ring',metal:'gold',cut:'brilliant'},{id:'ring_ruby',name:'ruby ring',metal:'gold',cut:'oval',stone:0xc4283f},
+  {id:'ring_sapphire',name:'sapphire ring',metal:'silver',cut:'emerald',stone:0x2c55b8},{id:'ring_pearl',name:'pearl ring',metal:'gold',cut:'pearl'},{id:'ring_onyx',name:'onyx ring',metal:'silver',cut:'princess',stone:0x26262a}]
+  .map(o=>Object.assign({price:50,prize:true,make:()=>makeRing(o)},o));
+const RING=RINGS[0];
 /* ---- crystals (second page of the shop): five kinds, each its own shape and colour. Each gives off a soft light of its colour
    that falls on the sand, stones and fish around it (stronger at night). ---- */
 function xtal(par,r,h,tip,base,lite,x,y,z,rx,rz,sides){const g=new THREE.Group();g.position.set(x,y,z);g.rotation.set(rx||0,0,rz||0);par.add(g);sides=sides||6;
@@ -1853,7 +1906,7 @@ const CRYSTALS=[
  {id:'aquamarine',name:'aquamarine',price:320,glow:[0.5,0.85,1],make:()=>{const g=new THREE.Group();
    xtal(g,0.034,0.26,0.06,0x8fcfe2,0xe3f6fb,0,0,0,0,0.07);return g;}},
  {id:'fluorite',name:'fluorite',price:380,glow:[0.45,1,0.66],make:()=>{const g=new THREE.Group();xtal(g,0.05,0.14,0.07,0x6fcb9c,0xd8f5e6,0,0,0,0,0.03,4);return g;}}];
-const ALLDECO=()=>SHOP.concat([RING],CRYSTALS);
+const ALLDECO=()=>SHOP.concat(RINGS,CRYSTALS);
 /* ---- snails: giant African land snails in five colourings. Two per fish (your fish plus each fish you've been sent).
    They glide on a rippling foot, wave their eye stalks, pull the stalks in when a fish swims close or you touch them,
    stop to look around, tuck into the shell to rest (more by day, they're livelier at night), go for food on the sand, and leave a fading slime trail. ---- */
@@ -1910,12 +1963,18 @@ function makeSnail(k){const g=new THREE.Group(),body=new THREE.Group(),dark=new 
   // (squeezing low in one place, bulging up in the next), and each section bounces a little and settles on its own, so the whole
   // thing reads as one soft, jelly-like animal rather than a rigid model.
   const NJ=8,hs=new Float32Array(NJ).fill(1),hv=new Float32Array(NJ),J={cH:0,cHv:0,cT:0,cTv:0,mv:0,hump:1};
-  const B0=bg.userData.base,P=bg.attributes.position.array,pose=(o,st,ph,mv,dt,tr,kick)=>{dt=dt||0;tr=tr||0;kick=kick||0;
+    // going round a corner (sand to glass, glass to sand): the part of the body past the corner line curls round a small fillet and lies flat
+  // on the other surface, ahead (cA, distance to the corner in front) or behind (cB, distance to the corner at the back)
+  const RC=0.014,LQ=Math.PI/2*RC;
+  const bend=(x,y,cA,cB)=>{if(cA<9&&x>cA-RC){const x0=cA-RC,s=x-x0;if(s<LQ){const f=s/RC;return [x0+RC*Math.sin(f)-Math.sin(f)*y,RC*(1-Math.cos(f))+Math.cos(f)*y,f];}return [x0+RC-y,RC+s-LQ,Math.PI/2];}
+    if(cB<9&&x<-(cB-RC)){const x0=-(cB-RC),s=x0-x;if(s<LQ){const f=s/RC;return [x0-RC*Math.sin(f)+Math.sin(f)*y,RC*(1-Math.cos(f))+Math.cos(f)*y,-f];}return [x0-RC+y,RC+s-LQ,-Math.PI/2];}return [x,y,0];};
+  const B0=bg.userData.base,P=bg.attributes.position.array,pose=(o,st,ph,mv,dt,tr,kick,cA,cB)=>{dt=dt||0;tr=tr||0;kick=kick||0;cA=cA===undefined?99:cA;cB=cB===undefined?99:cB;
     if(dt>0){const sp=(v,vv,tg,k,c)=>{vv+=((tg-v)*k-vv*c)*dt;return [v+vv*dt,vv];};let r;const ct=clamp(tr*2.2,-6,6);
       r=sp(J.cH,J.cHv,ct,70,2*Math.sqrt(70)*0.75);J.cH=r[0];J.cHv=r[1];r=sp(J.cT,J.cTv,J.cH,12,2*Math.sqrt(12)*0.6);J.cT=r[0];J.cTv=r[1];
       const dmv=mv-J.mv;J.mv=mv;
       for(let j=0;j<NJ;j++){const u=j/(NJ-1),tg=1+0.26*mv*Math.sin(ph*3.6-u*8.5)+0.07*(1-mv)*Math.sin(ph*1.2+u*2.4)+0.18*kick*Math.sin(ph*9-u*4);
         hv[j]+=dmv*2.5*(0.4+u)*(j%2?1:-0.6);hv[j]+=((tg-hs[j])*90-hv[j]*2*Math.sqrt(90)*0.42)*dt;hs[j]=clamp(hs[j]+hv[j]*dt,0.55,1.6);}}
+    {const sm=(a,b,x)=>{const t=clamp((x-a)/(b-a),0,1);return t*t*(3-2*t);};J.tilt=(cA<9?0.85*sm(0.08,0,cA):0)-(cB<9?0.7*sm(0.07,0,cB):0);}
     const hAt=u=>{const f=clamp(u,0,1)*(NJ-1),j=Math.min(NJ-2,Math.floor(f)),t=f-j,q=t*t*(3-2*t);return hs[j]*(1-q)+hs[j+1]*q;};J.hump=hAt(0.42);
     const yaw=head.rotation.y,pit=head.rotation.z,cy=Math.cos(yaw),sy=Math.sin(yaw),cp=Math.cos(pit),sp=Math.sin(pit),xn=0.03,yn=0.012,k1=0.3+0.7*o;
     const ss=(a,b,x)=>{const t=Math.min(1,Math.max(0,(x-a)/(b-a)));return t*t*(3-2*t);};
@@ -1927,11 +1986,12 @@ function makeSnail(k){const g=new THREE.Group(),body=new THREE.Group(),dark=new 
       const w=ss(0.68,0.9,u);if(w>0){let dx=x-xn,dy=y-yn;const a=pit*w,ca=Math.cos(a),sa=Math.sin(a);[dx,dy]=[dx*ca-dy*sa,dx*sa+dy*ca];const b=yaw*w,cb=Math.cos(b),sb=Math.sin(b);const ddx=dx*cb+z*sb;z=-dx*sb+z*cb;x=xn+ddx;y=yn+dy;}
       // bend into an arc: head end follows the turn at once, the tail lags behind
       const c=J.cT+(J.cH-J.cT)*u;z-=c*x*x*(x>0?1:0.8);
+      if(cA<9||cB<9){const q=bend(x,y,cA,cB);x=q[0];y=q[1];}
       x=0.005+(x-0.005)*k1;y*=0.55+0.45*o;z*=0.75+0.25*o;P[i*3]=x;P[i*3+1]=y;P[i*3+2]=z;}
     bg.attributes.position.needsUpdate=true;
     // head rig: at the top front of the head, following the same bend, lift and arc
-    let dx=(0.06*st-xn),dy=(0.026-yn)*hAt(0.95);[dx,dy]=[dx*cp-dy*sp,dx*sp+dy*cp];const hx=0.005+(xn+dx*cy-0.005)*k1,xt=xn+dx*cy;
-    head.position.set(hx,(yn+dy)*(0.55+0.45*o),(-dx*sy-J.cH*xt*xt)*(0.75+0.25*o));head.rotation.y+=Math.atan(2*J.cH*xt);head.visible=o>0.25;};
+    let dx=(0.06*st-xn),dy=(0.026-yn)*hAt(0.95);[dx,dy]=[dx*cp-dy*sp,dx*sp+dy*cp];const xt=xn+dx*cy,hb=bend(xt,yn+dy,cA,cB);
+    head.position.set(0.005+(hb[0]-0.005)*k1,hb[1]*(0.55+0.45*o),(-dx*sy-J.cH*xt*xt)*(0.75+0.25*o));head.rotation.y+=Math.atan(2*J.cH*xt);head.rotation.z+=hb[2];head.visible=o>0.25;};
   pose(1,1,0,0);
   g.userData={head,eyes,feel,sh,body,pose,J};return g;}
 let SNAILS=[];
@@ -1969,7 +2029,7 @@ function snailTick(dt){const night=lightsOff||nightAmt()>0.5;
     if(sn.st==='crawl'&&(!sn.tgt||Math.hypot(sn.tgt.u-sn.u,sn.tgt.v-sn.v)<0.05)){
       if(sn.tgt&&sn.tgt.edge){// reached the edge: step over onto the next surface
         const ed=sn.tgt.edge;if(sn.sf==='floor'){const W=snailSurf(ed),p=SF.o.clone().addScaledVector(SF.a1,sn.u).addScaledVector(SF.a2,sn.v).sub(W.o);sn.sf=ed;sn.u=clamp(p.dot(W.a1),W.u[0],W.u[1]);sn.v=W.v[0]+0.01;sn.th=Math.PI/2;}
-        else{const p=SF.o.clone().addScaledVector(SF.a1,sn.u).addScaledVector(SF.a2,sn.v).addScaledVector(SF.n,0.06),Fl=snailSurf('floor');sn.u=clamp(p.x,Fl.u[0],Fl.u[1]);sn.v=clamp(-p.z,Fl.v[0],Fl.v[1]);sn.th=Math.atan2(SF.n.dot(Fl.a2),SF.n.dot(Fl.a1));sn.sf='floor';}
+        else{const p=SF.o.clone().addScaledVector(SF.a1,sn.u).addScaledVector(SF.a2,sn.v).addScaledVector(SF.n,0.03),Fl=snailSurf('floor');sn.u=clamp(p.x,Fl.u[0],Fl.u[1]);sn.v=clamp(-p.z,Fl.v[0],Fl.v[1]);sn.th=Math.atan2(SF.n.dot(Fl.a2),SF.n.dot(Fl.a1));sn.sf='floor';}
         SF=snailSurf(sn.sf);sn.tgt=null;}
       if(!sn.tgt){const r=Math.random();
         if(sn.sf==='floor'&&r<(night?0.35:0.22)){// climb a wall: walk to the bottom edge of one
@@ -1990,31 +2050,36 @@ function snailTick(dt){const night=lightsOff||nightAmt()>0.5;
       // held a little above it; keep dragging up past the back of the sand and it goes onto the back glass, up and down that.
       // Let go over the sand and it tucks in and drops onto it; let go on the back glass and it holds on there.
       const fp=sn.fp,xw=B.x*0.95;
-      if(sn.lead&&ptr.down){const p=new V3();let hm='floor';_snRc.setFromCamera(new THREE.Vector2(ndc.x+sn.go.x,ndc.y+sn.go.y),camera);const rr=_snRc.ray;
-        if(!(rr.intersectPlane(new THREE.Plane(new V3(0,1,0),-(B.floor+0.06)),p)&&p.z>-1.58)){hm='back';if(!rr.intersectPlane(new THREE.Plane(new V3(0,0,1),1.66),p))p.copy(fp);p.z=-1.66;}
-        p.x=clamp(p.x,-xw,xw);if(hm==='floor'){p.z=clamp(p.z,-1.58,0.82);p.y=sandAt(p.x,p.z)+0.06;}else p.y=clamp(p.y,B.floor+0.08,B.surf-0.12);
-        const k=1-Math.exp(-14*dt),dx=(p.x-fp.x)*k,dz=(p.z-fp.z)*k,dyy=(p.y-fp.y)*k;fp.lerp(p,k);sn.hm=hm;
+      if(sn.lead&&ptr.down){const p=new V3();let hm=sn.hm||'floor';_snRc.setFromCamera(new THREE.Vector2(ndc.x+sn.go.x,ndc.y+sn.go.y),camera);const rr=_snRc.ray;
+        // on the front glass it stays on the glass, under your finger, until you pull it down off the bottom edge
+        if(hm==='front'){if(rr.intersectPlane(new THREE.Plane(new V3(0,0,1),-0.86),p)&&p.y>B.floor-0.9){p.z=0.86;p.y=clamp(p.y,B.floor+0.03,B.surf-0.12);}else{hm='floor';sn.noFront=true;}}
+        if(hm!=='front'){const pf=new V3(),hit=rr.intersectPlane(new THREE.Plane(new V3(0,1,0),-(B.floor+0.06)),pf);
+          if(hit&&pf.z>-1.58){if(pf.z>0.9&&!sn.noFront){hm='front';p.set(pf.x,B.floor+0.03,0.86);}else{hm='floor';p.copy(pf);if(pf.z<0.7)sn.noFront=false;}}
+          else{hm='back';if(!rr.intersectPlane(new THREE.Plane(new V3(0,0,1),1.66),p))p.copy(fp);p.z=-1.66;}}
+        p.x=clamp(p.x,-xw,xw);if(hm==='floor'){p.z=clamp(p.z,-1.58,0.82);p.y=sandAt(p.x,p.z)+0.06;}else if(hm==='back')p.y=clamp(p.y,B.floor+0.08,B.surf-0.12);else p.y=Math.max(p.y,B.floor+0.03);
+        const k=1-Math.exp(-14*dt),dx=(p.x-fp.x)*k,dz=(p.z-fp.z)*k,dyy=(p.y-fp.y)*k;fp.lerp(p,k);if(hm!==sn.hm&&hm!=='floor')sn.wth=Math.PI/2;sn.hm=hm;
         if(hm==='floor'&&Math.hypot(dx,dz)>0.0015){let dh=Math.atan2(-dz,dx)-sn.fth;dh=Math.atan2(Math.sin(dh),Math.cos(dh));sn.fth+=dh*(1-Math.exp(-6*dt));}
-        if(hm==='back'&&Math.hypot(dx,dyy)>0.0015){let dh=Math.atan2(dyy,-dx)-sn.wth;dh=Math.atan2(Math.sin(dh),Math.cos(dh));sn.wth+=dh*(1-Math.exp(-6*dt));}
+        if(hm!=='floor'&&Math.hypot(dx,dyy)>0.0015){let dh=Math.atan2(dyy,hm==='back'?-dx:dx)-sn.wth;dh=Math.atan2(Math.sin(dh),Math.cos(dh));sn.wth+=dh*(1-Math.exp(-6*dt));}
         sn.sway=(sn.sway||0)*0.9+clamp(dx/Math.max(dt,1e-3),-1,1)*0.1;sn.st='look';sn.stT=1.5;sn.fv.set(0,0,0);}
+      else if(sn.hm==='front'&&fp.y>B.floor+0.04){const W=snailSurf('front'),q=fp.clone().sub(W.o);sn.sf='front';sn.u=clamp(q.dot(W.a1),W.u[0],W.u[1]);sn.v=clamp(q.dot(W.a2),W.v[0],W.v[1]);sn.th=sn.wth;sn.free=false;sn.st='look';sn.stT=1.2;}
       else if(sn.hm==='back'&&fp.y>B.floor+0.1){const W=snailSurf('back'),q=fp.clone().sub(W.o);sn.sf='back';sn.u=clamp(q.dot(W.a1),W.u[0],W.u[1]);sn.v=clamp(q.dot(W.a2),W.v[0],W.v[1]);sn.th=sn.wth;sn.free=false;sn.st='look';sn.stT=1.2;}
       else{const sy=sandAt(fp.x,fp.z);sn.st='hide';sn.stT=1.4;sn.fv.y=Math.max(-0.45,sn.fv.y-0.7*dt);fp.addScaledVector(sn.fv,dt);sn.sway=(sn.sway||0)*0.95;
         if(fp.y<=sy+0.006){sn.sf='floor';const Fl=snailSurf('floor');sn.u=clamp(fp.x,Fl.u[0],Fl.u[1]);sn.v=clamp(-fp.z,Fl.v[0],Fl.v[1]);sn.th=sn.fth;sn.free=false;sn.wob=0.6;sandPuffAt(new V3(fp.x,B.floor,fp.z));}}
       SF=snailSurf(sn.sf);}
     if(sn.free){const fp=sn.fp,sy=sandAt(fp.x,fp.z),hgt=fp.y-sy;let up;
-      if(sn.hm==='back'){up=new V3(0,0,1);fw=new V3(-Math.cos(sn.wth),Math.sin(sn.wth),0);}else{up=new V3(0,1,0);fw=new V3(Math.cos(sn.fth),0,-Math.sin(sn.fth));}side=fw.clone().cross(up);
-      g.position.copy(fp);if(sn.hm==='back')g.position.z+=0.05;_sm.makeBasis(fw,up,side);g.quaternion.setFromRotationMatrix(_sm);g.rotateZ(sn.lead?0.2:-0.25);g.rotateX(clamp(sn.sway,-1,1)*0.4);
-      const sd=sn.shadow;if(sn.hm==='back'){_sm.makeBasis(fw,side.clone().negate(),up);sd.quaternion.setFromRotationMatrix(_sm);sd.position.set(fp.x,fp.y,-1.715);sd.scale.set(0.27,0.13,1);sd.material.opacity=0.07;}
+      if(sn.hm==='back'){up=new V3(0,0,1);fw=new V3(-Math.cos(sn.wth),Math.sin(sn.wth),0);}else if(sn.hm==='front'){up=new V3(0,0,-1);fw=new V3(Math.cos(sn.wth),Math.sin(sn.wth),0);}else{up=new V3(0,1,0);fw=new V3(Math.cos(sn.fth),0,-Math.sin(sn.fth));}side=fw.clone().cross(up);
+      g.position.copy(fp);if(sn.hm==='back')g.position.z+=0.05;else if(sn.hm==='front')g.position.z-=0.05;_sm.makeBasis(fw,up,side);g.quaternion.setFromRotationMatrix(_sm);g.rotateZ(sn.lead?0.2:-0.25);g.rotateX(clamp(sn.sway,-1,1)*0.4);
+      const sd=sn.shadow;if(sn.hm==='front'){sd.material.opacity=0;}else if(sn.hm==='back'){_sm.makeBasis(fw,side.clone().negate(),up);sd.quaternion.setFromRotationMatrix(_sm);sd.position.set(fp.x,fp.y,-1.715);sd.scale.set(0.27,0.13,1);sd.material.opacity=0.07;}
       else{const u2=new V3(0,1,0);_sm.makeBasis(fw,side.clone().negate(),u2);sd.quaternion.setFromRotationMatrix(_sm);sd.position.set(fp.x,sy+0.004,fp.z);const f=1+Math.min(1.2,hgt*1.5);sd.scale.set(0.21*f,0.1*f,1);sd.material.opacity=0.13*Math.max(0.2,1-hgt*1.3);}}
     else{
-    if(sn.lead&&ptr.down){sn.free=true;sn.fp=g.position.clone();{const v=g.getWorldPosition(new V3()).project(camera);sn.go=new THREE.Vector2(v.x-ndc.x,v.y-ndc.y);}sn.fv=new V3();sn.hm=sn.sf==='back'?'back':'floor';sn.fth=sn.sf==='floor'?sn.th:0;sn.wth=sn.sf==='back'?sn.th:Math.PI/2;if(sn.sf==='front'){sn.fp.z=0.8;}}
+    if(sn.lead&&ptr.down){sn.free=true;sn.fp=g.position.clone();{const v=g.getWorldPosition(new V3()).project(camera);sn.go=new THREE.Vector2(v.x-ndc.x,v.y-ndc.y);}sn.fv=new V3();sn.hm=sn.sf==='floor'?'floor':sn.sf;sn.noFront=false;sn.fth=sn.sf==='floor'?sn.th:0;sn.wth=sn.sf!=='floor'?sn.th:Math.PI/2;}
     {const up=sn.sf==='floor'?0:Math.sin(sn.th),sp=0.035*(night?1.25:1)*(1-0.3*Math.max(0,up))*sn.mv;sn.u=clamp(sn.u+Math.cos(sn.th)*sp*dt,SF.u[0],SF.u[1]);sn.v=clamp(sn.v+Math.sin(sn.th)*sp*dt,SF.v[0],SF.v[1]);}
     // place and orient on the surface: foot flat against it, head the way it's going
     fw=SF.a1.clone().multiplyScalar(Math.cos(sn.th)).addScaledVector(SF.a2,Math.sin(sn.th));side=fw.clone().cross(SF.n);
     g.position.copy(SF.o).addScaledVector(SF.a1,sn.u).addScaledVector(SF.a2,sn.v).addScaledVector(SF.n,0.004);if(sn.sf==='floor')g.position.y=sandAt(g.position.x,g.position.z)+0.006;
     _sm.makeBasis(fw,SF.n,side);g.quaternion.setFromRotationMatrix(_sm);
     // a faint soft shadow on the surface under it
-    {const sd=sn.shadow;_sm.makeBasis(fw,side.clone().negate(),SF.n);sd.quaternion.setFromRotationMatrix(_sm);sd.position.copy(g.position).addScaledVector(SF.n,0.004).addScaledVector(fw,-0.02);sd.scale.set(0.21,0.1,1);sd.material.opacity=0.13;}
+    {const sd=sn.shadow;_sm.makeBasis(fw,side.clone().negate(),SF.n);sd.quaternion.setFromRotationMatrix(_sm);sd.position.copy(g.position).addScaledVector(SF.n,0.004).addScaledVector(fw,-0.02);sd.scale.set(0.21,0.1,1);sd.material.opacity=sn.sf==='front'?0:0.13;}
     }
     if(food&&sn.sf==='floor'&&g.position.distanceTo(new V3(food.pos.x,B.floor,food.pos.z))<0.08){sn.look=Math.sin(sn.ph*7)*0.12;}
     // the foot: waves of muscle running from tail to head while moving
@@ -2023,12 +2088,16 @@ function snailTick(dt){const night=lightsOff||nightAmt()>0.5;
     const hi=sn.hello>0?Math.min(1,sn.hello):0;let lk=sn.st==='look'?Math.sin(sn.ph*0.8)*0.5:sn.look;sn.look=damp(sn.look,0,1,dt);
     if(hi>0){const c=g.worldToLocal(camera.position.clone()),fy=Math.max(-1.1,Math.min(1.1,Math.atan2(-c.z,c.x)));lk=lk*(1-hi)+hi*(fy+Math.sin(sn.ph*4)*0.18);}
     sn.hy=damp(sn.hy||0,lk,4,dt);sn.hp=damp(sn.hp||0,(sn.st==='look'?0.18:0.05*Math.sin(sn.ph))+hi*(0.55+Math.sin(sn.ph*6)*0.08)+(sn.lead?0.25:0),4,dt);{const th=sn.free?(sn.hm==='back'?sn.wth:sn.fth):sn.th;let d=th-(sn.lth===undefined?th:sn.lth);d=Math.atan2(Math.sin(d),Math.cos(d));sn.lth=th;sn.trate=damp(sn.trate||0,dt>0?d/dt:0,8,dt);}
-    u.head.rotation.set(0,sn.hy,sn.hp);u.pose(o,st,sn.ph,sn.mv,dt,sn.trate,sn.kick||0);
+    let cA=99,cB=99;if(!sn.free&&fw){const sc=g.scale.x,walls=sn.sf==='floor'?['front','back']:['floor'];
+      for(const w of walls){const W=w==='floor'?{o:new V3(0,B.floor,0),n:new V3(0,1,0)}:snailSurf(w),dp=g.position.clone().sub(W.o).dot(W.n),k=fw.dot(W.n);
+        if(k<-0.3)cA=Math.min(cA,dp/(-k)/sc);else if(k>0.3)cB=Math.min(cB,dp/k/sc);}
+      cA=cA<0.1?Math.max(0.004,cA):99;cB=cB<0.1?Math.max(0.004,cB):99;}
+    u.head.rotation.set(0,sn.hy,sn.hp);u.pose(o,st,sn.ph,sn.mv,dt,sn.trate,sn.kick||0,cA,cB);
     // eye stalks: sway gently, each a little out of step, and shrink right down when it's startled
     u.eyes.forEach((e,i)=>{e.scale.y=Math.max(0.05,sn.eyeK*o);e.rotation.x=(i?-0.35:0.35)*(1+hi*0.5)+Math.sin(sn.ph*(1.3+hi*3)+i*1.7)*(0.18+hi*0.2);e.rotation.z=-0.45+Math.sin(sn.ph*0.9+i)*0.15;});
     u.feel.forEach((e,i)=>{e.scale.y=Math.max(0.05,(0.4+0.6*sn.eyeK)*o);e.rotation.x=(i?-0.5:0.5)+Math.sin(sn.ph*2+i)*0.15;});
     // the shell rides along, rocking slightly as the foot moves, and settles down onto the sand when it tucks in
-    u.sh.rotation.z=Math.sin(sn.ph*2.5)*0.03*sn.mv+Math.sin(sn.wob*28)*0.12*sn.wob;u.sh.rotation.x=Math.sin(sn.wob*23)*0.08*sn.wob;u.sh.position.y=0.05*(0.55+0.45*o)+(u.J.hump-1)*0.022*o;u.sh.position.x=-0.012-0.01*(1-o);
+    u.sh.rotation.z=(u.J.tilt||0)+Math.sin(sn.ph*2.5)*0.03*sn.mv+Math.sin(sn.wob*28)*0.12*sn.wob;u.sh.rotation.x=Math.sin(sn.wob*23)*0.08*sn.wob;u.sh.position.y=0.05*(0.55+0.45*o)+(u.J.hump-1)*0.022*o+Math.abs(u.J.tilt||0)*0.012;u.sh.position.x=-0.012-0.01*(1-o)-0.03*Math.max(0,u.J.tilt||0);
     // slime trail: faint shiny marks left behind, fading over half a minute
     if(sn.mv>0.3&&g.position.distanceTo(sn.tp)>0.022){sn.tp.copy(g.position);const q=sn.trail[sn.ti++%sn.trail.length];q.t=0;q.m.position.copy(g.position).addScaledVector(fw,-0.15).addScaledVector(SF.n,0.003);_sm.makeBasis(fw,side.clone().negate(),SF.n);q.m.quaternion.setFromRotationMatrix(_sm);}
     for(const q of sn.trail){if(q.t>30){q.m.visible=false;continue;}q.t+=dt;q.m.visible=true;q.m.material.opacity=0.28*(1-q.t/30);}}}
@@ -2045,8 +2114,8 @@ function renderShop(){const t=save.tank,th=makeThumbs();document.querySelectorAl
     const after=can?(()=>{let L=PROG.level,e=PROG.exp-d.price;while(e<0&&L>1){L--;e+=need(L);}return L;})():0;
     const act=!own?(can?'<button data-buy="'+d.id+'">buy \u00b7 '+d.price+' xp'+(after<PROG.level?' (to lv '+after+')':'')+'</button>':'<em>'+d.price+' xp</em>'+(PROG?'<small class="need">'+(d.price-wallet())+' xp more</small>':'')):on?'<button data-off="'+d.id+'">put away</button>':'<button data-on="'+d.id+'">place in tank</button>';
     return '<div class="item'+(!own&&!can?' locked':'')+'" data-id="'+d.id+'"><img src="'+th[d.id]+'" alt="'+d.name+'"><b>'+d.name+'</b>'+act+'</div>';}).join('')
-    +(SHOPPG!==2?'':'<p class="small shophead">won in duels</p>'+(()=>{const own=t.owned.ring,on=t.items.some(i=>i.id==='ring'),n=PROG&&PROG.life.rings||0;
-      return '<div class="item'+(own?'':' locked')+'" data-id="ring"><img src="'+th.ring+'" alt="winner ring"><b>winner ring'+(n>1?' ×'+n:'')+'</b>'+(!own?'<small class="need">win a duel</small>':on?'<button data-off="ring">put away</button>':'<button data-on="ring">place in tank</button>')+'</div>';})());}
+    +(SHOPPG!==2?'':'<p class="small shophead">won in duels · a new ring each win</p>'+RINGS.map((r,i)=>{const own=t.owned[r.id],on=t.items.some(x=>x.id===r.id),k=RINGS.filter(x=>t.owned[x.id]).length;
+      return '<div class="item'+(own?'':' locked')+'" data-id="'+r.id+'"><img src="'+th[r.id]+'" alt="'+r.name+'"><b>'+r.name+'</b>'+(!own?'<small class="need">'+(i===k?'win your next duel':'win '+(i-k+1)+' more duels')+'</small>':on?'<button data-off="'+r.id+'">put away</button>':'<button data-on="'+r.id+'">place in tank</button>')+'</div>';}).join(''));}
 document.querySelectorAll('.shoptabs [data-pg]').forEach(b=>b.onclick=()=>{SHOPPG=+b.dataset.pg;renderShop();});
 {let sx=null;const el=$('#shopList');el.addEventListener('touchstart',e=>{sx=e.touches[0].clientX;},{passive:true});el.addEventListener('touchend',e=>{if(sx===null)return;const dx=e.changedTouches[0].clientX-sx;sx=null;if(Math.abs(dx)>50){const ord=[0,1,2],i=ord.indexOf(SHOPPG),p=ord[clamp(i+(dx<0?1:-1),0,2)];if(p!==SHOPPG){SHOPPG=p;renderShop();}}},{passive:true});}
 function openShop(){if(VISIT)return;renderShop();$('#tank').hidden=true;$('#decorMenu').hidden=true;$('#shop').hidden=false;}
@@ -2210,8 +2279,98 @@ const gimg=(src,w)=>'<img class="gimg" alt="" src="'+src+'" style="width:'+(w||3
 let VISIT=null;
 const GBOX=to=>'https://firestore.googleapis.com/v1/projects/'+DB.projectId+'/databases/(default)/documents/gifts/'+to+'/box';
 function VISIT_REC(n){const r=(save.recent||[]).filter(x=>x!==n);r.unshift(n);save.recent=r.slice(0,8);}
-function openVisit(){if(!DB){toast('visiting needs the online save');return;}$('#visitErr').textContent='';$('#visitName').value='';$('#visitAsk').hidden=false;
-  {const el=$('#recent');el.textContent='';for(const n of (save.recent||[]).slice(0,8)){const b=document.createElement('button');b.type='button';b.textContent='@'+n;b.onclick=()=>{$('#visitName').value=n;$('#visitForm').requestSubmit();};el.appendChild(b);}}setTimeout(()=>$('#visitName').focus(),60);}
+
+/* ---- accounts & friends ----
+   Signing in takes the username and your real name. The name itself is never stored online: the account keeps only a one-way hash
+   of it (enough to check it next time), and this device remembers it so you don't have to type it again.
+   Visiting needs a friendship: one keeper sends a request, the other accepts. Keepers who had already visited each other before this
+   update count as friends. @michelle is the admin: she can visit anyone, anyone can visit her, and she shows as everyone's friend.
+   Friends see each other's real names: the names are swapped inside the request and the acceptance, and each keeper's copy is kept
+   encrypted with a key made from their own real name, so the public save only holds scrambled text. */
+const ADMIN='michelle';
+const normReal=t=>String(t||'').trim().replace(/\s+/g,' ').toLowerCase();
+const cleanReal=t=>String(t||'').trim().replace(/\s+/g,' ').slice(0,20);
+async function sha256(t){const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(t));return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('');}
+const idHash=(u,real)=>sha256('goldfish:'+u+':'+normReal(real));
+const REALK=u=>'goldfish-real-'+u;
+function myReal(){try{return USER?localStorage.getItem(REALK(USER))||'':''}catch(e){return ''}}
+function setMyReal(t){try{localStorage.setItem(REALK(USER),cleanReal(t));}catch(e){}PKEY=null;}
+let PKEY=null;const PNAMES={};
+async function palKey(){if(PKEY)return PKEY;const r=myReal();if(!r)return null;const base=await crypto.subtle.importKey('raw',new TextEncoder().encode(normReal(r)),'PBKDF2',false,['deriveKey']);
+  PKEY=await crypto.subtle.deriveKey({name:'PBKDF2',salt:new TextEncoder().encode('goldfish-pals:'+USER),iterations:60000,hash:'SHA-256'},base,{name:'AES-GCM',length:256},false,['encrypt','decrypt']);return PKEY;}
+const b64=u=>btoa(String.fromCharCode(...new Uint8Array(u))),unb64=t=>Uint8Array.from(atob(t),c=>c.charCodeAt(0));
+async function seal(t){const k=await palKey();if(!k||!t)return '';const iv=crypto.getRandomValues(new Uint8Array(12));const c=await crypto.subtle.encrypt({name:'AES-GCM',iv},k,new TextEncoder().encode(t));return b64(iv)+':'+b64(c);}
+async function unseal(e){try{const k=await palKey();if(!k||!e)return '';const [iv,c]=e.split(':');return new TextDecoder().decode(await crypto.subtle.decrypt({name:'AES-GCM',iv:unb64(iv)},k,unb64(c)));}catch(err){return '';}}
+const pals=()=>save.pals||(save.pals={});
+const isPal=n=>n===ADMIN||USER===ADMIN||!!pals()[n];
+const canVisit=n=>n===ADMIN||USER===ADMIN||!!pals()[n];
+function sendTo(to,kind,item){if(!DB||!USER)return Promise.reject();const body={fields:{from:{stringValue:USER},kind:{stringValue:kind},item:{stringValue:String(item).slice(0,24)},at:{timestampValue:new Date().toISOString()}}};
+  return fetch(GBOX(to)+'?key='+DB.apiKey,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}).then(r=>{if(!r.ok)throw r.status;});}
+function inboxAdd(x){const ib=save.inbox=(save.inbox||[]);ib.unshift({t:Date.now(),x,n:1});save.inbox=ib.slice(0,40);bellDot();}
+function friendRequest(n){if(!myReal()){askReal();return;}if(pals()[n])return;const inn=(save.preqIn||{})[n];if(inn){acceptFriend(n);return;}
+  save.preqOut=Object.assign({},save.preqOut,{[n]:Date.now()});persist();renderFriends();
+  sendTo(n,'friend','req|'+myReal().slice(0,20)).then(()=>toast('friend request sent to @'+n,2.4),e=>{const o=Object.assign({},save.preqOut);delete o[n];save.preqOut=o;persist();renderFriends();toast(e===403?'friend requests need the new database rules':'couldn’t send the request',3);});}
+async function acceptFriend(n){const inn=(save.preqIn||{})[n];if(!inn)return;if(!myReal()){askReal();return;}
+  pals()[n]={t:Date.now(),e:inn.e||''};const o=Object.assign({},save.preqIn);delete o[n];save.preqIn=o;if(save.preqOut)delete save.preqOut[n];persist();renderFriends();
+  sendTo(n,'friend','ok|'+myReal().slice(0,20)).catch(()=>{});toast('you and @'+n+' are friends now',2.4);}
+function declineFriend(n){const o=Object.assign({},save.preqIn);delete o[n];save.preqIn=o;persist();renderFriends();}
+// a friend message arriving in the gift box
+async function takeFriendMsg(g){const [k,...rest]=String(g.item||'').split('|'),nm=cleanReal(rest.join('|')),from=g.from;if(!from||from===USER)return null;
+  if(k==='req'){if(pals()[from]){if(nm&&!pals()[from].e){pals()[from].e=await seal(nm);}return null;}
+    if((save.preqOut||{})[from]){pals()[from]={t:Date.now(),e:await seal(nm)};delete save.preqOut[from];sendTo(from,'friend','ok|'+myReal().slice(0,20)).catch(()=>{});return 'you and @'+from+' are friends now';}
+    save.preqIn=Object.assign({},save.preqIn,{[from]:{t:g.at||Date.now(),e:await seal(nm)}});return '@'+from+' sent you a friend request';}
+  if(k==='ok'){const e=await seal(nm);
+    if((save.preqOut||{})[from]||pals()[from]){const had=!!pals()[from];pals()[from]=Object.assign({t:Date.now()},pals()[from],{e:e||(pals()[from]||{}).e||''});if(save.preqOut)delete save.preqOut[from];return had?null:'@'+from+' accepted your friend request';}
+    save.okHold=Object.assign({},save.okHold,{[from]:e});return null;}
+  return null;}
+// keepers who visited each other before friendships existed are friends already (checked once per account)
+function palMigrate(){if(!DB||!USER||save.palMig||!myReal()||!cloudReady)return;const me=USER,list=(save.recent||[]).filter(n=>n!==me);save.palMig=1;persist();
+  list.forEach(n=>cloudGet(n).then(async rec=>{if(USER!==me||!rec||!rec.save)return;if(!(rec.save.recent||[]).includes(me)||pals()[n])return;
+    pals()[n]={t:Date.now(),e:(save.okHold||{})[n]||'',mig:1};if(save.okHold)delete save.okHold[n];persist();sendTo(n,'friend','ok|'+myReal().slice(0,20)).catch(()=>{});},()=>{}));}
+// the friends sheet: "my friends" (requests waiting for you, the admin, then your friends with their real names) and "everyone" (every keeper A-Z),
+// both searchable and paged with the arrows
+let FTAB='f',FPG=0,ALLK=null,ALLK_T=0;const FPER=6;
+function loadAll(){if(!DB)return;if(ALLK&&Date.now()-ALLK_T<60000)return;ALLK_T=Date.now();
+  fetch('https://firestore.googleapis.com/v1/projects/'+DB.projectId+'/databases/(default)/documents:runQuery?key='+DB.apiKey,{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({structuredQuery:{from:[{collectionId:'players'}],select:{fields:[{fieldPath:'name'},{fieldPath:'level'}]},orderBy:[{field:{fieldPath:'name'},direction:'ASCENDING'}],limit:1000}})})
+    .then(r=>{if(!r.ok)throw r.status;return r.json();}).then(j=>{ALLK=(j||[]).filter(x=>x.document).map(x=>{const f=x.document.fields||{};return {n:f.name&&f.name.stringValue,lv:+(f.level&&f.level.integerValue)||1};}).filter(x=>x.n&&NAME_RE.test(x.n));renderFriends();})
+    .catch(e=>{ALLK=ALLK||[];$('#visitErr').textContent=e===403?'the full list needs the new database rules':'couldn’t load the list of keepers';renderFriends();});}
+function openVisit(){if(!DB){toast('visiting needs the online save');return;}$('#visitErr').textContent='';$('#visitName').value='';FPG=0;$('#visitAsk').hidden=false;loadAll();renderFriends();
+  for(const n in pals())if(pals()[n].e&&PNAMES[n]===undefined){PNAMES[n]='';unseal(pals()[n].e).then(t=>{PNAMES[n]=t;renderFriends();});}
+  for(const n in save.preqIn||{})if(save.preqIn[n].e&&PNAMES['?'+n]===undefined){PNAMES['?'+n]='';unseal(save.preqIn[n].e).then(t=>{PNAMES['?'+n]=t;renderFriends();});}}
+function goVisit(n){if(n===USER){$('#visitErr').textContent='that’s your own tank';return;}if(!canVisit(n)){$('#visitErr').textContent='you can visit @'+n+' once you’re friends';return;}
+  $('#visitErr').textContent='looking…';cloudGet(n).then(rec=>{if(!rec||!rec.save){$('#visitErr').textContent='no keeper called “'+n+'” yet';return;}$('#visitAsk').hidden=true;enterVisit(n,rec);},()=>{$('#visitErr').textContent='couldn’t reach the online save';});}
+function renderFriends(){if($('#visitAsk').hidden)return;document.querySelectorAll('.ftabs [data-ft]').forEach(b=>b.setAttribute('aria-selected',b.dataset.ft===FTAB));
+  const q=$('#visitName').value.trim().toLowerCase(),rows=[],lvOf=n=>{const k=(ALLK||[]).find(x=>x.n===n);return k?k.lv:null;};
+  if(FTAB==='f'){for(const n of Object.keys(save.preqIn||{}).sort())rows.push({n,kind:'in',sub:PNAMES['?'+n]||'wants to be friends'});
+    if(USER!==ADMIN)rows.push({n:ADMIN,kind:'admin'});
+    for(const n of Object.keys(pals()).sort())if(n!==ADMIN)rows.push({n,kind:'pal',sub:PNAMES[n]||''});}
+  else{if(USER!==ADMIN)rows.push({n:ADMIN,kind:'admin'});for(const k of ALLK||[])if(k.n!==ADMIN&&k.n!==USER)rows.push({n:k.n,kind:pals()[k.n]?'pal':(save.preqIn||{})[k.n]?'in':(save.preqOut||{})[k.n]?'out':'none',sub:pals()[k.n]?(PNAMES[k.n]||''):''});
+    if(q&&NAME_RE.test(q)&&q!==USER&&!rows.some(r=>r.n===q)&&ALLK&&!ALLK.length)rows.push({n:q,kind:pals()[q]?'pal':'none'});}
+  const list=rows.filter(r=>!q||r.n.includes(q)||(r.sub||'').toLowerCase().includes(q)),pages=Math.max(1,Math.ceil(list.length/FPER));FPG=clamp(FPG,0,pages-1);
+  const el=$('#flist');el.textContent='';
+  if(!list.length){const p=document.createElement('p');p.className='small';p.textContent=FTAB==='f'?(q?'no friends match':'no friends yet · find keepers under “everyone”'):(ALLK?'no keepers match':'loading…');el.appendChild(p);}
+  for(const r of list.slice(FPG*FPER,FPG*FPER+FPER)){const d=document.createElement('div');d.className='frow';const b=document.createElement('b');b.textContent='@'+r.n;d.appendChild(b);
+    if(r.kind==='admin'){const t=document.createElement('span');t.className='tag';t.textContent='admin';d.appendChild(t);}
+    const sm=document.createElement('small');const lv=lvOf(r.n);sm.textContent=r.sub||(lv?'lv '+lv:'');d.appendChild(sm);
+    const btn=(txt,fn,cls)=>{const x=document.createElement('button');x.type='button';x.textContent=txt;if(cls)x.className=cls;x.onclick=fn;d.appendChild(x);};
+    if(r.kind==='in'){btn('✕',()=>declineFriend(r.n),'no');btn('accept',()=>acceptFriend(r.n));}
+    else if(r.kind==='out'){const e=document.createElement('em');e.textContent='requested';d.appendChild(e);}
+    else if(canVisit(r.n))btn('visit',()=>goVisit(r.n));else btn('add',()=>friendRequest(r.n));
+    el.appendChild(d);}
+  $('#fPage').textContent=(FPG+1)+' / '+pages;$('#fPrev').disabled=FPG<=0;$('#fNext').disabled=FPG>=pages-1;$('#fPager').style.visibility=pages>1?'visible':'hidden';}
+document.querySelectorAll('.ftabs [data-ft]').forEach(b=>b.onclick=()=>{FTAB=b.dataset.ft;FPG=0;$('#visitErr').textContent='';renderFriends();});
+$('#fPrev').onclick=()=>{FPG--;renderFriends();};$('#fNext').onclick=()=>{FPG++;renderFriends();};
+$('#visitName').addEventListener('input',()=>{FPG=0;renderFriends();});
+$('#visitForm').addEventListener('submit',e=>{e.preventDefault();const n=$('#visitName').value.trim().toLowerCase();if(NAME_RE.test(n)&&canVisit(n))goVisit(n);else try{document.activeElement.blur();}catch(err){}});
+$('#visitCancel').onclick=()=>{$('#visitAsk').hidden=true;};
+// asking for the real name: on sign-in, and once for accounts made before names were asked for (or on a device that doesn't know it yet)
+function askReal(){if(!USER)return;$('#realName').value='';$('#realMsg').textContent='only your friends can see it';$('#realAsk').hidden=false;}
+function needReal(){if(!USER||!$('#login').hidden)return;if(!save.idh||!myReal())askReal();}
+$('#realForm').addEventListener('submit',async e=>{e.preventDefault();const t=cleanReal($('#realName').value);if(t.length<2){$('#realMsg').textContent='please type your real name';return;}
+  const h=await idHash(USER,t);if(save.idh&&save.idh!==h){$('#realMsg').textContent='that doesn’t match the name on this account';return;}
+  setMyReal(t);if(!save.idh){save.idh=h;persist();cloudDirty=true;cloudPut();}$('#realAsk').hidden=true;palMigrate();});
+$('#realSwitch').onclick=()=>{$('#realAsk').hidden=true;openLogin();};
 $('#visitBtn').onclick=openVisit;
 /* iOS (especially the home-screen app) scrolls the whole page up when the keyboard opens and doesn't always scroll it back, so the
    screen creeps upward over time. Put it back whenever the keyboard closes, the viewport changes, or the app comes back. */
@@ -2221,11 +2380,7 @@ window.addEventListener('scroll',()=>{if(!document.activeElement||!/INPUT|TEXTAR
 function openMore(){$('#mSoundTxt').textContent=save.sound?'on':'off';$('#mAcctTxt').textContent=USER?'@'+USER+' · '+(LANG==='ko'?'한국어':'English'):'sign in';$('#more').hidden=false;}
 $('#moreBtn').onclick=openMore;$('#moreClose').onclick=()=>{$('#more').hidden=true;};
 $('#mTank').onclick=()=>{$('#more').hidden=true;$('#tvBtn').click();};$('#mPhoto').onclick=()=>{$('#more').hidden=true;$('#captureBtn').click();};
-$('#mSound').onclick=()=>{$('#snd').click();$('#mSoundTxt').textContent=save.sound?'on':'off';};$('#mAcct').onclick=()=>{$('#more').hidden=true;$('#who').click();};$('#visitCancel').onclick=()=>{$('#visitAsk').hidden=true;};
-$('#visitForm').addEventListener('submit',e=>{e.preventDefault();const n=$('#visitName').value.trim().toLowerCase();
-  if(!NAME_RE.test(n)){$('#visitErr').textContent='use 2 to 16 letters, numbers or _';return;}if(n===USER){$('#visitErr').textContent='that’s your own tank';return;}
-  $('#visitErr').textContent='looking…';cloudGet(n).then(rec=>{if(!rec||!rec.save){$('#visitErr').textContent='no keeper called “'+n+'” yet';return;}$('#visitAsk').hidden=true;enterVisit(n,rec);},
-    ()=>{$('#visitErr').textContent='couldn’t reach the online save';});});
+$('#mSound').onclick=()=>{$('#snd').click();$('#mSoundTxt').textContent=save.sound?'on':'off';};$('#mAcct').onclick=()=>{$('#more').hidden=true;$('#who').click();}
 function enterVisit(n,rec){if(TV.on)setTankView(false);if(toy)endToy(true);persistLocal();
   const f=(rec.save.pets&&rec.save.pets.fish)||{},pr=normProg(rec.prog);
   VISIT_REC(n);VISIT={n,mine:save.tank,look:Object.assign({c:'orange',p:'plain',seed:1},f.look||{}),stage:Math.min(10,Math.max(pr.grow||0,Math.floor(pr.level/5))),fish:f.name||DEF,level:pr.level};
@@ -2493,7 +2648,7 @@ function duelTick(dt){const D=DX;if(!D)return;D.t+=dt;duelGuest(dt);
   // result: once the loser's stack is down and the winner has finished building
   const W=D.win?D.me:D.host,L=D.win?D.host:D.me;
   if((D.phase==='build'||D.phase==='sway')&&L.fallen&&(W.done||D.kind==='balance')&&D.fall.every(q=>q.fall.done)){D.phase='result';D.endT=D.t;cheer(W);ringPop(W);
-    if(D.win){awardRing();duelCap('you won · winner ring +50 xp');}else duelCap('@'+D.n+' won');
+    if(D.win){const r=awardRing();duelCap('you won · '+(r?r.name+' ':'')+'+50 xp');}else duelCap('@'+D.n+' won');
     if(DB&&USER){const body={fields:{from:{stringValue:USER},kind:{stringValue:'duel'},item:{stringValue:D.kind+'.'+(D.win?'w':'l')},at:{timestampValue:new Date().toISOString()}}};fetch(GBOX(D.n)+'?key='+DB.apiKey,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}).catch(()=>{});}}
   if(D.ring){const r=D.ring;r.t+=dt;r.g.scale.setScalar(1.9*Math.min(1,r.t*2.2)*(1+0.25*Math.max(0,Math.sin(Math.min(1,r.t*2.2)*Math.PI))));r.g.position.y=r.y+Math.sin(r.t*2)*0.03;r.g.rotation.y+=dt*1.2;}
   // wind-down instead of a cut: your fish turns and swims out (the ring trailing it if you won), the stones fade into the sand,
@@ -2506,11 +2661,13 @@ function duelTick(dt){const D=DX;if(!D)return;D.t+=dt;duelGuest(dt);
     if(D.ring){const g=D.ring.g;if(D.win){g.position.lerp(D.me.pos.clone().add(new V3(0.05,0.18,0)),Math.min(1,dt*2.5));}g.scale.multiplyScalar(Math.max(0,1-dt*(D.win?0.5:1.2)));}
     if(D.outT>1.8&&(D.me.pos.x<-B.x*1.15||D.outT>4.5)){const won=D.win;endDuel();if(won)goHomeWithRing();}}}
 function goHomeWithRing(){const f=$('#fade');f.hidden=false;requestAnimationFrame(()=>f.classList.add('on'));
-  setTimeout(()=>{leaveVisit();const o=ITEMS_ON.find(g=>g.userData.isRing);dropIn(o);duelCap('winner ring'+((PROG.life.rings||0)>1?' ×'+PROG.life.rings:''));f.classList.remove('on');setTimeout(()=>{f.hidden=true;},500);setTimeout(()=>duelCap(''),3000);},500);}
+  setTimeout(()=>{leaveVisit();const L=LASTRING;if(L&&L.id==='ring'){const o=ITEMS_ON.find(g=>g.userData.isRing);if(o)dropIn(o);duelCap('winner ring');}else if(L){inboxAdd(L.name+' added to your shop');duelCap(L.name+' · in your shop');}else duelCap('you won · +50 xp');f.classList.remove('on');setTimeout(()=>{f.hidden=true;},500);setTimeout(()=>duelCap(''),3000);},500);}
 function endDuel(){const D=DX;if(!D)return;DX=null;for(const P of [D.me,D.host])for(const q of P.src)world.remove(q.m);world.remove(D.me.G.g);if(D.ring)world.remove(D.ring.g);
   FRIENDS.forEach(f=>f.g.visible=true);for(const m of D.hid)m.visible=true;S.pitch=0;S.mode='idle';duelCap('');renderUI();}
-function awardRing(){addXP(50);const home=VISIT?VISIT.mine:save.tank;PROG.life.rings=(PROG.life.rings||0)+1;
-  if(!home.owned.ring){home.owned.ring=1;if(!home.items.some(i=>i.id==='ring'))home.items.push({id:'ring',x:+rnd(-0.6,0.6).toFixed(3),z:+rnd(-0.3,0.3).toFixed(2),r:0,t:Date.now()});if(!VISIT)rebuildTank();}}
+function awardRing(){addXP(50);const home=VISIT?VISIT.mine:save.tank;PROG.life.rings=(PROG.life.rings||0)+1;const nx=RINGS.find(r=>!home.owned[r.id]);LASTRING=nx||null;if(!nx)return null;home.owned[nx.id]=1;
+  if(nx.id==='ring'){if(!home.items.some(i=>i.id==='ring'))home.items.push({id:'ring',x:+rnd(-0.6,0.6).toFixed(3),z:+rnd(-0.3,0.3).toFixed(2),r:0,t:Date.now()});if(!VISIT)rebuildTank();}
+  return nx;}
+let LASTRING=null;
 $('#sendSnack').onclick=()=>{const g=giftDay();if(g.snack>=3)return;sendGift('snack','flakes',()=>{g.snack++;persist();openGiftOut();});};
 // receiving
 const SEEN_GIFTS=new Set();
@@ -2519,14 +2676,16 @@ function checkGifts(){if(!DB||!USER||VISIT||!cloudReady)return;const me=USER;
   fetch(GBOX(me)+'?key='+DB.apiKey+'&pageSize=50',{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{if(!j||!j.documents||USER!==me||VISIT)return;const got=[];
     for(const d of j.documents){if(SEEN_GIFTS.has(d.name))continue;SEEN_GIFTS.add(d.name);const F=d.fields||{},g={id:String(d.name).split('/').pop(),from:F.from&&F.from.stringValue,kind:F.kind&&F.kind.stringValue,item:F.item&&F.item.stringValue,at:F.at&&F.at.timestampValue?Date.parse(F.at.timestampValue):0};
       if(!g.from||!g.kind)continue;got.push(g);fetch('https://firestore.googleapis.com/v1/'+d.name+'?key='+DB.apiKey,{method:'DELETE'}).catch(()=>{});}
-    if(got.length)openGifts(got);}).catch(()=>{});}
+    const fr=got.filter(g=>g.kind==='friend'),rest=got.filter(g=>g.kind!=='friend');
+    if(fr.length)(async()=>{let any=false;for(const g of fr){const t=await takeFriendMsg(g);if(t){inboxAdd(t);any=true;}}persist();renderFriends();if(any){toast(save.inbox[0].x,3);snd.pop&&snd.pop();}})();
+    if(rest.length)openGifts(rest);}).catch(()=>{});}
 function openGifts(list){const el=$('#giftInList');if($('#giftIn').hidden)el.textContent='';const p=pet();let placedGift=false;
   for(const g of list){const row=document.createElement('div');row.className='gift-line';let pic='',txt='';
     if(g.kind==='snack'){p.s.food=Math.min(100,p.s.food+15);p.s.fun=Math.min(100,p.s.fun+10);const k=SNACKS[g.item]?g.item:'cucumber';pic=snk(k,40);SNACK_Q.push(k);txt='@'+g.from+' sent a '+SNACKS[k].name;}
     else if(g.kind==='fish'){const lk=unpackLook(g.item),pst=String(g.item).split('.')[4],st=pst===undefined||pst===''?10:clamp(+pst||0,0,10);save.friends=(save.friends||[]).concat([{id:g.id||(g.from+'-'+Date.now()),from:g.from,look:lk,stage:st}]).slice(-6);const img=fthumb(lk,st);
       pic='<img alt="" src="'+img+'" style="width:56px;height:40px">';txt='@'+g.from+' sent a little fish';setTimeout(spawnFriends,50);}
     else if(g.kind==='duel'){const [dk,res]=String(g.item).split('.'),gm=dk==='balance'?'rock balancing':'rock stacking',th=makeThumbs();pic='<img alt="" src="'+th.ring+'">';
-      if(res==='l'){awardRing();placedGift=true;txt='you beat @'+g.from+' at '+gm+' · winner ring +50 xp';}else txt='@'+g.from+' beat you at '+gm;}
+      if(res==='l'){const r=awardRing();placedGift=!!(r&&r.id==='ring');if(r)pic='<img alt="" src="'+th[r.id]+'">';txt='you beat @'+g.from+' at '+gm+' · '+(r?r.name+(r.id==='ring'?'':' (in your shop)')+' ':'')+'+50 xp';}else txt='@'+g.from+' beat you at '+gm;}
     else if(g.kind==='sticker'&&/^note\.\d+$/.test(g.item)&&NOTES[+g.item.slice(5)]){pic='<svg viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6.5h16v11H4z"/><path d="M4.5 7l7.5 6 7.5-6"/></svg>';txt='@'+g.from+' left a note: “'+NOTES[+g.item.slice(5)]+'”';}
     else if(g.kind==='sticker'&&STICKERS[g.item]){pic=stk(g.item,40);txt='@'+g.from+' sent a '+g.item;}
     else if(g.kind==='deco'){const pd=parseDecoItem(g.item),d=ALLDECO().find(x=>x.id===pd.id&&!x.prize);if(!d)continue;const th=makeThumbs();pic='<img alt="" src="'+th[d.id]+'">';
@@ -2966,7 +3125,7 @@ function ffTick(dt){const want=TV.t>0.02||VISIT&&false?0:duskAmt();if(!FF){if(wa
       // shy of the fish: drifts away if it comes close
       const dv=p.clone().sub(S.pos),dd=dv.length();f.away.lerp(dd<0.5?dv.normalize().multiplyScalar((0.5-dd)*0.9):new V3(),1-Math.exp(-dt*2));p.add(f.away);
       p.x=clamp(p.x,-B.x*0.92,B.x*0.92);p.y=clamp(p.y,B.floor+0.15,B.surf-0.1);f.s.position.copy(p);
-      const b=0.12+0.88*Math.pow(Math.max(0,Math.sin(t*f.w+f.ph)),2);f.b=b*A;f.s.material.opacity=f.b;f.s.scale.setScalar(0.1+0.07*b);}}
+      const b=0.12+0.88*Math.pow(Math.max(0,Math.sin(t*f.w+f.ph)),2);f.b=b*A;f.s.material.opacity=f.b;f.s.scale.setScalar(0.12+0.08*b);}}
   else if(FFMODE===2){for(const f of FF.list){f.x+=f.vx*dt;if(Math.abs(f.x)>B.x*0.9)f.vx*=-1;f.z=0.1+Math.sin(t*0.2+f.ph)*0.5;
       const sh=0.55+0.45*Math.sin(t*7+f.ph*3)*Math.sin(t*3.1+f.ph),b=0.25+0.75*Math.pow(Math.max(0,Math.sin(t*f.w+f.ph)),2);f.b=b*A;
       f.s.position.set(f.x+Math.sin(t*2.3+f.ph)*0.02,B.surf-0.04,f.z);f.s.material.opacity=f.b*sh;f.s.scale.set(0.26+0.08*sh,0.045,1);}
@@ -2986,9 +3145,9 @@ function ffSpark(p,spread){const q=FF.list.find(x=>!x.ambient&&x.life<=0)||FF.li
   q.p.copy(p).add(new V3(rnd(-spread,spread),rnd(-spread,spread),rnd(-0.03,0.03)));q.v.set(rnd(-0.15,0.15),rnd(-0.05,0.2),rnd(-0.05,0.05));q.L=q.life=rnd(1.2,2);}
 // a very soft round light: bright only at the very centre, fading out over a long, smooth falloff with no visible edge
 function ffTex(){if(ffTex.t)return ffTex.t;const c=document.createElement('canvas');c.width=c.height=128;const x=c.getContext('2d'),d=x.createImageData(128,128);
-  for(let j=0;j<128;j++)for(let i=0;i<128;i++){const r=Math.hypot(i-63.5,j-63.5)/64,a=Math.exp(-r*r*4.2)*Math.pow(Math.max(0,1-r),1.4),o=(j*128+i)*4;d.data[o]=d.data[o+1]=d.data[o+2]=255;d.data[o+3]=Math.round(255*a);}x.putImageData(d,0,0);return ffTex.t=new THREE.CanvasTexture(c);}
+  for(let j=0;j<128;j++)for(let i=0;i<128;i++){const r=Math.hypot(i-63.5,j-63.5)/64,a=0.5*Math.exp(-r*r*2.2)*Math.pow(Math.max(0,1-r),1.1),o=(j*128+i)*4;d.data[o]=d.data[o+1]=d.data[o+2]=255;d.data[o+3]=Math.round(255*a);}x.putImageData(d,0,0);return ffTex.t=new THREE.CanvasTexture(c);}
 function ffBuild(){const g=new THREE.Group(),tex=FFMODE===1?ffTex():glowTex(),spr=(col)=>{const m=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,color:col,transparent:true,opacity:0,depthWrite:false,fog:false,blending:THREE.AdditiveBlending}));m.renderOrder=9;g.add(m);return m;},
-    mk=(col)=>{const c=spr(FFMODE===1?0xfffbe6:0xffffff),h=spr(col);c.userData.h=h;return c;};
+    mk=(col)=>{const c=spr(FFMODE===1?0xfff3c4:0xffffff),h=spr(col);c.userData.h=h;return c;};
   FF={g,a:0,list:[],rip:[],next:3,emit:0};world.add(g);
   if(FFMODE===1)for(let i=0;i<7;i++)FF.list.push({s:mk(0xfff1b8),c:new V3(rnd(-B.x*0.7,B.x*0.7),rnd(B.floor+0.4,B.surf-0.4),rnd(-0.9,0.4)),ph:rnd(0,6),w:rnd(0.4,0.75),away:new V3(),b:0});
   else if(FFMODE===2){for(let i=0;i<5;i++)FF.list.push({s:mk(0xf2ef8a),x:rnd(-B.x*0.8,B.x*0.8),vx:rnd(0.04,0.1)*(i%2?1:-1),z:0,ph:rnd(0,6),w:rnd(1.2,2.2),b:0});
