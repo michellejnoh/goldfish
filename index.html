@@ -57,6 +57,7 @@ body.night #dark{opacity:.55}
 .icon.hide{display:none!important}
 #lvBadge{display:inline-flex;align-items:center;gap:7px;align-self:flex-start;background:none;border:0;padding:2px 0;font:inherit;font-size:15px;color:inherit}#lvBadge svg{display:block}
 .sec{font-size:13px;opacity:.5;margin:12px 0 2px;letter-spacing:.02em}.sec:first-of-type{margin-top:4px}
+#snailMine{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 2px}#snailMine button{background:none;border:1px solid rgba(0,0,0,.15);border-radius:999px;padding:6px 12px;font:inherit;font-size:14px;color:inherit}
 #recent{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 2px}#recent button{background:none;border:1px solid rgba(0,0,0,.15);border-radius:999px;padding:6px 12px;font:inherit;font-size:15px;color:inherit}
 .shoptabs{display:flex;gap:6px;justify-content:center;margin:4px 0 10px}.shoptabs button{background:none;border:0;border-bottom:1.5px solid transparent;padding:4px 10px;font:inherit;font-size:16px;color:inherit;opacity:.5}.shoptabs button[aria-selected=true]{opacity:1;border-color:currentColor}
 #visitBar .vb{display:inline-flex;flex-direction:column;align-items:center;gap:2px;background:none;border:0;font:inherit;font-size:12px;color:inherit;padding:2px 8px}#visitBar .vb svg{display:block}
@@ -340,19 +341,29 @@ body.lookdock #viewArrows{display:flex}
 <div class="sheet" id="tank" hidden>
   <div class="card">
     <h2>edit</h2>
+    <button type="button" class="mrow" id="decorMenuBtn"><span class="mi"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.5 5c.75 4.4 2.3 6.1 6.7 6.8-4.4.75-5.95 2.45-6.7 6.95-.75-4.5-2.3-6.2-6.7-6.95 4.4-.7 5.95-2.4 6.7-6.8z"/><path d="M18 2.8c.38 2 1.1 2.75 3.1 3.15-2 .4-2.72 1.15-3.1 3.2-.38-2.05-1.1-2.8-3.1-3.2 2-.4 2.72-1.15 3.1-3.15z"/></svg></span><span class="mt"><b>decorations</b><small>shop, move &amp; pebbles</small></span></button>
     <p class="sec">my fish</p>
     <button type="button" class="mrow" id="colorBtn"><span class="mi"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.2a8.8 8.8 0 1 0 0 17.6c1.3 0 1.9-1 1.4-2-.6-1.2.3-2.3 1.5-2.3h2.3a3.8 3.8 0 0 0 3.8-3.8c0-5.2-4-9.5-9-9.5z"/><circle cx="7.8" cy="11" r="1.1" fill="currentColor"/><circle cx="10.5" cy="7.3" r="1.1" fill="currentColor"/><circle cx="15" cy="7.6" r="1.1" fill="currentColor"/></svg></span><span class="mt"><b>color</b><small>25 shades to choose from</small></span></button>
     <button type="button" class="mrow" id="patBtn"><span class="mi"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7.5c2-2 4-2 6 0s4 2 6 0 4-2 6 0"/><path d="M3 12.5c2-2 4-2 6 0s4 2 6 0 4-2 6 0"/><path d="M3 17.5c2-2 4-2 6 0s4 2 6 0 4-2 6 0"/></svg></span><span class="mt"><b>pattern</b><small>fade, dark fins &amp; patches</small></span></button>
     <button type="button" class="mrow" id="skinBtn"><span class="mi"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.2 17L3 7.8l5 4.2 4-6.5 4 6.5 5-4.2-1.2 9.2z"/><path d="M4.8 20.2h14.4"/></svg></span><span class="mt"><b>skin</b><small>special looks, like christmas</small></span></button>
     <button type="button" class="mrow" id="friendsBtn"><span class="mi"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><g transform="translate(-0.5 0.5) scale(0.68)"><path d="M2.5 12c2.6-4 6.2-5.6 9.6-5.6 3.3 0 5.6 1.6 6.9 3.4l2.4-2.1c.5-.4 1.2 0 1 .7l-.8 3.6.8 3.6c.2.7-.5 1.1-1 .7l-2.4-2.1c-1.3 1.8-3.6 3.4-6.9 3.4-3.4 0-7-1.6-9.6-5.6z" fill="currentColor" stroke="none"/><circle cx="7" cy="11.2" r="1" fill="#fff" stroke="none"/></g><g transform="translate(8.2 9.4) scale(0.68)"><path d="M2.5 12c2.6-4 6.2-5.6 9.6-5.6 3.3 0 5.6 1.6 6.9 3.4l2.4-2.1c.5-.4 1.2 0 1 .7l-.8 3.6.8 3.6c.2.7-.5 1.1-1 .7l-2.4-2.1c-1.3 1.8-3.6 3.4-6.9 3.4-3.4 0-7-1.6-9.6-5.6z" fill="currentColor" stroke="none"/><circle cx="7" cy="11.2" r="1" fill="#fff" stroke="none"/></g></svg></span><span class="mt"><b>friends’ fish</b><small id="friendsTxt"></small></span></button>
+    <button type="button" class="mrow" id="snailBtn"><span class="mi"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 18.5h15.5c1.5 0 2.5-1 2.5-2.5V13"/><path d="M19.5 13l-1.2-4.5M21 13l.8-4.3"/><circle cx="10.5" cy="12" r="5.2"/><path d="M10.5 12a2 2 0 1 1 2-2"/></svg></span><span class="mt"><b>snails</b><small id="snailSub">up to two for each fish</small></span></button>
     <p class="sec">tank</p>
     <button type="button" class="mrow" id="waterMenuBtn"><span class="mi"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.5c3 3.9 6 7.4 6 10.9a6 6 0 0 1-12 0c0-3.5 3-7 6-10.9z"/></svg></span><span class="mt"><b>water</b><small>clear, blue or green</small></span></button>
-    <button type="button" class="mrow" id="decorMenuBtn"><span class="mi"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.5 5c.75 4.4 2.3 6.1 6.7 6.8-4.4.75-5.95 2.45-6.7 6.95-.75-4.5-2.3-6.2-6.7-6.95 4.4-.7 5.95-2.4 6.7-6.8z"/><path d="M18 2.8c.38 2 1.1 2.75 3.1 3.15-2 .4-2.72 1.15-3.1 3.2-.38-2.05-1.1-2.8-3.1-3.2 2-.4 2.72-1.15 3.1-3.15z"/></svg></span><span class="mt"><b>decorations</b><small>shop, move &amp; pebbles</small></span></button>
     <button type="button" class="mrow" id="lampMenuBtn"><span class="mi"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 4h8l2.2 8H5.8z"/><path d="M12 12v6"/><path d="M8.5 20h7"/></svg></span><span class="mt"><b>night lamp</b><small>the color of the light at night</small></span></button>
     <div class="row2 topclose"><span></span><button type="button" class="go" id="tankClose">close</button></div>
   </div>
 </div>
 <div id="viewArrows" aria-label="turn your fish"><button type="button" id="viewL" aria-label="turn left"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.5 6l-6 6 6 6"/></svg></button><button type="button" id="viewR" aria-label="turn right"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.5 6l6 6-6 6"/></svg></button></div>
+<div class="sheet dock" id="snailSheet" hidden>
+  <div class="card">
+    <h2>snails</h2>
+    <p class="small" id="snailNote"></p>
+    <div class="shopgrid" id="snailKinds"></div>
+    <div id="snailMine"></div>
+    <div class="row2 topclose"><span></span><button type="button" class="go" id="snailClose">back</button></div>
+  </div>
+</div>
 <div class="sheet dock" id="friendsSheet" hidden>
   <div class="card">
     <h2>friends’ fish</h2>
@@ -504,7 +515,7 @@ const KO={
 'gifts need the new database rules (see the guide)':'선물을 보내려면 새 저장 서버 규칙이 필요해요','visiting needs the online save':'방문하려면 온라인 저장이 필요해요',
 'heart':'하트','sparkle':'반짝','fishy':'물고기','bubbles':'방울','cucumber':'오이','yum':'냠','crunch':'아삭','zucchini':'애호박','banana':'바나나',
 'a little fish like yours · 50 xp':'내 금붕어를 닮은 작은 물고기 · 50 xp','send · 50 xp':'보내기 · 50 xp','friends’ fish':'친구 물고기','tap a fish to show or hide it in your tank':'물고기를 탭해서 어항에 보이거나 숨겨요','no skin':'스킨 없음','little fish your friends send you swim here':'친구가 보낸 작은 물고기가 여기서 헤엄쳐요',
-'visit · type a friend’s username to visit their tank, send gifts, or challenge them to a duel. fish you’re sent swim with yours':'방문 · 친구 아이디를 입력해 어항에 놀러 가서 선물을 보내거나 결투를 신청해요. 선물받은 물고기는 내 물고기랑 같이 놀아요','duel':'결투','notifications':'알림','nothing yet':'아직 없어요','put away':'치우기','tap a decoration first':'먼저 장식을 눌러 주세요','my fish':'내 금붕어','tank':'어항','more':'더보기','tank view':'어항 뷰','see your tank in its room':'방 안의 어항 보기','photo':'사진','save a picture of your tank':'어항 사진 저장','sound':'소리','on':'켜짐','off':'꺼짐','account & language':'계정 · 언어','friends':'친구','visit a keeper by username, or tap one you’ve visited':'아이디로 놀러 가거나, 전에 갔던 친구를 눌러요','gift':'선물','home':'집','rings':'반지','won in duels':'결투에서 얻어요',
+'visit · type a friend’s username to visit their tank, send gifts, or challenge them to a duel. fish you’re sent swim with yours':'방문 · 친구 아이디를 입력해 어항에 놀러 가서 선물을 보내거나 결투를 신청해요. 선물받은 물고기는 내 물고기랑 같이 놀아요','duel':'결투','notifications':'알림','nothing yet':'아직 없어요','snails':'달팽이','up to two for each fish':'물고기 한 마리당 두 마리까지','gold shell':'금와','white body':'백와','black & brown':'흑백와','black & gold':'흑금와','all black':'흑와','put away':'치우기','tap a decoration first':'먼저 장식을 눌러 주세요','my fish':'내 금붕어','tank':'어항','more':'더보기','tank view':'어항 뷰','see your tank in its room':'방 안의 어항 보기','photo':'사진','save a picture of your tank':'어항 사진 저장','sound':'소리','on':'켜짐','off':'꺼짐','account & language':'계정 · 언어','friends':'친구','visit a keeper by username, or tap one you’ve visited':'아이디로 놀러 가거나, 전에 갔던 친구를 눌러요','gift':'선물','home':'집','rings':'반지','won in duels':'결투에서 얻어요',
 'your level · tap for missions. your fish grows every 5 levels':'레벨 · 누르면 미션이 나와요. 5레벨마다 금붕어가 자라요','shop · winter decorations, crystals and rings':'상점 · 겨울 장식, 크리스탈, 반지','friends · visit a keeper, send gifts, or challenge them to a duel. fish you’re sent swim with yours':'친구 · 놀러 가서 선물을 보내거나 결투를 신청해요. 선물받은 물고기는 내 물고기랑 같이 놀아요','more · tank view, photos, sound, account and language':'더보기 · 어항 뷰, 사진, 소리, 계정과 언어','winter':'겨울','crystals':'크리스탈','amethyst':'자수정','rose quartz':'로즈 쿼츠','citrine':'시트린','aquamarine':'아쿠아마린','fluorite':'형석','rings · won in duels':'반지 · 결투에서 얻어요','win a duel':'결투에서 이기면','tallest tower wins':'더 높이 쌓으면 승리','keep the stones on your nose longest':'코 위 돌을 끝까지 지키면 승리','the fish play it out in the tank · pure luck · winner gets a winner ring (+50 xp)':'물고기들이 어항에서 직접 겨뤄요 · 순전히 운 · 이기면 승리 반지 (+50 xp)','notifications':'알림','turn on':'켜기','turn off':'끄기','notifications are on':'알림이 켜져 있어요','notifications · add Goldfish to your home screen first':'알림 · 먼저 Goldfish를 홈 화면에 추가해 주세요',"notifications aren’t available here":'여기서는 알림을 쓸 수 없어요','notifications are blocked in settings':'설정에서 알림이 꺼져 있어요','rock stacking':'돌 쌓기','rock balancing':'돌 균형 잡기','who stacks the tallest tower':'누가 더 높이 쌓나','whose stack stays up longer':'누구 탑이 더 오래 버티나','pick a game. winning is pure luck · the winner gets a shiny winner ring (+50 xp)':'게임을 골라요. 승패는 순전히 운 · 이기면 반짝이는 승리 반지 (+50 xp)','winner ring':'승리 반지','skin':'스킨','special looks, like christmas':'크리스마스 같은 특별한 모습','a skin is worn over your color and pattern · tap it again to reshuffle':'스킨은 색과 무늬 위에 입혀져요 · 한 번 더 누르면 모양이 바뀌어요','none':'없음','christmas':'크리스마스','at least 20 stones stay in the tank':'어항에는 돌이 최소 20개 남아 있어야 해요','skip':'건너뛰기',
 'hand · drag to lead your fish, tap to call it, tap the fish to say hi':'손 · 끌어서 금붕어를 데려가고, 탭해서 부르고, 금붕어를 탭하면 인사해요',
 'food · tap the water to sprinkle flakes':'먹이 · 물을 탭해서 먹이를 뿌려요','clean · when the glass gets dirty, rub it clean':'청소 · 유리가 더러워지면 문질러서 닦아요',
@@ -1078,6 +1089,7 @@ function buildEnv(){
   const cvs=document.createElement('canvas');cvs.width=cw;cvs.height=ch;const tex=new THREE.CanvasTexture(cvs);
   const glass=new THREE.Mesh(new THREE.PlaneGeometry(Wg,Hg),new THREE.MeshBasicMaterial({map:tex,transparent:true,depthWrite:false}));glass.position.set(0,(F+B.surf)/2,1.0);glass.renderOrder=5;e.add(glass);
   ALG={mesh:glass,cvs,tex,sm:[],Wg,Hg,dirty:true};
+  buildSnails(e);
   return e;
 }
 function drawAlgae(){const A=ALG,x=A.cvs.getContext('2d'),cw=A.cvs.width,ch=A.cvs.height;x.clearRect(0,0,cw,ch);
@@ -1231,6 +1243,7 @@ const ray=new THREE.Raycaster(),ndc=new THREE.Vector2(),VPLANE=new THREE.Plane(n
 const ptr={down:false,x:0,y:0,t0:0,moved:0,world:null,seen:-9,onPet:false,lastTapT:-9,lastTapPet:false};
 function setNDC(e){const r=cv.getBoundingClientRect();ndc.set((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1);ray.setFromCamera(ndc,camera);}
 function worldPoint(){VPLANE.constant=-Math.min(0.4,S.pos.z);const p=new V3();return ray.ray.intersectPlane(VPLANE,p)?p:null;}
+function hitFriend(){if(!FRIENDS.length)return null;const hs=ray.intersectObjects(FRIENDS.map(f=>f.g),true);if(!hs.length)return null;let o=hs[0].object;while(o&&!FRIENDS.some(f=>f.g===o))o=o.parent;return FRIENDS.find(f=>f.g===o)||null;}
 function hitFish(){return ray.intersectObject(R.g,true).some(x=>{let o=x.object;while(o&&!o.userData.part)o=o.parent;return !!o;});}
 /* turning decorations: twist with two fingers, scroll on a computer, or the turn buttons in the edit bar */
 const TP=new Map();let twist=null,selItem=null;
@@ -1246,7 +1259,7 @@ cv.addEventListener('pointerup',tpEnd,true);cv.addEventListener('pointercancel',
 cv.addEventListener('wheel',e=>{if(tool!=='arrange')return;setNDC(e);const o=hitItem()||(ITEMS_ON.includes(selItem)?selItem:null);if(!o)return;e.preventDefault();selItem=o;turnItem(o,e.deltaY*0.004);
   clearTimeout(cv._wt);cv._wt=setTimeout(()=>saveItemTurn(o),300);},{passive:false});
 cv.addEventListener('pointerdown',e=>{if(twist)return;snd.ac();if(S)S.lastTouch=T;try{cv.setPointerCapture(e.pointerId)}catch(_){}
-  ptr.down=true;ptr.x=e.clientX;ptr.y=e.clientY;ptr.t0=performance.now();ptr.moved=0;setNDC(e);ptr.world=worldPoint();ptr.seen=T;ptr.onPet=hitFish();
+  ptr.down=true;ptr.x=e.clientX;ptr.y=e.clientY;ptr.t0=performance.now();ptr.moved=0;setNDC(e);ptr.world=worldPoint();ptr.seen=T;ptr.onPet=hitFish();ptr.onFriend=tool==='hand'&&!ptr.onPet?hitFriend():null;
   if(tool==='toy')startToy();
   if(tool==='arrange'){dragItem=hitItem();if(dragItem)selItem=dragItem;}
   if(tool==='peb')pebbleBrush(true);});
@@ -1261,6 +1274,7 @@ cv.addEventListener('pointerup',up);cv.addEventListener('pointercancel',up);
 cv.addEventListener('pointerleave',e=>{if(e.pointerType==='mouse'&&!ptr.down)ptr.seen=-9;});
 function tap(){
   if(tool==='hand'){
+    if(ptr.onFriend){const f=ptr.onFriend,dbl=T-(f.tapT||-9)<0.35;f.tapT=T;friendPoke(f,dbl);return;}
     if(ptr.onPet){if(lightsOff||S.asleep)react('grumpy');else if(T-ptr.lastTapT<0.35&&ptr.lastTapPet)react('trick');else react('hello');ptr.lastTapT=T;ptr.lastTapPet=true;}
     else{ptr.lastTapPet=false;if(lightsOff||!ptr.world)return;
       // tapping the sand asks the fish to start heaping pebbles (a new heap starts where you tapped)
@@ -1299,7 +1313,7 @@ function behave(dt){const s=pet().s;S.faceT=null;
   if(S.react)doReact(dt);
   if(toy){if(s.energy>4){chase(dt);return;}tired(dt);return;}
   const f=nearestFood();if(f){if(s.food<99||f.snack){eat(f,dt);return;}if(!f.refused){f.refused=true;react('refuse');toast(fill('{n} is full right now.'),2.4);return;}}
-  if(ptr.down&&tool==='hand'&&ptr.moved>10&&ptr.world){S.faceT=ptr.world;track('lead',dt);const p=standPoint(ptr.world,R.reach);move(p.x,p.y,p.z,1.8,dt);add('fun',dt*0.6);if(Math.random()<dt*1.5)bubble(mouthWorld());return;}
+  if(ptr.down&&tool==='hand'&&ptr.moved>10&&ptr.world&&!ptr.onFriend){S.faceT=ptr.world;track('lead',dt);const p=standPoint(ptr.world,R.reach);move(p.x,p.y,p.z,1.8,dt);add('fun',dt*0.6);if(Math.random()<dt*1.5)bubble(mouthWorld());return;}
   if(S.hold&&!lightsOff){const d=move(S.hold.x,S.hold.y,S.hold.z,1.3,dt);if(d<0.2){brake(dt);S.faceT=null;if(S.viewH===undefined)S.viewH=Math.cos(S.heading)>=0?0:Math.PI;S.wantH=S.viewH;}return;}
   if(S.call){const d=move(S.call.x,S.call.y,S.call.z,1.6,dt);if(d<0.15){S.call=null;S.think=rnd(2,4);talk();}return;}
   if(IACT&&IACT.k==='boop'&&!IACT.done&&IACT.f.pos.distanceTo(S.pos)<0.9){S.faceT=IACT.f.pos;brake(dt);return;}
@@ -1733,7 +1747,7 @@ setInterval(()=>{if(cloudDirty)cloudPut();else if(!document.hidden)pull();},3000
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)pull();});
 /* the home-screen app keeps an old copy of the page open (and iOS caches it), so check for a newer build when it opens or comes back,
    and reload past the cache if there is one */
-const BUILD='20261117153915';
+const BUILD='20261118083359';
 function checkBuild(){fetch('version.json?t='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{if(!j||!j.b||j.b===BUILD)return;
   try{if(sessionStorage.getItem('gf-build')===j.b)return;sessionStorage.setItem('gf-build',j.b);}catch(e){}
   try{persistLocal();}catch(e){}location.replace(location.pathname+'?v='+encodeURIComponent(j.b));}).catch(()=>{});}
@@ -1769,6 +1783,14 @@ document.querySelectorAll('[data-gpturn]').forEach(b=>b.onclick=()=>{const o=GPL
 $('#gpCancel').onclick=()=>endGiftPlace(false);
 $('#gpSend').onclick=()=>{if(!GPLACE)return;const {d,it}=GPLACE;if(wallet()<d.price){endGiftPlace(false);return;}const b=$('#gpSend');b.disabled=true;
   sendGift('deco',giftPlaceCode(it),()=>{spendXP(d.price);persist();giftFly('',null,d.name+' sent to @'+VISIT.n+'!');endGiftPlace(true);});setTimeout(()=>{b.disabled=false;},1500);};
+let SNTH=null;
+function openSnails(){if(!SNTH)SNTH=thumbsOf(SNAILK.map(k=>({id:k.id,make:()=>{const g=makeSnail(k);g.position.y=0.04;return g;},ry:-0.9,fit:0.8})));
+  const list=save.snails=save.snails||[],mx=snailMax(),full=list.length>=mx;$('#snailNote').textContent=list.length+' of '+mx+' · two for each fish, counting the ones you’ve been sent';
+  $('#snailKinds').innerHTML=SNAILK.map(k=>'<div class="item'+(full?' locked':'')+'"><img alt="" src="'+SNTH[k.id]+'"><b>'+k.name+'</b>'+(full?'':'<button data-snail="'+k.id+'">add</button>')+'</div>').join('');
+  const mine=$('#snailMine');mine.textContent='';list.forEach((sn,i)=>{const b=document.createElement('button');b.type='button';b.textContent=(SNAILK.find(k=>k.id===sn.k)||{}).name+' ✕';b.onclick=()=>{list.splice(i,1);persist();rebuildTank();openSnails();};mine.appendChild(b);});
+  $('#snailKinds').querySelectorAll('[data-snail]').forEach(b=>b.onclick=()=>{if(list.length>=snailMax())return;list.push({k:b.dataset.snail,t:Date.now()});persist();rebuildTank();openSnails();});
+  $('#tank').hidden=true;$('#snailSheet').hidden=false;}
+$('#snailBtn').onclick=openSnails;$('#snailClose').onclick=()=>{$('#snailSheet').hidden=true;openTank();};
 $('#friendsBtn').onclick=()=>{if(!(save.friends||[]).length)return;$('#tank').hidden=true;openFriends();$('#friendsSheet').hidden=false;};
 $('#friendsClose').onclick=()=>{$('#friendsSheet').hidden=true;openTank();};$('#skinsClose').onclick=()=>{$('#skins').hidden=true;openTank();};
 $('#colorBtn').onclick=openColors;$('#patBtn').onclick=openPatterns;
@@ -1816,6 +1838,75 @@ const CRYSTALS=[
    xtal(g,0.034,0.26,0.06,0x8fcfe2,0xe3f6fb,0,0,0,0,0.07);return g;}},
  {id:'fluorite',name:'fluorite',price:380,glow:[0.45,1,0.66],make:()=>{const g=new THREE.Group();xtal(g,0.05,0.14,0.07,0x6fcb9c,0xd8f5e6,0,0,0,0,0.03,4);return g;}}];
 const ALLDECO=()=>SHOP.concat([RING],CRYSTALS);
+/* ---- snails: giant African land snails in five colourings. Two per fish (your fish plus each fish you've been sent).
+   They glide on a rippling foot, wave their eye stalks, pull the stalks in when a fish swims close or you touch them,
+   stop to look around, tuck into the shell to rest (more by day, they're livelier at night), go for food on the sand, and leave a fading slime trail. ---- */
+const SNAILK=[
+ {id:'gold',name:'gold shell',body:0xf1e7d2,shell:0xd8a648,flame:0xc28c34,apex:0xead7b0,stripe:0.15},
+ {id:'white',name:'white body',body:0xf0e6d4,shell:0xa8693c,flame:0x5a3220,apex:0xd9b48c,stripe:0.85},
+ {id:'blackwhite',name:'black & brown',body:0x3d3936,shell:0xa86e40,flame:0x5c3622,apex:0xd8b88e,stripe:0.8},
+ {id:'blackgold',name:'black & gold',body:0x3a3633,shell:0xe0bf74,flame:0xc69e52,apex:0xf0dfb6,stripe:0.25},
+ {id:'black',name:'all black',body:0x34302e,shell:0x6a4a34,flame:0x2e2019,apex:0xc8a47a,stripe:0.9}];
+// the shell: a tall cone of whorls (each smaller toward the tip, with a groove between), wrapped in wavy flame stripes running with the growth lines
+function shellGeo(k){const L=0.16,R0=0.056,pts=[new THREE.Vector2(0,-0.012)];for(let i=0;i<=60;i++){const h=i/60,sv=-Math.log(1-h*0.985),bump=0.88+0.12*Math.pow(Math.abs(Math.sin(Math.PI*sv/0.62)),0.45),
+      base=h<0.12?Math.sin((0.35+h/0.12*0.65)*Math.PI/2):1;// the big body whorl rounds off underneath, so the shell is closed
+    pts.push(new THREE.Vector2(Math.max(0.0015,R0*Math.pow(1-h,0.85)*bump*base),h*L));}
+  const g=new THREE.LatheGeometry(pts,28).toNonIndexed();g.computeVertexNormals();const p=g.attributes.position,n=g.attributes.normal,col=[],c0=new THREE.Color(k.shell),c1=new THREE.Color(k.flame),c2=new THREE.Color(k.apex),o=new THREE.Color(),L2=new V3(0.4,0.8,0.5).normalize();
+  for(let i=0;i<p.count;i++){const x=p.getX(i),y=p.getY(i),z=p.getZ(i),h=Math.max(0,y/L),sv=-Math.log(1-Math.min(0.98,h)),th=Math.atan2(z,x),
+      fl=Math.sin(th*6+sv*3.2+Math.sin(sv*7)*0.8),stripe=fl>0.35-0.7*k.stripe?k.stripe:0,suture=Math.pow(Math.abs(Math.cos(Math.PI*sv/0.62)),12)*0.35;
+    o.copy(c0).lerp(c1,stripe).lerp(c2,Math.pow(h,2.2)).multiplyScalar(1-suture);const d=n.getX(i)*L2.x+n.getY(i)*L2.y+n.getZ(i)*L2.z;o.multiplyScalar(0.72+0.38*(0.5+0.5*d));col.push(o.r,o.g,o.b);}
+  g.setAttribute('color',new THREE.Float32BufferAttribute(col,3));return g;}
+function makeSnail(k){const g=new THREE.Group(),body=new THREE.Group(),bm=flatMat({color:k.body}),dark=new THREE.Color(k.body).multiplyScalar(0.78).getHex(),bm2=flatMat({color:dark});g.add(body);
+  // foot and body: overlapping soft segments from tail to head, so the foot can ripple
+  const segs=[];for(let i=0;i<8;i++){const u=i/7,len=0.2,x=-len/2+u*len,ry=0.012+0.012*Math.sin(Math.PI*Math.min(1,u*1.15)),rz=0.018+0.012*Math.sin(Math.PI*u);
+    const m=new THREE.Mesh(new THREE.SphereGeometry(1,14,10),i===0?bm2:bm);m.scale.set(0.034,ry,rz);m.position.set(x,ry*0.75,0);m.userData.base={x,ry,rz};body.add(m);segs.push(m);}
+  // head and neck lift a little at the front
+  const head=new THREE.Group();head.position.set(0.1,0.018,0);body.add(head);const hm=new THREE.Mesh(new THREE.SphereGeometry(1,14,10),bm);hm.scale.set(0.022,0.017,0.017);head.add(hm);
+  // eye stalks (long, with dark eyes on the tips) and the short feelers below; each on a pivot so it can shorten and pull in
+  const stalk=(y,z,len,r,ry,rz,eye)=>{const pv=new THREE.Group();pv.position.set(0.012,y,z);pv.rotation.set(rz,0,ry);head.add(pv);const c=new THREE.Mesh(new THREE.CylinderGeometry(r*0.7,r,len,6),bm);c.position.y=len/2;pv.add(c);
+    if(eye){const e=new THREE.Mesh(new THREE.SphereGeometry(r*1.15,8,6),flatMat({color:0x2a2725}));e.position.y=len;pv.add(e);}pv.userData.len=1;return pv;};
+  const eyes=[stalk(0.012,0.007,0.05,0.0035,-0.75,0.35,true),stalk(0.012,-0.007,0.05,0.0035,-0.75,-0.35,true)],feel=[stalk(-0.004,0.009,0.016,0.003,-1.7,0.5,false),stalk(-0.004,-0.009,0.016,0.003,-1.7,-0.5,false)];
+  // shell sits on the back, its tip pointing back and up, tipped a little to one side
+  const sh=new THREE.Group();sh.position.set(-0.025,0.03,0);body.add(sh);const shm=new THREE.Mesh(shellGeo(k),flatMat({vertexColors:true,side:THREE.DoubleSide}));shm.rotation.set(0.3,0,1.15);shm.position.set(0.02,0.012,0);sh.add(shm);
+  g.userData={segs,head,eyes,feel,sh,body};return g;}
+let SNAILS=[];
+const snailList=()=>(VISIT?VISIT.snails:save.snails)||[];
+const snailMax=()=>2*(1+((save.friends||[]).length));
+function buildSnails(e){SNAILS=[];for(const sn of snailList()){const k=SNAILK.find(x=>x.id===sn.k);if(!k)continue;const g=makeSnail(k);g.scale.setScalar(1.9);
+    const x=rnd(-B.x*0.8,B.x*0.8),z=rnd(-0.9,0.6);g.position.set(x,B.floor,z);g.rotation.y=rnd(0,6.28);e.add(g);
+    const trail=[];for(let i=0;i<40;i++){const m=new THREE.Mesh(new THREE.CircleGeometry(0.012,10),new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:0,depthWrite:false,fog:false}));m.rotation.x=-Math.PI/2;m.scale.set(1.4,0.8,1);e.add(m);trail.push({m,t:99});}
+    SNAILS.push({g,k,head:g.rotation.y,st:'crawl',stT:rnd(4,9),tgt:null,ph:rnd(0,6),ext:1,eyeK:1,look:0,trail,ti:0,tp:g.position.clone(),out:1});}}
+function snailTick(dt){const night=lightsOff||nightAmt()>0.5;
+  for(const sn of SNAILS){const g=sn.g,u=g.userData;sn.stT-=dt;sn.ph+=dt;
+    // what is it doing: crawling somewhere, stopping to look around, or tucked in the shell
+    const fishNear=S&&R.g.visible&&S.pos.distanceTo(g.position)<0.32,poked=ptr.down&&ptr.world&&ptr.world.distanceTo(g.position)<0.14&&!sn.poke;
+    if(poked){sn.st='hide';sn.stT=rnd(3,5);sn.poke=true;}if(!ptr.down)sn.poke=false;
+    if(sn.stT<=0){const r=Math.random();if(sn.st==='hide'||sn.st==='look'||r<(night?0.75:0.55)){sn.st='crawl';sn.stT=rnd(6,14);sn.tgt=null;}else if(r<(night?0.92:0.8)){sn.st='look';sn.stT=rnd(2.5,5);}else{sn.st='hide';sn.stT=rnd(night?4:8,night?8:20);}}
+    // food on the sand draws it over
+    let food=null;for(const f of foods){if(f.snack&&f.snack.float)continue;if(f.pos.y<B.floor+0.12&&f.pos.distanceTo(g.position)<1.2){food=f;break;}}
+    if(food&&sn.st!=='hide'){sn.st='crawl';sn.tgt=new V3(food.pos.x,B.floor,food.pos.z);sn.stT=Math.max(sn.stT,2);}
+    if(sn.st==='crawl'&&(!sn.tgt||g.position.distanceTo(sn.tgt)<0.06)){let t=null;for(let i=0;i<8&&!t;i++){const c=new V3(clamp(g.position.x+rnd(-0.9,0.9),-B.x*0.88,B.x*0.88),B.floor,clamp(g.position.z+rnd(-0.6,0.6),-1.2,0.7));if(!inObst(c.clone().setY(B.floor+0.05)))t=c;}sn.tgt=t||new V3(0,B.floor,0);}
+    // body out of the shell (1) or pulled in (0); eye stalks out (1) or pulled in (0)
+    sn.out=damp(sn.out,sn.st==='hide'?0:1,sn.st==='hide'?3:0.8,dt);sn.eyeK=damp(sn.eyeK,sn.st==='hide'||fishNear?0.15:1,fishNear||sn.st==='hide'?6:0.9,dt);
+    const moving=sn.st==='crawl'&&sn.out>0.85&&!fishNear?1:0;sn.mv=damp(sn.mv||0,moving,1.5,dt);
+    if(sn.tgt){const d=sn.tgt.clone().sub(g.position),want=Math.atan2(-d.z,d.x);let dh=want-sn.head;dh=Math.atan2(Math.sin(dh),Math.cos(dh));sn.head+=clamp(dh,-0.5*dt,0.5*dt)*sn.mv;}
+    // glide: slow and steady, no bobbing; the body stretches a little while it goes
+    const sp=0.035*(night?1.25:1)*sn.mv;g.position.x+=Math.cos(sn.head)*sp*dt;g.position.z-=Math.sin(sn.head)*sp*dt;g.position.x=clamp(g.position.x,-B.x*0.92,B.x*0.92);g.position.z=clamp(g.position.z,-1.25,0.75);
+    if(food&&g.position.distanceTo(new V3(food.pos.x,B.floor,food.pos.z))<0.08){sn.look=Math.sin(sn.ph*7)*0.12;}
+    g.rotation.y=sn.head;
+    // the foot: waves of muscle running from tail to head while moving
+    const st=1+0.06*sn.mv,o=sn.out;u.segs.forEach((m,i)=>{const b=m.userData.base,w=Math.sin(sn.ph*5-i*1.1)*0.14*sn.mv;m.position.x=(b.x*st)*(0.35+0.65*o)-0.035*(1-o);m.scale.set(0.034*(0.4+0.6*o),b.ry*(1+w)*(0.5+0.5*o),b.rz*(0.6+0.4*o));m.visible=o>0.08||i>2&&i<6;});
+    u.head.position.x=0.1*st*(0.25+0.75*o)-0.04*(1-o);u.head.position.y=0.018+0.006*Math.sin(sn.ph*0.6)*(1-sn.mv)*o;u.head.visible=o>0.15;
+    // looking around when stopped: the head swings slowly and lifts
+    const lk=sn.st==='look'?Math.sin(sn.ph*0.8)*0.5:sn.look;sn.look=damp(sn.look,0,1,dt);u.head.rotation.set(0,lk,sn.st==='look'?0.18:0.05*Math.sin(sn.ph));
+    // eye stalks: sway gently, each a little out of step, and shrink right down when it's startled
+    u.eyes.forEach((e,i)=>{e.scale.y=Math.max(0.05,sn.eyeK*o);e.rotation.x=(i?-0.35:0.35)+Math.sin(sn.ph*1.3+i*1.7)*0.18;e.rotation.z=-0.75+Math.sin(sn.ph*0.9+i)*0.15;});
+    u.feel.forEach((e,i)=>{e.scale.y=Math.max(0.05,(0.4+0.6*sn.eyeK)*o);e.rotation.x=(i?-0.5:0.5)+Math.sin(sn.ph*2+i)*0.15;});
+    // the shell rides along, rocking slightly as the foot moves, and settles down onto the sand when it tucks in
+    u.sh.rotation.z=Math.sin(sn.ph*2.5)*0.03*sn.mv;u.sh.position.y=0.03*(0.55+0.45*o);u.sh.position.x=-0.025*(0.4+0.6*o);
+    // slime trail: faint shiny marks left behind, fading over half a minute
+    if(sn.mv>0.3&&g.position.distanceTo(sn.tp)>0.022){sn.tp.copy(g.position);const q=sn.trail[sn.ti++%sn.trail.length];q.t=0;q.m.position.set(g.position.x-Math.cos(sn.head)*0.08,B.floor+0.003,g.position.z+Math.sin(sn.head)*0.08);q.m.rotation.z=sn.head;}
+    for(const q of sn.trail){if(q.t>30){q.m.visible=false;continue;}q.t+=dt;q.m.visible=true;q.m.material.opacity=0.28*(1-q.t/30);}}}
 function makeThumbs(){if(THUMBS)return THUMBS;THUMBS=thumbsOf(ALLDECO());return THUMBS;}
 function thumbsOf(list){const out={};const tr=new THREE.WebGLRenderer({antialias:true,alpha:true,preserveDrawingBuffer:true});tr.setPixelRatio(1);tr.setSize(240,240,false);tr.setClearColor(0xffffff,0);tr.clippingPlanes=[new THREE.Plane(new V3(0,1,0),0)];
   const sc=new THREE.Scene(),cam=new THREE.PerspectiveCamera(30,1,0.01,20);
@@ -2014,7 +2105,7 @@ function enterVisit(n,rec){if(TV.on)setTankView(false);if(toy)endToy(true);persi
   const f=(rec.save.pets&&rec.save.pets.fish)||{},pr=normProg(rec.prog);
   VISIT_REC(n);VISIT={n,mine:save.tank,look:Object.assign({c:'orange',p:'plain',seed:1},f.look||{}),stage:Math.min(10,Math.max(pr.grow||0,Math.floor(pr.level/5))),fish:f.name||DEF,level:pr.level};
   VISIT.lamp=rec.save.lamp;VISIT.clean=clamp(+(f.s&&f.s.clean)||80,0,100);VISIT.myLights=lightsOff;lightsOff=!!rec.save.night;document.body.classList.toggle('night',lightsOff);if(S)S.asleep=lightsOff;
-  VISIT.friends=(rec.save.friends||[]).slice(0,6);{const vf=VISIT.friends,vn=n;refreshFriendLooks(vf,()=>{if(VISIT&&VISIT.n===vn)spawnFriends();});}save.tank=JSON.parse(JSON.stringify(rec.save.tank||{}));rebuildTank();spawnFriends();R.lookStage=null;S.grow=VISIT.stage/10;applyLook();
+  VISIT.snails=(rec.save.snails||[]).slice(0,14);VISIT.friends=(rec.save.friends||[]).slice(0,6);{const vf=VISIT.friends,vn=n;refreshFriendLooks(vf,()=>{if(VISIT&&VISIT.n===vn)spawnFriends();});}save.tank=JSON.parse(JSON.stringify(rec.save.tank||{}));rebuildTank();spawnFriends();R.lookStage=null;S.grow=VISIT.stage/10;applyLook();
   document.body.classList.add('visiting');$('#visitBar').hidden=false;$('#visitTitle').textContent='@'+n+'’s tank · '+VISIT.fish+' · lv '+VISIT.level;say('');}
 let VISIT_CLOUD=null;
 function leaveVisit(){if(!VISIT)return;if(DX)endDuel();if(GPLACE)endGiftPlace(false);VISIT_CLOUD=VISIT.cloud||null;save.tank=VISIT.mine;lightsOff=VISIT.myLights;document.body.classList.toggle('night',lightsOff);if(S)S.asleep=lightsOff;VISIT=null;rebuildTank();spawnFriends();R.lookStage=null;S.grow=growStage()/10;applyLook();
@@ -2048,10 +2139,15 @@ function iactTarget(f,dt){const I=IACT;if(!I||I.f!==f)return null;const fw=new V
   if(!I.done){const p=new V3(S.pos.x+side*(mo+0.12),S.pos.y+0.03,S.pos.z);if(f.pos.distanceTo(p)<0.08){I.done=true;I.t=Math.min(I.t,1.6);f.wig=1.2;
       for(let i=0;i<4;i++)setTimeout(()=>bubble(new V3(S.pos.x+side*mo*0.9,S.pos.y+0.08,S.pos.z)),i*120);}return {p,v:0.55};}
   return {p:f.pos.clone().add(new V3(side*0.8,0.15,0)),v:0.9};}
+// a sent fish answering your finger: a wiggle and a little turn with bubbles; asleep it just shrugs; a quick double tap gets a full spin
+function friendPoke(f,dbl){const night=lightsOff;f.poke={t:0,k:night?'shrug':dbl?'spin':'hi'};f.wig=night?0.5:1.4;
+  if(!night)for(let i=0;i<(dbl?6:3);i++)setTimeout(()=>bubble(f.pos.clone().add(new V3(rnd(-0.05,0.05),0.08,0))),i*110);}
 function friendsTick(dt){iactT-=dt;if(IACT){IACT.t-=dt;if(IACT.t<=0){IACT=null;iactT=rnd(14,26);}}else if(iactT<=0){iactPick();if(!IACT)iactT=4;}
   const food=foods.length?foods[0]:null,night=lightsOff;
   FRIENDS.forEach((f,i)=>{f.t-=dt;let cap=0.35;const it=iactTarget(f,dt);
-    if(it){f.tgt.copy(it.p);cap=it.v;f.t=1;}
+    const led=ptr.down&&ptr.onFriend===f&&ptr.moved>8&&ptr.world;
+    if(led){f.tgt.set(clamp(ptr.world.x,-B.x*0.9,B.x*0.9),clamp(ptr.world.y,B.ymin,B.ymax),clamp(ptr.world.z,-1.3,0.6));cap=1.3;f.t=1;}
+    else if(it){f.tgt.copy(it.p);cap=it.v;f.t=1;}
     else if(night){f.tgt.set(-B.x*0.5+0.35+i*0.22,B.ymin+0.08+(i%2)*0.05,-0.4+(i%3)*0.15);cap=0.2;}
     else if(food&&food.pos){f.tgt.set(food.pos.x+Math.cos(i*2.1+T*0.6)*0.35,clamp(food.pos.y-0.1,B.ymin,B.ymax),food.pos.z+Math.sin(i*2.1+T*0.6)*0.25);cap=0.5;}
     else if(f.t<=0||f.pos.distanceTo(f.tgt)<0.1){f.tgt.set(rnd(-B.x*0.85,B.x*0.85),rnd(B.ymin,B.ymax-0.2),rnd(-1.3,0.6));f.t=rnd(3,8);}
@@ -2060,6 +2156,7 @@ function friendsTick(dt){iactT-=dt;if(IACT){IACT.t-=dt;if(IACT.t<=0){IACT=null;i
     const sp=f.vel.length();let face=null;if(it&&IACT.k==='boop'&&!IACT.done&&L<0.25)face=Math.atan2(-(S.pos.z-f.pos.z),S.pos.x-f.pos.x);
     if(face!==null||sp>0.02){const h=face!==null?face:Math.atan2(-f.vel.z,f.vel.x);let dh=h-f.head;dh=Math.atan2(Math.sin(dh),Math.cos(dh));f.head+=dh*Math.min(1,dt*4);}
     if(f.wig>0)f.wig-=dt;const wg=f.wig>0?f.wig:0;
+    if(f.poke){const P=f.poke;P.t+=dt;if(P.k==='spin')f.head+=dt*Math.PI*2/0.7*(P.t<0.7?1:0);else if(P.k==='hi'&&P.t<0.5)f.head+=Math.sin(P.t*Math.PI*2)*dt*3;else if(P.k==='shrug')f.pos.y+=Math.sin(P.t*12)*0.002;if(P.t>0.9)f.poke=null;}
     f.ph+=dt*(night?2:4+sp*14+wg*14);f.g.position.copy(f.pos);f.g.position.y+=Math.sin(f.ph*0.3)*0.01;f.g.rotation.set(0,f.head+Math.sin(f.ph)*(0.08+wg*0.2),clamp(f.vel.y*1.5,-0.5,0.5));
     for(const p of f.piv)p.rotation.y=Math.sin(f.ph+0.6)*0.35;});}
 /* quiet feedback: a gift image that rises and fades with a short line of text, and a peek at the tank after a change made in a menu */
@@ -2739,7 +2836,7 @@ function frame(){requestAnimationFrame(frame);
   const nowF=performance.now(),busy=ptr.down||toy||foods.length||T-(S.lastTouch||-9)<4||(TV.t>0&&TV.t<1)||DX,minF=busy?0:(lightsOff&&S.asleep?62:30);
   if(nowF-(frame.last||0)<minF)return;frame.last=nowF;const dt=Math.min(clock.getDelta(),0.07);T+=dt;
   try{sunTick(dt);}catch(e){frameErr(e);}try{nightTick(dt);}catch(e){frameErr(e);}
-  try{needs(dt);if(DROPS.length)dropTick(dt);glowTick();selTick();behave(dt);physics(dt);animate(dt);keepAboveFloor();if(FRIENDS.length)friendsTick(dt);updateFoods(dt);updateToy(dt);updateRocks(dt);updateFX(dt);updateSay(dt);}catch(e){frameErr(e);}
+  try{needs(dt);if(DROPS.length)dropTick(dt);glowTick();selTick();if(SNAILS.length)snailTick(dt);behave(dt);physics(dt);animate(dt);keepAboveFloor();if(FRIENDS.length)friendsTick(dt);updateFoods(dt);updateToy(dt);updateRocks(dt);updateFX(dt);updateSay(dt);}catch(e){frameErr(e);}
   const lt=lightsOff?0.35:1;hemi.intensity=damp(hemi.intensity,0.85*lt,2,dt);keyL.intensity=damp(keyL.intensity,0.7*lt,2,dt);
   if(!tankViewCam(dt)){const d=camera.position.distanceTo(camLook);scene.fog.far=damp(scene.fog.far,d+lerp(3,40,cleanOf()/100),2,dt);
   camera.position.x=camBase.x+Math.sin(T*0.17)*0.05;camera.position.y=camBase.y+Math.sin(T*0.23)*0.03;camera.lookAt(camLook);}
