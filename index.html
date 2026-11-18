@@ -1470,11 +1470,7 @@ function animate(dt){CUR.mouth=damp(CUR.mouth,0,8,dt);CUR.burst=damp(CUR.burst,0
     if(happy){S.smileWait=(S.smileWait===undefined?rnd(1,4):S.smileWait)-dt;if(S.smileWait<=0&&!(S.smileT>0)){S.smileT=rnd(1.6,3);S.smileWait=lerp(3,13,S.grow||0)*rnd(0.6,1.4);}}
     if(S.smileT>0){S.smileT-=dt;want=1;}
     S.sm=damp(S.sm||0,want,want?9:6,dt);const sm=S.sm<0.01?0:S.sm;
-    if(Math.abs(sm-(R.smDone||0))>0.002){R.smDone=sm;for(const o of R.eyes){const pm=o.pup.children[0],p=pm.geometry.attributes.position;if(!pm.userData.b)pm.userData.b=p.array.slice();
-      if(!o.up){const q=o.e.quaternion.clone().invert(),u3=new V3(0,1,0).applyQuaternion(q);o.up=new THREE.Vector2(u3.x,u3.y).normalize();o.sd=new THREE.Vector2(o.up.y,-o.up.x);}
-      // cut straight across along the fish's own up/down, the bottom 40% of the eye
-      const b=pm.userData.b,ER0=0.052,U=o.up,D=o.sd;for(let i=0;i<p.count;i++){const x=b[i*3],y=b[i*3+1];const a=x*D.x+y*D.y;let v=x*U.x+y*U.y;const vc=-ER0+sm*0.8*ER0;if(v<vc)v=vc;
-        p.setXY(i,a*D.x+v*U.x,a*D.y+v*U.y);}p.needsUpdate=true;}}}
+    eyeSmile(R,sm);}
   R.eyes.forEach(o=>{let tx=S.eyeDX||0,ty=S.eyeDY||0;const tgt=S.look||(toy&&toy.pos)||null;
     if(tgt){const l=o.e.worldToLocal(tgt.clone());const n=Math.hypot(l.x,l.y)||1;tx=l.x/n*(l.z>0?1:0.5);ty=l.y/n*(l.z>0?1:0.5);}
     o.pup.position.x=damp(o.pup.position.x,tx*0.008,9,dt);o.pup.position.y=damp(o.pup.position.y,ty*0.006,9,dt);});
@@ -1756,7 +1752,7 @@ setInterval(()=>{if(cloudDirty)cloudPut();else if(!document.hidden)pull();},3000
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)pull();});
 /* the home-screen app keeps an old copy of the page open (and iOS caches it), so check for a newer build when it opens or comes back,
    and reload past the cache if there is one */
-const BUILD='20261118091630';
+const BUILD='20261118092009';
 function checkBuild(){fetch('version.json?t='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{if(!j||!j.b||j.b===BUILD)return;
   try{if(sessionStorage.getItem('gf-build')===j.b)return;sessionStorage.setItem('gf-build',j.b);}catch(e){}
   try{persistLocal();}catch(e){}location.replace(location.pathname+'?v='+encodeURIComponent(j.b));}).catch(()=>{});}
@@ -2213,10 +2209,10 @@ let FRIENDS=[];
 // gifted fish: a fifth of an adult's size, in the sender's colors; they just potter about and can't be played with
 function spawnFriends(){for(const f of FRIENDS)world.remove(f.g);FRIENDS=[];const list=(VISIT?VISIT.friends:save.friends)||[];
   if(!VISIT)friendsFix();
-  for(const it of list){if(it.hide)continue;const st=fstage(it),F=buildFish();poseYouth(F,st,true);applyLook(F,it.look,st);F.g.scale.setScalar(0.434*youth(st).size*0.8);
+  for(const it of list){if(it.hide)continue;const st=fstage(it),F=buildFish(),Yf=poseYouth(F,st,true);applyLook(F,it.look,st);F.g.scale.setScalar(0.434*youth(st).size*0.8);
     F.g.traverse(o=>{if(o.userData&&o.userData.proxy)o.visible=false;});
     const pos=new V3(rnd(-B.x*0.8,B.x*0.8),rnd(B.ymin,B.ymax-0.3),rnd(-1.2,0.5));F.g.position.copy(pos);world.add(F.g);
-    FRIENDS.push({src:it,g:F.g,F,pos,vel:new V3(),tgt:pos.clone(),head:rnd(0,6),ph:rnd(0,6),t:0});}}
+    FRIENDS.push({src:it,g:F.g,F,Y:Yf,pos,vel:new V3(),tgt:pos.clone(),head:rnd(0,6),ph:rnd(0,6),t:0});}}
 /* gifted fish and your fish do a few things together: swim along behind it, come over for a nose-to-nose "hello" with bubbles,
    circle it, gather where flakes land, and settle down near it when the lights are off. One at a time, every so often. */
 let IACT=null,iactT=10;
@@ -2232,40 +2228,70 @@ function iactTarget(f,dt){const I=IACT;if(!I||I.f!==f)return null;const fw=new V
       for(let i=0;i<4;i++)setTimeout(()=>bubble(new V3(S.pos.x+side*mo*0.9,S.pos.y+0.08,S.pos.z)),i*120);}return {p,v:0.55};}
   return {p:f.pos.clone().add(new V3(side*0.8,0.15,0)),v:0.9};}
 // a sent fish answering your finger: a wiggle and a little turn with bubbles; asleep it just shrugs; a quick double tap gets a full spin
-// a friend fish and your finger: a tap and it turns to look at you and does a happy little hop; a quick double tap and it twirls round;
-// at night it just stirs sleepily. These play as smooth offsets on top of its swimming, so nothing jerks.
-function friendPoke(f,dbl){const night=lightsOff;f.poke={t:0,k:night?'shrug':dbl?'spin':'hi',h0:f.head};f.wig=night?0.6:1.2;
-  if(!night)for(let i=0;i<(dbl?6:3);i++)setTimeout(()=>bubble(f.pos.clone().add(new V3(rnd(-0.05,0.05),0.08,0))),i*110);}
+// a friend fish and your finger, the same as your own fish: a tap and it comes to the front, turns to you, blows bubbles and smiles;
+// a quick double tap and it does its barrel-roll trick; poke it while the lights are off and it gives a grumpy squish; drag from it and it follows your finger.
+// (only your own fish eats and chases the toy - friends don't come for food or the lure)
+const FRX={hello:[3,-4.5],trick:[1.15,1.5],grumpy:[1.3,-3]};
+function fSquish(f,v){f.foldYV=(f.foldYV||0)+v*0.7;f.sqYV=(f.sqYV||0)-v*0.85;f.sqZV=(f.sqZV||0)-v*0.6;}
+function friendPoke(f,dbl){const type=lightsOff?'grumpy':dbl?'trick':'hello',d=FRX[type];f.rx={type,t:0,dur:d[0]};fSquish(f,d[1]);
+  if(type==='trick'){f.vel.y=0.45;f.vel.x*=0.3;f.vel.z*=0.3;for(let i=0;i<6;i++)bubble(fMouth(f).add(new V3(rnd(-0.08,0.08),0,0)));}}
+const fMouth=f=>{const v=new V3();f.F.mouthObj.getWorldPosition(v);world.worldToLocal(v);return v;};
+// the same smile cut your fish's eyes use, for any fish rig
+function eyeSmile(rig,sm){if(Math.abs(sm-(rig.smDone||0))<=0.002)return;rig.smDone=sm;for(const o of rig.eyes){const pm=o.pup.children[0],p=pm.geometry.attributes.position;if(!pm.userData.b)pm.userData.b=p.array.slice();
+  if(!o.up){const q=o.e.quaternion.clone().invert(),u3=new V3(0,1,0).applyQuaternion(q);o.up=new THREE.Vector2(u3.x,u3.y).normalize();o.sd=new THREE.Vector2(o.up.y,-o.up.x);}
+  const b=pm.userData.b,ER0=0.052,U=o.up,D=o.sd;for(let i=0;i<p.count;i++){const x=b[i*3],y=b[i*3+1];const a=x*D.x+y*D.y;let v=x*U.x+y*U.y;const vc=-ER0+sm*0.8*ER0;if(v<vc)v=vc;p.setXY(i,a*D.x+v*U.x,a*D.y+v*U.y);}p.needsUpdate=true;}}
 function friendsTick(dt){iactT-=dt;if(IACT){IACT.t-=dt;if(IACT.t<=0){IACT=null;iactT=rnd(14,26);}}else if(iactT<=0){iactPick();if(!IACT)iactT=4;}
-  const food=foods.length?foods[0]:null,night=lightsOff;
-  FRIENDS.forEach((f,i)=>{f.t-=dt;let cap=0.35;const it=iactTarget(f,dt);
-    const led=ptr.down&&ptr.onFriend===f&&ptr.moved>8&&ptr.world;if(led)f.poke=null;
-    if(led){f.tgt.set(clamp(ptr.world.x,-B.x*0.9,B.x*0.9),clamp(ptr.world.y,B.ymin,B.ymax),clamp(ptr.world.z,-1.3,0.6));cap=2.4;f.t=1;}
+  const night=lightsOff,camL=world.worldToLocal(camera.position.clone());
+  FRIENDS.forEach((f,i)=>{f.t-=dt;let cap=0.35,rate=1.8,faceT=null;const it=iactTarget(f,dt);
+    const led=ptr.down&&ptr.onFriend===f&&ptr.moved>8&&ptr.world;
+    const rx=f.rx;if(rx){rx.t+=dt;if(rx.t>=rx.dur){if(rx.type==='trick')f.roll=0;f.rx=null;}}
+    if(led){f.rx=null;f.tgt.set(clamp(ptr.world.x,-B.x*0.9,B.x*0.9),clamp(ptr.world.y,B.ymin,B.ymax),clamp(ptr.world.z,-1.3,0.6));cap=1.8;rate=5;f.t=1;faceT=ptr.world;}
+    else if(f.rx&&f.rx.type==='hello'){f.tgt.set(clamp(f.pos.x,-1,1),clamp(f.pos.y,B.ymin+0.4,B.ymax-0.4),0.6);cap=1.1;rate=3;faceT=camL;
+      if(f.pos.distanceTo(f.tgt)<0.25&&Math.random()<dt*3)bubble(fMouth(f));}
+    else if(f.rx){f.tgt.copy(f.pos);cap=0.05;rate=f.rx.type==='trick'?(f.rx.t/f.rx.dur<0.35?1:4):3;}
     else if(it){f.tgt.copy(it.p);cap=it.v;f.t=1;}
     else if(night){f.tgt.set(-B.x*0.5+0.35+i*0.22,B.ymin+0.08+(i%2)*0.05,-0.4+(i%3)*0.15);cap=0.2;}
-    else if(food&&food.pos){f.tgt.set(food.pos.x+Math.cos(i*2.1+T*0.6)*0.35,clamp(food.pos.y-0.1,B.ymin,B.ymax),food.pos.z+Math.sin(i*2.1+T*0.6)*0.25);cap=0.5;}
     else if(f.t<=0||f.pos.distanceTo(f.tgt)<0.1){f.tgt.set(rnd(-B.x*0.85,B.x*0.85),rnd(B.ymin,B.ymax-0.2),rnd(-1.3,0.6));f.t=rnd(3,8);}
-    const d=f.tgt.clone().sub(f.pos),L=d.length(),want=d.multiplyScalar(L>0.001?Math.min(f.poke?0.08:cap,L*(led?5:night?0.8:1.4))/L:0);f.vel.lerp(want,1-Math.exp(-dt*(led?7:1.8)));f.pos.addScaledVector(f.vel,dt);
-    f.pos.x=clamp(f.pos.x,-B.x*0.9,B.x*0.9);f.pos.y=clamp(f.pos.y,B.ymin,B.ymax);
-    const sp=f.vel.length();let face=null;if(it&&IACT.k==='boop'&&!IACT.done&&L<0.25)face=Math.atan2(-(S.pos.z-f.pos.z),S.pos.x-f.pos.x);
-    if(face!==null||sp>0.02){const h=face!==null?face:Math.atan2(-f.vel.z,f.vel.x);let dh=h-f.head;dh=Math.atan2(Math.sin(dh),Math.cos(dh));f.head+=dh*Math.min(1,dt*4);}
-    if(f.wig>0)f.wig-=dt;const wg=f.wig>0?f.wig:0;
-    let yo=0,dy=0,rl=0;
-    if(f.poke){const P=f.poke;P.t+=dt;const sm=x=>{x=clamp(x,0,1);return x*x*(3-2*x);};
-      if(P.k==='hi'){const D=1.6,e=Math.sin(Math.PI*sm(P.t/D));let toCam=-Math.PI/2-f.head;toCam=Math.atan2(Math.sin(toCam),Math.cos(toCam));yo=toCam*e;dy=0.05*Math.sin(Math.PI*clamp(P.t/0.55,0,1))+0.02*Math.sin(Math.PI*clamp((P.t-0.55)/0.4,0,1));rl=0.25*Math.sin(P.t*9)*e;if(P.t>D)f.poke=null;}
-      else if(P.k==='spin'){const D=1.0;yo=Math.PI*2*sm(P.t/D);dy=0.035*Math.sin(Math.PI*clamp(P.t/D,0,1));rl=0.35*Math.sin(Math.PI*clamp(P.t/D,0,1));if(P.t>D)f.poke=null;}
-      else{const D=1.8;dy=0.02*Math.sin(Math.PI*clamp(P.t/D,0,1));rl=0.12*Math.sin(P.t*3)*(1-P.t/D);if(P.t>D)f.poke=null;}}
-    // swims exactly like your fish: the same body wave down to the tail in beats and glides, the body folding into turns, pitching up and down with its course, the same fin strokes
-    {const F=f.F,hs=Math.hypot(f.vel.x,f.vel.z),tr=dt>0?angDiff(f.lastH===undefined?f.head:f.lastH,f.head)/dt:0;f.lastH=f.head;f.tr=damp(f.tr||0,tr,10,dt);
-     f.ph+=dt*(4.5+sp*10+wg*6)*(night?0.5:1);
-     const pulse=sp>0.5||night?1:0.4+0.6*ss(-0.4,0.5,Math.sin(T*0.85+i*1.7)+0.4*Math.sin(T*2.3+i));f.amp=damp(f.amp||0.08,(0.08+Math.min(0.14,sp*0.1)+wg*0.05)*pulse*(night?0.5:1),5,dt);
-     const ft=clamp(f.tr*0.55,-1.25,1.25);f.foldV=(f.foldV||0)+((ft-(f.fold||0))*60-(f.foldV||0)*7)*dt;f.fold=clamp((f.fold||0)+f.foldV*dt,-1.3,1.3);
-     f.pitch=damp(f.pitch||0,sp<0.08?0:Math.atan2(f.vel.y,hs+0.01),4.5,dt);f.arch=damp(f.arch||0,clamp(f.vel.y*0.12,-0.08,0.08),4,dt);
-     const A=f.amp;f.g.position.copy(f.pos);f.g.position.y+=dy;
-     f.g.rotation.set(rl+A*0.15*Math.sin(f.ph+0.6),f.head+yo-A*0.22*Math.sin(f.ph+0.3)+f.fold*0.15,f.pitch+0.02*Math.sin(T*0.9+i));
+    const d=f.tgt.clone().sub(f.pos),L=d.length(),want=d.multiplyScalar(L>0.001?Math.min(cap,L*(led?5:night?0.8:1.4))/L:0);
+    if(!(f.rx&&f.rx.type==='trick'))f.vel.lerp(want,1-Math.exp(-dt*rate));else{f.vel.x=damp(f.vel.x,0,3,dt);f.vel.z=damp(f.vel.z,0,3,dt);f.vel.y=damp(f.vel.y,0,f.rx.t/f.rx.dur<0.35?1:4,dt);}
+    // the same startle-dart now and then: the body snaps into a C and it shoots off
+    f.flickT=(f.flickT===undefined?rnd(5,12):f.flickT)-dt;
+    if(f.flickT<=0){f.flickT=rnd(8,16);if(!night&&!f.rx&&!led&&!it){f.flick=1;f.flickDir=Math.random()<0.5?-1:1;fSquish(f,4.5);const a=f.head+f.flickDir*rnd(0.8,1.5);f.vel.x+=Math.cos(a)*0.7;f.vel.z+=-Math.sin(a)*0.4;f.vel.y+=rnd(-0.15,0.2);f.burst=1;}}
+    f.flick=damp(f.flick||0,0,3.2,dt);f.burst=damp(f.burst||0,0,4,dt);const curl=(f.flickDir||1)*0.34*Math.sin(Math.PI*clamp(1-f.flick))*f.flick*2.2;
+    f.pos.addScaledVector(f.vel,dt);f.pos.x=clamp(f.pos.x,-B.x*0.9,B.x*0.9);f.pos.y=clamp(f.pos.y,B.ymin,B.ymax);f.pos.z=clamp(f.pos.z,-1.4,0.7);
+    const sp=f.vel.length(),hs=Math.hypot(f.vel.x,f.vel.z);
+    if(it&&IACT.k==='boop'&&!IACT.done&&L<0.25)faceT=S.pos;
+    if(faceT){const fx=faceT.x-f.pos.x,fz=faceT.z-f.pos.z;if(Math.hypot(fx,fz)>0.05)f.wantH=Math.atan2(-fz,fx);}else if(hs>0.12)f.wantH=Math.atan2(-f.vel.z,f.vel.x);
+    if(f.wantH===undefined)f.wantH=f.head;
+    // turning: the same spring your fish turns on
+    {const kf=lerp(24,85,clamp(f.flick*1.4)),cf=2*Math.sqrt(kf)*0.95;f.hv=(f.hv||0)+(angDiff(f.head,f.wantH)*kf-(f.hv||0)*cf)*dt;f.hv=clamp(f.hv,-9,9);f.head+=f.hv*dt;}
+    const tr=f.hv;
+    // pitch toward what it's looking at or the way it's heading; the trick's roll
+    {const op=f.pitch||0;f.pitch=damp(op,f.rx&&f.rx.type==='trick'?0.22*Math.sin(Math.PI*clamp(f.rx.t/f.rx.dur)):faceT?Math.atan2(faceT.y-f.pos.y,Math.hypot(faceT.x-f.pos.x,faceT.z-f.pos.z)+0.01):(sp<0.08?0:Math.atan2(f.vel.y,hs+0.01)),4.5,dt);f.pitchV=damp(f.pitchV||0,(f.pitch-op)/Math.max(dt,1e-4),8,dt);}
+    if(f.rx&&f.rx.type==='trick')f.roll=Math.PI*2*ss(0.05,0.85,f.rx.t/f.rx.dur);else if(f.roll){const tg=Math.round(f.roll/(Math.PI*2))*Math.PI*2;f.roll=damp(f.roll,tg,6,dt);if(Math.abs(f.roll-tg)<0.01)f.roll=0;}
+    {const F=f.F;
+     f.ph+=dt*(4.5+sp*10+f.burst*8)*(night?0.5:1);
+     const pulse=sp>0.5||night?1:0.4+0.6*ss(-0.4,0.5,Math.sin(T*0.85+i*1.7)+0.4*Math.sin(T*2.3+i));f.amp=damp(f.amp||0.08,(0.08+Math.min(0.14,sp*0.1)+f.burst*0.1)*pulse*(night?0.5:1),5,dt);
+     // squash & stretch, the same jelly springs
+     const ft=clamp(tr*0.55,-1.25,1.25)+curl*2.2;f.foldV=(f.foldV||0)+((ft-(f.fold||0))*60-(f.foldV||0)*7)*dt;f.fold=clamp((f.fold||0)+f.foldV*dt,-1.3,1.3);
+     const fyt=f.rx&&f.rx.type==='trick'?0:clamp(-(f.pitchV||0)*0.9-clamp(f.vel.y*0.35,-0.25,0.25)*(f.flick>0.2?1:0.3),-0.95,0.95);f.foldYV=(f.foldYV||0)+((fyt-(f.foldY||0))*55-(f.foldYV||0)*6.5)*dt;f.foldY=clamp((f.foldY||0)+f.foldYV*dt,-1.05,1.05);
+     const af=Math.abs(f.fold),spr=(v,vv,tg,k,c)=>{vv+=((tg-v)*k-vv*c)*dt;return [clamp(v+vv*dt,-0.45,0.6),vv];};let r;
+     r=spr(f.sqY||0,f.sqYV||0,af*0.12+clamp(f.vel.y*0.25,-0.15,0.2),120,6);f.sqY=r[0];f.sqYV=r[1];r=spr(f.sqZ||0,f.sqZV||0,af*0.16-clamp((sp-1.1)*0.12,0,0.12),80,5.5);f.sqZ=r[0];f.sqZV=r[1];
+     {const yy=1+f.sqY,zz=1+f.sqZ,q=Math.sqrt(Math.max(0.2,yy*zz)),Y=f.Y;F.inner.scale.set(Y.lx,yy/q*Y.ly,zz/q*Y.lz);}
+     f.arch=damp(f.arch||0,clamp(f.vel.y*0.12,-0.08,0.08),4,dt);
+     const A=f.amp;f.g.position.copy(f.pos);
+     f.g.rotation.set((f.roll||0)+A*0.15*Math.sin(f.ph+0.6),f.head-A*0.22*Math.sin(f.ph+0.3)+f.fold*0.15,f.pitch+0.02*Math.sin(T*0.9+i));
      const sway=0.025*Math.sin(T*0.55+i)+0.015*Math.sin(T*1.3+1+i);
-     fishWave(f.ph,A,clamp(-f.tr*0.02,-0.06,0.06)+sway,T,sp,0,0,f.arch,0,f.fold,0,0,F);
-     const w=sp<0.3?7.5:3.6;F.fins.forEach((fn,j)=>{const sg=fn.userData.s,ph=T*w+j*1.3+i,main=j<2;fn.rotation.y=sg*((main?0.36:0.22)+(main?0.3:0.16)*Math.sin(ph)+0.06*Math.sin(ph*2.3+1))*(1+0.25*(1-clamp(sp/0.9)));fn.rotation.z=(main?0:-0.35)+0.14*Math.sin(ph+1.2);});}});}
+     fishWave(f.ph,A,clamp(-tr*0.02,-0.06,0.06)+sway,T,sp,0,0,f.arch,clamp((f.sqYV||0)*0.03,-0.2,0.2),f.fold,0,f.foldY,F);
+     const w=sp<0.3?7.5:3.6;F.fins.forEach((fn,j)=>{const sg=fn.userData.s,ph=T*w+j*1.3+i,main=j<2;fn.rotation.y=sg*((main?0.36:0.22)+(main?0.3:0.16)*Math.sin(ph)+0.06*Math.sin(ph*2.3+1))*(1+0.25*(1-clamp(sp/0.9)));fn.rotation.z=(main?0:-0.35)+0.14*Math.sin(ph+1.2);});
+     // eyes: little darting glances and looking at your finger; smiling on a hello or trick and now and then when content
+     f.eyeT=(f.eyeT||0)-dt;if(f.eyeT<=0){f.eyeT=rnd(1.4,4);f.eyeDX=rnd(-0.8,0.8);f.eyeDY=rnd(-0.4,0.4);}
+     const look=(T-ptr.seen<2.5&&ptr.world)?ptr.world:null;
+     F.eyes.forEach(o=>{let tx=f.eyeDX||0,ty=f.eyeDY||0;if(look){const l=o.e.worldToLocal(world.localToWorld(look.clone()));const n=Math.hypot(l.x,l.y)||1;tx=l.x/n*(l.z>0?1:0.5);ty=l.y/n*(l.z>0?1:0.5);}
+       o.pup.position.x=damp(o.pup.position.x,tx*0.008,9,dt);o.pup.position.y=damp(o.pup.position.y,ty*0.006,9,dt);});
+     let wantS=f.rx&&(f.rx.type==='hello'||f.rx.type==='trick')?1:0;if(!night){f.smW=(f.smW===undefined?rnd(2,8):f.smW)-dt;if(f.smW<=0&&!(f.smT>0)){f.smT=rnd(1.6,3);f.smW=rnd(5,14);}}if(f.smT>0){f.smT-=dt;wantS=1;}
+     f.sm=damp(f.sm||0,wantS,wantS?9:6,dt);eyeSmile(F,f.sm<0.01?0:f.sm);
+     F.mouthObj.scale.setScalar(0.8+0.3*(0.5+0.5*Math.sin(T*3.2+i)));}});}
 /* quiet feedback: a gift image that rises and fades with a short line of text, and a peek at the tank after a change made in a menu */
 function giftFly(src,from,label){const K=[{opacity:0,y:8,offset:0},{opacity:1,y:0,offset:.18},{opacity:1,y:-4,offset:.72},{opacity:0,y:-14,offset:1}],D={duration:2000,easing:'ease-out'};
   if(src){const W=110,im=document.createElement('img');im.className='fx-fly';im.src=src;im.alt='';
