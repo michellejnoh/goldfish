@@ -1377,6 +1377,7 @@ function behave(dt){const s=pet().s;S.faceT=null;
   if(S.hold&&!lightsOff){const d=move(S.hold.x,S.hold.y,S.hold.z,1.3,dt);if(d<0.2){brake(dt);S.faceT=null;if(S.viewH===undefined)S.viewH=Math.cos(S.heading)>=0?0:Math.PI;S.wantH=S.viewH;}return;}
   if(S.call){const d=move(S.call.x,S.call.y,S.call.z,1.6,dt);if(d<0.15){S.call=null;S.think=rnd(2,4);talk();}return;}
   if(IACT&&IACT.k==='boop'&&!IACT.done&&IACT.f.pos.distanceTo(S.pos)<0.9){S.faceT=IACT.f.pos;brake(dt);return;}
+  if(SNI&&SNI.who==='me'){const q=sniStep(dt,world.worldToLocal(mouthWorld()));if(q){S.faceT=q.face;if(q.hold)brake(dt);else{const p=standPoint(q.p,R.reach);move(p.x,p.y,p.z,q.v,dt,B.floor+0.06);}return;}}
   auto(dt);}
 function sleepB(dt){const spot=new V3(-B.x*0.5,B.ymin+0.05,-0.4);
   if(!S.asleep){if(move(spot.x,spot.y,spot.z,0.7,dt)<0.15)S.asleep=true;return;}
@@ -1814,7 +1815,7 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden)setTimeout
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)pull();});
 /* the home-screen app keeps an old copy of the page open (and iOS caches it), so check for a newer build when it opens or comes back,
    and reload past the cache if there is one */
-const BUILD='20261118125751';
+const BUILD='20261118141643';
 function checkBuild(){fetch('version.json?t='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{if(!j||!j.b||j.b===BUILD)return;
   try{if(sessionStorage.getItem('gf-build')===j.b)return;sessionStorage.setItem('gf-build',j.b);}catch(e){}
   try{persistLocal();}catch(e){}location.replace(location.pathname+'?v='+encodeURIComponent(j.b));}).catch(()=>{});}
@@ -2066,10 +2067,10 @@ function buildSnails(e){SNAILS=[];if(!TRAILG)TRAILG=new THREE.CircleGeometry(0.0
 function snailPoke(sn){const dbl=T-(sn.tapT||-9)<0.4;sn.tapT=T;if(dbl){sn.st='hide';sn.stT=rnd(3,5);sn.hello=0;sn.snap=1;sn.wob=1;return;}
   if(sn.st==='hide')sn.out=Math.max(sn.out,0.35);sn.st='look';sn.stT=3;sn.hello=2.4;sn.kick=1;}
 const angTo=(a,b)=>Math.atan2(Math.sin(b-a),Math.cos(b-a));
-function snailTick(dt){const night=lightsOff||nightAmt()>0.5;
+function snailTick(dt){const night=lightsOff||nightAmt()>0.5;if(!SNI&&!VISIT&&(sniT-=dt)<=0){sniPick();if(!SNI)sniT=6;}
   for(const sn of SNAILS){const g=sn.g,u=g.userData;sn.stT-=dt;sn.ph+=dt;
     // what is it doing: crawling somewhere, stopping to look around, or tucked in the shell (more resting by day)
-    const fishNear=R.g.visible&&S.pos.distanceTo(g.position)<0.32;if(!ptr.down||ptr.onSnail!==sn)sn.lead=false;if(sn.hello>0)sn.hello-=dt;
+    const fishNear=R.g.visible&&S.pos.distanceTo(g.position)<0.32&&!(SNI&&SNI.sn===sn);if(!ptr.down||ptr.onSnail!==sn)sn.lead=false;if(sn.hello>0)sn.hello-=dt;
     if(sn.stT<=0){const r=Math.random();if(sn.st!=='crawl'||r<(night?0.75:0.55)){sn.st='crawl';sn.stT=rnd(6,14);sn.tgt=null;}else if(r<(night?0.92:0.8)){sn.st='look';sn.stT=rnd(2.5,5);}else{sn.st='hide';sn.stT=rnd(night?4:8,night?8:20);}}
     // food on the sand draws it over
     const food=sn.sf==='floor'&&!sn.free&&sn.st!=='hide'?foods.find(f=>!(f.snack&&f.snack.float)&&f.pos.y<B.floor+0.12&&f.pos.distanceTo(g.position)<1.2):null;
@@ -2448,6 +2449,29 @@ function spawnFriends(){for(const f of FRIENDS){world.remove(f.g);freeTree(f.g);
 /* gifted fish and your fish do a few things together: swim along behind it, come over for a nose-to-nose "hello" with bubbles,
    circle it, gather where flakes land, and settle down near it when the lights are off. One at a time, every so often. */
 let IACT=null,iactT=10;
+/* fish and snails: every so often a fish (yours or a friend) goes over to a snail -
+   peek: swims down nose to face with a snail on the sand; the snail lifts its head and waves its eye stalks, the fish gives the shell a little boop,
+         the snail ducks into its shell (the shell wobbles) and the fish backs off with a burst of bubbles; the snail peeks out again after a moment
+   nibble: with a snail on the back glass, the fish pecks at the glass beside it while the snail turns to watch
+   escort: swims slowly along just above a crawling snail for a while */
+let SNI=null,sniT=rnd(15,30);
+function sniPick(){if(!SNAILS.length||lightsOff||toy||foods.length||S.react||S.hold||S.call||IACT||DX||(ptr.down&&ptr.moved>10))return;
+  const sn=SNAILS.filter(q=>!q.free&&q.out>0.6)[Math.floor(Math.random()*SNAILS.length)];if(!sn)return;
+  const who=FRIENDS.length&&Math.random()<0.4?FRIENDS[Math.floor(Math.random()*FRIENDS.length)]:'me',k=sn.sf==='back'?'nibble':sn.st==='crawl'&&Math.random()<0.4?'escort':'peek';
+  SNI={who,sn,k,ph:'go',t:0,max:k==='escort'?8:k==='nibble'?9:12};}
+// where the fish's mouth should go now, how fast, what to face; null when finished
+function sniStep(dt,mouth){const I=SNI;if(!I)return null;I.t+=dt;const sn=I.sn,g=sn.g;if(sn.free||I.t>I.max||!SNAILS.includes(sn)){SNI=null;sniT=rnd(25,45);return null;}
+  const fw=new V3(1,0,0).applyQuaternion(g.quaternion),up=new V3(0,1,0).applyQuaternion(g.quaternion),sc=g.scale.x,head=g.position.clone().addScaledVector(fw,0.07*sc).addScaledVector(up,0.03*sc),shell=g.position.clone().addScaledVector(up,0.08*sc).addScaledVector(fw,-0.01*sc);
+  if(I.k==='escort'){if(sn.st!=='crawl'&&I.t>2)I.max=0;return {p:g.position.clone().addScaledVector(fw,0.12).add(new V3(0,0.3,0.05)),v:0.25,face:g.position.clone().addScaledVector(fw,0.6)};}
+  if(I.k==='nibble'){const p=new V3(clamp(g.position.x+(g.position.x>0?-0.28:0.28),-B.x,B.x),g.position.y,-1.6);
+    if(mouth.distanceTo(p)<0.13){sn.look=damp(sn.look,Math.sign(p.x-g.position.x)*0.6,3,dt);if(Math.random()<dt*2.5)bubble(mouth.clone());return {p:p.clone().add(new V3(0,0,0.02*Math.max(0,Math.sin(I.t*9)))),v:0.4,face:new V3(p.x,p.y,-3)};}
+    return {p,v:0.6,face:null};}
+  // peek
+  const front=head.clone().addScaledVector(fw,0.2).add(new V3(0,0.2,0)),top=shell.clone().add(new V3(0,0.12,0));
+  if(I.ph==='go'){if(mouth.distanceTo(front)<0.2||I.t>6){I.ph='look';I.t2=0;sn.st='look';sn.stT=4;sn.hello=2.2;sn.kick=0.6;}return {p:front,v:0.6,face:null};}
+  if(I.ph==='look'){I.t2+=dt;if(I.t2>2.2)I.ph='boop';return {p:front,v:0.3,face:head,hold:mouth.distanceTo(front)<0.05};}
+  if(I.ph==='boop'){I.t3=(I.t3||0)+dt;if(mouth.distanceTo(top)<0.16||I.t3>2.5){I.ph='back';I.t2=0;sn.st='hide';sn.stT=rnd(1.8,2.6);sn.hello=0;sn.snap=1;sn.wob=1;for(let i=0;i<5;i++)setTimeout(()=>bubble(shell.clone().add(new V3(0,0.05,0))),i*90);}return {p:top,v:0.5,face:shell};}
+  I.t2+=dt;if(I.t2>1.6)I.max=0;return {p:shell.clone().add(new V3(-fw.x*0.1,0.45,0.25)),v:1.1,face:shell};}
 function iactPick(){if(VISIT||!FRIENDS.length||lightsOff||toy||foods.length||S.react||S.hold||S.call||(ptr.down&&ptr.moved>10))return;
   const f=FRIENDS[Math.floor(Math.random()*FRIENDS.length)],k=['follow','boop','circle','boop'][Math.floor(Math.random()*4)];
   IACT={k,f,t:k==='follow'?9:k==='circle'?7:8,a:Math.atan2(f.pos.z-S.pos.z,f.pos.x-S.pos.x),done:false};}
@@ -2499,7 +2523,7 @@ function swimRig(f,F,dt,i,sp,hs,faceT,curl,night,pitchAdd){
      const w=sp<0.3?7.5:3.6;F.fins.forEach((fn,j)=>{const sg=fn.userData.s,ph=T*w+j*1.3+i,main=j<2;fn.rotation.y=sg*((main?0.36:0.22)+(main?0.3:0.16)*Math.sin(ph)+0.06*Math.sin(ph*2.3+1))*(1+0.25*(1-clamp(sp/0.9)));fn.rotation.z=(main?0:-0.35)+0.14*Math.sin(ph+1.2);});}}
 function friendsTick(dt){iactT-=dt;if(IACT){IACT.t-=dt;if(IACT.t<=0){IACT=null;iactT=rnd(14,26);}}else if(iactT<=0){iactPick();if(!IACT)iactT=4;}
   const night=lightsOff,camL=world.worldToLocal(camera.position.clone());
-  FRIENDS.forEach((f,i)=>{f.t-=dt;let cap=0.35,rate=1.8,faceT=null;const it=iactTarget(f,dt);
+  FRIENDS.forEach((f,i)=>{f.t-=dt;let cap=0.35,rate=1.8,faceT=null,snq=null;const it=iactTarget(f,dt);
     const led=ptr.down&&ptr.onFriend===f&&ptr.moved>8&&ptr.world;
     const rx=f.rx;if(rx){rx.t+=dt;if(rx.t>=rx.dur){if(rx.type==='trick')f.roll=0;f.rx=null;}}
     if(led){f.rx=null;f.tgt.set(clamp(ptr.world.x,-B.x*0.9,B.x*0.9),clamp(ptr.world.y,B.ymin,B.ymax),clamp(ptr.world.z,-1.3,0.6));cap=1.8;rate=5;f.t=1;faceT=ptr.world;}
@@ -2507,6 +2531,7 @@ function friendsTick(dt){iactT-=dt;if(IACT){IACT.t-=dt;if(IACT.t<=0){IACT=null;i
       if(f.pos.distanceTo(f.tgt)<0.25&&Math.random()<dt*3)bubble(fMouth(f));}
     else if(f.rx){f.tgt.copy(f.pos);cap=0.05;rate=f.rx.type==='trick'?(f.rx.t/f.rx.dur<0.35?1:4):3;}
     else if(it){f.tgt.copy(it.p);cap=it.v;f.t=1;}
+    else if(SNI&&SNI.who===f&&(snq=sniStep(dt,fMouth(f)))){f.tgt.copy(snq.p).sub(new V3(Math.cos(f.head),0,-Math.sin(f.head)).multiplyScalar(0.1));cap=snq.hold?0.05:snq.v;rate=3;faceT=snq.face;f.t=1;}
     else if(night){f.tgt.set(-B.x*0.5+0.35+i*0.22,B.ymin+0.08+(i%2)*0.05,-0.4+(i%3)*0.15);cap=0.2;}
     else if(f.t<=0||f.pos.distanceTo(f.tgt)<0.1){f.tgt.set(rnd(-B.x*0.85,B.x*0.85),rnd(B.ymin,B.ymax-0.2),rnd(-1.3,0.6));f.t=rnd(3,8);}
     const d=f.tgt.clone().sub(f.pos),L=d.length(),want=d.multiplyScalar(L>0.001?Math.min(cap,L*(led?5:night?0.8:1.4))/L:0);
