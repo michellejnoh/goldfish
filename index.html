@@ -1473,7 +1473,7 @@ cv.addEventListener('pointerup',tpEnd,true);cv.addEventListener('pointercancel',
 cv.addEventListener('wheel',e=>{if(tool!=='arrange')return;setNDC(e);const o=hitItem()||(ITEMS_ON.includes(selItem)?selItem:null);if(!o)return;e.preventDefault();selItem=o;turnItem(o,e.deltaY*0.004);
   clearTimeout(cv._wt);cv._wt=setTimeout(()=>saveItemTurn(o),300);},{passive:false});
 cv.addEventListener('pointerdown',e=>{if(twist)return;snd.ac();if(S)S.lastTouch=T;try{cv.setPointerCapture(e.pointerId)}catch(_){}
-  ptr.down=true;ptr.x=e.clientX;ptr.y=e.clientY;ptr.t0=performance.now();ptr.moved=0;setNDC(e);ptr.world=worldPoint();ptr.seen=T;ptr.onPet=hitFish();ptr.onFriend=tool==='hand'&&!ptr.onPet?hitFriend():null;ptr.onSnail=tool==='hand'&&!ptr.onPet&&!ptr.onFriend?hitSnail():null;if(ptr.onSnail)ptr.onSnail.lead=true;
+  ptr.down=true;ptr.x=e.clientX;ptr.y=e.clientY;ptr.t0=performance.now();ptr.moved=0;setNDC(e);ptr.world=worldPoint();ptr.seen=T;ptr.onPet=hitFish();if(ptr.onPet&&tool==='hand'){const rs=SNAILS.find(q=>q.onFish&&(hitSnail()===q||(()=>{const v=q.g.getWorldPosition(new V3()).project(camera);return Math.hypot((v.x+1)/2*innerWidth-e.clientX,(1-v.y)/2*innerHeight-e.clientY)<34;})()));if(rs)ptr.onPet=null;ptr.rideS=rs;}else ptr.rideS=null;ptr.onFriend=tool==='hand'&&!ptr.onPet?hitFriend():null;ptr.onSnail=ptr.rideS||(tool==='hand'&&!ptr.onPet&&!ptr.onFriend?hitSnail():null);if(ptr.onSnail)ptr.onSnail.lead=true;
   if(tool==='toy')startToy();
   if(tool==='arrange'){dragItem=hitItem();if(dragItem)selItem=dragItem;}
   if(tool==='peb')pebbleBrush(true);});
@@ -1970,7 +1970,7 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden)setTimeout
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)pull();});
 /* the home-screen app keeps an old copy of the page open (and iOS caches it), so check for a newer build when it opens or comes back,
    and reload past the cache if there is one */
-const BUILD='20261119163549';
+const BUILD='20261119163832';
 function checkBuild(){fetch('version.json?t='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{if(!j||!j.b||j.b===BUILD)return;
   try{if(sessionStorage.getItem('gf-build')===j.b)return;sessionStorage.setItem('gf-build',j.b);}catch(e){}
   try{persistLocal();}catch(e){}location.replace(location.pathname+'?v='+encodeURIComponent(j.b));}).catch(()=>{});}
@@ -2266,7 +2266,7 @@ function snailTick(dt){toysTick(dt);const night=lightsOff||nightAmt()>0.5;
   const order=SNAILS.length>1?[...SNAILS].sort((a,b)=>snDepth(a)-snDepth(b)):SNAILS;if(!SNI&&!VISIT&&(sniT-=dt)<=0){sniPick();if(!SNI)sniT=6;}
   for(const sn of order){const g=sn.g,u=g.userData;sn.stT-=dt;sn.ph+=dt;
     // what is it doing: crawling somewhere, stopping to look around, or tucked in the shell (more resting by day)
-    const fishNear=R.g.visible&&S.pos.distanceTo(g.position)<0.32&&!(SNI&&SNI.sn===sn);if(!ptr.down||ptr.onSnail!==sn)sn.lead=false;if(sn.hello>0)sn.hello-=dt;
+    const fishNear=R.g.visible&&!sn.onFish&&S.pos.distanceTo(g.position)<0.32&&!(SNI&&SNI.sn===sn);if(!ptr.down||ptr.onSnail!==sn)sn.lead=false;if(sn.hello>0)sn.hello-=dt;
     if(sn.stT<=0){const r=Math.random();if(sn.st!=='crawl'||r<(night?0.75:0.55)){sn.st='crawl';sn.stT=rnd(6,14);sn.tgt=null;}else if(r<(night?0.92:0.8)){sn.st='look';sn.stT=rnd(2.5,5);}else{sn.st='hide';sn.stT=rnd(night?4:8,night?8:20);}}
     // food on the sand draws it over
     const food=sn.sf==='floor'&&!sn.free&&sn.st!=='hide'?foods.find(f=>!(f.snack&&f.snack.float)&&f.pos.y<B.floor+0.12&&f.pos.distanceTo(g.position)<1.2):null;
