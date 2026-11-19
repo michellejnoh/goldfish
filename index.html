@@ -866,6 +866,8 @@ function crackerMesh(){if(!CRK){const sh=new THREE.Shape();sh.moveTo(0.62,0.02);
 // a line of text in the middle of the screen that fades in and away
 function midMsg(t){const el=$('#midMsg');el.hidden=true;el.textContent=t;void el.offsetWidth;el.hidden=false;clearTimeout(midMsg.t);midMsg.t=setTimeout(()=>{el.hidden=true;},3500);}
 // a cracker left in the water goes soggy: the next time the game opens, the fish is itself again
+// ...and also whenever you come back to it after leaving (another app, the screen off) for more than a couple of seconds
+let hidAt=0;document.addEventListener('visibilitychange',()=>{if(document.hidden){hidAt=Date.now();return;}if(hidAt&&Date.now()-hidAt>2000){SOAKED=0;setTimeout(soakCheck,600);}});
 let SOAKED=0;function soakCheck(){if(SOAKED||!USER||VISIT)return;SOAKED=1;const l=lookOf();delete pet().paint;delete pet().paintBy;if(l.skin==='cracker'){l.skin='';applyLook();persist();setTimeout(()=>midMsg(pet().name+' got so soggy it turned back into a fish'),700);}}
 // a cracker (yours or a friend's): sinks, lands with a puff and settles half into the sand; while held by the hand it follows the finger
 function crackerTick(o,dt,held){const P=o.pos,rest=sandAt(P.x,P.z)+0.03;if(o.vel)o.vel.set(0,0,0);
@@ -1918,7 +1920,7 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden)setTimeout
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)pull();});
 /* the home-screen app keeps an old copy of the page open (and iOS caches it), so check for a newer build when it opens or comes back,
    and reload past the cache if there is one */
-const BUILD='20261119151240';
+const BUILD='20261119153638';
 function checkBuild(){fetch('version.json?t='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{if(!j||!j.b||j.b===BUILD)return;
   try{if(sessionStorage.getItem('gf-build')===j.b)return;sessionStorage.setItem('gf-build',j.b);}catch(e){}
   try{persistLocal();}catch(e){}location.replace(location.pathname+'?v='+encodeURIComponent(j.b));}).catch(()=>{});}
