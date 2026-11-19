@@ -163,6 +163,8 @@ body.visiting .ui,body.visiting #say{display:none}
 #editBar nav button{font-size:20px;color:var(--dim);padding:10px 4px}
 #editBar nav button[aria-pressed="true"]{color:var(--ink);text-decoration:underline;text-decoration-thickness:1.5px;text-underline-offset:6px}
 #editBar nav button.done{color:var(--ink)}
+#pebRow{display:flex;gap:6px}#pebRow button{font-size:16px;color:var(--dim);background:rgba(0,0,0,.05);border-radius:6px;padding:4px 12px}#pebRow button[aria-pressed="true"]{color:#fff;background:#111}
+#ownGrid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:8px}#ownGrid button{background:rgba(0,0,0,.04);border:0;border-radius:10px;padding:4px;display:flex;flex-direction:column;align-items:center;font:inherit;font-size:13px;color:inherit}#ownGrid img{width:100%;aspect-ratio:1;object-fit:contain}
 #turnRow{display:flex;gap:28px;justify-content:center}#turnRow button{font-size:18px;color:var(--ink);text-decoration:underline;text-underline-offset:4px;padding:6px 2px}
 #editHint{margin:0;font-size:15px;color:var(--soft);text-align:center}
 #touch{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:9}
@@ -353,8 +355,17 @@ body.lookdock #viewArrows{display:flex}
   </div>
 </div>
 <div id="viewBar" hidden><p id="viewHint">drag to turn · pinch to zoom</p><span class="zoombtns"><button type="button" class="icon" id="tvOut" aria-label="Zoom out">−</button><button type="button" class="icon" id="tvIn" aria-label="Zoom in">+</button></span><button type="button" class="go" id="viewDone">close</button></div>
-<div id="editBar" hidden><nav aria-label="Edit tools"><button type="button" data-e="add">add pebbles</button><button type="button" data-e="remove">remove pebbles</button><button type="button" data-e="arrange">move decorations</button><button type="button" class="done" id="editDone">done</button></nav><p id="editHint"></p><div id="turnRow" hidden><button type="button" data-turn="1">turn left</button><button type="button" data-turn="-1">turn right</button><button type="button" id="putAway">put away</button></div></div>
+<div id="editBar" hidden><nav aria-label="Edit tools"><button type="button" id="pebTab" data-ko="자갈">pebbles</button><button type="button" id="ownBtn" data-ko="내 장식">my things</button><button type="button" data-e="arrange" data-ko="장식 옮기기">move decorations</button><button type="button" class="done" id="editDone">done</button></nav>
+<div id="pebRow" hidden><button type="button" data-e="add" data-ko="놓기">add</button><button type="button" data-e="remove" data-ko="치우기">remove</button><button type="button" data-e="pmove" data-ko="옮기기">move</button></div><p id="editHint"></p><div id="turnRow" hidden><button type="button" data-turn="1">turn left</button><button type="button" data-turn="-1">turn right</button><button type="button" id="putAway">put away</button></div></div>
 <div id="letter" hidden><div class="env"><i class="eb"></i><div class="paper"><small id="lFrom"></small><p id="lMsg"></p></div><i class="ef"></i><i class="flap"></i></div></div>
+<div class="sheet dock" id="ownSheet" hidden>
+  <div class="card">
+    <h2>my things</h2>
+    <p class="small" id="ownNote"></p>
+    <div id="ownGrid"></div>
+    <div class="row2 topclose"><span></span><button type="button" class="go" id="ownClose">close</button></div>
+  </div>
+</div>
 <div class="sheet" id="paintSheet" hidden>
   <div class="card">
     <h2 id="paintTitle">decorate</h2>
@@ -559,7 +570,7 @@ const KO={'my friends':'내 친구','everyone':'전체','search username':'아�
 'sign in':'로그인','switch':'바꾸기','sound on':'소리 켜짐','sound off':'소리 꺼짐',
 '25 shades to choose from':'25가지 색 중에서 골라요','On iPhone, touch and hold the picture, then choose Save to Photos.':'아이폰에서는 사진을 길게 누른 뒤 ‘사진 앱에 저장’을 고르세요.',
 'a cool, soft tint':'시원하고 은은한 푸른빛','a little mossy':'살짝 이끼 낀 느낌','bright and plain':'맑고 깨끗하게',
-'achievements':'업적','add pebbles':'자갈 놓기','remove pebbles':'자갈 치우기','back':'뒤로','close':'닫기','done':'완료','download':'다운로드',
+'achievements':'업적','add pebbles':'자갈 놓기','drag a pebble to move it':'자갈을 끌어서 옮기세요','my things':'내 장식','tap one to put it in the tank':'눌러서 어항에 넣기','everything you own is already in the tank':'가진 장식이 모두 어항에 있어요','remove pebbles':'자갈 치우기','back':'뒤로','close':'닫기','done':'완료','download':'다운로드',
 'buy winter decorations with xp':'경험치로 겨울 장식 사기','clear, blue or green':'투명, 파랑, 초록','color':'색','color & pattern':'색과 무늬','color, pattern, skin & friends':'색, 무늬, 스킨, 친구 물고기',
 'decorations':'장식','drag them, twist to rotate':'끌어서 옮기고 비틀어 돌리기','edit':'편집','fish color':'금붕어 색','keep it':'이 이름으로 할게요',
 'keeper':'키퍼','move & turn':'옮기기 · 돌리기','move decorations':'장식 옮기기','pattern':'무늬','pick another':'다른 이름 고르기',
@@ -649,7 +660,7 @@ const n3=(x,y,z)=>(Math.sin(x*1.7+Math.sin(y*2.3))+Math.sin(y*1.9+Math.sin(z*2.9
 
 /* ================= text ================= */
 const DEF='Kumquat',WORDS=['blub','blub blub','o','o  o','· °'];
-const HINT={hand:'drag to lead · tap to call · tap the fish to say hi · tap the sand to make a pebble heap',food:'tap to sprinkle flakes',wash:'rub the dirty spots on the glass to wipe them off',toy:'drag the lure',add:'tap or drag on the floor to add pebbles \u00b7 they pile up where they touch',remove:'rub over pebbles to pick them up',arrange:'drag to move \u00b7 twist with two fingers or tap turn to rotate the last one you touched'};
+const HINT={pmove:'drag a pebble to move it',hand:'drag to lead · tap to call · tap the fish to say hi · tap the sand to make a pebble heap',food:'tap to sprinkle flakes',wash:'rub the dirty spots on the glass to wipe them off',toy:'drag the lure',add:'tap or drag on the floor to add pebbles \u00b7 they pile up where they touch',remove:'rub over pebbles to pick them up',arrange:'drag to move \u00b7 twist with two fingers or tap turn to rotate the last one you touched'};
 const MOOD={food:'{n} is nosing at the surface.',clean:'The glass is getting dirty. Tap clean and rub it off.',energy:'{n} is drifting low.',fun:'{n} is pacing the glass.',ok:'{n} is gliding around.'};
 const STATS=[['food','full'],['clean','clean'],['energy','energy'],['fun','fun']];
 const RATE={food:1.3,clean:0.6,energy:0.7,fun:1.0}; // per minute
@@ -1419,7 +1430,7 @@ cv.addEventListener('pointermove',e=>{setNDC(e);ptr.world=worldPoint();ptr.seen=
   if(tool==='wash')wipe(px);else if(tool==='toy'&&toy)toy.target=toyTarget(ptr.world)||toy.target;
   else if(tool==='peb')pebbleBrush(false);
   else if(tool==='arrange'&&dragItem){const fp=floorPoint();if(fp){dragItem.position.x=clamp(fp.x,-B.x,B.x);dragItem.position.z=clamp(fp.z,-1.3,0.7);}}});
-function up(){if(!ptr.down)return;ptr.down=false;lastPeb=null;if(pebDirty){pebDirty=false;persist();}
+function up(){if(!ptr.down)return;ptr.down=false;lastPeb=null;if(dragPeb)pebbleDrop();if(pebDirty){pebDirty=false;persist();}
   if(dragItem){const it=dragItem.userData.item;it.x=+(dragItem.position.x/B.x).toFixed(3);it.z=+dragItem.position.z.toFixed(2);it.t=Date.now();dragItem=null;settleRings(ENV);computeObst();persist();}if(ptr.moved<12&&performance.now()-ptr.t0<380)tap();if(tool==='toy')endToy(false);}
 cv.addEventListener('pointerup',up);cv.addEventListener('pointercancel',up);
 cv.addEventListener('pointerleave',e=>{if(e.pointerType==='mouse'&&!ptr.down)ptr.seen=-9;});
@@ -1907,7 +1918,7 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden)setTimeout
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)pull();});
 /* the home-screen app keeps an old copy of the page open (and iOS caches it), so check for a newer build when it opens or comes back,
    and reload past the cache if there is one */
-const BUILD='20261119150922';
+const BUILD='20261119151240';
 function checkBuild(){fetch('version.json?t='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{if(!j||!j.b||j.b===BUILD)return;
   try{if(sessionStorage.getItem('gf-build')===j.b)return;sessionStorage.setItem('gf-build',j.b);}catch(e){}
   try{persistLocal();}catch(e){}location.replace(location.pathname+'?v='+encodeURIComponent(j.b));}).catch(()=>{});}
@@ -2330,13 +2341,21 @@ function renderLamps(){const el=$('#lampRow'),cur=save.lamp||'warm';el.textConte
     const t=document.createElement('span');t.textContent=k;b.append(i,t);b.onclick=()=>{save.lamp=k;persist();renderLamps();};el.appendChild(b);}}
 $('#lampMenuBtn').onclick=()=>{openSub('lampMenu');renderLamps();};$('#lampClose').onclick=()=>{$('#lampMenu').hidden=true;openTank();};
 $('#waterRow').addEventListener('click',e=>{const b=e.target.closest('[data-w]'),w=b&&b.dataset.w;if(!w)return;save.tank.water=w;applyWater();persist();renderTank();});
-function setEdit(m){if(toy)endToy(true);if(m==='arrange')tool='arrange';else{tool='peb';S.pebMode=m;}$('#tank').hidden=true;$('#decorMenu').hidden=true;
+function setEdit(m){if(toy)endToy(true);if(m==='arrange')tool='arrange';else{tool='peb';S.pebMode=m;}$('#tank').hidden=true;$('#decorMenu').hidden=true;$('#ownSheet').hidden=true;
+  $('#pebRow').hidden=m==='arrange';$('#pebTab').setAttribute('aria-pressed',m!=='arrange');
   document.body.classList.add('editing');$('#editBar').hidden=false;R.g.visible=false;say('');
   document.querySelectorAll('[data-e]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.e===m));$('#editHint').textContent=HINT[m]||'';$('#turnRow').hidden=m!=='arrange';}
 function endEdit(){tool='hand';document.body.classList.remove('editing');$('#editBar').hidden=true;R.g.visible=true;renderUI();}
 document.querySelectorAll('[data-p]').forEach(b=>b.onclick=()=>setEdit(b.dataset.p));
 $('#arrangeBtn').onclick=()=>setEdit('arrange');
 document.querySelectorAll('[data-e]').forEach(b=>b.onclick=()=>setEdit(b.dataset.e));
+$('#pebTab').onclick=()=>setEdit(S.pebMode&&tool==='peb'?S.pebMode:'add');
+// decorations you own that aren't in the tank: pick one and it appears in the tank, selected, ready to move
+function openOwned(){const t=save.tank,list=ALLDECO().filter(d=>t.owned[d.id]&&!t.items.some(i=>i.id===d.id)),th=makeThumbs(),g=$('#ownGrid');g.textContent='';
+  $('#ownNote').textContent=list.length?'tap one to put it in the tank':'everything you own is already in the tank';
+  for(const d of list){const b=document.createElement('button');b.type='button';b.innerHTML='<img alt="" src="'+(th[d.id]||'')+'">';const sp=document.createElement('span');sp.textContent=d.name;b.appendChild(sp);b.onclick=()=>{$('#ownSheet').hidden=true;placeItem(d.id);};g.appendChild(b);}
+  $('#ownSheet').hidden=false;}
+$('#ownBtn').onclick=openOwned;$('#ownClose').onclick=()=>{$('#ownSheet').hidden=true;};
 $('#editDone').onclick=endEdit;
 // put the selected decoration away (it stays yours in the shop and can be placed again)
 $('#putAway').onclick=()=>{const o=selItem&&ITEMS_ON.includes(selItem)?selItem:null;if(!o){$('#editHint').textContent='tap a decoration first';return;}const id=o.userData.item.id;
@@ -2366,7 +2385,13 @@ function pebbleAt(fp){const x=clamp(fp.x,-B.x,B.x),z=clamp(fp.z,-1.3,0.7);if(PEB
   if(top!==null)y=Math.min(top+r*flat*0.55,B.floor+0.9);
   addPebble(ENV,x+rnd(-0.01,0.01),y,z,r,flat,shade,false,true);snd.pop();pebDirty=true;}
 let pebDirty=false;
+function pebbleDrop(){if(!dragPeb)return;const p=dragPeb,q=p.m.position;let y=B.floor+p.r*p.flat*0.35,top=null;
+  for(const o of PEBBLES){if(o===p)continue;const w=o.m.position;if(Math.hypot(w.x-q.x,w.z-q.z)<o.r+p.r*0.8){const t=w.y+o.r*o.flat*0.7;if(top===null||t>top)top=t;}}
+  if(top!==null)y=Math.min(top+p.r*p.flat*0.55,B.floor+0.9);q.y=y;p.rest=y;p.state='floor';dragPeb=null;pebDirty=true;sandPuffAt(q.clone());}
+let dragPeb=null;
 function pebbleBrush(start){const fp=floorPoint();if(!fp)return;
+  if(S.pebMode==='pmove'){if(start){const hs=ray.intersectObjects(PEBBLES.map(p=>p.m),false);dragPeb=hs.length?PEBBLES.find(p=>p.m===hs[0].object):null;if(dragPeb){dragPeb.state='held';snd.pop();}}
+    if(dragPeb){const m=dragPeb.m.position;m.x=clamp(fp.x,-B.x,B.x);m.z=clamp(fp.z,-1.3,0.7);m.y=B.floor+0.18;}return;}
   if(S.pebMode==='add'){if(start){pebbleAt.full=0;lastPeb=fp;pebbleAt(fp);return;}if(lastPeb&&fp.distanceTo(lastPeb)>0.13){lastPeb=fp;pebbleAt(fp);}return;}
   let n=0;const left=()=>PEBBLES.length+DECOS.length>20;
   for(const pb of PEBBLES.slice()){const q=pb.m.position;if(pb.state==='carried')continue;if(left()&&Math.hypot(q.x-fp.x,q.z-fp.z)<0.2+pb.r){ENV.remove(pb.m);PEBBLES.splice(PEBBLES.indexOf(pb),1);n++;}}
