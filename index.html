@@ -837,6 +837,11 @@ function crackerMesh(){if(!CRK){const sh=new THREE.Shape();sh.moveTo(0.62,0.02);
 function midMsg(t){const el=$('#midMsg');el.hidden=true;el.textContent=t;void el.offsetWidth;el.hidden=false;clearTimeout(midMsg.t);midMsg.t=setTimeout(()=>{el.hidden=true;},3500);}
 // a cracker left in the water goes soggy: the next time the game opens, the fish is itself again
 let SOAKED=0;function soakCheck(){if(SOAKED||!USER||VISIT)return;SOAKED=1;const l=lookOf();if(l.skin==='cracker'){l.skin='';applyLook();persist();setTimeout(()=>midMsg(pet().name+' got so soggy it turned back into a fish'),700);}}
+// a cracker (yours or a friend's): sinks, lands with a puff and settles half into the sand; while held by the hand it follows the finger
+function crackerTick(o,dt,held){const P=o.pos,rest=sandAt(P.x,P.z)+0.03;if(o.vel)o.vel.set(0,0,0);
+  if(held&&tool==='hand'){const t=ptr.world;P.lerp(new V3(clamp(t.x,-B.x,B.x),clamp(t.y,rest+0.1,B.surf-0.2),clamp(t.z,-1.3,0.6)),1-Math.exp(-12*dt));o.crV=0;o.crL=0;o.crB=0;}
+  else if(P.y>rest){o.crV=Math.max(-0.3,(o.crV||0)-0.6*dt);P.y=Math.max(rest,P.y+o.crV*dt);if(P.y<=rest&&!o.crL){o.crL=1;sandPuffAt(P);for(let i=0;i<4;i++)setTimeout(()=>sandPuffAt(P.clone().add(new V3(rnd(-0.12,0.12),0,rnd(-0.05,0.05)))),i*90);}}
+  else{o.crB=Math.min(1,(o.crB||0)+dt*0.25);P.y=rest-0.08*o.crB;}}
 function setCracker(F,on){const cur=F.inner.children.find(o=>o.userData.cracker);if(on&&!cur){F.inner.children.forEach(o=>{o.userData.wasVis=o.visible;o.visible=false;});const m=crackerMesh();m.rotation.z=0.05;F.inner.add(m);F.cracker=m;}
   else if(!on&&cur){F.inner.remove(cur);F.inner.children.forEach(o=>{o.visible=o.userData.wasVis!==false;});F.cracker=null;}}
 function applyLook(F,lk,st){F=F||R;if(!F)return;lk=lk||lookOf();setCracker(F,lk.skin==='cracker');if(st===undefined)st=F===R?growStage():10;const Yc=youth(st);F.inner.updateMatrixWorld(true);const inv=new THREE.Matrix4().copy(F.inner.matrixWorld).invert(),m=new THREE.Matrix4(),v=new V3();
@@ -1394,11 +1399,7 @@ function doReact(dt){const r=S.react;r.t+=dt;const u=clamp(r.t/r.dur);
   if(r.t>=r.dur){if(r.type==='trick')S.roll=0;S.react=null;}}
 
 /* ================= behaviour ================= */
-function behave(dt){const s=pet().s;S.faceT=null;if(R.cracker){S.vel.set(0,0,0);const P=S.pos,rest=sandAt(P.x,P.z)+0.03;
-    if(tool==='hand'&&ptr.down&&ptr.onPet&&ptr.moved>8&&ptr.world){const t=ptr.world;P.lerp(new V3(clamp(t.x,-B.x,B.x),clamp(t.y,rest+0.1,B.surf-0.2),clamp(t.z,-1.3,0.6)),1-Math.exp(-12*dt));S.crV=0;S.crL=0;S.crB=0;}
-    else if(P.y>rest){S.crV=Math.max(-0.3,(S.crV||0)-0.6*dt);P.y=Math.max(rest,P.y+S.crV*dt);if(P.y<=rest&&!S.crL){S.crL=1;sandPuffAt(P);for(let i=0;i<4;i++)setTimeout(()=>sandPuffAt(P.clone().add(new V3(rnd(-0.12,0.12),0,rnd(-0.05,0.05)))),i*90);}}
-    else{S.crB=Math.min(1,(S.crB||0)+dt*0.25);P.y=rest-0.08*S.crB;}
-    return;}
+function behave(dt){const s=pet().s;S.faceT=null;if(R.cracker){S.vel.set(0,0,0);crackerTick(S,dt,tool==='hand'&&ptr.down&&ptr.onPet&&ptr.moved>8&&ptr.world);return;}
   S.look=(T-ptr.seen<2.5&&ptr.world)?ptr.world:null;
   if(DX){duelHost(dt);return;}
   if(S.react&&S.react.lock){doReact(dt);return;}
@@ -1849,7 +1850,7 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden)setTimeout
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)pull();});
 /* the home-screen app keeps an old copy of the page open (and iOS caches it), so check for a newer build when it opens or comes back,
    and reload past the cache if there is one */
-const BUILD='20261119044821';
+const BUILD='20261119143943';
 function checkBuild(){fetch('version.json?t='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{if(!j||!j.b||j.b===BUILD)return;
   try{if(sessionStorage.getItem('gf-build')===j.b)return;sessionStorage.setItem('gf-build',j.b);}catch(e){}
   try{persistLocal();}catch(e){}location.replace(location.pathname+'?v='+encodeURIComponent(j.b));}).catch(()=>{});}
@@ -2623,7 +2624,8 @@ function swimRig(f,F,dt,i,sp,hs,faceT,curl,night,pitchAdd){
      const w=sp<0.3?7.5:3.6;F.fins.forEach((fn,j)=>{const sg=fn.userData.s,ph=T*w+j*1.3+i,main=j<2;fn.rotation.y=sg*((main?0.36:0.22)+(main?0.3:0.16)*Math.sin(ph)+0.06*Math.sin(ph*2.3+1))*(1+0.25*(1-clamp(sp/0.9)));fn.rotation.z=(main?0:-0.35)+0.14*Math.sin(ph+1.2);});}}
 function friendsTick(dt){iactT-=dt;if(IACT){IACT.t-=dt;if(IACT.t<=0){IACT=null;iactT=rnd(14,26);}}else if(iactT<=0){iactPick();if(!IACT)iactT=4;}
   const night=lightsOff,camL=world.worldToLocal(camera.position.clone());
-  FRIENDS.forEach((f,i)=>{if(f.F.cracker){f.g.position.copy(f.pos);f.g.rotation.set(0.04,i%2?Math.PI-0.22:0.22,0.05);return;}f.t-=dt;let cap=0.35,rate=1.8,faceT=null,snq=null;const it=iactTarget(f,dt);
+  FRIENDS.forEach((f,i)=>{if(f.F.cracker){crackerTick(f,dt,ptr.down&&ptr.onFriend===f&&ptr.moved>8&&ptr.world);f.g.position.copy(f.pos);const h=clamp((f.pos.y-sandAt(f.pos.x,f.pos.z)-0.03)/0.5,0,1);f.crk=damp(f.crk||0,1-h,3,dt);
+      f.g.rotation.set(0.04-0.55*f.crk+0.05*Math.sin(T*1.3+i)*h,(i%2?Math.PI-0.22:0.22)+0.1*Math.sin(T*0.7+i)*h,0.05+0.15*f.crk);return;}f.t-=dt;let cap=0.35,rate=1.8,faceT=null,snq=null;const it=iactTarget(f,dt);
     const led=ptr.down&&ptr.onFriend===f&&ptr.moved>8&&ptr.world;
     const rx=f.rx;if(rx){rx.t+=dt;if(rx.t>=rx.dur){if(rx.type==='trick')f.roll=0;f.rx=null;}}
     if(led){f.rx=null;f.tgt.set(clamp(ptr.world.x,-B.x*0.9,B.x*0.9),clamp(ptr.world.y,B.ymin,B.ymax),clamp(ptr.world.z,-1.3,0.6));cap=1.8;rate=5;f.t=1;faceT=ptr.world;}
