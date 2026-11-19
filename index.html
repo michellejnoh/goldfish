@@ -178,6 +178,8 @@ body.visiting .ui,body.visiting #say{display:none}
 .langrow .link[aria-pressed="true"]{color:#111;text-decoration-thickness:2px}
 .card{position:relative}
 .row2.topclose{position:absolute;top:20px;right:22px;margin:0;width:auto}
+#paintCv{display:block;width:100%;height:auto;margin:6px 0 10px;touch-action:none;cursor:crosshair}#paintCols{justify-content:center;margin-bottom:8px}
+.ptools{display:flex;gap:6px;align-items:center;margin-bottom:6px}.ptools span{flex:1}.ptools button{background:rgba(0,0,0,.06);border:0;border-radius:6px;padding:5px 10px;font:inherit;font-size:15px;color:inherit}.ptools button[aria-pressed=true]{background:#111;color:#fff}
 #midMsg{position:fixed;left:50%;top:42%;transform:translate(-50%,-50%);z-index:25;max-width:80vw;text-align:center;font-size:26px;line-height:1.25;color:var(--ink);text-shadow:0 0 12px rgba(255,255,255,.9);pointer-events:none;animation:midIn 3.4s ease forwards}
 @keyframes midIn{0%{opacity:0;transform:translate(-50%,-40%)}12%,80%{opacity:1;transform:translate(-50%,-50%)}100%{opacity:0;transform:translate(-50%,-55%)}}
 #letter{position:fixed;inset:0;z-index:30;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.5)}
@@ -352,6 +354,15 @@ body.lookdock #viewArrows{display:flex}
 <div id="viewBar" hidden><p id="viewHint">drag to turn · pinch to zoom</p><span class="zoombtns"><button type="button" class="icon" id="tvOut" aria-label="Zoom out">−</button><button type="button" class="icon" id="tvIn" aria-label="Zoom in">+</button></span><button type="button" class="go" id="viewDone">close</button></div>
 <div id="editBar" hidden><nav aria-label="Edit tools"><button type="button" data-e="add">add pebbles</button><button type="button" data-e="remove">remove pebbles</button><button type="button" data-e="arrange">move decorations</button><button type="button" class="done" id="editDone">done</button></nav><p id="editHint"></p><div id="turnRow" hidden><button type="button" data-turn="1">turn left</button><button type="button" data-turn="-1">turn right</button><button type="button" id="putAway">put away</button></div></div>
 <div id="letter" hidden><div class="env"><i class="eb"></i><div class="paper"><small id="lFrom"></small><p id="lMsg"></p></div><i class="ef"></i><i class="flap"></i></div></div>
+<div class="sheet" id="paintSheet" hidden>
+  <div class="card">
+    <h2 id="paintTitle">decorate</h2>
+    <canvas id="paintCv" aria-label="Draw on the cracker"></canvas>
+    <div class="swrow" id="paintCols"></div>
+    <div class="ptools"><button type="button" data-nz="4">thin</button><button type="button" data-nz="7">medium</button><button type="button" data-nz="13">thick</button><span></span><button type="button" id="paintUndo">undo</button><button type="button" id="paintClear">clear</button></div>
+    <div class="row2"><button type="button" class="link" id="paintClose">cancel</button><button type="button" class="go" id="paintSave">done</button></div>
+  </div>
+</div>
 <div id="midMsg" aria-live="polite" hidden></div>
 <div id="say" aria-live="polite"></div>
 <div class="ui top">
@@ -526,7 +537,7 @@ const KO={'my friends':'내 친구','everyone':'전체','search username':'아�
 'clear':'투명','green':'초록','warm':'따뜻한','blue':'파랑','purple':'보라','night lamp':'무드등','the color of the light at night':'밤에 켜지는 빛의 색',
 'a mood lamp beside the tank, on from 9 pm to 5 am':'어항 옆 무드등 · 밤 9시부터 새벽 5시까지 켜져요',
 'candy cane':'지팡이 사탕','gift box':'선물 상자','ice crystals':'얼음 결정','snowman':'눈사람','little sled':'작은 썰매','pine tree':'소나무',
-'penguin':'펭귄','cracker':'크래커','igloo':'이글루','polar bear':'북극곰','snow globe':'스노볼',
+'penguin':'펭귄','cracker':'크래커','thin':'얇게','medium':'보통','thick':'두껍게','undo':'되돌리기','igloo':'이글루','polar bear':'북극곰','snow globe':'스노볼',
 'first meal':'첫 식사','100 flakes eaten':'먹이 100개 먹기','caught the lure 100 times':'미끼 100번 잡기','50 tricks':'재주 50번',
 'a heap of 20 pebbles':'자갈 20개 더미','100 smudges wiped':'얼룩 100개 닦기','7 days in a row':'7일 연속','30 days in a row':'30일 연속',
 'get every need above 60 at once':'모든 상태를 한꺼번에 60 넘기기',
@@ -572,7 +583,8 @@ const KO={'my friends':'내 친구','everyone':'전체','search username':'아�
 'edit · your fish’s color and pattern, the water, decorations, and the night lamp':'편집 · 금붕어 색과 무늬, 물 색, 장식, 무드등을 바꿔요','tank view · see your tank on its table in a little room, and turn it around':'어항 보기 · 작은 방 탁자 위의 어항을 보고 돌려 봐요',
 'camera · take a picture of your tank':'카메라 · 어항 사진을 찍어요','your keeper name · tap to switch keepers':'키퍼 이름 · 탭하면 다른 키퍼로 바꿔요','growth':'성장','drag it where you like · twist or use the arrows to turn it':'원하는 곳으로 끌어 놓고, 비틀거나 화살표로 돌려요','send':'보내기','cancel':'취소','turn your fish':'물고기 돌리기','language':'언어','growth · by level':'성장 · 레벨별','Take picture':'사진 찍기','Sound on':'소리 켜짐','Sound off':'소리 꺼짐','Tank view':'어항 보기','drag to turn · pinch to zoom':'끌어서 돌리기 · 두 손가락으로 확대','Zoom in':'확대','Zoom out':'축소','Goldfish tank. Tap, drag and feed to interact.':'금붕어 수조. 탭하고 끌고 먹이를 주며 놀아 주세요.',
 ': check the Firestore rules':': Firestore 규칙을 확인해 주세요',': is the Firestore database created?':': Firestore 데이터베이스가 만들어졌는지 확인해 주세요'};
-const KO_RX=[[/^(.+) got so soggy it turned back into a fish$/,'$1, 너무 불어서 원래 모습으로 돌아왔어요'],[/^(.+) turned into a cracker!$/,'$1, 크래커로 변했어요!'],
+const KO_RX=[[/^decorate @(.+)’s cracker$/,'@$1의 크래커 꾸미기'],
+[/^(.+) got so soggy it turned back into a fish$/,'$1, 너무 불어서 원래 모습으로 돌아왔어요'],[/^(.+) turned into a cracker!$/,'$1, 크래커로 변했어요!'],
 [/^from @(.+)$/,'@$1에게서'],
 [/^friend request sent to @(.+)$/,'@$1에게 친구 신청을 보냈어요'],[/^you and @(.+) are friends now$/,'이제 @$1와(과) 친구예요'],[/^@(.+) sent you a friend request$/,'@$1님이 친구 신청을 보냈어요'],[/^@(.+) accepted your friend request$/,'@$1님이 친구 신청을 수락했어요'],[/^you can visit @(.+) once you’re friends$/,'친구가 되면 @$1의 어항에 놀러 갈 수 있어요'],[/^that real name doesn’t match @(.+)$/,'@$1 계정의 본명과 맞지 않아요'],
 [/^leave a note for @(.+)$/,'@$1에게 쪽지 남기기'],[/^note left for @(.+)$/,'@$1에게 쪽지를 남겼어요'],[/^@(.+) left a note: “(.+)”$/,'@$1의 쪽지: “$2”'],
@@ -818,9 +830,10 @@ function vOf(P,x,y){const k=Math.round(clamp((x-P.x0)/(P.x1-P.x0))*P.N),a=P.lo[k
 /* cracker skin: the fish becomes a little baked fish-shaped cheese cracker - a puffy flat fish outline with soft browned edges,
    a dusting of salt crystals and tiny toasted specks - and it just stays put, no swimming */
 let CRK=null;
-function crackerMesh(){if(!CRK){const sh=new THREE.Shape();sh.moveTo(0.62,0.02);sh.bezierCurveTo(0.6,0.26,0.32,0.36,0.04,0.33);sh.bezierCurveTo(-0.22,0.3,-0.38,0.2,-0.48,0.12);
-    sh.bezierCurveTo(-0.58,0.2,-0.7,0.3,-0.82,0.31);sh.bezierCurveTo(-0.86,0.12,-0.78,0.02,-0.8,-0.02);sh.bezierCurveTo(-0.79,-0.12,-0.86,-0.22,-0.82,-0.3);
-    sh.bezierCurveTo(-0.7,-0.3,-0.58,-0.2,-0.48,-0.12);sh.bezierCurveTo(-0.36,-0.24,-0.18,-0.31,0.06,-0.31);sh.bezierCurveTo(0.34,-0.31,0.6,-0.22,0.62,0.02);
+const CRKP=[[0.6,0.26,0.32,0.36,0.04,0.33],[-0.22,0.3,-0.38,0.2,-0.48,0.12],[-0.58,0.2,-0.7,0.3,-0.82,0.31],[-0.86,0.12,-0.78,0.02,-0.8,-0.02],[-0.79,-0.12,-0.86,-0.22,-0.82,-0.3],[-0.7,-0.3,-0.58,-0.2,-0.48,-0.12],[-0.36,-0.24,-0.18,-0.31,0.06,-0.31],[0.34,-0.31,0.6,-0.22,0.62,0.02]],
+  CRKB={x0:-0.92,x1:0.68,y0:-0.42,y1:0.42};
+function crackerPath(ctx,sc){const X=x=>(x-CRKB.x0)*sc,Y=y=>(CRKB.y1-y)*sc;ctx.beginPath();ctx.moveTo(X(0.62),Y(0.02));for(const c of CRKP)ctx.bezierCurveTo(X(c[0]),Y(c[1]),X(c[2]),Y(c[3]),X(c[4]),Y(c[5]));ctx.closePath();}
+function crackerMesh(){if(!CRK){const sh=new THREE.Shape();sh.moveTo(0.62,0.02);for(const c of CRKP)sh.bezierCurveTo(...c);
     const geo=new THREE.ExtrudeGeometry(sh,{depth:0.1,bevelEnabled:true,bevelThickness:0.07,bevelSize:0.06,bevelSegments:5,curveSegments:28});geo.translate(0,0,-0.05);geo.computeVertexNormals();
     // baked colour: golden orange, toasted darker toward the rim, lighter on the puffed middle of each face
     const p=geo.attributes.position,n=geo.attributes.normal,col=[],base=new THREE.Color(0xf2a51f),dark=new THREE.Color(0xc9721a),lite=new THREE.Color(0xf9c548),o=new THREE.Color(),L=new V3(0.3,0.7,0.65).normalize(),nv=new V3();
@@ -831,7 +844,10 @@ function crackerMesh(){if(!CRK){const sh=new THREE.Shape();sh.moveTo(0.62,0.02);
     const c=document.createElement('canvas');c.width=c.height=256;const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,256,256);
     for(let i=0;i<60;i++){x.fillStyle='rgba(205,150,60,'+(0.08+Math.random()*0.08)+')';x.beginPath();x.arc(Math.random()*256,Math.random()*256,4+Math.random()*10,0,7);x.fill();}
     for(let i=0;i<520;i++){x.fillStyle=Math.random()<0.85?'rgba(255,246,214,.95)':'rgba(150,80,20,.55)';const r=0.6+Math.random()*1.3;x.fillRect(Math.random()*256,Math.random()*256,r,r);}
-    const tx=new THREE.CanvasTexture(c);tx.wrapS=tx.wrapT=THREE.RepeatWrapping;tx.repeat.set(1.6,1.6);CRK={geo,mat:flatMat({map:tx,vertexColors:true})};}
+    const tx=new THREE.CanvasTexture(c);tx.wrapS=tx.wrapT=THREE.RepeatWrapping;tx.repeat.set(1.6,1.6);
+    // the same shape with just its light and shade (no colour), for decorated crackers whose colours live in their own picture
+    const gs=geo.clone(),cs=[],bl=0.2126*base.r+0.7152*base.g+0.0722*base.b;for(let i=0;i<col.length;i+=3){const k=(0.2126*col[i]+0.7152*col[i+1]+0.0722*col[i+2])/bl;cs.push(k,k,k);}gs.setAttribute('color',new THREE.Float32BufferAttribute(cs,3));
+    CRK={geo,mat:flatMat({map:tx,vertexColors:true}),geoS:gs};}
   const m=new THREE.Mesh(CRK.geo,CRK.mat);m.userData.cracker=1;return m;}
 // a line of text in the middle of the screen that fades in and away
 function midMsg(t){const el=$('#midMsg');el.hidden=true;el.textContent=t;void el.offsetWidth;el.hidden=false;clearTimeout(midMsg.t);midMsg.t=setTimeout(()=>{el.hidden=true;},3500);}
@@ -842,6 +858,42 @@ function crackerTick(o,dt,held){const P=o.pos,rest=sandAt(P.x,P.z)+0.03;if(o.vel
   if(held&&tool==='hand'){const t=ptr.world;P.lerp(new V3(clamp(t.x,-B.x,B.x),clamp(t.y,rest+0.1,B.surf-0.2),clamp(t.z,-1.3,0.6)),1-Math.exp(-12*dt));o.crV=0;o.crL=0;o.crB=0;}
   else if(P.y>rest){o.crV=Math.max(-0.3,(o.crV||0)-0.6*dt);P.y=Math.max(rest,P.y+o.crV*dt);if(P.y<=rest&&!o.crL){o.crL=1;sandPuffAt(P);for(let i=0;i<4;i++)setTimeout(()=>sandPuffAt(P.clone().add(new V3(rnd(-0.12,0.12),0,rnd(-0.05,0.05)))),i*90);}}
   else{o.crB=Math.min(1,(o.crB||0)+dt*0.25);P.y=rest-0.08*o.crB;}}
+// the cracker's own face as a picture: golden base, toasted blotches, salt specks, then whatever's been drawn on it in icing
+function crackerFace(sc,paint){const c=document.createElement('canvas');c.width=Math.round((CRKB.x1-CRKB.x0)*sc);c.height=Math.round((CRKB.y1-CRKB.y0)*sc);const x=c.getContext('2d');
+  x.fillStyle='#f2a51f';x.fillRect(0,0,c.width,c.height);let sd=7;const r=()=>(sd=(sd*16807)%2147483647)/2147483647;
+  for(let i=0;i<40;i++){x.fillStyle='rgba(190,110,20,'+(0.06+r()*0.08)+')';x.beginPath();x.arc(r()*c.width,r()*c.height,(4+r()*10)*sc/160,0,7);x.fill();}
+  for(let i=0;i<500;i++){x.fillStyle=r()<0.85?'rgba(255,240,200,.9)':'rgba(140,70,15,.5)';const k=(0.6+r()*1.3)*sc/160;x.fillRect(r()*c.width,r()*c.height,k,k);}
+  if(paint)x.drawImage(paint,0,0,c.width,c.height);return c;}
+// a friend's decorated cracker: its own face texture laid across the cracker's outline
+function paintCracker(F,url){if(!F.cracker)return;if(!url){F.cracker.geometry=CRK.geo;F.cracker.material=CRK.mat;return;}const im=new Image();im.onload=()=>{if(!F.cracker)return;
+    const tx=new THREE.CanvasTexture(crackerFace(320,im)),w=CRKB.x1-CRKB.x0,h=CRKB.y1-CRKB.y0;tx.repeat.set(1/w,1/h);tx.offset.set(-CRKB.x0/w,-CRKB.y0/h);
+    if(F.cracker.material!==CRK.mat){F.cracker.material.map&&F.cracker.material.map.dispose();F.cracker.material.dispose();}F.cracker.geometry=CRK.geoS;F.cracker.material=flatMat({map:tx,vertexColors:true});};im.src=url;}
+/* decorating a friend's cracker: tap it and draw on it with icing - pick a colour and a nozzle, draw with your finger, undo or wipe it clean,
+   then put it back in the tank wearing your drawing */
+const ICING=['#fffaf2','#f7b6c6','#6b3e26','#ffe08a','#9fd0f5','#a8dcae','#e2584f','#2b2b2b'];
+let PNT=null;
+function openPaint(f){const sc=200,cv=$('#paintCv'),W=Math.round((CRKB.x1-CRKB.x0)*sc),H=Math.round((CRKB.y1-CRKB.y0)*sc);cv.width=W;cv.height=H;
+  PNT={f,sc,strokes:[],col:ICING[0],w:7,cur:null,base:crackerFace(sc,null)};$('#paintTitle').textContent='decorate @'+f.src.from+'’s cracker';
+  if(f.src.paint){const im=new Image();im.onload=()=>{PNT.old=im;paintDraw();};im.src=f.src.paint;}
+  const sw=$('#paintCols');sw.textContent='';ICING.forEach(c=>{const b=document.createElement('button');b.type='button';b.className='sw';b.style.background=c;b.setAttribute('aria-label','icing colour');b.setAttribute('aria-pressed',c===PNT.col);b.onclick=()=>{PNT.col=c;sw.querySelectorAll('.sw').forEach(x=>x.setAttribute('aria-pressed',x===b));};sw.appendChild(b);});
+  document.querySelectorAll('#paintSheet [data-nz]').forEach(b=>b.setAttribute('aria-pressed',+b.dataset.nz===PNT.w));$('#paintSheet').hidden=false;paintDraw();}
+function strokeIcing(x,s,sc){if(!s.p.length)return;x.lineCap=x.lineJoin='round';const path=()=>{x.beginPath();x.moveTo(s.p[0][0],s.p[0][1]);for(const q of s.p)x.lineTo(q[0],q[1]);if(s.p.length===1)x.lineTo(s.p[0][0]+0.1,s.p[0][1]);};
+  x.strokeStyle='rgba(0,0,0,.18)';x.lineWidth=s.w*sc/200+1.5;x.save();x.translate(0.8,1.2);path();x.stroke();x.restore();x.strokeStyle=s.c;x.lineWidth=s.w*sc/200;path();x.stroke();
+  x.strokeStyle='rgba(255,255,255,.45)';x.lineWidth=Math.max(1,s.w*sc/200*0.3);x.save();x.translate(-s.w*sc/200*0.18,-s.w*sc/200*0.22);path();x.stroke();x.restore();}
+// just the icing (transparent around it), clipped to the cracker
+function paintLayer(sc){const c=document.createElement('canvas');c.width=Math.round((CRKB.x1-CRKB.x0)*sc);c.height=Math.round((CRKB.y1-CRKB.y0)*sc);const x=c.getContext('2d');crackerPath(x,sc);x.clip();
+  if(PNT.old)x.drawImage(PNT.old,0,0,c.width,c.height);const k=sc/PNT.sc;x.scale(k,k);for(const s of PNT.strokes)strokeIcing(x,s,PNT.sc);return c;}
+function paintDraw(){const cv=$('#paintCv'),x=cv.getContext('2d');x.clearRect(0,0,cv.width,cv.height);x.save();crackerPath(x,PNT.sc);x.clip();x.drawImage(PNT.base,0,0);x.drawImage(paintLayer(PNT.sc),0,0);x.restore();
+  x.save();crackerPath(x,PNT.sc);x.strokeStyle='rgba(160,90,20,.5)';x.lineWidth=2;x.stroke();x.restore();}
+{const cv=$('#paintCv'),at=e=>{const r=cv.getBoundingClientRect();return [(e.clientX-r.left)*cv.width/r.width,(e.clientY-r.top)*cv.height/r.height];};
+  cv.addEventListener('pointerdown',e=>{if(!PNT)return;cv.setPointerCapture(e.pointerId);PNT.cur={c:PNT.col,w:PNT.w,p:[at(e)]};PNT.strokes.push(PNT.cur);paintDraw();e.preventDefault();});
+  cv.addEventListener('pointermove',e=>{if(!PNT||!PNT.cur)return;const p=at(e),l=PNT.cur.p[PNT.cur.p.length-1];if(Math.hypot(p[0]-l[0],p[1]-l[1])>1.5){PNT.cur.p.push(p);paintDraw();}e.preventDefault();});
+  const end=()=>{if(PNT)PNT.cur=null;};cv.addEventListener('pointerup',end);cv.addEventListener('pointercancel',end);}
+document.querySelectorAll('#paintSheet [data-nz]').forEach(b=>b.onclick=()=>{PNT.w=+b.dataset.nz;document.querySelectorAll('#paintSheet [data-nz]').forEach(x=>x.setAttribute('aria-pressed',x===b));});
+$('#paintUndo').onclick=()=>{if(PNT.strokes.length)PNT.strokes.pop();else PNT.old=null;paintDraw();};
+$('#paintClear').onclick=()=>{PNT.strokes=[];PNT.old=null;paintDraw();};
+$('#paintClose').onclick=()=>{$('#paintSheet').hidden=true;PNT=null;};
+$('#paintSave').onclick=()=>{const f=PNT.f,empty=!PNT.strokes.length&&!PNT.old;f.src.paint=empty?undefined:paintLayer(160).toDataURL('image/png');persist();paintCracker(f.F,f.src.paint);$('#paintSheet').hidden=true;PNT=null;};
 function setCracker(F,on){const cur=F.inner.children.find(o=>o.userData.cracker);if(on&&!cur){F.inner.children.forEach(o=>{o.userData.wasVis=o.visible;o.visible=false;});const m=crackerMesh();m.rotation.z=0.05;F.inner.add(m);F.cracker=m;}
   else if(!on&&cur){F.inner.remove(cur);F.inner.children.forEach(o=>{o.visible=o.userData.wasVis!==false;});F.cracker=null;}}
 function applyLook(F,lk,st){F=F||R;if(!F)return;lk=lk||lookOf();setCracker(F,lk.skin==='cracker');if(st===undefined)st=F===R?growStage():10;const Yc=youth(st);F.inner.updateMatrixWorld(true);const inv=new THREE.Matrix4().copy(F.inner.matrixWorld).invert(),m=new THREE.Matrix4(),v=new V3();
@@ -1369,7 +1421,7 @@ cv.addEventListener('pointerleave',e=>{if(e.pointerType==='mouse'&&!ptr.down)ptr
 function tap(){
   if(tool==='hand'){
     if(ptr.onSnail){snailPoke(ptr.onSnail);return;}
-    if(ptr.onFriend){const f=ptr.onFriend,dbl=T-(f.tapT||-9)<0.35;f.tapT=T;friendPoke(f,dbl);return;}
+    if(ptr.onFriend){const f=ptr.onFriend;if(f.F.cracker&&!VISIT){openPaint(f);return;}const dbl=T-(f.tapT||-9)<0.35;f.tapT=T;friendPoke(f,dbl);return;}
     if(ptr.onPet){if(lightsOff||S.asleep)react('grumpy');else if(T-ptr.lastTapT<0.35&&ptr.lastTapPet)react('trick');else react('hello');ptr.lastTapT=T;ptr.lastTapPet=true;}
     else{ptr.lastTapPet=false;if(lightsOff||!ptr.world)return;
       // tapping the sand asks the fish to start heaping pebbles (a new heap starts where you tapped)
@@ -1850,7 +1902,7 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden)setTimeout
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)pull();});
 /* the home-screen app keeps an old copy of the page open (and iOS caches it), so check for a newer build when it opens or comes back,
    and reload past the cache if there is one */
-const BUILD='20261119143943';
+const BUILD='20261119144515';
 function checkBuild(){fetch('version.json?t='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{if(!j||!j.b||j.b===BUILD)return;
   try{if(sessionStorage.getItem('gf-build')===j.b)return;sessionStorage.setItem('gf-build',j.b);}catch(e){}
   try{persistLocal();}catch(e){}location.replace(location.pathname+'?v='+encodeURIComponent(j.b));}).catch(()=>{});}
@@ -2546,7 +2598,7 @@ function spawnFriends(){for(const f of FRIENDS){world.remove(f.g);freeTree(f.g);
   for(const it of list){if(it.hide)continue;const st=fstage(it),F=buildFish(),Yf=poseYouth(F,st,true);applyLook(F,it.look,st);F.g.scale.setScalar(0.434*youth(st).size*0.8);
     F.g.traverse(o=>{if(o.userData&&o.userData.proxy)o.visible=false;});
     const pos=new V3(rnd(-B.x*0.8,B.x*0.8),rnd(B.ymin,B.ymax-0.3),rnd(-1.2,0.5));F.g.position.copy(pos);world.add(F.g);
-    FRIENDS.push({src:it,g:F.g,F,Y:Yf,pos,vel:new V3(),tgt:pos.clone(),head:rnd(0,6),ph:rnd(0,6),t:0});}}
+    FRIENDS.push({src:it,g:F.g,F,Y:Yf,pos,vel:new V3(),tgt:pos.clone(),head:rnd(0,6),ph:rnd(0,6),t:0});if(F.cracker&&it.paint)paintCracker(F,it.paint);}}
 /* gifted fish and your fish do a few things together: swim along behind it, come over for a nose-to-nose "hello" with bubbles,
    circle it, gather where flakes land, and settle down near it when the lights are off. One at a time, every so often. */
 let IACT=null,iactT=10;
@@ -2625,7 +2677,7 @@ function swimRig(f,F,dt,i,sp,hs,faceT,curl,night,pitchAdd){
 function friendsTick(dt){iactT-=dt;if(IACT){IACT.t-=dt;if(IACT.t<=0){IACT=null;iactT=rnd(14,26);}}else if(iactT<=0){iactPick();if(!IACT)iactT=4;}
   const night=lightsOff,camL=world.worldToLocal(camera.position.clone());
   FRIENDS.forEach((f,i)=>{if(f.F.cracker){crackerTick(f,dt,ptr.down&&ptr.onFriend===f&&ptr.moved>8&&ptr.world);f.g.position.copy(f.pos);const h=clamp((f.pos.y-sandAt(f.pos.x,f.pos.z)-0.03)/0.5,0,1);f.crk=damp(f.crk||0,1-h,3,dt);
-      f.g.rotation.set(0.04-0.55*f.crk+0.05*Math.sin(T*1.3+i)*h,(i%2?Math.PI-0.22:0.22)+0.1*Math.sin(T*0.7+i)*h,0.05+0.15*f.crk);return;}f.t-=dt;let cap=0.35,rate=1.8,faceT=null,snq=null;const it=iactTarget(f,dt);
+      f.g.rotation.set(0.04-(f.src.paint?0.2:0.55)*f.crk+0.05*Math.sin(T*1.3+i)*h,(i%2&&!f.src.paint?Math.PI-0.22:0.22)+0.1*Math.sin(T*0.7+i)*h,0.05+0.15*f.crk);return;}f.t-=dt;let cap=0.35,rate=1.8,faceT=null,snq=null;const it=iactTarget(f,dt);
     const led=ptr.down&&ptr.onFriend===f&&ptr.moved>8&&ptr.world;
     const rx=f.rx;if(rx){rx.t+=dt;if(rx.t>=rx.dur){if(rx.type==='trick')f.roll=0;f.rx=null;}}
     if(led){f.rx=null;f.tgt.set(clamp(ptr.world.x,-B.x*0.9,B.x*0.9),clamp(ptr.world.y,B.ymin,B.ymax),clamp(ptr.world.z,-1.3,0.6));cap=1.8;rate=5;f.t=1;faceT=ptr.world;}
