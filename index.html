@@ -1952,7 +1952,7 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden)setTimeout
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)pull();});
 /* the home-screen app keeps an old copy of the page open (and iOS caches it), so check for a newer build when it opens or comes back,
    and reload past the cache if there is one */
-const BUILD='20261119162326';
+const BUILD='20261119163112';
 function checkBuild(){fetch('version.json?t='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{if(!j||!j.b||j.b===BUILD)return;
   try{if(sessionStorage.getItem('gf-build')===j.b)return;sessionStorage.setItem('gf-build',j.b);}catch(e){}
   try{persistLocal();}catch(e){}location.replace(location.pathname+'?v='+encodeURIComponent(j.b));}).catch(()=>{});}
@@ -2293,15 +2293,19 @@ function snailTick(dt){toysTick(dt);const night=lightsOff||nightAmt()>0.5;
         if(hm==='back'&&Math.hypot(d.x,d.y)>0.0015)sn.wth+=angTo(sn.wth,Math.atan2(d.y,-d.x))*(1-Math.exp(-6*dt));
         sn.sway=(sn.sway||0)*0.9+clamp(d.x/Math.max(dt,1e-3),-1,1)*0.1;sn.st='look';sn.stT=1.5;sn.fv.set(0,0,0);}
       else if(sn.hm==='snail'&&sn.mt&&!sn.mt.rider&&!sn.mt.free){const b=sn.mt;sn.on=b;b.rider=sn;sn.onT=rnd(20,40);sn.free=false;sn.st='look';sn.stT=99;sn.kick=1;b.kick=0.6;sn.mt=null;}
-      else if(R.g.visible&&!(sn.dropT>0)&&(sn.hm==='fish'||world.worldToLocal(headTop({host:true})).distanceTo(fp)<0.45)){sn.free=false;sn.onFish=30;sn.st='look';sn.stT=99;sn.kick=1;say('!',1.4);squish(-3);for(let i=0;i<4;i++)setTimeout(()=>bubble(fp.clone()),i*100);}
+      else if(R.g.visible&&!(sn.dropT>0)&&(sn.hm==='fish'||world.worldToLocal(headTop({host:true})).distanceTo(fp)<0.45)){sn.free=false;sn.onFish=30;sn.seatL=null;sn.st='look';sn.stT=99;sn.kick=1;say('!',1.4);squish(-3);for(let i=0;i<4;i++)setTimeout(()=>bubble(fp.clone()),i*100);}
       else if(sn.hm==='back'&&fp.y>B.floor+0.1){toSurf(sn,'back',fp);sn.th=sn.wth;sn.free=false;sn.st='look';sn.stT=1.2;}
       else{const sy=groundAt(fp.x,fp.z);sn.st='hide';sn.stT=1.4;sn.fv.y=Math.max(-0.45,sn.fv.y-0.7*dt);fp.addScaledVector(sn.fv,dt);sn.sway=(sn.sway||0)*0.95;
         if(fp.y<=sy+0.006){toSurf(sn,'floor',fp);sn.gy=sy;sn.th=sn.fth;{const t=toyNear(fp,0.7);if(t){startPlay(sn,t);sn.th=Math.atan2(-(t.position.z-fp.z),t.position.x-fp.x);}}sn.free=false;sn.wob=0.6;sandPuffAt(new V3(fp.x,B.floor,fp.z));}}
       SF=snailSurf(sn.sf);}
     const sd=sn.shadow;
     if(sn.on||sn.onFish){let ft;if(sn.on){const b=sn.on.g;g.position.copy(b.localToWorld(new V3(-0.012,0.118,0)));g.parent.worldToLocal(g.position);g.quaternion.copy(b.quaternion);g.rotateZ(0.12+0.03*Math.sin(sn.ph*1.3));n=new V3(0,1,0).applyQuaternion(g.quaternion);fw=new V3(1,0,0).applyQuaternion(g.quaternion);}
-      else{const top=world.worldToLocal(headTop({host:true}));ft=new V3(Math.cos(S.heading),0,-Math.sin(S.heading));g.position.lerp(top.add(new V3(0,0.004,0)),1-Math.exp(-dt*25));n=UPY;fw=ft;
-        _sm.makeBasis(fw,n,fw.clone().cross(n));g.quaternion.setFromRotationMatrix(_sm);g.rotateZ(-(S.pitch||0)*0.8);g.rotateX(Math.sin(sn.ph*2.2)*0.06);}
+      else{// riding your fish: it sits right on the skin of the head (found once from above), facing the way the fish faces, and goes with every
+        // turn, roll and wiggle of it - as if stuck on - with just a little sway of its own
+        R.inner.updateMatrixWorld(true);if(!sn.seatL){const body=R.inner.children.find(o=>o.userData.part==='body'),top=R.inner.localToWorld(R.mouth.clone().add(new V3(-0.26,0.6,0))),h=body&&new THREE.Raycaster(top,R.inner.localToWorld(new V3(0,0,0)).sub(R.inner.localToWorld(new V3(0,1,0))).normalize()).intersectObject(body)[0];
+          sn.seatL=h?R.inner.worldToLocal(h.point.clone()):R.mouth.clone().add(new V3(-0.26,0.2,0));}
+        const M=R.inner.matrixWorld;fw=new V3().setFromMatrixColumn(M,0).normalize();n=new V3().setFromMatrixColumn(M,1);n.addScaledVector(fw,-n.dot(fw)).normalize();
+        g.position.copy(g.parent.worldToLocal(R.inner.localToWorld(sn.seatL.clone())));_sm.makeBasis(fw,n,fw.clone().cross(n));g.quaternion.setFromRotationMatrix(_sm);g.rotateZ(-0.12);g.rotateX(Math.sin(sn.ph*2.2)*0.04);}
       sd.material.opacity=0;}
     else if(sn.free){const fp=sn.fp,sy=sandAt(fp.x,fp.z),bk=sn.hm==='back';n=bk?UPZ:UPY;fw=bk?new V3(-Math.cos(sn.wth),Math.sin(sn.wth),0):new V3(Math.cos(sn.fth),0,-Math.sin(sn.fth));
       g.position.copy(fp);if(bk)g.position.z+=0.05;_sm.makeBasis(fw,n,fw.clone().cross(n));g.quaternion.setFromRotationMatrix(_sm);g.rotateZ(sn.lead?0.2:-0.25);g.rotateX(clamp(sn.sway,-1,1)*0.4);
@@ -3484,7 +3488,7 @@ function frame(){requestAnimationFrame(frame);
   const nowF=performance.now(),busy=ptr.down||toy||foods.length||T-(S.lastTouch||-9)<4||(TV.t>0&&TV.t<1)||DX,minF=busy?0:(lightsOff&&S.asleep?62:30);
   if(nowF-(frame.last||0)<minF)return;frame.last=nowF;frame.cap=minF>0;const dt=Math.min(clock.getDelta(),0.07);T+=dt;
   try{sunTick(dt);}catch(e){frameErr(e);}try{nightTick(dt);}catch(e){frameErr(e);}
-  try{needs(dt);if(DROPS.length)dropTick(dt);glowTick();selTick();if(SNAILS.length)snailTick(dt);behave(dt);if(!R.cracker)physics(dt);animate(dt);if(!R.cracker)keepAboveFloor();if(FRIENDS.length)friendsTick(dt);updateFoods(dt);updateToy(dt);updateRocks(dt);updateFX(dt);updateSay(dt);}catch(e){frameErr(e);}
+  try{needs(dt);if(DROPS.length)dropTick(dt);glowTick();selTick();behave(dt);if(!R.cracker)physics(dt);animate(dt);if(!R.cracker)keepAboveFloor();if(SNAILS.length)snailTick(dt);if(FRIENDS.length)friendsTick(dt);updateFoods(dt);updateToy(dt);updateRocks(dt);updateFX(dt);updateSay(dt);}catch(e){frameErr(e);}
   const lt=lightsOff?0.35:1;hemi.intensity=damp(hemi.intensity,0.85*lt,2,dt);keyL.intensity=damp(keyL.intensity,0.7*lt,2,dt);
   if(!tankViewCam(dt)){const d=camera.position.distanceTo(camLook);scene.fog.far=damp(scene.fog.far,d+lerp(3,40,cleanOf()/100),2,dt);
   camera.position.x=camBase.x+Math.sin(T*0.17)*0.05;camera.position.y=camBase.y+Math.sin(T*0.23)*0.03;camera.lookAt(camLook);}
