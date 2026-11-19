@@ -584,7 +584,8 @@ const KO={'my friends':'내 친구','everyone':'전체','search username':'아�
 'edit · your fish’s color and pattern, the water, decorations, and the night lamp':'편집 · 금붕어 색과 무늬, 물 색, 장식, 무드등을 바꿔요','tank view · see your tank on its table in a little room, and turn it around':'어항 보기 · 작은 방 탁자 위의 어항을 보고 돌려 봐요',
 'camera · take a picture of your tank':'카메라 · 어항 사진을 찍어요','your keeper name · tap to switch keepers':'키퍼 이름 · 탭하면 다른 키퍼로 바꿔요','growth':'성장','drag it where you like · twist or use the arrows to turn it':'원하는 곳으로 끌어 놓고, 비틀거나 화살표로 돌려요','send':'보내기','cancel':'취소','turn your fish':'물고기 돌리기','language':'언어','growth · by level':'성장 · 레벨별','Take picture':'사진 찍기','Sound on':'소리 켜짐','Sound off':'소리 꺼짐','Tank view':'어항 보기','drag to turn · pinch to zoom':'끌어서 돌리기 · 두 손가락으로 확대','Zoom in':'확대','Zoom out':'축소','Goldfish tank. Tap, drag and feed to interact.':'금붕어 수조. 탭하고 끌고 먹이를 주며 놀아 주세요.',
 ': check the Firestore rules':': Firestore 규칙을 확인해 주세요',': is the Firestore database created?':': Firestore 데이터베이스가 만들어졌는지 확인해 주세요'};
-const KO_RX=[[/^@(.+) decorated the cracker you sent$/,'@$1님이 보낸 크래커를 꾸몄어요'],[/^@(.+) can come and see it$/,'@$1에게 알렸어요 · 놀러 와서 볼 수 있어요'],
+const KO_RX=[[/^@(.+)’s cracker got soggy and turned back into a fish$/,'@$1의 크래커가 너무 불어서 원래 모습으로 돌아왔어요'],
+[/^@(.+) decorated the cracker you sent$/,'@$1님이 보낸 크래커를 꾸몄어요'],[/^@(.+) can come and see it$/,'@$1에게 알렸어요 · 놀러 와서 볼 수 있어요'],
 [/^decorate @(.+)’s cracker$/,'@$1의 크래커 꾸미기'],
 [/^(.+) got so soggy it turned back into a fish$/,'$1, 너무 불어서 원래 모습으로 돌아왔어요'],[/^(.+) turned into a cracker!$/,'$1, 크래커로 변했어요!'],
 [/^from @(.+)$/,'@$1에게서'],
@@ -854,7 +855,9 @@ function crackerMesh(){if(!CRK){const sh=new THREE.Shape();sh.moveTo(0.62,0.02);
 // a line of text in the middle of the screen that fades in and away
 function midMsg(t){const el=$('#midMsg');el.hidden=true;el.textContent=t;void el.offsetWidth;el.hidden=false;clearTimeout(midMsg.t);midMsg.t=setTimeout(()=>{el.hidden=true;},3500);}
 // a cracker left in the water goes soggy: the next time the game opens, the fish is itself again
-let SOAKED=0;function soakCheck(){if(SOAKED||!USER||VISIT)return;SOAKED=1;const l=lookOf();if(l.skin==='cracker'){l.skin='';applyLook();persist();setTimeout(()=>midMsg(pet().name+' got so soggy it turned back into a fish'),700);}}
+let SOAKED=0;function soakCheck(){if(SOAKED||!USER||VISIT)return;SOAKED=1;const l=lookOf();delete pet().paint;delete pet().paintBy;if(l.skin==='cracker'){l.skin='';applyLook();persist();setTimeout(()=>midMsg(pet().name+' got so soggy it turned back into a fish'),700);}
+  let wet=null;for(const it of save.friends||[])if(it.paint){if(!it.paintT)it.paintT=Date.now();else if(Date.now()-it.paintT>2*864e5){delete it.paint;delete it.paintT;wet=it;}}
+  if(wet){persist();refreshFriendLooks.t=0;spawnFriends();setTimeout(()=>midMsg('@'+wet.from+'’s cracker got soggy and turned back into a fish'),wet&&l.skin==='cracker'?4200:700);}}
 // a cracker (yours or a friend's): sinks, lands with a puff and settles half into the sand; while held by the hand it follows the finger
 function crackerTick(o,dt,held){const P=o.pos,rest=sandAt(P.x,P.z)+0.03;if(o.vel)o.vel.set(0,0,0);
   if(held&&tool==='hand'){const t=ptr.world;P.lerp(new V3(clamp(t.x,-B.x,B.x),clamp(t.y,rest+0.1,B.surf-0.2),clamp(t.z,-1.3,0.6)),1-Math.exp(-12*dt));o.crV=0;o.crL=0;o.crB=0;}
@@ -867,7 +870,7 @@ function crackerFace(sc,paint){const c=document.createElement('canvas');c.width=
   for(let i=0;i<500;i++){x.fillStyle=r()<0.85?'rgba(255,240,200,.9)':'rgba(140,70,15,.5)';const k=(0.6+r()*1.3)*sc/160;x.fillRect(r()*c.width,r()*c.height,k,k);}
   if(paint)x.drawImage(paint,0,0,c.width,c.height);return c;}
 // a friend's decorated cracker: its own face texture laid across the cracker's outline
-function paintCracker(F,url){if(!F.cracker)return;if(!url){F.cracker.geometry=CRK.geo;F.cracker.material=CRK.mat;return;}const im=new Image();im.onload=()=>{if(!F.cracker)return;
+function paintCracker(F,url){if(!F.cracker)return;if(!url){if(F.cracker.material!==CRK.mat){F.cracker.material.map&&F.cracker.material.map.dispose();F.cracker.material.dispose();}F.cracker.geometry=CRK.geo;F.cracker.material=CRK.mat;return;}const im=new Image();im.onload=()=>{if(!F.cracker)return;
     const tx=new THREE.CanvasTexture(crackerFace(320,im)),w=CRKB.x1-CRKB.x0,h=CRKB.y1-CRKB.y0;tx.repeat.set(1/w,1/h);tx.offset.set(-CRKB.x0/w,-CRKB.y0/h);
     if(F.cracker.material!==CRK.mat){F.cracker.material.map&&F.cracker.material.map.dispose();F.cracker.material.dispose();}F.cracker.geometry=CRK.geoS;F.cracker.material=flatMat({map:tx,vertexColors:true});};im.src=url;}
 /* decorating a friend's cracker: tap it and draw on it with icing - pick a colour and a nozzle, draw with your finger, undo or wipe it clean,
@@ -895,10 +898,10 @@ document.querySelectorAll('#paintSheet [data-nz]').forEach(b=>b.onclick=()=>{PNT
 $('#paintUndo').onclick=()=>{if(PNT.strokes.length)PNT.strokes.pop();else PNT.old=null;paintDraw();};
 $('#paintClear').onclick=()=>{PNT.strokes=[];PNT.old=null;paintDraw();};
 $('#paintClose').onclick=()=>{$('#paintSheet').hidden=true;PNT=null;};
-$('#paintSave').onclick=()=>{const f=PNT.f,empty=!PNT.strokes.length&&!PNT.old,had=f.src.paint;f.src.paint=empty?undefined:paintLayer(160).toDataURL('image/png');persist();cloudDirty=true;cloudPut();paintCracker(f.F,f.src.paint);$('#paintSheet').hidden=true;PNT=null;
+$('#paintSave').onclick=()=>{const f=PNT.f,empty=!PNT.strokes.length&&!PNT.old,had=f.src.paint;f.src.paint=empty?undefined:paintLayer(160).toDataURL('image/png');f.src.paintT=Date.now();persist();cloudDirty=true;cloudPut();paintCracker(f.F,f.src.paint);$('#paintSheet').hidden=true;PNT=null;
   // let the friend who sent it know, so they can come and look (once per decorating, not for wiping it off)
   if(!empty&&f.src.from&&f.src.from!==USER&&f.src.paint!==had)sendTo(f.src.from,'sticker','painted').then(()=>toast('@'+f.src.from+' can come and see it',2.6),()=>{});};
-function setCracker(F,on){const cur=F.inner.children.find(o=>o.userData.cracker);if(on&&!cur){F.inner.children.forEach(o=>{o.userData.wasVis=o.visible;o.visible=false;});const m=crackerMesh();m.rotation.z=0.05;F.inner.add(m);F.cracker=m;}
+function setCracker(F,on){const cur=F.inner.children.find(o=>o.userData.cracker);if(on&&!cur){F.inner.children.forEach(o=>{o.userData.wasVis=o.visible;o.visible=false;});const m=crackerMesh();m.rotation.z=0.05;F.inner.add(m);F.cracker=m;F.crPaint=undefined;}
   else if(!on&&cur){F.inner.remove(cur);F.inner.children.forEach(o=>{o.visible=o.userData.wasVis!==false;});F.cracker=null;}}
 function applyLook(F,lk,st){F=F||R;if(!F)return;lk=lk||lookOf();setCracker(F,lk.skin==='cracker');if(st===undefined)st=F===R?growStage():10;const Yc=youth(st);F.inner.updateMatrixWorld(true);const inv=new THREE.Matrix4().copy(F.inner.matrixWorld).invert(),m=new THREE.Matrix4(),v=new V3();
   const geos=[];F.inner.traverse(o=>{if(!o.isMesh||(o.material!==MAT_FISH&&o.material!==MAT_FIN))return;const g=o.geometry;
@@ -1570,7 +1573,7 @@ function physics(dt){S.vyPre=S.vel.y;if(S.vel.y<0&&S.lowGap!==undefined){const c
 function animate(dt){CUR.mouth=damp(CUR.mouth,0,8,dt);CUR.burst=damp(CUR.burst,0,4,dt);CUR.gulp=damp(CUR.gulp,0,6,dt);S.eatCap-=dt;S.seeCap-=dt;S.tiredCap=(S.tiredCap||0)-dt;S.playCap=(S.playCap||0)-dt;
   {const g=CUR.gulp,yy=(1+(S.sqY||0))*(1+0.12*g),zz=(1+(S.sqZ||0))*(1+0.12*g),f=Math.sqrt(Math.max(0.2,yy*zz));const bx=1/Math.sqrt(1+(S.sqX||0)*0.6);{const Y=S.yShape;R.inner.scale.set(Y?Y.lx:1,yy/f*bx*(Y?Y.ly:1),zz/f*bx*(Y?Y.lz:1));}S.flatDrop=0.09*Math.max(0,1-yy/f*bx)*(S.ground||0);}
   const sp=S.vel.length(),hs=Math.hypot(S.vel.x,S.vel.z);
-  R.g.position.copy(S.pos);if(R.cracker){const h=clamp((S.pos.y-sandAt(S.pos.x,S.pos.z)-0.03)/0.5,0,1);S.crk=damp(S.crk||0,1-h,3,dt);R.g.rotation.set(0.04-0.55*S.crk+0.05*Math.sin(T*1.3)*h,0.22+0.1*Math.sin(T*0.7)*h,0.05+0.15*S.crk);return;}R.g.position.y-=(S.flatDrop||0)+0.022*(S.peckDip||0);if(S.mode!=='nibble')S.peckDip=damp(S.peckDip||0,0,8,dt);
+  R.g.position.copy(S.pos);if(R.cracker){{const want=(VISIT?VISIT.paint:pet().paint)||null;if(R.crPaint!==want){R.crPaint=want;paintCracker(R,want);}}const h=clamp((S.pos.y-sandAt(S.pos.x,S.pos.z)-0.03)/0.5,0,1);S.crk=damp(S.crk||0,1-h,3,dt);R.g.rotation.set(0.04-0.55*S.crk+0.05*Math.sin(T*1.3)*h,0.22+0.1*Math.sin(T*0.7)*h,0.05+0.15*S.crk);return;}R.g.position.y-=(S.flatDrop||0)+0.022*(S.peckDip||0);if(S.mode!=='nibble')S.peckDip=damp(S.peckDip||0,0,8,dt);
   {const op=S.pitch;S.pitch=damp(S.pitch,((S.react&&S.react.type==='trick')?0.22*Math.sin(Math.PI*clamp(S.react.t/S.react.dur)):S.faceT?Math.max(S.mode==='nibble'?-0.35:-9,Math.atan2(S.faceT.y-S.pos.y,Math.hypot(S.faceT.x-S.pos.x,S.faceT.z-S.pos.z)+0.01)):(S.vel.length()<0.08?0:Math.atan2(S.vel.y,hs+0.01)))*(1-0.8*(S.ground||0)*(S.mode==='nibble'?0:1)),4.5,dt);S.pitchV=damp(S.pitchV||0,(S.pitch-op)/Math.max(dt,1e-4),10,dt);}S.rollC=damp(S.rollC,clamp(S.turnRate*0.1,-0.45,0.45),5,dt);
   if(!(S.react&&S.react.type==='trick')){if(!isFinite(S.roll))S.roll=0;if(S.roll){const tg=Math.round(S.roll/(Math.PI*2))*Math.PI*2;S.roll=damp(S.roll,tg,6,dt);if(Math.abs(S.roll-tg)<0.01)S.roll=0;}}
   if(!isFinite(S.pitch))S.pitch=0;if(!isFinite(S.rollC))S.rollC=0;
@@ -1906,7 +1909,7 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden)setTimeout
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)pull();});
 /* the home-screen app keeps an old copy of the page open (and iOS caches it), so check for a newer build when it opens or comes back,
    and reload past the cache if there is one */
-const BUILD='20261119150244';
+const BUILD='20261119150730';
 function checkBuild(){fetch('version.json?t='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{if(!j||!j.b||j.b===BUILD)return;
   try{if(sessionStorage.getItem('gf-build')===j.b)return;sessionStorage.setItem('gf-build',j.b);}catch(e){}
   try{persistLocal();}catch(e){}location.replace(location.pathname+'?v='+encodeURIComponent(j.b));}).catch(()=>{});}
@@ -2582,7 +2585,7 @@ $('#mTank').onclick=()=>{$('#more').hidden=true;$('#tvBtn').click();};$('#mPhoto
 $('#mSound').onclick=()=>{$('#snd').click();$('#mSoundTxt').textContent=save.sound?'on':'off';};
 function enterVisit(n,rec){if(TV.on)setTankView(false);if(toy)endToy(true);persistLocal();
   const f=(rec.save.pets&&rec.save.pets.fish)||{},pr=normProg(rec.prog);
-  VISIT_REC(n);VISIT={n,mine:save.tank,look:Object.assign({c:'orange',p:'plain',seed:1},f.look||{}),stage:Math.min(10,Math.max(pr.grow||0,Math.floor(pr.level/5))),fish:f.name||DEF,level:pr.level};
+  VISIT_REC(n);VISIT={n,mine:save.tank,paint:f.paint||((save.friends||[]).find(x=>x.from===n&&x.paint)||{}).paint||null,look:Object.assign({c:'orange',p:'plain',seed:1},f.look||{}),stage:Math.min(10,Math.max(pr.grow||0,Math.floor(pr.level/5))),fish:f.name||DEF,level:pr.level};
   VISIT.lamp=rec.save.lamp;VISIT.clean=clamp(+(f.s&&f.s.clean)||80,0,100);VISIT.myLights=lightsOff;lightsOff=!!rec.save.night;document.body.classList.toggle('night',lightsOff);if(S)S.asleep=lightsOff;
   VISIT.snails=(rec.save.snails||[]).slice(0,14);VISIT.friends=(rec.save.friends||[]).slice(0,6);{const vf=VISIT.friends,vn=n;refreshFriendLooks(vf,()=>{if(VISIT&&VISIT.n===vn)spawnFriends();});}save.tank=JSON.parse(JSON.stringify(rec.save.tank||{}));rebuildTank();spawnFriends();R.lookStage=null;S.grow=VISIT.stage/10;applyLook();
   document.body.classList.add('visiting');$('#visitBar').hidden=false;$('#visitTitle').textContent='@'+n+'’s tank · '+VISIT.fish+'\nlv '+VISIT.level;say('');}
@@ -2924,7 +2927,7 @@ function openGifts(list){const el=$('#giftInList');if($('#giftIn').hidden)el.tex
       pic='<img alt="" src="'+img+'" style="width:56px;height:40px">';txt='@'+g.from+' sent a little fish';setTimeout(spawnFriends,50);}
     else if(g.kind==='duel'){const [dk,res]=String(g.item).split('.'),gm=dk==='balance'?'rock balancing':'rock stacking',th=makeThumbs();pic='<img alt="" src="'+th.ring+'">';
       if(res==='l'){const r=awardRing();placedGift=!!r;if(r)pic='<img alt="" src="'+th[r.id]+'">';txt='you beat @'+g.from+' at '+gm+' · '+(r?r.name+' ':'')+'+100 xp';}else txt='@'+g.from+' beat you at '+gm;}
-    else if(g.kind==='sticker'&&g.item==='painted'){pic='<span class="gpic">✎</span>';txt='@'+g.from+' decorated the cracker you sent';row.dataset.visit=g.from;}
+    else if(g.kind==='sticker'&&g.item==='painted'){if(lookOf().skin==='cracker'&&!VISIT)cloudGet(g.from).then(rec=>{const it=rec&&rec.save&&(rec.save.friends||[]).find(x=>x.from===USER&&x.paint);if(it&&lookOf().skin==='cracker'){pet().paint=it.paint;pet().paintBy=g.from;persist();}},()=>{});pic='<span class="gpic">✎</span>';txt='@'+g.from+' decorated the cracker you sent';row.dataset.visit=g.from;}
     else if(g.kind==='sticker'&&/^note\.\d+$/.test(g.item)&&NOTES[+g.item.slice(5)]){const m=NOTES[+g.item.slice(5)];(save.inbox=save.inbox||[]).unshift({t:g.at||Date.now(),x:'@'+g.from+' left a note: “'+m+'”',n:1});bellDot();showLetter(g.from,m);continue;}
     else if(g.kind==='sticker'&&STICKERS[g.item]){pic=stk(g.item,40);txt='@'+g.from+' sent a '+g.item;}
     else if(g.kind==='deco'){const pd=parseDecoItem(g.item),d=ALLDECO().find(x=>x.id===pd.id&&!x.prize);if(!d)continue;const th=makeThumbs();pic='<img alt="" src="'+th[d.id]+'">';
