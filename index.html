@@ -179,6 +179,7 @@ body.visiting .ui,body.visiting #say{display:none}
 .card{position:relative}
 .row2.topclose{position:absolute;top:20px;right:22px;margin:0;width:auto}
 #paintCv{display:block;width:100%;height:auto;margin:6px 0 10px;touch-action:none;cursor:crosshair}#paintCols{justify-content:center;margin-bottom:8px}
+.gift-line .gsee{flex:none;margin-left:auto;background:rgba(0,0,0,.06);border:0;border-radius:6px;padding:4px 10px;font:inherit;font-size:15px;color:inherit}.gpic{font-size:26px;width:40px;text-align:center}
 .ptools{display:flex;gap:6px;align-items:center;margin-bottom:6px}.ptools span{flex:1}.ptools button{background:rgba(0,0,0,.06);border:0;border-radius:6px;padding:5px 10px;font:inherit;font-size:15px;color:inherit}.ptools button[aria-pressed=true]{background:#111;color:#fff}
 #midMsg{position:fixed;left:50%;top:42%;transform:translate(-50%,-50%);z-index:25;max-width:80vw;text-align:center;font-size:26px;line-height:1.25;color:var(--ink);text-shadow:0 0 12px rgba(255,255,255,.9);pointer-events:none;animation:midIn 3.4s ease forwards}
 @keyframes midIn{0%{opacity:0;transform:translate(-50%,-40%)}12%,80%{opacity:1;transform:translate(-50%,-50%)}100%{opacity:0;transform:translate(-50%,-55%)}}
@@ -537,7 +538,7 @@ const KO={'my friends':'내 친구','everyone':'전체','search username':'아�
 'clear':'투명','green':'초록','warm':'따뜻한','blue':'파랑','purple':'보라','night lamp':'무드등','the color of the light at night':'밤에 켜지는 빛의 색',
 'a mood lamp beside the tank, on from 9 pm to 5 am':'어항 옆 무드등 · 밤 9시부터 새벽 5시까지 켜져요',
 'candy cane':'지팡이 사탕','gift box':'선물 상자','ice crystals':'얼음 결정','snowman':'눈사람','little sled':'작은 썰매','pine tree':'소나무',
-'penguin':'펭귄','cracker':'크래커','thin':'얇게','medium':'보통','thick':'두껍게','undo':'되돌리기','igloo':'이글루','polar bear':'북극곰','snow globe':'스노볼',
+'penguin':'펭귄','cracker':'크래커','go see':'보러 가기','thin':'얇게','medium':'보통','thick':'두껍게','undo':'되돌리기','igloo':'이글루','polar bear':'북극곰','snow globe':'스노볼',
 'first meal':'첫 식사','100 flakes eaten':'먹이 100개 먹기','caught the lure 100 times':'미끼 100번 잡기','50 tricks':'재주 50번',
 'a heap of 20 pebbles':'자갈 20개 더미','100 smudges wiped':'얼룩 100개 닦기','7 days in a row':'7일 연속','30 days in a row':'30일 연속',
 'get every need above 60 at once':'모든 상태를 한꺼번에 60 넘기기',
@@ -583,7 +584,8 @@ const KO={'my friends':'내 친구','everyone':'전체','search username':'아�
 'edit · your fish’s color and pattern, the water, decorations, and the night lamp':'편집 · 금붕어 색과 무늬, 물 색, 장식, 무드등을 바꿔요','tank view · see your tank on its table in a little room, and turn it around':'어항 보기 · 작은 방 탁자 위의 어항을 보고 돌려 봐요',
 'camera · take a picture of your tank':'카메라 · 어항 사진을 찍어요','your keeper name · tap to switch keepers':'키퍼 이름 · 탭하면 다른 키퍼로 바꿔요','growth':'성장','drag it where you like · twist or use the arrows to turn it':'원하는 곳으로 끌어 놓고, 비틀거나 화살표로 돌려요','send':'보내기','cancel':'취소','turn your fish':'물고기 돌리기','language':'언어','growth · by level':'성장 · 레벨별','Take picture':'사진 찍기','Sound on':'소리 켜짐','Sound off':'소리 꺼짐','Tank view':'어항 보기','drag to turn · pinch to zoom':'끌어서 돌리기 · 두 손가락으로 확대','Zoom in':'확대','Zoom out':'축소','Goldfish tank. Tap, drag and feed to interact.':'금붕어 수조. 탭하고 끌고 먹이를 주며 놀아 주세요.',
 ': check the Firestore rules':': Firestore 규칙을 확인해 주세요',': is the Firestore database created?':': Firestore 데이터베이스가 만들어졌는지 확인해 주세요'};
-const KO_RX=[[/^decorate @(.+)’s cracker$/,'@$1의 크래커 꾸미기'],
+const KO_RX=[[/^@(.+) decorated the cracker you sent$/,'@$1님이 보낸 크래커를 꾸몄어요'],[/^@(.+) can come and see it$/,'@$1에게 알렸어요 · 놀러 와서 볼 수 있어요'],
+[/^decorate @(.+)’s cracker$/,'@$1의 크래커 꾸미기'],
 [/^(.+) got so soggy it turned back into a fish$/,'$1, 너무 불어서 원래 모습으로 돌아왔어요'],[/^(.+) turned into a cracker!$/,'$1, 크래커로 변했어요!'],
 [/^from @(.+)$/,'@$1에게서'],
 [/^friend request sent to @(.+)$/,'@$1에게 친구 신청을 보냈어요'],[/^you and @(.+) are friends now$/,'이제 @$1와(과) 친구예요'],[/^@(.+) sent you a friend request$/,'@$1님이 친구 신청을 보냈어요'],[/^@(.+) accepted your friend request$/,'@$1님이 친구 신청을 수락했어요'],[/^you can visit @(.+) once you’re friends$/,'친구가 되면 @$1의 어항에 놀러 갈 수 있어요'],[/^that real name doesn’t match @(.+)$/,'@$1 계정의 본명과 맞지 않아요'],
@@ -893,7 +895,9 @@ document.querySelectorAll('#paintSheet [data-nz]').forEach(b=>b.onclick=()=>{PNT
 $('#paintUndo').onclick=()=>{if(PNT.strokes.length)PNT.strokes.pop();else PNT.old=null;paintDraw();};
 $('#paintClear').onclick=()=>{PNT.strokes=[];PNT.old=null;paintDraw();};
 $('#paintClose').onclick=()=>{$('#paintSheet').hidden=true;PNT=null;};
-$('#paintSave').onclick=()=>{const f=PNT.f,empty=!PNT.strokes.length&&!PNT.old;f.src.paint=empty?undefined:paintLayer(160).toDataURL('image/png');persist();paintCracker(f.F,f.src.paint);$('#paintSheet').hidden=true;PNT=null;};
+$('#paintSave').onclick=()=>{const f=PNT.f,empty=!PNT.strokes.length&&!PNT.old,had=f.src.paint;f.src.paint=empty?undefined:paintLayer(160).toDataURL('image/png');persist();cloudDirty=true;cloudPut();paintCracker(f.F,f.src.paint);$('#paintSheet').hidden=true;PNT=null;
+  // let the friend who sent it know, so they can come and look (once per decorating, not for wiping it off)
+  if(!empty&&f.src.from&&f.src.from!==USER&&f.src.paint!==had)sendTo(f.src.from,'sticker','painted').then(()=>toast('@'+f.src.from+' can come and see it',2.6),()=>{});};
 function setCracker(F,on){const cur=F.inner.children.find(o=>o.userData.cracker);if(on&&!cur){F.inner.children.forEach(o=>{o.userData.wasVis=o.visible;o.visible=false;});const m=crackerMesh();m.rotation.z=0.05;F.inner.add(m);F.cracker=m;}
   else if(!on&&cur){F.inner.remove(cur);F.inner.children.forEach(o=>{o.visible=o.userData.wasVis!==false;});F.cracker=null;}}
 function applyLook(F,lk,st){F=F||R;if(!F)return;lk=lk||lookOf();setCracker(F,lk.skin==='cracker');if(st===undefined)st=F===R?growStage():10;const Yc=youth(st);F.inner.updateMatrixWorld(true);const inv=new THREE.Matrix4().copy(F.inner.matrixWorld).invert(),m=new THREE.Matrix4(),v=new V3();
@@ -1902,7 +1906,7 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden)setTimeout
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)pull();});
 /* the home-screen app keeps an old copy of the page open (and iOS caches it), so check for a newer build when it opens or comes back,
    and reload past the cache if there is one */
-const BUILD='20261119144515';
+const BUILD='20261119150244';
 function checkBuild(){fetch('version.json?t='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{if(!j||!j.b||j.b===BUILD)return;
   try{if(sessionStorage.getItem('gf-build')===j.b)return;sessionStorage.setItem('gf-build',j.b);}catch(e){}
   try{persistLocal();}catch(e){}location.replace(location.pathname+'?v='+encodeURIComponent(j.b));}).catch(()=>{});}
@@ -2745,7 +2749,8 @@ function showFishChange(){}
 function refreshFriendLooks(list,done){if(!DB||!list||!list.length)return;refreshFriendLooks.t=Date.now();const names=[...new Set(list.map(f=>f.from).filter(n=>NAME_RE.test(n||'')))];let changed=false,left=names.length;
   names.forEach(n=>fetch(docURL(n),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{if(!j||!j.fields||!j.fields.data)return;let rec;try{rec=JSON.parse(j.fields.data.stringValue);}catch(e){return;}
     const lk=rec&&rec.save&&rec.save.pets&&rec.save.pets.fish&&rec.save.pets.fish.look;if(!lk)return;const nl=unpackLook(packLook(lk)),st=recStage(rec);
-    for(const f of list)if(f.from===n&&(packLook(f.look||{})!==packLook(nl)||fstage(f)!==st)){f.look=nl;f.stage=st;changed=true;}}).catch(()=>{}).finally(()=>{if(--left===0&&changed)done&&done();}));}
+    // (a cracker someone decorated stays a cracker, so the drawing isn't lost when the sender's own fish changes)
+    for(const f of list)if(f.from===n&&!f.paint&&(packLook(f.look||{})!==packLook(nl)||fstage(f)!==st)){f.look=nl;f.stage=st;changed=true;}}).catch(()=>{}).finally(()=>{if(--left===0&&changed)done&&done();}));}
 function giftDay(){if(!PROG.gday||PROG.gday.d!==dayKey())PROG.gday={d:dayKey(),snack:0};return PROG.gday;}
 function giftMsg(t){$('#giftMsg').textContent=t;$('#noteMsg').textContent=t;if($('#giftOut').hidden&&$('#noteOut').hidden&&t&&t!=='sending…'&&!/^sent to/.test(t))toast(t,3);}
 /* placing a decoration gift: it appears in your friend's tank, you drag it where you like (twist or the arrows turn it), then send */
@@ -2919,13 +2924,15 @@ function openGifts(list){const el=$('#giftInList');if($('#giftIn').hidden)el.tex
       pic='<img alt="" src="'+img+'" style="width:56px;height:40px">';txt='@'+g.from+' sent a little fish';setTimeout(spawnFriends,50);}
     else if(g.kind==='duel'){const [dk,res]=String(g.item).split('.'),gm=dk==='balance'?'rock balancing':'rock stacking',th=makeThumbs();pic='<img alt="" src="'+th.ring+'">';
       if(res==='l'){const r=awardRing();placedGift=!!r;if(r)pic='<img alt="" src="'+th[r.id]+'">';txt='you beat @'+g.from+' at '+gm+' · '+(r?r.name+' ':'')+'+100 xp';}else txt='@'+g.from+' beat you at '+gm;}
+    else if(g.kind==='sticker'&&g.item==='painted'){pic='<span class="gpic">✎</span>';txt='@'+g.from+' decorated the cracker you sent';row.dataset.visit=g.from;}
     else if(g.kind==='sticker'&&/^note\.\d+$/.test(g.item)&&NOTES[+g.item.slice(5)]){const m=NOTES[+g.item.slice(5)];(save.inbox=save.inbox||[]).unshift({t:g.at||Date.now(),x:'@'+g.from+' left a note: “'+m+'”',n:1});bellDot();showLetter(g.from,m);continue;}
     else if(g.kind==='sticker'&&STICKERS[g.item]){pic=stk(g.item,40);txt='@'+g.from+' sent a '+g.item;}
     else if(g.kind==='deco'){const pd=parseDecoItem(g.item),d=ALLDECO().find(x=>x.id===pd.id&&!x.prize);if(!d)continue;const th=makeThumbs();pic='<img alt="" src="'+th[d.id]+'">';
       if(save.tank.owned[d.id]){addXP(Math.round(d.price/2));txt='@'+g.from+' sent a '+d.name+' (you had one, so +'+Math.round(d.price/2)+' xp)';}else{save.tank.owned[d.id]=1;txt='@'+g.from+' sent a '+d.name;
         if(pd.x!==undefined&&!save.tank.items.some(i=>i.id===d.id)){save.tank.items.push({id:d.id,x:+pd.x.toFixed(3),z:+pd.z.toFixed(2),r:+pd.r.toFixed(2),t:Date.now()});placedGift=true;txt+=' and placed it in your tank';}}}
     else continue;
-    row.innerHTML=pic;const t=document.createElement('span');t.textContent=txt;if(g.at)t.dataset.at=g.at;row.appendChild(t);el.appendChild(row);}
+    row.innerHTML=pic;const t=document.createElement('span');t.textContent=txt;if(g.at)t.dataset.at=g.at;row.appendChild(t);
+    if(row.dataset.visit){const b=document.createElement('button');b.type='button';b.className='gsee';b.textContent='go see';const n=row.dataset.visit;b.onclick=()=>{$('#giftIn').hidden=true;goVisit(n);};row.appendChild(b);}el.appendChild(row);}
   {const ib=save.inbox=(save.inbox||[]);el.querySelectorAll('.gift-line span').forEach(sp=>ib.unshift({t:+sp.dataset.at||Date.now(),x:sp.textContent,n:1}));save.inbox=ib.slice(0,40);bellDot();}
   if(placedGift){const before=new Set(ITEMS_ON.map(o=>o.userData.item));rebuildTank();setTimeout(()=>{for(const o of ITEMS_ON)if(!before.has(o.userData.item))dropIn(o);},0);}if(!el.childElementCount)return;renderUI();persist();$('#giftIn').hidden=false;snd.pop&&snd.pop();el.querySelectorAll('.gift-line').forEach((r,i)=>r.style.animationDelay=(i*0.12)+'s');}
 $('#giftInClose').onclick=()=>{$('#giftIn').hidden=true;};
