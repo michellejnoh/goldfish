@@ -523,7 +523,7 @@ const KO={'my friends':'내 친구','everyone':'전체','search username':'아�
 'clear':'투명','green':'초록','warm':'따뜻한','blue':'파랑','purple':'보라','night lamp':'무드등','the color of the light at night':'밤에 켜지는 빛의 색',
 'a mood lamp beside the tank, on from 9 pm to 5 am':'어항 옆 무드등 · 밤 9시부터 새벽 5시까지 켜져요',
 'candy cane':'지팡이 사탕','gift box':'선물 상자','ice crystals':'얼음 결정','snowman':'눈사람','little sled':'작은 썰매','pine tree':'소나무',
-'penguin':'펭귄','igloo':'이글루','polar bear':'북극곰','snow globe':'스노볼',
+'penguin':'펭귄','cracker':'크래커','igloo':'이글루','polar bear':'북극곰','snow globe':'스노볼',
 'first meal':'첫 식사','100 flakes eaten':'먹이 100개 먹기','caught the lure 100 times':'미끼 100번 잡기','50 tricks':'재주 50번',
 'a heap of 20 pebbles':'자갈 20개 더미','100 smudges wiped':'얼룩 100개 닦기','7 days in a row':'7일 연속','30 days in a row':'30일 연속',
 'get every need above 60 at once':'모든 상태를 한꺼번에 60 넘기기',
@@ -811,7 +811,27 @@ function bodyProfile(F){if(F.prof)return F.prof;let bg=null;F.inner.traverse(o=>
   for(let k=0;k<=N;k++)if(lo[k]>hi[k]){lo[k]=lo[k-1]||0;hi[k]=hi[k-1]||0;}
   return F.prof={x0,x1,N,lo,hi};}
 function vOf(P,x,y){const k=Math.round(clamp((x-P.x0)/(P.x1-P.x0))*P.N),a=P.lo[k],b=P.hi[k];return clamp((y-a)/Math.max(1e-3,b-a));}
-function applyLook(F,lk,st){F=F||R;if(!F)return;lk=lk||lookOf();if(st===undefined)st=F===R?growStage():10;const Yc=youth(st);F.inner.updateMatrixWorld(true);const inv=new THREE.Matrix4().copy(F.inner.matrixWorld).invert(),m=new THREE.Matrix4(),v=new V3();
+/* cracker skin: the fish becomes a little baked fish-shaped cheese cracker - a puffy flat fish outline with soft browned edges,
+   a dusting of salt crystals and tiny toasted specks - and it just stays put, no swimming */
+let CRK=null;
+function crackerMesh(){if(!CRK){const sh=new THREE.Shape();sh.moveTo(0.62,0.02);sh.bezierCurveTo(0.6,0.26,0.32,0.36,0.04,0.33);sh.bezierCurveTo(-0.22,0.3,-0.38,0.2,-0.48,0.12);
+    sh.bezierCurveTo(-0.58,0.2,-0.7,0.3,-0.82,0.31);sh.bezierCurveTo(-0.86,0.12,-0.78,0.02,-0.8,-0.02);sh.bezierCurveTo(-0.79,-0.12,-0.86,-0.22,-0.82,-0.3);
+    sh.bezierCurveTo(-0.7,-0.3,-0.58,-0.2,-0.48,-0.12);sh.bezierCurveTo(-0.36,-0.24,-0.18,-0.31,0.06,-0.31);sh.bezierCurveTo(0.34,-0.31,0.6,-0.22,0.62,0.02);
+    const geo=new THREE.ExtrudeGeometry(sh,{depth:0.1,bevelEnabled:true,bevelThickness:0.07,bevelSize:0.06,bevelSegments:5,curveSegments:28});geo.translate(0,0,-0.05);geo.computeVertexNormals();
+    // baked colour: golden orange, toasted darker toward the rim, lighter on the puffed middle of each face
+    const p=geo.attributes.position,n=geo.attributes.normal,col=[],base=new THREE.Color(0xf2a51f),dark=new THREE.Color(0xc9721a),lite=new THREE.Color(0xf9c548),o=new THREE.Color(),L=new V3(0.3,0.7,0.65).normalize(),nv=new V3();
+    for(let i=0;i<p.count;i++){nv.set(n.getX(i),n.getY(i),n.getZ(i));const face=Math.abs(nv.z),x=p.getX(i),y=p.getY(i),mid=Math.max(0,1-Math.hypot((x-0.05)/0.55,y/0.3));
+      o.copy(base).lerp(dark,(1-face)*0.55).lerp(lite,mid*face*0.35).multiplyScalar(0.86+0.24*Math.max(0,nv.dot(L)));col.push(o.r,o.g,o.b);}
+    geo.setAttribute('color',new THREE.Float32BufferAttribute(col,3));
+    // salt crystals and toasted specks on the surface
+    const c=document.createElement('canvas');c.width=c.height=256;const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,256,256);
+    for(let i=0;i<60;i++){x.fillStyle='rgba(205,150,60,'+(0.08+Math.random()*0.08)+')';x.beginPath();x.arc(Math.random()*256,Math.random()*256,4+Math.random()*10,0,7);x.fill();}
+    for(let i=0;i<520;i++){x.fillStyle=Math.random()<0.85?'rgba(255,246,214,.95)':'rgba(150,80,20,.55)';const r=0.6+Math.random()*1.3;x.fillRect(Math.random()*256,Math.random()*256,r,r);}
+    const tx=new THREE.CanvasTexture(c);tx.wrapS=tx.wrapT=THREE.RepeatWrapping;tx.repeat.set(1.6,1.6);CRK={geo,mat:flatMat({map:tx,vertexColors:true})};}
+  const m=new THREE.Mesh(CRK.geo,CRK.mat);m.userData.cracker=1;return m;}
+function setCracker(F,on){const cur=F.inner.children.find(o=>o.userData.cracker);if(on&&!cur){F.inner.children.forEach(o=>{o.userData.wasVis=o.visible;o.visible=false;});const m=crackerMesh();m.rotation.z=0.05;F.inner.add(m);F.cracker=m;}
+  else if(!on&&cur){F.inner.remove(cur);F.inner.children.forEach(o=>{o.visible=o.userData.wasVis!==false;});F.cracker=null;}}
+function applyLook(F,lk,st){F=F||R;if(!F)return;lk=lk||lookOf();setCracker(F,lk.skin==='cracker');if(st===undefined)st=F===R?growStage():10;const Yc=youth(st);F.inner.updateMatrixWorld(true);const inv=new THREE.Matrix4().copy(F.inner.matrixWorld).invert(),m=new THREE.Matrix4(),v=new V3();
   const geos=[];F.inner.traverse(o=>{if(!o.isMesh||(o.material!==MAT_FISH&&o.material!==MAT_FIN))return;const g=o.geometry;
     if(!g.userData.rest){const src=g.userData.base0||g.attributes.position.array,rest=new Float32Array(src.length);m.multiplyMatrices(inv,o.matrixWorld);
       for(let i=0;i<src.length;i+=3){v.set(src[i],src[i+1],src[i+2]).applyMatrix4(m);rest[i]=v.x;rest[i+1]=v.y;rest[i+2]=v.z;}g.userData.rest=rest;}
@@ -1366,7 +1386,7 @@ function doReact(dt){const r=S.react;r.t+=dt;const u=clamp(r.t/r.dur);
   if(r.t>=r.dur){if(r.type==='trick')S.roll=0;S.react=null;}}
 
 /* ================= behaviour ================= */
-function behave(dt){const s=pet().s;S.faceT=null;
+function behave(dt){const s=pet().s;S.faceT=null;if(R.cracker){S.vel.set(0,0,0);return;}
   S.look=(T-ptr.seen<2.5&&ptr.world)?ptr.world:null;
   if(DX){duelHost(dt);return;}
   if(S.react&&S.react.lock){doReact(dt);return;}
@@ -1481,7 +1501,7 @@ function physics(dt){S.vyPre=S.vel.y;if(S.vel.y<0&&S.lowGap!==undefined){const c
 function animate(dt){CUR.mouth=damp(CUR.mouth,0,8,dt);CUR.burst=damp(CUR.burst,0,4,dt);CUR.gulp=damp(CUR.gulp,0,6,dt);S.eatCap-=dt;S.seeCap-=dt;S.tiredCap=(S.tiredCap||0)-dt;S.playCap=(S.playCap||0)-dt;
   {const g=CUR.gulp,yy=(1+(S.sqY||0))*(1+0.12*g),zz=(1+(S.sqZ||0))*(1+0.12*g),f=Math.sqrt(Math.max(0.2,yy*zz));const bx=1/Math.sqrt(1+(S.sqX||0)*0.6);{const Y=S.yShape;R.inner.scale.set(Y?Y.lx:1,yy/f*bx*(Y?Y.ly:1),zz/f*bx*(Y?Y.lz:1));}S.flatDrop=0.09*Math.max(0,1-yy/f*bx)*(S.ground||0);}
   const sp=S.vel.length(),hs=Math.hypot(S.vel.x,S.vel.z);
-  R.g.position.copy(S.pos);R.g.position.y-=(S.flatDrop||0)+0.022*(S.peckDip||0);if(S.mode!=='nibble')S.peckDip=damp(S.peckDip||0,0,8,dt);
+  R.g.position.copy(S.pos);if(R.cracker){R.g.rotation.set(0.04,0.22,0.05);return;}R.g.position.y-=(S.flatDrop||0)+0.022*(S.peckDip||0);if(S.mode!=='nibble')S.peckDip=damp(S.peckDip||0,0,8,dt);
   {const op=S.pitch;S.pitch=damp(S.pitch,((S.react&&S.react.type==='trick')?0.22*Math.sin(Math.PI*clamp(S.react.t/S.react.dur)):S.faceT?Math.max(S.mode==='nibble'?-0.35:-9,Math.atan2(S.faceT.y-S.pos.y,Math.hypot(S.faceT.x-S.pos.x,S.faceT.z-S.pos.z)+0.01)):(S.vel.length()<0.08?0:Math.atan2(S.vel.y,hs+0.01)))*(1-0.8*(S.ground||0)*(S.mode==='nibble'?0:1)),4.5,dt);S.pitchV=damp(S.pitchV||0,(S.pitch-op)/Math.max(dt,1e-4),10,dt);}S.rollC=damp(S.rollC,clamp(S.turnRate*0.1,-0.45,0.45),5,dt);
   if(!(S.react&&S.react.type==='trick')){if(!isFinite(S.roll))S.roll=0;if(S.roll){const tg=Math.round(S.roll/(Math.PI*2))*Math.PI*2;S.roll=damp(S.roll,tg,6,dt);if(Math.abs(S.roll-tg)<0.01)S.roll=0;}}
   if(!isFinite(S.pitch))S.pitch=0;if(!isFinite(S.rollC))S.rollC=0;
@@ -1817,7 +1837,7 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden)setTimeout
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)pull();});
 /* the home-screen app keeps an old copy of the page open (and iOS caches it), so check for a newer build when it opens or comes back,
    and reload past the cache if there is one */
-const BUILD='20261119001103';
+const BUILD='20261119024306';
 function checkBuild(){fetch('version.json?t='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{if(!j||!j.b||j.b===BUILD)return;
   try{if(sessionStorage.getItem('gf-build')===j.b)return;sessionStorage.setItem('gf-build',j.b);}catch(e){}
   try{persistLocal();}catch(e){}location.replace(location.pathname+'?v='+encodeURIComponent(j.b));}).catch(()=>{});}
@@ -1834,7 +1854,7 @@ function openColors(){$('#tank').hidden=true;$('#colors').hidden=false;
   lookPick('#colorList',Object.keys(LOOK_COLORS),k=>Object.assign({},lookOf(),{c:k}),k=>{lookOf().c=k;applyLook();persist();openColors();});}
 function openPatterns(){$('#tank').hidden=true;$('#patterns').hidden=false;
   lookPick('#patList',LOOK_PATTERNS,k=>Object.assign({},lookOf(),{p:k}),k=>{const l=lookOf();if(l.p===k&&k==='patches')l.seed=Math.floor(Math.random()*1000);l.p=k;applyLook();persist();openPatterns();});}
-const LOOK_SKINS=['none','christmas'];
+const LOOK_SKINS=['none','christmas','cracker'];
 function openSkins(){$('#tank').hidden=true;$('#skins').hidden=false;const el=$('#skinList');el.textContent='';const lk=lookOf();
   for(const k of LOOK_SKINS){const b=document.createElement('button');b.type='button';const im=document.createElement('img');im.alt='';im.src=fishThumb(Object.assign({},lk,{skin:k==='none'?'':k}));
     const t=document.createElement('span');t.textContent=k;b.append(im,t);b.setAttribute('aria-pressed',(lk.skin||'none')===k);
@@ -2503,9 +2523,9 @@ function leaveVisit(){if(!VISIT)return;if(DX)endDuel();if(GPLACE)endGiftPlace(fa
 $('#visitHome').onclick=leaveVisit;
 // sending
 const PAT_CODE={plain:'a',fade:'b','dark fins':'c',patches:'d'};
-function packLook(l,st){const a=[l.c||'orange',PAT_CODE[l.p]||'a',(l.seed||0)%1000,l.skin==='christmas'?'x':''];if(st!==undefined)a.push(Math.round(clamp(st,0,10)));return a.join('.');}
+function packLook(l,st){const a=[l.c||'orange',PAT_CODE[l.p]||'a',(l.seed||0)%1000,l.skin==='christmas'?'x':l.skin==='cracker'?'k':''];if(st!==undefined)a.push(Math.round(clamp(st,0,10)));return a.join('.');}
 const fstage=f=>f&&f.stage!==undefined?f.stage:10,fthumb=(lk,st)=>fishThumb(lk,st,0.6+0.4*st/10),recStage=rec=>{const pr=normProg(rec&&rec.prog);return Math.min(10,Math.max(pr.grow||0,Math.floor(pr.level/5)));};
-function unpackLook(s){const [c,p,sd,sk,st]=String(s||'').split('.'),P=Object.keys(PAT_CODE).find(k=>PAT_CODE[k]===p)||'plain';return {c:LOOK_COLORS[c]?c:'orange',p:P,seed:+sd||0,skin:sk==='x'?'christmas':''};}
+function unpackLook(s){const [c,p,sd,sk,st]=String(s||'').split('.'),P=Object.keys(PAT_CODE).find(k=>PAT_CODE[k]===p)||'plain';return {c:LOOK_COLORS[c]?c:'orange',p:P,seed:+sd||0,skin:sk==='x'?'christmas':sk==='k'?'cracker':''};}
 let FRIENDS=[];
 // gifted fish: a fifth of an adult's size, in the sender's colors; they just potter about and can't be played with
 function spawnFriends(){for(const f of FRIENDS){world.remove(f.g);freeTree(f.g);}FRIENDS=[];const list=(VISIT?VISIT.friends:save.friends)||[];
@@ -2591,7 +2611,7 @@ function swimRig(f,F,dt,i,sp,hs,faceT,curl,night,pitchAdd){
      const w=sp<0.3?7.5:3.6;F.fins.forEach((fn,j)=>{const sg=fn.userData.s,ph=T*w+j*1.3+i,main=j<2;fn.rotation.y=sg*((main?0.36:0.22)+(main?0.3:0.16)*Math.sin(ph)+0.06*Math.sin(ph*2.3+1))*(1+0.25*(1-clamp(sp/0.9)));fn.rotation.z=(main?0:-0.35)+0.14*Math.sin(ph+1.2);});}}
 function friendsTick(dt){iactT-=dt;if(IACT){IACT.t-=dt;if(IACT.t<=0){IACT=null;iactT=rnd(14,26);}}else if(iactT<=0){iactPick();if(!IACT)iactT=4;}
   const night=lightsOff,camL=world.worldToLocal(camera.position.clone());
-  FRIENDS.forEach((f,i)=>{f.t-=dt;let cap=0.35,rate=1.8,faceT=null,snq=null;const it=iactTarget(f,dt);
+  FRIENDS.forEach((f,i)=>{if(f.F.cracker){f.g.position.copy(f.pos);f.g.rotation.set(0.04,i%2?Math.PI-0.22:0.22,0.05);return;}f.t-=dt;let cap=0.35,rate=1.8,faceT=null,snq=null;const it=iactTarget(f,dt);
     const led=ptr.down&&ptr.onFriend===f&&ptr.moved>8&&ptr.world;
     const rx=f.rx;if(rx){rx.t+=dt;if(rx.t>=rx.dur){if(rx.type==='trick')f.roll=0;f.rx=null;}}
     if(led){f.rx=null;f.tgt.set(clamp(ptr.world.x,-B.x*0.9,B.x*0.9),clamp(ptr.world.y,B.ymin,B.ymax),clamp(ptr.world.z,-1.3,0.6));cap=1.8;rate=5;f.t=1;faceT=ptr.world;}
