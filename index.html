@@ -584,7 +584,7 @@ const KO={'my friends':'내 친구','everyone':'전체','search username':'아�
 'edit · your fish’s color and pattern, the water, decorations, and the night lamp':'편집 · 금붕어 색과 무늬, 물 색, 장식, 무드등을 바꿔요','tank view · see your tank on its table in a little room, and turn it around':'어항 보기 · 작은 방 탁자 위의 어항을 보고 돌려 봐요',
 'camera · take a picture of your tank':'카메라 · 어항 사진을 찍어요','your keeper name · tap to switch keepers':'키퍼 이름 · 탭하면 다른 키퍼로 바꿔요','growth':'성장','drag it where you like · twist or use the arrows to turn it':'원하는 곳으로 끌어 놓고, 비틀거나 화살표로 돌려요','send':'보내기','cancel':'취소','turn your fish':'물고기 돌리기','language':'언어','growth · by level':'성장 · 레벨별','Take picture':'사진 찍기','Sound on':'소리 켜짐','Sound off':'소리 꺼짐','Tank view':'어항 보기','drag to turn · pinch to zoom':'끌어서 돌리기 · 두 손가락으로 확대','Zoom in':'확대','Zoom out':'축소','Goldfish tank. Tap, drag and feed to interact.':'금붕어 수조. 탭하고 끌고 먹이를 주며 놀아 주세요.',
 ': check the Firestore rules':': Firestore 규칙을 확인해 주세요',': is the Firestore database created?':': Firestore 데이터베이스가 만들어졌는지 확인해 주세요'};
-const KO_RX=[[/^@(.+)’s cracker got soggy and turned back into a fish$/,'@$1의 크래커가 너무 불어서 원래 모습으로 돌아왔어요'],
+const KO_RX=[
 [/^@(.+) decorated the cracker you sent$/,'@$1님이 보낸 크래커를 꾸몄어요'],[/^@(.+) can come and see it$/,'@$1에게 알렸어요 · 놀러 와서 볼 수 있어요'],
 [/^decorate @(.+)’s cracker$/,'@$1의 크래커 꾸미기'],
 [/^(.+) got so soggy it turned back into a fish$/,'$1, 너무 불어서 원래 모습으로 돌아왔어요'],[/^(.+) turned into a cracker!$/,'$1, 크래커로 변했어요!'],
@@ -855,9 +855,7 @@ function crackerMesh(){if(!CRK){const sh=new THREE.Shape();sh.moveTo(0.62,0.02);
 // a line of text in the middle of the screen that fades in and away
 function midMsg(t){const el=$('#midMsg');el.hidden=true;el.textContent=t;void el.offsetWidth;el.hidden=false;clearTimeout(midMsg.t);midMsg.t=setTimeout(()=>{el.hidden=true;},3500);}
 // a cracker left in the water goes soggy: the next time the game opens, the fish is itself again
-let SOAKED=0;function soakCheck(){if(SOAKED||!USER||VISIT)return;SOAKED=1;const l=lookOf();delete pet().paint;delete pet().paintBy;if(l.skin==='cracker'){l.skin='';applyLook();persist();setTimeout(()=>midMsg(pet().name+' got so soggy it turned back into a fish'),700);}
-  let wet=null;for(const it of save.friends||[])if(it.paint){if(!it.paintT)it.paintT=Date.now();else if(Date.now()-it.paintT>2*864e5){delete it.paint;delete it.paintT;wet=it;}}
-  if(wet){persist();refreshFriendLooks.t=0;spawnFriends();setTimeout(()=>midMsg('@'+wet.from+'’s cracker got soggy and turned back into a fish'),wet&&l.skin==='cracker'?4200:700);}}
+let SOAKED=0;function soakCheck(){if(SOAKED||!USER||VISIT)return;SOAKED=1;const l=lookOf();delete pet().paint;delete pet().paintBy;if(l.skin==='cracker'){l.skin='';applyLook();persist();setTimeout(()=>midMsg(pet().name+' got so soggy it turned back into a fish'),700);}}
 // a cracker (yours or a friend's): sinks, lands with a puff and settles half into the sand; while held by the hand it follows the finger
 function crackerTick(o,dt,held){const P=o.pos,rest=sandAt(P.x,P.z)+0.03;if(o.vel)o.vel.set(0,0,0);
   if(held&&tool==='hand'){const t=ptr.world;P.lerp(new V3(clamp(t.x,-B.x,B.x),clamp(t.y,rest+0.1,B.surf-0.2),clamp(t.z,-1.3,0.6)),1-Math.exp(-12*dt));o.crV=0;o.crL=0;o.crB=0;}
@@ -879,7 +877,7 @@ const ICING=['#fffaf2','#f7b6c6','#6b3e26','#ffe08a','#9fd0f5','#a8dcae','#e2584
 let PNT=null;
 function openPaint(f){const sc=200,cv=$('#paintCv'),W=Math.round((CRKB.x1-CRKB.x0)*sc),H=Math.round((CRKB.y1-CRKB.y0)*sc);cv.width=W;cv.height=H;
   PNT={f,sc,strokes:[],col:ICING[0],w:7,cur:null,base:crackerFace(sc,null)};$('#paintTitle').textContent='decorate @'+f.src.from+'’s cracker';
-  if(f.src.paint){const im=new Image();im.onload=()=>{PNT.old=im;paintDraw();};im.src=f.src.paint;}
+  {const u=f.src.paint||f.src.rpaint;if(u){const im=new Image();im.onload=()=>{PNT.old=im;paintDraw();};im.src=u;}}
   const sw=$('#paintCols');sw.textContent='';ICING.forEach(c=>{const b=document.createElement('button');b.type='button';b.className='sw';b.style.background=c;b.setAttribute('aria-label','icing colour');b.setAttribute('aria-pressed',c===PNT.col);b.onclick=()=>{PNT.col=c;sw.querySelectorAll('.sw').forEach(x=>x.setAttribute('aria-pressed',x===b));};sw.appendChild(b);});
   document.querySelectorAll('#paintSheet [data-nz]').forEach(b=>b.setAttribute('aria-pressed',+b.dataset.nz===PNT.w));$('#paintSheet').hidden=false;paintDraw();}
 function strokeIcing(x,s,sc){if(!s.p.length)return;x.lineCap=x.lineJoin='round';const path=()=>{x.beginPath();x.moveTo(s.p[0][0],s.p[0][1]);for(const q of s.p)x.lineTo(q[0],q[1]);if(s.p.length===1)x.lineTo(s.p[0][0]+0.1,s.p[0][1]);};
@@ -1909,7 +1907,7 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden)setTimeout
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)pull();});
 /* the home-screen app keeps an old copy of the page open (and iOS caches it), so check for a newer build when it opens or comes back,
    and reload past the cache if there is one */
-const BUILD='20261119150730';
+const BUILD='20261119150922';
 function checkBuild(){fetch('version.json?t='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{if(!j||!j.b||j.b===BUILD)return;
   try{if(sessionStorage.getItem('gf-build')===j.b)return;sessionStorage.setItem('gf-build',j.b);}catch(e){}
   try{persistLocal();}catch(e){}location.replace(location.pathname+'?v='+encodeURIComponent(j.b));}).catch(()=>{});}
@@ -2605,7 +2603,7 @@ function spawnFriends(){for(const f of FRIENDS){world.remove(f.g);freeTree(f.g);
   for(const it of list){if(it.hide)continue;const st=fstage(it),F=buildFish(),Yf=poseYouth(F,st,true);applyLook(F,it.look,st);F.g.scale.setScalar(0.434*youth(st).size*0.8);
     F.g.traverse(o=>{if(o.userData&&o.userData.proxy)o.visible=false;});
     const pos=new V3(rnd(-B.x*0.8,B.x*0.8),rnd(B.ymin,B.ymax-0.3),rnd(-1.2,0.5));F.g.position.copy(pos);world.add(F.g);
-    FRIENDS.push({src:it,g:F.g,F,Y:Yf,pos,vel:new V3(),tgt:pos.clone(),head:rnd(0,6),ph:rnd(0,6),t:0});if(F.cracker&&it.paint)paintCracker(F,it.paint);}}
+    FRIENDS.push({src:it,g:F.g,F,Y:Yf,pos,vel:new V3(),tgt:pos.clone(),head:rnd(0,6),ph:rnd(0,6),t:0});if(F.cracker&&(it.rpaint||it.paint))paintCracker(F,it.rpaint||it.paint);}}
 /* gifted fish and your fish do a few things together: swim along behind it, come over for a nose-to-nose "hello" with bubbles,
    circle it, gather where flakes land, and settle down near it when the lights are off. One at a time, every so often. */
 let IACT=null,iactT=10;
@@ -2684,7 +2682,7 @@ function swimRig(f,F,dt,i,sp,hs,faceT,curl,night,pitchAdd){
 function friendsTick(dt){iactT-=dt;if(IACT){IACT.t-=dt;if(IACT.t<=0){IACT=null;iactT=rnd(14,26);}}else if(iactT<=0){iactPick();if(!IACT)iactT=4;}
   const night=lightsOff,camL=world.worldToLocal(camera.position.clone());
   FRIENDS.forEach((f,i)=>{if(f.F.cracker){crackerTick(f,dt,ptr.down&&ptr.onFriend===f&&ptr.moved>8&&ptr.world);f.g.position.copy(f.pos);const h=clamp((f.pos.y-sandAt(f.pos.x,f.pos.z)-0.03)/0.5,0,1);f.crk=damp(f.crk||0,1-h,3,dt);
-      f.g.rotation.set(0.04-(f.src.paint?0.2:0.55)*f.crk+0.05*Math.sin(T*1.3+i)*h,(i%2&&!f.src.paint?Math.PI-0.22:0.22)+0.1*Math.sin(T*0.7+i)*h,0.05+0.15*f.crk);return;}f.t-=dt;let cap=0.35,rate=1.8,faceT=null,snq=null;const it=iactTarget(f,dt);
+      f.g.rotation.set(0.04-(f.src.paint||f.src.rpaint?0.2:0.55)*f.crk+0.05*Math.sin(T*1.3+i)*h,(i%2&&!(f.src.paint||f.src.rpaint)?Math.PI-0.22:0.22)+0.1*Math.sin(T*0.7+i)*h,0.05+0.15*f.crk);return;}f.t-=dt;let cap=0.35,rate=1.8,faceT=null,snq=null;const it=iactTarget(f,dt);
     const led=ptr.down&&ptr.onFriend===f&&ptr.moved>8&&ptr.world;
     const rx=f.rx;if(rx){rx.t+=dt;if(rx.t>=rx.dur){if(rx.type==='trick')f.roll=0;f.rx=null;}}
     if(led){f.rx=null;f.tgt.set(clamp(ptr.world.x,-B.x*0.9,B.x*0.9),clamp(ptr.world.y,B.ymin,B.ymax),clamp(ptr.world.z,-1.3,0.6));cap=1.8;rate=5;f.t=1;faceT=ptr.world;}
@@ -2751,9 +2749,11 @@ function growIn(g){if(!g)return;const s1=g.scale.x,t0=performance.now();g.scale.
 function showFishChange(){}
 function refreshFriendLooks(list,done){if(!DB||!list||!list.length)return;refreshFriendLooks.t=Date.now();const names=[...new Set(list.map(f=>f.from).filter(n=>NAME_RE.test(n||'')))];let changed=false,left=names.length;
   names.forEach(n=>fetch(docURL(n),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{if(!j||!j.fields||!j.fields.data)return;let rec;try{rec=JSON.parse(j.fields.data.stringValue);}catch(e){return;}
-    const lk=rec&&rec.save&&rec.save.pets&&rec.save.pets.fish&&rec.save.pets.fish.look;if(!lk)return;const nl=unpackLook(packLook(lk)),st=recStage(rec);
-    // (a cracker someone decorated stays a cracker, so the drawing isn't lost when the sender's own fish changes)
-    for(const f of list)if(f.from===n&&!f.paint&&(packLook(f.look||{})!==packLook(nl)||fstage(f)!==st)){f.look=nl;f.stage=st;changed=true;}}).catch(()=>{}).finally(()=>{if(--left===0&&changed)done&&done();}));}
+    const pf=rec&&rec.save&&rec.save.pets&&rec.save.pets.fish,lk=pf&&pf.look;if(!lk)return;const nl=unpackLook(packLook(lk)),st=recStage(rec),rp=nl.skin==='cracker'&&pf.paint||null;
+    // a friend fish is always the sender's fish as it is now - look, size, and the drawing on it if it's a decorated cracker
+    // (once it isn't a cracker any more, a drawing made for it here goes too)
+    for(const f of list)if(f.from===n){if(packLook(f.look||{})!==packLook(nl)||fstage(f)!==st){f.look=nl;f.stage=st;changed=true;}
+      if((f.rpaint||null)!==rp){f.rpaint=rp||undefined;changed=true;}if(nl.skin!=='cracker'&&f.paint){delete f.paint;delete f.paintT;changed=true;}}}).catch(()=>{}).finally(()=>{if(--left===0&&changed)done&&done();}));}
 function giftDay(){if(!PROG.gday||PROG.gday.d!==dayKey())PROG.gday={d:dayKey(),snack:0};return PROG.gday;}
 function giftMsg(t){$('#giftMsg').textContent=t;$('#noteMsg').textContent=t;if($('#giftOut').hidden&&$('#noteOut').hidden&&t&&t!=='sending…'&&!/^sent to/.test(t))toast(t,3);}
 /* placing a decoration gift: it appears in your friend's tank, you drag it where you like (twist or the arrows turn it), then send */
@@ -2913,7 +2913,7 @@ $('#sendSnack').onclick=()=>{const g=giftDay();if(g.snack>=3)return;sendGift('sn
 // receiving
 const SEEN_GIFTS=new Set();
 function checkGifts(){if(!DB||!USER||VISIT||!cloudReady)return;const me=USER;
-  if(Date.now()-(refreshFriendLooks.t||0)>180000)refreshFriendLooks(save.friends,()=>{if(USER===me&&!VISIT){persist();spawnFriends();}});
+  if(Date.now()-(refreshFriendLooks.t||0)>90000)refreshFriendLooks(save.friends,()=>{if(USER===me&&!VISIT){persist();spawnFriends();}});
   fetch(GBOX(me)+'?key='+DB.apiKey+'&pageSize=50',{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{if(!j||!j.documents||USER!==me||VISIT)return;const got=[];
     for(const d of j.documents){if(SEEN_GIFTS.has(d.name))continue;SEEN_GIFTS.add(d.name);const F=d.fields||{},g={id:String(d.name).split('/').pop(),from:F.from&&F.from.stringValue,kind:F.kind&&F.kind.stringValue,item:F.item&&F.item.stringValue,at:F.at&&F.at.timestampValue?Date.parse(F.at.timestampValue):0};
       if(!g.from||!g.kind)continue;got.push(g);fetch('https://firestore.googleapis.com/v1/'+d.name+'?key='+DB.apiKey,{method:'DELETE'}).catch(()=>{});}
