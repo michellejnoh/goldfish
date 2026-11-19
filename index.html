@@ -1051,11 +1051,11 @@ function buildFish(lo){
 // the backbone: 10 soft sections down the body and 3 down the tail. Each one is a spring that chases the swim wave
 // a beat behind the one in front of it, so the bend rolls smoothly from head to tail and the tail follows through on turns
 const SPX=(()=>{const a=[];for(let k=0;k<=10;k++)a.push(0.45-k*0.111);for(let k=1;k<=3;k++)a.push(-0.66-k*0.5);return a;})(),SPN=SPX.length,SPM=96,SP0=0.45,SPD=(0.45+2.4)/SPM;
-function spineStep(rig,dt,ph,amp,bend,turn){let P=rig.sp;if(!P)P=rig.sp={a:new Float32Array(SPN),v:new Float32Array(SPN),tr:turn,X:new Float32Array(SPM+1),Z:new Float32Array(SPM+1),c:new Float32Array(SPM+1),s:new Float32Array(SPM+1),w:new Float32Array(SPM+1)};
+function spineStep(rig,dt,ph,amp,bend,turn,fold){fold=fold||0;let P=rig.sp;if(!P)P=rig.sp={a:new Float32Array(SPN),v:new Float32Array(SPN),tr:turn,X:new Float32Array(SPM+1),Z:new Float32Array(SPM+1),c:new Float32Array(SPM+1),s:new Float32Array(SPM+1),w:new Float32Array(SPM+1)};
   const XP=-0.64,ta=clamp(amp*2.4,0,0.55)*Math.sin(ph+XP*3.6-0.9),zf=x=>{const k=clamp((0.3-x)/2.2);return amp*0.36*Math.pow(k,1.3)*Math.sin(ph+x*3.6)+bend*k*k*2;};
   const yawAcc=clamp((turn-P.tr)/Math.max(dt,1e-4),-40,40);P.tr=turn;const n=dt>0.02?2:1,h=Math.min(dt,0.05)/n;
   for(let it=0;it<n;it++){let prevErr=0;for(let k=1;k<SPN;k++){const x=SPX[k],tail=k>10,
-      tg=Math.asin(clamp((zf(x-0.05)-zf(x+0.05))/0.1,-0.9,0.9))-(x<XP?ta*ss(XP+0.05,XP-0.3,x):0),
+      tg=Math.asin(clamp((zf(x-0.05)-zf(x+0.05))/0.1,-0.9,0.9))-(x<XP?ta*ss(XP+0.05,XP-0.3,x):0)-fold*ss(0.4,-0.55,x),
       K=tail?lerp(150,90,(k-11)/2):lerp(420,200,(k-1)/9),C=2*Math.sqrt(K)*0.6,want=tg+prevErr*0.35;
       P.v[k]+=((want-P.a[k])*K-P.v[k]*C+yawAcc*0.004*(k/SPN))*h;P.a[k]+=P.v[k]*h;P.a[k]=clamp(P.a[k],-1.1,1.1);prevErr=P.a[k]-tg;}}
   // walk the backbone into a smooth table: position, direction and how fast each bit swings
@@ -1065,11 +1065,10 @@ function spineStep(rig,dt,ph,amp,bend,turn){let P=rig.sp;if(!P)P=rig.sp={a:new F
 function spineAt(P,x,z,out){if(x>=SP0){out[0]=x;out[1]=z;out[2]=0;return out;}const u=(SP0-x)/SPD;let m=u|0;if(m>=SPM)m=SPM-1;const f=u-m,
   c=lerp(P.c[m],P.c[m+1],f),sn=lerp(P.s[m],P.s[m+1],f),e=u>SPM?u-SPM:0;out[0]=lerp(P.X[m],P.X[m+1],Math.min(f,1))-e*SPD*c+z*sn;out[1]=lerp(P.Z[m],P.Z[m+1],Math.min(f,1))+e*SPD*sn+z*c;out[2]=lerp(P.w[m],P.w[m+1],Math.min(f,1));return out;}
 function fishWave(ph,amp,bend,t,spd,lag,lagY,arch,jel,fold,st,foldY,rig,dt,turn){arch=arch||0;jel=jel||0;fold=fold||0;st=st||0;foldY=foldY||0;const XH=0.02,XS=0.45;rig=rig||R;
-  spineStep(rig,dt||0.016,ph,amp,bend,turn||0);const P=rig.sp,o=[0,0,0];
+  spineStep(rig,dt||0.016,ph,amp,bend,turn||0,fold);const P=rig.sp,o=[0,0,0];
   const sx=X=>X<XS?XS+(X-XS)*(1+st):X;
   const hinge=(X,Y,z)=>{const w=ss(0.14,-0.22,X);if(!w)return [X,Y,z];let dx=X-XH;
     if(foldY){const a=foldY*w,c=Math.cos(a),s=Math.sin(a),n=dx*c-Y*s;Y=dx*s+Y*c;dx=n;}
-    if(fold){const a=fold*w,c=Math.cos(a),s=Math.sin(a),n=dx*c-z*s;z=dx*s+z*c;dx=n;}
     return [XH+dx,Y,z];};const fa=0.08+amp*1.0,slow=1-clamp(spd/0.9);
   for(const g of rig.wave){const p=g.attributes.position,b=g.userData.base0,f=g.userData.flex,kind=g.userData.kind;
     for(let i=0;i<p.count;i++){const x=b[i*3],y0=b[i*3+1],k=clamp((0.3-x)/2.2),y=y0*(1+jel*Math.sin(x*4.5+t*9)*clamp((0.25-x)/0.6));let z=b[i*3+2];
@@ -1196,12 +1195,29 @@ function applyWater(){const c=WATER[(save.tank&&save.tank.water)||'clear']||WATE
 function syncTheme(){let night=false;try{night=lightsOff;}catch(e){}const c=night?'#0f0f12':syncTheme.over||(WATER[(save.tank&&save.tank.water)||'clear']||WATER.clear);if(syncTheme.c===c)return;syncTheme.c=c;
   document.querySelectorAll('meta[name="theme-color"]').forEach(m=>m.setAttribute('content',c));}
 function freeTree(o){o.traverse(m=>{if(m.geometry)m.geometry.dispose();if(m.material)[].concat(m.material).forEach(x=>x.dispose());});}
-// rings lie where they fall: each one rests on the highest thing under it - the sand, another ring or a decoration (checked from above at a few points across it)
-const RINGPTS=[[0,0]].concat([...Array(8)].map((_,i)=>[Math.cos(i*Math.PI/4)*0.17,Math.sin(i*Math.PI/4)*0.17]));
-function settleRings(e){const rc=new THREE.Raycaster(),down=new V3(0,-1,0),done=ITEMS_ON.filter(g=>!g.userData.isRing),o=new V3();e.updateMatrixWorld(true);
-  for(const g of ITEMS_ON.filter(g=>g.userData.isRing)){let y=B.floor;for(const [dx,dz] of RINGPTS){o.set(g.position.x+dx,B.surf,g.position.z+dz);e.localToWorld(o);rc.set(o,down);
-      const h=rc.intersectObjects(done,true)[0];if(h)y=Math.max(y,e.worldToLocal(h.point.clone()).y-0.006);}
-    g.position.y=y;g.updateMatrixWorld(true);done.push(g);}}
+// things in the tank rest on whatever is under them - the sand, a rock, another decoration or a ring - like real objects:
+// each one is lowered until it touches, then tipped until it sits on (up to) three points, so it can lean across two things
+// or perch on top of one. The most recently moved thing goes on last, so it ends up on top.
+function itemBox(g){if(g.userData.lb)return g.userData.lb;g.updateMatrixWorld(true);const inv=new THREE.Matrix4().copy(g.matrixWorld).invert(),b=new THREE.Box3(),m=new THREE.Matrix4();
+  g.traverse(c=>{if(!c.isMesh||c.userData.fx)return;if(!c.geometry.boundingBox)c.geometry.computeBoundingBox();m.multiplyMatrices(inv,c.matrixWorld);b.union(c.geometry.boundingBox.clone().applyMatrix4(m));});
+  return g.userData.lb=b.isEmpty()?null:b;}
+function restPlane(P,H){// lowest plane (height at the middle a, slopes bx,bz) lying on or above every support point; tipping is capped so nothing stands on its edge
+  let best={a:Math.max(...H),bx:0,bz:0};for(let d=0;d<24;d++){const c=Math.cos(d*Math.PI/12),sn=Math.sin(d*Math.PI/12);
+    for(let k=1;k<=8;k++){const t=0.7*k/8;let a=-1e9;for(let m=0;m<P.length;m++)a=Math.max(a,H[m]-t*(c*P[m][0]+sn*P[m][1]));if(a<best.a-1e-5)best={a,bx:t*c,bz:t*sn};}}
+  return best;}
+function settleRings(e){const rc=new THREE.Raycaster(),down=new V3(0,-1,0),F=B.floor,done=[...BIGROCKS],o=new V3(),q=new THREE.Quaternion();e.updateMatrixWorld(true);
+  const key=g=>g===dragItem?1e15:(g.userData.item.t||0),list=ITEMS_ON.slice().sort((a,b)=>key(a)-key(b));
+  for(const g of list){g.rotation.order='YXZ';g.rotation.x=g.rotation.z=0;g.position.y=F;g.updateMatrixWorld(true);const lb=itemBox(g);if(!lb){done.push(g);continue;}
+    const sc=g.scale.x,yaw=g.rotation.y,cy=Math.cos(yaw),sy=Math.sin(yaw),cx=(lb.min.x+lb.max.x)/2,cz=(lb.min.z+lb.max.z)/2,
+      toE=(lx,lz)=>[g.position.x+(lx*cy+lz*sy)*sc,g.position.z+(-lx*sy+lz*cy)*sc],C=toE(cx,cz),P=[],H=[];
+    for(let a=0;a<4;a++)for(let b=0;b<4;b++){const lx=lerp(lb.min.x,lb.max.x,0.08+0.84*a/3),lz=lerp(lb.min.z,lb.max.z,0.08+0.84*b/3),[x,z]=toE(lx,lz);
+      o.set(x,B.top||B.surf+1,z);e.localToWorld(o);rc.set(o,down);const h=rc.intersectObjects(done,true).find(h=>!h.object.userData.fx);
+      P.push([x-C[0],z-C[1]]);H.push(h?Math.max(F,e.worldToLocal(h.point.clone()).y-0.004):F);}
+    const pl=restPlane(P,H),nE=new V3(-pl.bx,1,-pl.bz).normalize(),nl=new V3(nE.x*cy-nE.z*sy,nE.y,nE.x*sy+nE.z*cy);// into the item's turned frame
+    g.rotation.z=Math.asin(clamp(-nl.x,-1,1));g.rotation.x=Math.atan2(nl.z,nl.y);g.updateMatrix();
+    // put the foot of the thing (its own ground level, so things meant to sink a little into the sand still do) on the plane
+    const bot=new V3(cx,0,cz).multiplyScalar(sc).applyQuaternion(q.setFromEuler(g.rotation));g.position.y=pl.a-bot.y;
+    g.position.x+=0;g.updateMatrixWorld(true);done.push(g);}}
 function rebuildTank(){if(!ENV)return;DROPS.length=0;world.remove(ENV);freeTree(ENV);PEBBLES=[];ENV=buildEnv();world.add(ENV);applyWater();computeObst();applyLook();}
 /* solid things in the tank (big rocks, decorations) as soft ellipsoids the fish slides around instead of swimming through */
 let BIGROCKS=[],OBST=[];const _bx=new THREE.Box3(),_wInv=new THREE.Matrix4(),_m4=new THREE.Matrix4(),_v=new V3();
@@ -1263,9 +1279,8 @@ function buildEnv(){
   PILE=new V3((save.tank.pileSide||(save.tank.pileSide=Math.random()<0.5?-1:1))*B.x*0.4,F,0.45);if(save.tank.pile){PILE.x=save.tank.pile[0]*B.x;PILE.z=save.tank.pile[1];}PILE.n=PEBBLES.filter(p=>p.inPile).length;
   if(PILE.n){let sx=0,sz=0;for(const p of PEBBLES)if(p.inPile){sx+=p.m.position.x;sz+=p.m.position.z;}PILE.x=sx/PILE.n;PILE.z=sz/PILE.n;}// keep growing an existing heap where it is
   ITEMS_ON=[];for(const it of save.tank.items){const def=ALLDECO().find(d=>d.id===it.id);if(!def)continue;const g=def.make(it);g.userData.isRing=!!def.prize;g.userData.ringId=def.prize?def.id:null;if(def.glow)g.userData.glow=def.glow;if(g.userData.isRing){const rg=g.children[0];rg.rotation.set(Math.PI/2-0.18,0,0);rg.position.y=0.031;}g.scale.setScalar(1.8);g.position.set(it.x*B.x,F,it.z);g.rotation.y=it.r||0;g.userData.item=it;e.add(g);ITEMS_ON.push(g);}
-  e.updateMatrixWorld(true);settleRings(e);
   {const bg=stoneGeo(0.1,7,false,1);const cc2=new THREE.Color();tint(bg,()=>cc2.setRGB(0.5,0.5,0.5));const bm=new THREE.Mesh(bg,MAT);bm.position.set(B.x*0.25,F+0.1,-0.1);e.add(bm);BALL={m:bm,pos:bm.position,vel:new V3(),r:0.1,floor:F+0.1};}
-  BIGROCKS=[];[[-B.x*0.75,-1.0,0.42],[B.x*0.6,-1.2,0.55],[B.x*0.95,-0.7,0.26]].forEach(([x,z,r])=>{const s=new THREE.Mesh(stoneGeo(r,rnd(0,9),false,0.72),MAT);s.position.set(x,F+r*0.3,z);s.rotation.y=rnd(0,6);e.add(s);BIGROCKS.push(s);});
+  BIGROCKS=[];[[-B.x*0.75,-1.0,0.42],[B.x*0.6,-1.2,0.55],[B.x*0.95,-0.7,0.26]].forEach(([x,z,r])=>{const s=new THREE.Mesh(stoneGeo(r,rnd(0,9),false,0.72),MAT);s.position.set(x,F+r*0.3,z);s.rotation.y=rnd(0,6);e.add(s);BIGROCKS.push(s);});e.updateMatrixWorld(true);settleRings(e);
   // ribbon grass (vallisneria) in clusters
   const hmax=Math.min(2.6,B.surf-F-0.3);
   [[-B.x*0.85,-0.8,7],[-B.x*0.45,-1.15,5],[B.x*0.35,-1.05,6],[B.x*0.9,-0.95,8]].forEach(([cx,cz,n])=>{for(let i=0;i<n;i++){
@@ -1462,7 +1477,7 @@ function hitFish(){return ray.intersectObject(R.g,true).some(x=>{let o=x.object;
 /* turning decorations: twist with two fingers, scroll on a computer, or the turn buttons in the edit bar */
 const TP=new Map();let twist=null,selItem=null;
 const tpAng=()=>{const [a,b]=[...TP.values()];return Math.atan2(b.y-a.y,b.x-a.x);};
-function saveItemTurn(o){if(!o)return;o.userData.item.r=+o.rotation.y.toFixed(2);o.userData.item.t=Date.now();computeObst();persist();}
+function saveItemTurn(o){if(!o)return;o.userData.item.r=+o.rotation.y.toFixed(2);o.userData.item.t=Date.now();settleRings(ENV);computeObst();persist();}
 function turnItem(o,da){if(!o)return;o.rotation.y+=da;}
 cv.addEventListener('pointerdown',e=>{TP.set(e.pointerId,{x:e.clientX,y:e.clientY});
   if(tool==='arrange'&&TP.size===2){const o=dragItem||(ITEMS_ON.includes(selItem)?selItem:null);if(o){twist={o,a:tpAng()};dragItem=null;}return;}},true);
@@ -1481,7 +1496,7 @@ cv.addEventListener('pointermove',e=>{setNDC(e);ptr.world=worldPoint();ptr.seen=
   const px=Math.hypot(e.clientX-ptr.x,e.clientY-ptr.y);ptr.x=e.clientX;ptr.y=e.clientY;ptr.moved+=px;
   if(tool==='wash')wipe(px);else if(tool==='toy'&&toy)toy.target=toyTarget(ptr.world)||toy.target;
   else if(tool==='peb')pebbleBrush(false);
-  else if(tool==='arrange'&&dragItem){const fp=floorPoint();if(fp){dragItem.position.x=clamp(fp.x,-B.x,B.x);dragItem.position.z=clamp(fp.z,-1.3,0.7);}}});
+  else if(tool==='arrange'&&dragItem){const fp=floorPoint();if(fp){dragItem.position.x=clamp(fp.x,-B.x,B.x);dragItem.position.z=clamp(fp.z,-1.3,0.7);const nw=performance.now();if(nw-(settleRings.t||0)>60){settleRings.t=nw;settleRings(ENV);}}}});
 function up(){if(!ptr.down)return;ptr.down=false;lastPeb=null;if(dragPeb)pebbleDrop();if(pebDirty){pebDirty=false;persist();}
   if(dragItem){const it=dragItem.userData.item;it.x=+(dragItem.position.x/B.x).toFixed(3);it.z=+dragItem.position.z.toFixed(2);it.t=Date.now();dragItem=null;settleRings(ENV);computeObst();persist();}if(ptr.moved<12&&performance.now()-ptr.t0<380)tap();if(tool==='toy')endToy(false);}
 cv.addEventListener('pointerup',up);cv.addEventListener('pointercancel',up);
@@ -1638,7 +1653,7 @@ function animate(dt){CUR.mouth=damp(CUR.mouth,0,8,dt);CUR.burst=damp(CUR.burst,0
   {const op=S.pitch;S.pitch=damp(S.pitch,((S.react&&S.react.type==='trick')?0.22*Math.sin(Math.PI*clamp(S.react.t/S.react.dur)):S.faceT?Math.max(S.mode==='nibble'?-0.35:-9,Math.atan2(S.faceT.y-S.pos.y,Math.hypot(S.faceT.x-S.pos.x,S.faceT.z-S.pos.z)+0.01)):(S.vel.length()<0.08?0:Math.atan2(S.vel.y,hs+0.01)))*(1-0.8*(S.ground||0)*(S.mode==='nibble'?0:1)),4.5,dt);S.pitchV=damp(S.pitchV||0,(S.pitch-op)/Math.max(dt,1e-4),10,dt);}S.rollC=damp(S.rollC,clamp(S.turnRate*0.1,-0.45,0.45),5,dt);
   if(!(S.react&&S.react.type==='trick')){if(!isFinite(S.roll))S.roll=0;if(S.roll){const tg=Math.round(S.roll/(Math.PI*2))*Math.PI*2;S.roll=damp(S.roll,tg,6,dt);if(Math.abs(S.roll-tg)<0.01)S.roll=0;}}
   if(!isFinite(S.pitch))S.pitch=0;if(!isFinite(S.rollC))S.rollC=0;
-  {const A=S.amp||0.06,Fl=S.flick||0;R.g.rotation.set(S.rollC+S.roll+A*0.15*Math.sin(S.swimPh+0.6),S.heading-A*0.22*Math.sin(S.swimPh+0.3)+(S.fold||0)*0.15,S.pitch-0.22*(S.peckDip||0)+0.02*Math.sin(T*0.9));}
+  {const A=S.amp||0.06,Fl=S.flick||0;R.g.rotation.set(S.rollC+S.roll+A*0.15*Math.sin(S.swimPh+0.6),S.heading,S.pitch-0.22*(S.peckDip||0)+0.02*Math.sin(T*0.9));headYaw(R.inner,-A*0.22*Math.sin(S.swimPh+0.3)+(S.fold||0)*0.15);}
   S.swimPh+=dt*(4.5+sp*10+CUR.burst*8)*(S.asleep?0.5:1);
   {const tb=clamp(-S.turnRate*0.05,-0.12,0.12);S.finLagV=(S.finLagV||0)+((tb-(S.finLag||0))*60-(S.finLagV||0)*10)*dt;S.finLag=(S.finLag||0)+S.finLagV*dt;
    S.finLagYV=(S.finLagYV||0)+((clamp(-S.vel.y*0.08,-0.08,0.08)-(S.finLagY||0))*22-(S.finLagYV||0)*4.5)*dt;S.finLagY=(S.finLagY||0)+S.finLagYV*dt;}
@@ -1684,14 +1699,14 @@ function animate(dt){CUR.mouth=damp(CUR.mouth,0,8,dt);CUR.burst=damp(CUR.burst,0
   R.mouthObj.scale.setScalar(0.8+0.3*(0.5+0.5*Math.sin(T*3.2))+CUR.mouth);
   shadow.position.set(S.pos.x,B.floor+0.05,S.pos.z);const k=1+(S.pos.y-B.floor)*0.25;shadow.scale.set(0.95*k,0.42*k,1);shadow.rotation.z=S.heading;shadow.material.opacity=0.8/k;
   const plantPush=(o,bx,H)=>{const dx=bx-S.pos.x,dy=(B.floor+H*0.55)-S.pos.y;const near=Math.exp(-(dx*dx)/0.18-(dy*dy)/(H*H*0.35));
-    const tgt=Math.sign(dx||1)*0.32*near*(0.35+Math.min(1,S.vel.length()));o.pv+=((tgt-o.p)*9-o.pv*2.4)*dt;o.p+=o.pv*dt;return o.p;};
-  ribbons.forEach(r=>{const p=r.g.attributes.position,b=r.g.userData.base0,f=r.g.userData.flex,ry=r.m.rotation.y,cr=Math.cos(ry),sr=Math.sin(ry);
+    const tgt=Math.sign(dx||1)*0.32*near*(0.35+Math.min(1,S.vel.length()));o.pv+=((tgt-o.p)*9-o.pv*2.4)*dt*2;o.p+=o.pv*dt*2;return o.p;};
+  if((frame.n||0)%2)ribbons.forEach(r=>{const p=r.g.attributes.position,b=r.g.userData.base0,f=r.g.userData.flex,ry=r.m.rotation.y,cr=Math.cos(ry),sr=Math.sin(ry);
     const push=plantPush(r,r.m.position.x,r.H),cur=0.07*Math.sin(T*0.31+r.m.position.x*0.6)+0.04*Math.sin(T*0.17+1.3);
     for(let i=0;i<p.count;i++){const u=f[i],w=Math.pow(u,1.2);
       const ox=w*(0.11*Math.sin(T*1.15-u*3.2+r.ph)+0.05*Math.sin(T*2.6-u*7+r.ph*1.7)+0.03*Math.sin(T*4.1-u*13+r.ph*2.3)+cur+push),oz=w*(0.07*Math.sin(T*0.85-u*2.6+r.ph*1.3)+0.04*Math.sin(T*2.9-u*9+r.ph)+0.02*Math.sin(T*4.6-u*15+r.ph*0.7));
       p.setX(i,b[i*3]+ox*cr-oz*sr);p.setZ(i,b[i*3+2]+ox*sr+oz*cr);p.setY(i,b[i*3+1]-w*Math.abs(ox)*0.12*r.H);}
     p.needsUpdate=true;});
-  ferns.forEach(f=>{const p=f.g.attributes.position,b=f.g.userData.base0,push=plantPush(f,f.grp.position.x,f.Hm),cur=0.05*Math.sin(T*0.31+f.grp.position.x*0.6);
+  if((frame.n||0)%2)ferns.forEach(f=>{const p=f.g.attributes.position,b=f.g.userData.base0,push=plantPush(f,f.grp.position.x,f.Hm),cur=0.05*Math.sin(T*0.31+f.grp.position.x*0.6);
     for(let i=0;i<p.count;i++){const u=clamp(b[i*3+1]/f.Hm),w=Math.pow(u,1.6);
       p.setX(i,b[i*3]+w*(0.09*Math.sin(T*1.05-u*2.8+f.ph)+0.04*Math.sin(T*2.8-u*8+f.ph)+0.02*Math.sin(T*4.4-u*14+f.ph*1.6)+cur+push));p.setZ(i,b[i*3+2]+w*0.05*Math.sin(T*0.8-u*2.2+f.ph*1.4));}
     p.needsUpdate=true;});
@@ -1911,7 +1926,7 @@ function cloudWrite(keep,who){if(!cloudDirty||who!==USER||UTS[who]===undefined)r
       {cloudDirty=true;return r.text().then(t=>{SYNC={ok:false,msg:'online save refused (error '+r.status+')'+(r.status===403?': check the Firestore rules':r.status===404?': is the Firestore database created?':''),t:Date.now()};console.warn('Goldfish save:',r.status,t);});}})
     .catch(()=>{if(who===USER)cloudDirty=true;SYNC={ok:false,msg:'offline: will save online when connected',t:Date.now()};});}
 // take the online copy when another device changed things more recently than this one
-function pull(){if(!DB||!USER||cloudDirty||VISIT)return;const who=USER;cloudGet(who).then(c=>{if(!c||USER!==who)return;takeMerged(c);if((PROG.total||0)>((c.prog&&c.prog.total)||0)||(PROG.spent||0)>((c.prog&&c.prog.spent)||0)){cloudDirty=true;cloudPut();}},()=>{});}
+function pull(){if(!DB||!USER||cloudDirty||VISIT)return;pull.t=Date.now();const who=USER;cloudGet(who).then(c=>{if(!c||USER!==who)return;takeMerged(c);if((PROG.total||0)>((c.prog&&c.prog.total)||0)||(PROG.spent||0)>((c.prog&&c.prog.spent)||0)){cloudDirty=true;cloudPut();}},()=>{});}
 function adopt(rec){save=normalizeSave(rec&&rec.save);setTimeout(spawnFriends,0);if(save.lang&&save.lang!==LANG&&!langPicked)setLang(save.lang);PROG=normProg(rec&&rec.prog);ensureDaily();
   if(typeof lightsOff!=='undefined'&&S){rebuildTank();lightsOff=!!save.night;document.body.classList.toggle('night',lightsOff);S.asleep=lightsOff;renderUI();}}
 function signIn(n,rec){USER=n;cloudReady=true;setTimeout(checkGifts,3000);adopt(rec);if(langPicked||!save.lang)save.lang=LANG;langPicked=false;lastChange=(rec&&rec.updated)||Date.now();persist();cloudPut();$('#who').textContent='@'+n;$('#login').hidden=true;
@@ -1963,14 +1978,14 @@ $('#misClose').onclick=()=>{$('#missions').hidden=true;};
   if(last&&NAME_RE.test(last)){USER=last;const local=mergeRec(readLocal(last),readBest(last));save=normalizeSave(local&&local.save);PROG=normProg(local&&local.prog);lastChange=(local&&(local.changed||local.updated))||0;
     cloudGet(last).then(c=>{cloudReady=true;setTimeout(checkGifts,2500);if(c)takeMerged(c);setTimeout(()=>{needReal();palMigrate();},800);setTimeout(seenNow,6000);if(!c||(PROG.total||0)>((c.prog&&c.prog.total)||0)||(PROG.spent||0)>((c.prog&&c.prog.spent)||0)||lastChange>(c.updated||0)+500){cloudDirty=true;cloudPut();}},()=>{setTimeout(()=>{cloudReady=true;needReal();},20000);});}
   else{PROG=null;}}
-setInterval(()=>{if(cloudDirty)cloudPut();else if(!document.hidden)pull();},30000);
+setInterval(()=>{if(cloudDirty)cloudPut();else if(!document.hidden&&Date.now()-(pull.t||0)>240000)pull();},30000);
 // note when this keeper was last on (friends lists sort by it): one save when the game opens, and when it comes back after a while away
 let seenT=0;function seenNow(){if(!USER||!cloudReady||Date.now()-seenT<600000)return;seenT=Date.now();cloudDirty=true;cloudPut();}
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)setTimeout(seenNow,3000);});
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)pull();});
 /* the home-screen app keeps an old copy of the page open (and iOS caches it), so check for a newer build when it opens or comes back,
    and reload past the cache if there is one */
-const BUILD='20261119163832';
+const BUILD='20261119165252';
 function checkBuild(){fetch('version.json?t='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{if(!j||!j.b||j.b===BUILD)return;
   try{if(sessionStorage.getItem('gf-build')===j.b)return;sessionStorage.setItem('gf-build',j.b);}catch(e){}
   try{persistLocal();}catch(e){}location.replace(location.pathname+'?v='+encodeURIComponent(j.b));}).catch(()=>{});}
@@ -2005,7 +2020,7 @@ function openFriends(){friendsFix();const el=$('#friendList');el.textContent='';
 };el.appendChild(b);});}
 $('#viewL').onclick=()=>{S.viewH=(S.viewH===undefined?S.heading:S.viewH)+Math.PI/2;};
 $('#viewR').onclick=()=>{S.viewH=(S.viewH===undefined?S.heading:S.viewH)-Math.PI/2;};
-document.querySelectorAll('[data-gpturn]').forEach(b=>b.onclick=()=>{const o=GPLACE&&ITEMS_ON.find(x=>x.userData.item===GPLACE.it);if(!o)return;turnItem(o,+b.dataset.gpturn*Math.PI/8);o.userData.item.r=+o.rotation.y.toFixed(2);computeObst();});
+document.querySelectorAll('[data-gpturn]').forEach(b=>b.onclick=()=>{const o=GPLACE&&ITEMS_ON.find(x=>x.userData.item===GPLACE.it);if(!o)return;turnItem(o,+b.dataset.gpturn*Math.PI/8);o.userData.item.r=+o.rotation.y.toFixed(2);settleRings(ENV);computeObst();});
 $('#gpCancel').onclick=()=>endGiftPlace(false);
 $('#gpSend').onclick=()=>{if(!GPLACE)return;const {d,it}=GPLACE;if(wallet()<d.price){endGiftPlace(false);return;}const b=$('#gpSend');b.disabled=true;
   sendGift('deco',giftPlaceCode(it),()=>{spendXP(d.price);persist();giftFly('',null,d.name+' sent to @'+VISIT.n+'!');endGiftPlace(true);});setTimeout(()=>{b.disabled=false;},1500);};
@@ -2457,7 +2472,7 @@ function pebbleBrush(start){const fp=floorPoint();if(!fp)return;
   for(const d of DECOS.slice()){const q=d.m.position;if(left()&&Math.hypot(q.x-fp.x,q.z-fp.z)<0.2+d.r){ENV.remove(d.m);DECOS.splice(DECOS.indexOf(d),1);n++;}}
   if(n){save.tank.deco=DECOS.map(d=>d.q);snd.pop();pebDirty=true;}
   else if(!left()&&start&&!pebbleBrush.told){pebbleBrush.told=1;toast('at least 20 stones stay in the tank',2.6);}}
-let dragItem=null;
+var dragItem=null;
 function hitItem(){const list=GPLACE?ITEMS_ON.filter(o=>o.userData.item===GPLACE.it):ITEMS_ON;const hs=ray.intersectObjects(list,true);if(!hs.length)return null;let o=hs[0].object;while(o&&!o.userData.item)o=o.parent;return o;}
 /* ---- capture just the tank as a picture ---- */
 function captureTank(){const w=innerWidth,h=innerHeight,pr=Math.min(2,(devicePixelRatio||1));renderer.setPixelRatio(pr);renderer.setSize(w,h,false);renderer.render(scene,camera);
@@ -2740,6 +2755,8 @@ function eyeSmile(rig,sm){if(Math.abs(sm-(rig.smDone||0))<=0.002)return;rig.smDo
   const b=pm.userData.b,ER0=0.052,U=o.up,D=o.sd;for(let i=0;i<p.count;i++){const x=b[i*3],y=b[i*3+1];const a=x*D.x+y*D.y;let v=x*U.x+y*U.y;const vc=-ER0+sm*0.8*ER0;if(v<vc)v=vc;p.setXY(i,a*D.x+v*U.x,a*D.y+v*U.y);}p.needsUpdate=true;}}
 // one fish rig swimming exactly like your own fish: turning on a spring, pitching with its course, the body wave in beats and glides,
 // folding into turns, squash & stretch, fin strokes. Used by friend fish and by your fish when it goes to a duel.
+// the swim wiggle and the turn swing pivot on the head, not the middle of the body: the head stays steady on its path and the rest swings behind it
+function headYaw(inner,w){const px=0.6*inner.scale.x;inner.rotation.y=w;inner.position.set(px-px*Math.cos(w),0,px*Math.sin(w));}
 function swimRig(f,F,dt,i,sp,hs,faceT,curl,night,pitchAdd){
   if(f.wantH===undefined)f.wantH=f.head;const tk=f.rx&&f.rx.type==='trick';
     // turning: the same spring your fish turns on
@@ -2759,9 +2776,9 @@ function swimRig(f,F,dt,i,sp,hs,faceT,curl,night,pitchAdd){
      {const yy=1+f.sqY,zz=1+f.sqZ,q=Math.sqrt(Math.max(0.2,yy*zz)),Y=f.Y;F.inner.scale.set(Y.lx,yy/q*Y.ly,zz/q*Y.lz);}
      f.arch=damp(f.arch||0,clamp(f.vel.y*0.12,-0.08,0.08),4,dt);
      const A=f.amp;f.g.position.copy(f.pos);
-     f.g.rotation.set((f.roll||0)+A*0.15*Math.sin(f.ph+0.6),f.head-A*0.22*Math.sin(f.ph+0.3)+f.fold*0.15,f.pitch+0.02*Math.sin(T*0.9+i));
+     f.g.rotation.set((f.roll||0)+A*0.15*Math.sin(f.ph+0.6),f.head,f.pitch+0.02*Math.sin(T*0.9+i));headYaw(F.inner,-A*0.22*Math.sin(f.ph+0.3)+f.fold*0.15);
      const sway=0.025*Math.sin(T*0.55+i)+0.015*Math.sin(T*1.3+1+i);
-     fishWave(f.ph,A,clamp(-tr*0.02,-0.06,0.06)+sway,T,sp,0,0,f.arch,clamp((f.sqYV||0)*0.03,-0.2,0.2),f.fold,0,f.foldY,F,dt,tr||0);
+     f.wdt=(f.wdt||0)+dt;if(((frame.n||0)+i)%2===0){fishWave(f.ph,A,clamp(-tr*0.02,-0.06,0.06)+sway,T,sp,0,0,f.arch,clamp((f.sqYV||0)*0.03,-0.2,0.2),f.fold,0,f.foldY,F,f.wdt,tr||0);f.wdt=0;}
      const w=sp<0.3?7.5:3.6;F.fins.forEach((fn,j)=>{const sg=fn.userData.s,ph=T*w+j*1.3+i,main=j<2;fn.rotation.y=(fn.userData.spA||0)+sg*((main?0.36:0.22)+(main?0.3:0.16)*Math.sin(ph)+0.06*Math.sin(ph*2.3+1))*(1+0.25*(1-clamp(sp/0.9)));fn.rotation.z=(main?0:-0.35)+0.14*Math.sin(ph+1.2);});}}
 function friendsTick(dt){iactT-=dt;if(IACT){IACT.t-=dt;if(IACT.t<=0){IACT=null;iactT=rnd(14,26);}}else if(iactT<=0){iactPick();if(!IACT)iactT=4;}
   const night=lightsOff,camL=world.worldToLocal(camera.position.clone());
@@ -3031,7 +3048,7 @@ $('#bellBtn').onclick=()=>{if(VISIT)return;const l=$('#inboxList'),ib=save.inbox
   for(const i of ib){const r=document.createElement('div');r.className='ib'+(i.n?' new':'');const b=document.createElement('b');b.textContent=i.x;const sm=document.createElement('small');sm.textContent=ago(i.t);r.append(b,sm);l.appendChild(r);}
   $('#inbox').hidden=false;if(ib.some(i=>i.n)){ib.forEach(i=>{i.n=0;});bellDot();persist();}};
 $('#inboxClose').onclick=()=>{$('#inbox').hidden=true;};
-setInterval(()=>{if(!document.hidden)checkGifts();},20000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)setTimeout(checkGifts,1500);});
+setInterval(()=>{if(!document.hidden)checkGifts();},240000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)setTimeout(checkGifts,1500);});
 
 /* ---- tank view: pull back to see the whole tank as a small glass box in the middle, and turn it by dragging ---- */
 const TVCLIP=[];
@@ -3504,7 +3521,7 @@ function frameErr(e){if((frameErr.n=(frameErr.n||0)+1)<=3)console.error(e);}
 function frame(){requestAnimationFrame(frame);
   if(DX){const nw=performance.now();try{duelTick(Math.min(0.05,(nw-(DX.last||nw))/1000));}catch(e){frameErr(e);if(DX)endDuel();}if(DX)DX.last=nw;}
   const nowF=performance.now(),busy=ptr.down||toy||foods.length||T-(S.lastTouch||-9)<4||(TV.t>0&&TV.t<1)||DX,minF=busy?0:(lightsOff&&S.asleep?62:30);
-  if(nowF-(frame.last||0)<minF)return;frame.last=nowF;frame.cap=minF>0;const dt=Math.min(clock.getDelta(),0.07);T+=dt;
+  if(nowF-(frame.last||0)<minF)return;frame.last=nowF;frame.n=(frame.n||0)+1;frame.cap=minF>0;const dt=Math.min(clock.getDelta(),0.07);T+=dt;
   try{sunTick(dt);}catch(e){frameErr(e);}try{nightTick(dt);}catch(e){frameErr(e);}
   try{needs(dt);if(DROPS.length)dropTick(dt);glowTick();selTick();behave(dt);if(!R.cracker)physics(dt);animate(dt);if(!R.cracker)keepAboveFloor();if(SNAILS.length)snailTick(dt);if(FRIENDS.length)friendsTick(dt);updateFoods(dt);updateToy(dt);updateRocks(dt);updateFX(dt);updateSay(dt);}catch(e){frameErr(e);}
   const lt=lightsOff?0.35:1;hemi.intensity=damp(hemi.intensity,0.85*lt,2,dt);keyL.intensity=damp(keyL.intensity,0.7*lt,2,dt);
@@ -3525,11 +3542,6 @@ if(lightsOff){document.body.classList.add('night');S.asleep=true;S.pos.set(-B.x*
 requestAnimationFrame(frame);
 window.addEventListener('pagehide',()=>{persistLocal();cloudPut(true);});
 if(!USER)setTimeout(openLogin,600);else{ensureDaily();$('#who').textContent='@'+USER;}
-// pick up new versions by itself: check the page now and then, and reload (keeping the fish's state) when it changes
-(function(){let base=null;
-  const check=()=>fetch(location.pathname+'?check='+Date.now(),{method:'HEAD',cache:'no-store'}).then(r=>{if(!r.ok)return;const v=r.headers.get('etag')||r.headers.get('last-modified');if(!v)return;
-    if(base===null){base=v;return;}if(v===base)return;const go=()=>{if(ptr.down){setTimeout(go,1000);return;}persist();location.reload();};go();}).catch(()=>{});
-  check();setInterval(check,300000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)check();});})();
 document.addEventListener('visibilitychange',()=>{if(document.hidden){S.hiddenAt=Date.now();persistLocal();cloudPut(true);}
   else if(S.hiddenAt){const away=(Date.now()-S.hiddenAt)/1000;S.hiddenAt=0;if(away>3&&save&&save.pets&&save.pets.fish){passTime(pet(),away,lightsOff);renderUI();persistLocal();}}clock.getDelta();});
 })();
