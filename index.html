@@ -178,6 +178,8 @@ body.visiting .ui,body.visiting #say{display:none}
 .langrow .link[aria-pressed="true"]{color:#111;text-decoration-thickness:2px}
 .card{position:relative}
 .row2.topclose{position:absolute;top:20px;right:22px;margin:0;width:auto}
+#midMsg{position:fixed;left:50%;top:42%;transform:translate(-50%,-50%);z-index:25;max-width:80vw;text-align:center;font-size:26px;line-height:1.25;color:var(--ink);text-shadow:0 0 12px rgba(255,255,255,.9);pointer-events:none;animation:midIn 3.4s ease forwards}
+@keyframes midIn{0%{opacity:0;transform:translate(-50%,-40%)}12%,80%{opacity:1;transform:translate(-50%,-50%)}100%{opacity:0;transform:translate(-50%,-55%)}}
 #letter{position:fixed;inset:0;z-index:30;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.5)}
 .env{position:relative;width:230px;height:140px;margin-top:90px;animation:envIn .45s cubic-bezier(.3,1.5,.6,1)}.env i{position:absolute;inset:0;border-radius:8px}
 .env .eb{background:#ece4d6}.env .ef{background:#f6f0e6;clip-path:polygon(0 0,50% 52%,100% 0,100% 100%,0 100%);z-index:3;box-shadow:0 6px 18px rgba(0,0,0,.08)}
@@ -350,6 +352,7 @@ body.lookdock #viewArrows{display:flex}
 <div id="viewBar" hidden><p id="viewHint">drag to turn · pinch to zoom</p><span class="zoombtns"><button type="button" class="icon" id="tvOut" aria-label="Zoom out">−</button><button type="button" class="icon" id="tvIn" aria-label="Zoom in">+</button></span><button type="button" class="go" id="viewDone">close</button></div>
 <div id="editBar" hidden><nav aria-label="Edit tools"><button type="button" data-e="add">add pebbles</button><button type="button" data-e="remove">remove pebbles</button><button type="button" data-e="arrange">move decorations</button><button type="button" class="done" id="editDone">done</button></nav><p id="editHint"></p><div id="turnRow" hidden><button type="button" data-turn="1">turn left</button><button type="button" data-turn="-1">turn right</button><button type="button" id="putAway">put away</button></div></div>
 <div id="letter" hidden><div class="env"><i class="eb"></i><div class="paper"><small id="lFrom"></small><p id="lMsg"></p></div><i class="ef"></i><i class="flap"></i></div></div>
+<div id="midMsg" aria-live="polite" hidden></div>
 <div id="say" aria-live="polite"></div>
 <div class="ui top">
   <div class="who">
@@ -569,7 +572,8 @@ const KO={'my friends':'내 친구','everyone':'전체','search username':'아�
 'edit · your fish’s color and pattern, the water, decorations, and the night lamp':'편집 · 금붕어 색과 무늬, 물 색, 장식, 무드등을 바꿔요','tank view · see your tank on its table in a little room, and turn it around':'어항 보기 · 작은 방 탁자 위의 어항을 보고 돌려 봐요',
 'camera · take a picture of your tank':'카메라 · 어항 사진을 찍어요','your keeper name · tap to switch keepers':'키퍼 이름 · 탭하면 다른 키퍼로 바꿔요','growth':'성장','drag it where you like · twist or use the arrows to turn it':'원하는 곳으로 끌어 놓고, 비틀거나 화살표로 돌려요','send':'보내기','cancel':'취소','turn your fish':'물고기 돌리기','language':'언어','growth · by level':'성장 · 레벨별','Take picture':'사진 찍기','Sound on':'소리 켜짐','Sound off':'소리 꺼짐','Tank view':'어항 보기','drag to turn · pinch to zoom':'끌어서 돌리기 · 두 손가락으로 확대','Zoom in':'확대','Zoom out':'축소','Goldfish tank. Tap, drag and feed to interact.':'금붕어 수조. 탭하고 끌고 먹이를 주며 놀아 주세요.',
 ': check the Firestore rules':': Firestore 규칙을 확인해 주세요',': is the Firestore database created?':': Firestore 데이터베이스가 만들어졌는지 확인해 주세요'};
-const KO_RX=[[/^from @(.+)$/,'@$1에게서'],
+const KO_RX=[[/^(.+) got so soggy it turned back into a fish$/,'$1, 너무 불어서 원래 모습으로 돌아왔어요'],[/^(.+) turned into a cracker!$/,'$1, 크래커로 변했어요!'],
+[/^from @(.+)$/,'@$1에게서'],
 [/^friend request sent to @(.+)$/,'@$1에게 친구 신청을 보냈어요'],[/^you and @(.+) are friends now$/,'이제 @$1와(과) 친구예요'],[/^@(.+) sent you a friend request$/,'@$1님이 친구 신청을 보냈어요'],[/^@(.+) accepted your friend request$/,'@$1님이 친구 신청을 수락했어요'],[/^you can visit @(.+) once you’re friends$/,'친구가 되면 @$1의 어항에 놀러 갈 수 있어요'],[/^that real name doesn’t match @(.+)$/,'@$1 계정의 본명과 맞지 않아요'],
 [/^leave a note for @(.+)$/,'@$1에게 쪽지 남기기'],[/^note left for @(.+)$/,'@$1에게 쪽지를 남겼어요'],[/^@(.+) left a note: “(.+)”$/,'@$1의 쪽지: “$2”'],
 
@@ -829,6 +833,10 @@ function crackerMesh(){if(!CRK){const sh=new THREE.Shape();sh.moveTo(0.62,0.02);
     for(let i=0;i<520;i++){x.fillStyle=Math.random()<0.85?'rgba(255,246,214,.95)':'rgba(150,80,20,.55)';const r=0.6+Math.random()*1.3;x.fillRect(Math.random()*256,Math.random()*256,r,r);}
     const tx=new THREE.CanvasTexture(c);tx.wrapS=tx.wrapT=THREE.RepeatWrapping;tx.repeat.set(1.6,1.6);CRK={geo,mat:flatMat({map:tx,vertexColors:true})};}
   const m=new THREE.Mesh(CRK.geo,CRK.mat);m.userData.cracker=1;return m;}
+// a line of text in the middle of the screen that fades in and away
+function midMsg(t){const el=$('#midMsg');el.hidden=true;el.textContent=t;void el.offsetWidth;el.hidden=false;clearTimeout(midMsg.t);midMsg.t=setTimeout(()=>{el.hidden=true;},3500);}
+// a cracker left in the water goes soggy: the next time the game opens, the fish is itself again
+let SOAKED=0;function soakCheck(){if(SOAKED||!USER||VISIT)return;SOAKED=1;const l=lookOf();if(l.skin==='cracker'){l.skin='';applyLook();persist();setTimeout(()=>midMsg(pet().name+' got so soggy it turned back into a fish'),700);}}
 function setCracker(F,on){const cur=F.inner.children.find(o=>o.userData.cracker);if(on&&!cur){F.inner.children.forEach(o=>{o.userData.wasVis=o.visible;o.visible=false;});const m=crackerMesh();m.rotation.z=0.05;F.inner.add(m);F.cracker=m;}
   else if(!on&&cur){F.inner.remove(cur);F.inner.children.forEach(o=>{o.visible=o.userData.wasVis!==false;});F.cracker=null;}}
 function applyLook(F,lk,st){F=F||R;if(!F)return;lk=lk||lookOf();setCracker(F,lk.skin==='cracker');if(st===undefined)st=F===R?growStage():10;const Yc=youth(st);F.inner.updateMatrixWorld(true);const inv=new THREE.Matrix4().copy(F.inner.matrixWorld).invert(),m=new THREE.Matrix4(),v=new V3();
@@ -1386,7 +1394,7 @@ function doReact(dt){const r=S.react;r.t+=dt;const u=clamp(r.t/r.dur);
   if(r.t>=r.dur){if(r.type==='trick')S.roll=0;S.react=null;}}
 
 /* ================= behaviour ================= */
-function behave(dt){const s=pet().s;S.faceT=null;if(R.cracker){S.vel.set(0,0,0);return;}
+function behave(dt){const s=pet().s;S.faceT=null;if(R.cracker){S.vel.x=damp(S.vel.x,0,3,dt);S.vel.z=damp(S.vel.z,0,3,dt);S.vel.y=damp(S.vel.y,-0.28,1.5,dt);return;}
   S.look=(T-ptr.seen<2.5&&ptr.world)?ptr.world:null;
   if(DX){duelHost(dt);return;}
   if(S.react&&S.react.lock){doReact(dt);return;}
@@ -1501,7 +1509,7 @@ function physics(dt){S.vyPre=S.vel.y;if(S.vel.y<0&&S.lowGap!==undefined){const c
 function animate(dt){CUR.mouth=damp(CUR.mouth,0,8,dt);CUR.burst=damp(CUR.burst,0,4,dt);CUR.gulp=damp(CUR.gulp,0,6,dt);S.eatCap-=dt;S.seeCap-=dt;S.tiredCap=(S.tiredCap||0)-dt;S.playCap=(S.playCap||0)-dt;
   {const g=CUR.gulp,yy=(1+(S.sqY||0))*(1+0.12*g),zz=(1+(S.sqZ||0))*(1+0.12*g),f=Math.sqrt(Math.max(0.2,yy*zz));const bx=1/Math.sqrt(1+(S.sqX||0)*0.6);{const Y=S.yShape;R.inner.scale.set(Y?Y.lx:1,yy/f*bx*(Y?Y.ly:1),zz/f*bx*(Y?Y.lz:1));}S.flatDrop=0.09*Math.max(0,1-yy/f*bx)*(S.ground||0);}
   const sp=S.vel.length(),hs=Math.hypot(S.vel.x,S.vel.z);
-  R.g.position.copy(S.pos);if(R.cracker){R.g.rotation.set(0.04,0.22,0.05);return;}R.g.position.y-=(S.flatDrop||0)+0.022*(S.peckDip||0);if(S.mode!=='nibble')S.peckDip=damp(S.peckDip||0,0,8,dt);
+  R.g.position.copy(S.pos);if(R.cracker){const h=clamp((S.pos.y-B.floor-0.15)/0.6,0,1);S.crk=damp(S.crk||0,1-h,3,dt);R.g.rotation.set(0.04-0.55*S.crk+0.05*Math.sin(T*1.3)*h,0.22+0.1*Math.sin(T*0.7)*h,0.05+0.15*S.crk);return;}R.g.position.y-=(S.flatDrop||0)+0.022*(S.peckDip||0);if(S.mode!=='nibble')S.peckDip=damp(S.peckDip||0,0,8,dt);
   {const op=S.pitch;S.pitch=damp(S.pitch,((S.react&&S.react.type==='trick')?0.22*Math.sin(Math.PI*clamp(S.react.t/S.react.dur)):S.faceT?Math.max(S.mode==='nibble'?-0.35:-9,Math.atan2(S.faceT.y-S.pos.y,Math.hypot(S.faceT.x-S.pos.x,S.faceT.z-S.pos.z)+0.01)):(S.vel.length()<0.08?0:Math.atan2(S.vel.y,hs+0.01)))*(1-0.8*(S.ground||0)*(S.mode==='nibble'?0:1)),4.5,dt);S.pitchV=damp(S.pitchV||0,(S.pitch-op)/Math.max(dt,1e-4),10,dt);}S.rollC=damp(S.rollC,clamp(S.turnRate*0.1,-0.45,0.45),5,dt);
   if(!(S.react&&S.react.type==='trick')){if(!isFinite(S.roll))S.roll=0;if(S.roll){const tg=Math.round(S.roll/(Math.PI*2))*Math.PI*2;S.roll=damp(S.roll,tg,6,dt);if(Math.abs(S.roll-tg)<0.01)S.roll=0;}}
   if(!isFinite(S.pitch))S.pitch=0;if(!isFinite(S.rollC))S.rollC=0;
@@ -1837,7 +1845,7 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden)setTimeout
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)pull();});
 /* the home-screen app keeps an old copy of the page open (and iOS caches it), so check for a newer build when it opens or comes back,
    and reload past the cache if there is one */
-const BUILD='20261119024306';
+const BUILD='20261119030833';
 function checkBuild(){fetch('version.json?t='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{if(!j||!j.b||j.b===BUILD)return;
   try{if(sessionStorage.getItem('gf-build')===j.b)return;sessionStorage.setItem('gf-build',j.b);}catch(e){}
   try{persistLocal();}catch(e){}location.replace(location.pathname+'?v='+encodeURIComponent(j.b));}).catch(()=>{});}
@@ -1858,7 +1866,7 @@ const LOOK_SKINS=['none','christmas','cracker'];
 function openSkins(){$('#tank').hidden=true;$('#skins').hidden=false;const el=$('#skinList');el.textContent='';const lk=lookOf();
   for(const k of LOOK_SKINS){const b=document.createElement('button');b.type='button';const im=document.createElement('img');im.alt='';im.src=fishThumb(Object.assign({},lk,{skin:k==='none'?'':k}));
     const t=document.createElement('span');t.textContent=k;b.append(im,t);b.setAttribute('aria-pressed',(lk.skin||'none')===k);
-    b.onclick=()=>{const l=lookOf();if(k==='christmas'&&l.skin==='christmas')l.seed=Math.floor(Math.random()*1000);l.skin=k==='none'?'':k;applyLook();persist();openSkins();showFishChange(k==='none'?'no skin':k);};el.appendChild(b);}}
+    b.onclick=()=>{const l=lookOf();if(k==='christmas'&&l.skin==='christmas')l.seed=Math.floor(Math.random()*1000);const was=l.skin;l.skin=k==='none'?'':k;applyLook();persist();openSkins();if(k==='cracker'&&was!=='cracker')midMsg(pet().name+' turned into a cracker!');showFishChange(k==='none'?'no skin':k);};el.appendChild(b);}}
 $('#skinBtn').onclick=openSkins;
 function friendsFix(){if(save.hideFriends!==undefined)delete save.hideFriends;}
 function friendsLabel(){friendsFix();const L=save.friends||[],n=L.length,on=L.filter(f=>!f.hide).length;$('#friendsTxt').textContent=n?on+' of '+n+' shown · tap to choose':'little fish your friends send you swim here';}
@@ -2496,7 +2504,7 @@ function askReal(){if(!USER)return;$('#realName').value='';$('#realMsg').textCon
 // only accounts that never had a real name entered are asked (the name check is also kept on this device, in case an older copy of the game saved over it)
 const IDHK=u=>'goldfish-idh-'+u;
 function keepIdh(){try{if(save.idh)localStorage.setItem(IDHK(USER),save.idh);else{const h=localStorage.getItem(IDHK(USER));if(h){save.idh=h;persist();cloudDirty=true;}}}catch(e){}}
-function needReal(){if(!USER||!$('#login').hidden)return;keepIdh();if(!save.idh)askReal();}
+function needReal(){soakCheck();if(!USER||!$('#login').hidden)return;keepIdh();if(!save.idh)askReal();}
 $('#realForm').addEventListener('submit',async e=>{e.preventDefault();const t=cleanReal($('#realName').value);if(t.length<2){$('#realMsg').textContent='please type your real name';return;}
   const h=await idHash(USER,t);if(save.idh&&save.idh!==h){$('#realMsg').textContent='that doesn’t match the name on this account';return;}
   setMyReal(t);if(!save.idh){save.idh=h;persist();cloudDirty=true;cloudPut();}keepIdh();$('#realAsk').hidden=true;palMigrate();});
