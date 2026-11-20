@@ -125,7 +125,7 @@ body.visiting .ui,body.visiting #say{display:none}
 .giftrow.bare{gap:14px;align-items:flex-end}
 .gpic{display:flex;flex-direction:column;align-items:center;gap:2px;padding:0;background:none;border:0;cursor:pointer;font-size:14px;color:var(--soft);transition:transform .12s}
 .gpic:active{transform:scale(.9)}.gpic:disabled{opacity:.35}
-.gpic img{width:84px;height:60px;display:block}
+.gpic img{width:84px;height:60px;display:block}#sendFish img{width:62px;height:44px}
 .gift-line{display:flex;align-items:center;gap:12px;padding:6px 0;font-size:19px;color:#111}
 .gift-line img{width:40px;height:40px}
 #polaroid{position:fixed;inset:0;z-index:8;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.35)}
@@ -182,7 +182,7 @@ body.visiting .ui,body.visiting #say{display:none}
 .card{position:relative}
 .row2.topclose{position:absolute;top:20px;right:22px;margin:0;width:auto}
 #paintCv{display:block;width:100%;height:auto;margin:6px 0 10px;touch-action:none;cursor:crosshair}#paintCols{justify-content:center;margin-bottom:8px}
-.gift-line .gsee{flex:none;margin-left:auto;background:rgba(0,0,0,.06);border:0;border-radius:6px;padding:4px 10px;font:inherit;font-size:15px;color:inherit}.gpic{font-size:26px;width:40px;text-align:center}
+.gift-line .gsee{flex:none;margin-left:auto;background:rgba(0,0,0,.06);border:0;border-radius:6px;padding:4px 10px;font:inherit;font-size:15px;color:inherit}.gift-line .gpic{font-size:26px;width:40px;text-align:center}
 .ptools{display:flex;gap:6px;align-items:center;margin-bottom:6px}.ptools span{flex:1}.ptools button{background:rgba(0,0,0,.06);border:0;border-radius:6px;padding:5px 10px;font:inherit;font-size:15px;color:inherit}.ptools button[aria-pressed=true]{background:#111;color:#fff}
 #midMsg{position:fixed;left:50%;top:42%;transform:translate(-50%,-50%);z-index:25;max-width:80vw;text-align:center;font-size:26px;line-height:1.25;color:var(--ink);text-shadow:0 0 12px rgba(255,255,255,.9);pointer-events:none;animation:midIn 3.4s ease forwards}
 @keyframes midIn{0%{opacity:0;transform:translate(-50%,-40%)}12%,80%{opacity:1;transform:translate(-50%,-50%)}100%{opacity:0;transform:translate(-50%,-55%)}}
@@ -329,11 +329,9 @@ body.lookdock #viewArrows{display:flex}
 <div class="sheet" id="giftOut" hidden>
   <div class="card">
     <h2 id="giftTitle">send a gift</h2>
-    <p class="small">snack</p>
-    <div class="giftrow bare" id="snackRow"></div>
+    <p class="small"><span>snack</span> · <span>a little fish like yours · 50 xp</span></p>
+    <div class="giftrow bare"><div id="snackRow" style="display:contents"></div><button type="button" class="gpic" id="sendFish"><img id="giftFishImg" alt=""><span id="giftFishTxt">send · 50 xp</span></button></div>
     <div hidden><button type="button" class="gbtn" id="sendSnack"><span class="gi"><svg viewBox="0 0 24 24" width="32" height="32" aria-hidden="true"><path d="M5 9l7-4 7 4-2 9H7z" fill="#f4b06a" stroke="#c97e3a" stroke-width="1.4" stroke-linejoin="round"/><path d="M9 11.5h6M9.5 14.5h5" stroke="#c97e3a" stroke-width="1.4" stroke-linecap="round"/></svg></span><span id="snackLeft"></span></button></div>
-    <p class="small">a little fish like yours · 50 xp</p>
-    <div class="giftrow bare"><button type="button" class="gpic" id="sendFish"><img id="giftFishImg" alt=""><span id="giftFishTxt">send · 50 xp</span></button></div>
     <p class="small">decoration · paid with your xp</p>
     <div class="shopgrid" id="giftDeco"></div>
     <p class="small" id="giftMsg"></p>
@@ -1991,7 +1989,7 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden)setTimeout
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)pull();});
 /* the home-screen app keeps an old copy of the page open (and iOS caches it), so check for a newer build when it opens or comes back,
    and reload past the cache if there is one */
-const BUILD='20261120122441';
+const BUILD='20261120140612';
 function checkBuild(){fetch('version.json?t='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{if(!j||!j.b||j.b===BUILD)return;
   try{if(sessionStorage.getItem('gf-build')===j.b)return;sessionStorage.setItem('gf-build',j.b);}catch(e){}
   try{persistLocal();}catch(e){}location.replace(location.pathname+'?v='+encodeURIComponent(j.b));}).catch(()=>{});}
