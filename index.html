@@ -1504,6 +1504,9 @@ cv.addEventListener('pointermove',e=>{setNDC(e);ptr.world=worldPoint();ptr.seen=
 function up(){if(!ptr.down)return;ptr.down=false;lastPeb=null;if(dragPeb)pebbleDrop();if(pebDirty){pebDirty=false;persist();}
   if(dragItem){const it=dragItem.userData.item;it.x=+(dragItem.position.x/B.x).toFixed(3);it.z=+dragItem.position.z.toFixed(2);it.t=Date.now();dragItem=null;settleRings(ENV);computeObst();persist();}if(ptr.moved<12&&performance.now()-ptr.t0<380)tap();if(tool==='toy')endToy(false);}
 cv.addEventListener('pointerup',up);cv.addEventListener('pointercancel',up);
+// feeding works anywhere over the tank: if a tap lands on something see-through above the canvas (not a button or a menu), it still drops food
+{let fd=null;addEventListener('pointerdown',e=>{fd=tool==='food'&&e.target!==cv&&!e.target.closest('button,a,input,textarea,select,label,.sheet,.card,[role=dialog]')?{x:e.clientX,y:e.clientY,t:performance.now()}:null;},true);
+  addEventListener('pointerup',e=>{if(!fd)return;const d=fd;fd=null;if(tool!=='food'||Math.hypot(e.clientX-d.x,e.clientY-d.y)>12||performance.now()-d.t>500)return;setNDC(e);dropFood(worldPoint());},true);}
 cv.addEventListener('pointerleave',e=>{if(e.pointerType==='mouse'&&!ptr.down)ptr.seen=-9;});
 function tap(){
   if(tool==='hand'){
@@ -1755,7 +1758,7 @@ function renderUI(){bellDot();
     b.innerHTML='<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9.5v5h3.5L12 18.5v-13L7.5 9.5H4z"/>'+(on?'<path d="M15.5 9.5a3.5 3.5 0 0 1 0 5"/><path d="M18 7a7 7 0 0 1 0 10"/>':'<path d="M16 10l4.5 4.5M20.5 10L16 14.5"/>')+'</svg>';}}updateStats();updateCap();}
 function updateStats(){const s=pet().s;for(const [k] of STATS){const b=$('#b-'+k);if(b)b.style.width=Math.round(s[k])+'%';}
   const lv=$('#lvl'),rg=$('#lvRing');if(lv&&PROG){lv.textContent='lv '+PROG.level;const f=PROG.level>=MAXL?1:PROG.exp/need(PROG.level);rg.setAttribute('stroke-dashoffset',(56.5*(1-f)).toFixed(1));}$('#lvBadge').hidden=!PROG;}
-function toggleLights(){lightsOff=!lightsOff;save.night=lightsOff;if(lightsOff)S.sleptAt=T;else if(S.sleptAt!==undefined&&T-S.sleptAt>=60)track('sleep');persist();document.body.classList.toggle('night',lightsOff);
+function toggleLights(){lightsOff=!lightsOff;if(!VISIT)save.night=lightsOff;if(lightsOff)S.sleptAt=T;else if(S.sleptAt!==undefined&&T-S.sleptAt>=60)track('sleep');persist();document.body.classList.toggle('night',lightsOff);
   if(lightsOff){S.call=null;endToy(true);}else if(S.asleep){S.asleep=false;react('wake');}renderUI();}
 $('#snd').onclick=()=>{save.sound=!save.sound;snd.ac();persist();renderUI();};
 function openNaming(first){openNaming.first=!!first;const f=$('#fishName');f.value=pet().name;$('#naming').hidden=false;setTimeout(()=>{try{f.focus();f.select();}catch(e){}},250);}
@@ -1989,7 +1992,7 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden)setTimeout
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)pull();});
 /* the home-screen app keeps an old copy of the page open (and iOS caches it), so check for a newer build when it opens or comes back,
    and reload past the cache if there is one */
-const BUILD='20261122053004';
+const BUILD='20261122172006';
 function checkBuild(){fetch('version.json?t='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{if(!j||!j.b||j.b===BUILD)return;
   try{if(sessionStorage.getItem('gf-build')===j.b)return;sessionStorage.setItem('gf-build',j.b);}catch(e){}
   try{persistLocal();}catch(e){}location.replace(location.pathname+'?v='+encodeURIComponent(j.b));}).catch(()=>{});}
@@ -2687,7 +2690,8 @@ $('#mSound').onclick=()=>{$('#snd').click();$('#mSoundTxt').textContent=save.sou
 function enterVisit(n,rec){if(TV.on)setTankView(false);if(toy)endToy(true);persistLocal();
   const f=(rec.save.pets&&rec.save.pets.fish)||{},pr=normProg(rec.prog);
   VISIT_REC(n);VISIT={n,mine:save.tank,paint:f.paint||((save.friends||[]).find(x=>x.from===n&&x.paint)||{}).paint||null,look:Object.assign({c:'orange',p:'plain',seed:1},f.look||{}),stage:Math.min(10,Math.max(pr.grow||0,Math.floor(pr.level/5))),fish:f.name||DEF,level:pr.level};
-  VISIT.lamp=rec.save.lamp;VISIT.clean=clamp(+(f.s&&f.s.clean)||80,0,100);VISIT.myLights=lightsOff;lightsOff=!!rec.save.night;document.body.classList.toggle('night',lightsOff);if(S)S.asleep=lightsOff;
+  VISIT.lamp=rec.save.lamp;VISIT.clean=clamp(+(f.s&&f.s.clean)||80,0,100);VISIT.myLights=lightsOff;lightsOff=false;// visiting: the lights are on and their fish is awake, so you can always play with it
+  document.body.classList.toggle('night',lightsOff);if(S)S.asleep=lightsOff;
   VISIT.snails=(rec.save.snails||[]).slice(0,14);VISIT.friends=(rec.save.friends||[]).slice(0,6);{const vf=VISIT.friends,vn=n;refreshFriendLooks(vf,()=>{if(VISIT&&VISIT.n===vn)spawnFriends();});}save.tank=JSON.parse(JSON.stringify(rec.save.tank||{}));rebuildTank();spawnFriends();R.lookStage=null;S.grow=VISIT.stage/10;applyLook();
   document.body.classList.add('visiting');$('#visitBar').hidden=false;$('#visitTitle').textContent='@'+n+'’s tank · '+VISIT.fish+'\nlv '+VISIT.level;say('');}
 let VISIT_CLOUD=null;
