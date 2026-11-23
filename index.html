@@ -546,6 +546,7 @@ const KO={'your fish is a cracker right now · crackers can\u2019t duel':'내 �
 'orange':'주황','tangerine':'귤색','gold':'금색','yellow':'노랑','lemon':'레몬','cream':'크림','peach':'복숭아','coral':'코랄','salmon':'연어색',
 'red':'빨강','crimson':'진홍','rose':'장미','pink':'분홍','lilac':'라일락','violet':'보라','sky':'하늘','blue':'파랑','navy':'남색','teal':'청록',
 'mint':'민트','olive':'올리브','chocolate':'초콜릿','silver':'은색','white':'하양','black':'검정',
+'dusty rose':'더스티 로즈','terracotta':'테라코타','mustard':'머스타드','sage':'세이지','slate':'슬레이트','mauve':'모브','clay':'점토색','fog':'안개색',
 'clear':'투명','green':'초록','warm':'따뜻한','blue':'파랑','purple':'보라','night lamp':'무드등','the color of the light at night':'밤에 켜지는 빛의 색',
 'a mood lamp beside the tank, on from 9 pm to 5 am':'어항 옆 무드등 · 밤 9시부터 새벽 5시까지 켜져요',
 'candy cane':'지팡이 사탕','gift box':'선물 상자','ice crystals':'얼음 결정','snowman':'눈사람','little sled':'작은 썰매','pine tree':'소나무',
@@ -780,7 +781,9 @@ function finGeo(nu,nv,pf,cf,axis){const pos=[],col=[],flex=[],idx=[],uvs=[];
 const LOOK_COLORS={orange:'#ff7a3c',tangerine:'#ff9a3d',gold:'#f9a62b',yellow:'#ffcf4a',lemon:'#f2e070',cream:'#f0d8a8',
   peach:'#f6a585',coral:'#ff6f61',salmon:'#ef8a72',red:'#e5412d',crimson:'#c4243a',rose:'#e5728d',pink:'#f3a7c1',lilac:'#bba5da',
   violet:'#8a78cf',sky:'#82b9e6',blue:'#3554a8',navy:'#26325c',teal:'#2b9a93',mint:'#8fd3b6',olive:'#9b9a4b',chocolate:'#8b4a2b',
-  silver:'#b9bdc2',white:'#f3ede2',black:'#33302e'};
+  silver:'#b9bdc2',white:'#f3ede2',black:'#33302e',
+  // muted, toned-down shades
+  'dusty rose':'#c4969a',terracotta:'#b8765c',mustard:'#c4a14f',sage:'#98ab8e',slate:'#76869a',mauve:'#9f86a3',clay:'#a5705d',fog:'#a9a9a3'};
 const LOOK_PATTERNS=['plain','fade','dark fins','patches'];
 const lookOf=()=>{if(VISIT)return VISIT.look;const p=pet();if(!p.look)p.look={c:'orange',p:'plain',seed:Math.floor(Math.random()*1000)};if(!LOOK_PATTERNS.includes(p.look.p))p.look.p='plain';if(!LOOK_COLORS[p.look.c])p.look.c='orange';return p.look;};
 function lookNoise(x,y,z,sd,f){const a=sd*0.37,b=sd*0.71,c=sd*1.13;
@@ -1992,7 +1995,7 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden)setTimeout
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)pull();});
 /* the home-screen app keeps an old copy of the page open (and iOS caches it), so check for a newer build when it opens or comes back,
    and reload past the cache if there is one */
-const BUILD='20261123092224';
+const BUILD='20261123092727';
 function checkBuild(){fetch('version.json?t='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{if(!j||!j.b||j.b===BUILD)return;
   try{if(sessionStorage.getItem('gf-build')===j.b)return;sessionStorage.setItem('gf-build',j.b);}catch(e){}
   try{persistLocal();}catch(e){}location.replace(location.pathname+'?v='+encodeURIComponent(j.b));}).catch(()=>{});}
