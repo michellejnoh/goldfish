@@ -1135,6 +1135,11 @@ const toyKind=()=>{const k=save.tank&&save.tank.toy;return k==='heart'?k:'stone'
 // menu icons are little renders of the real things
 let TT=null;const TTC={};function toyThumb(k){if(TTC[k])return TTC[k];if(!TT){const r=new THREE.WebGLRenderer({antialias:true,alpha:true,preserveDrawingBuffer:true});r.setPixelRatio(1);r.setSize(132,132,false);r.setClearColor(0xffffff,0);TT={r,cam:new THREE.PerspectiveCamera(30,1,0.01,10)};TT.cam.position.set(0,0.07,0.6);TT.cam.lookAt(0,0,0);}
   const sc=new THREE.Scene(),m=toyMesh(k);m.rotation.set(-0.3,0.45,0.1);sc.add(m);TT.r.render(sc,TT.cam);const u=TT.r.domElement.toDataURL();m.traverse(q=>q.geometry&&q.geometry.dispose());return TTC[k]=u;}
+// you can pick the play stone up with your finger, carry it anywhere in the water and let go (a flick throws it); a tap makes it hop
+function hitBall(e){if(!BALL||BALL.show)return false;const v=BALL.m.getWorldPosition(new V3()).project(camera),x=(v.x+1)/2*innerWidth,y=(1-v.y)/2*innerHeight;return Math.hypot(x-e.clientX,y-e.clientY)<34;}
+function ballDrag(){const b=BALL,pl=new THREE.Plane(new V3(0,0,1),0),wz=b.m.parent.localToWorld(b.pos.clone()).z;pl.constant=-wz;const h=ray.ray.intersectPlane(pl,new V3());if(!h)return;b.m.parent.worldToLocal(h);
+  const tg=new V3(clamp(h.x,-B.x,B.x),clamp(h.y,b.floor,B.surf-b.r),b.pos.z),now=performance.now(),dt=Math.max(0.016,(now-(b.dragT||now-16))/1000);b.dragT=now;
+  b.vel.copy(tg).sub(b.pos).divideScalar(dt).multiplyScalar(0.5).add(b.vel.clone().multiplyScalar(0.5));b.m.rotation.z-=(tg.x-b.pos.x)/b.r;b.pos.copy(tg);b.grab=true;b.held=false;}
 function setToy(k){if(!BALL||!ENV)return;const o=BALL.m,n=toyMesh(k);n.position.copy(o.position);n.rotation.copy(o.rotation);n.scale.copy(o.scale);o.parent.add(n);o.parent.remove(o);o.traverse(q=>q.geometry&&q.geometry.dispose());BALL.m=n;BALL.pos=n.position;}
 function stoneGeo(r,seed,rough,flat){const g=new THREE.IcosahedronGeometry(1,rough?1:3),p=g.attributes.position;
   for(let i=0;i<p.count;i++){const x=p.getX(i),y=p.getY(i),z=p.getZ(i),k=1+0.2*n3(x*2+seed,y*2+seed*1.3,z*2-seed);p.setXYZ(i,x*r*k,y*r*flat*k,z*r*k);}
@@ -1524,7 +1529,7 @@ cv.addEventListener('pointerup',tpEnd,true);cv.addEventListener('pointercancel',
 cv.addEventListener('wheel',e=>{if(tool!=='arrange')return;setNDC(e);const o=hitItem()||(ITEMS_ON.includes(selItem)?selItem:null);if(!o)return;e.preventDefault();selItem=o;turnItem(o,e.deltaY*0.004);
   clearTimeout(cv._wt);cv._wt=setTimeout(()=>saveItemTurn(o),300);},{passive:false});
 cv.addEventListener('pointerdown',e=>{if(twist)return;snd.ac();if(S)S.lastTouch=T;try{cv.setPointerCapture(e.pointerId)}catch(_){}
-  ptr.down=true;ptr.x=e.clientX;ptr.y=e.clientY;ptr.t0=performance.now();ptr.moved=0;setNDC(e);ptr.world=worldPoint();ptr.seen=T;ptr.onPet=hitFish();if(ptr.onPet&&tool==='hand'){const rs=SNAILS.find(q=>q.onFish&&(hitSnail()===q||(()=>{const v=q.g.getWorldPosition(new V3()).project(camera);return Math.hypot((v.x+1)/2*innerWidth-e.clientX,(1-v.y)/2*innerHeight-e.clientY)<34;})()));if(rs)ptr.onPet=null;ptr.rideS=rs;}else ptr.rideS=null;ptr.onFriend=tool==='hand'&&!ptr.onPet?hitFriend():null;ptr.onSnail=ptr.rideS||(tool==='hand'&&!ptr.onPet&&!ptr.onFriend?hitSnail():null);if(ptr.onSnail)ptr.onSnail.lead=true;
+  ptr.down=true;ptr.x=e.clientX;ptr.y=e.clientY;ptr.t0=performance.now();ptr.moved=0;setNDC(e);ptr.world=worldPoint();ptr.seen=T;ptr.onPet=hitFish();if(ptr.onPet&&tool==='hand'){const rs=SNAILS.find(q=>q.onFish&&(hitSnail()===q||(()=>{const v=q.g.getWorldPosition(new V3()).project(camera);return Math.hypot((v.x+1)/2*innerWidth-e.clientX,(1-v.y)/2*innerHeight-e.clientY)<34;})()));if(rs)ptr.onPet=null;ptr.rideS=rs;}else ptr.rideS=null;ptr.onFriend=tool==='hand'&&!ptr.onPet?hitFriend():null;ptr.onSnail=ptr.rideS||(tool==='hand'&&!ptr.onPet&&!ptr.onFriend?hitSnail():null);if(ptr.onSnail)ptr.onSnail.lead=true;ptr.onBall=tool==='hand'&&!ptr.onPet&&!ptr.onFriend&&!ptr.onSnail&&hitBall(e);if(ptr.onBall)BALL.grabT=performance.now();
   if(tool==='toy')startToy();
   if(tool==='arrange'){dragItem=hitItem();if(dragItem)selItem=dragItem;}
   if(tool==='peb')pebbleBrush(true);});
@@ -1532,8 +1537,9 @@ cv.addEventListener('pointermove',e=>{setNDC(e);ptr.world=worldPoint();ptr.seen=
   const px=Math.hypot(e.clientX-ptr.x,e.clientY-ptr.y);ptr.x=e.clientX;ptr.y=e.clientY;ptr.moved+=px;
   if(tool==='wash')wipe(px);else if(tool==='toy'&&toy)toy.target=toyTarget(ptr.world)||toy.target;
   else if(tool==='peb')pebbleBrush(false);
+  else if(tool==='hand'&&ptr.onBall&&BALL&&ptr.moved>6)ballDrag();
   else if(tool==='arrange'&&dragItem){const fp=floorPoint();if(fp){dragItem.position.x=clamp(fp.x,-B.x,B.x);dragItem.position.z=clamp(fp.z,-1.3,0.7);const nw=performance.now();if(nw-(settleRings.t||0)>60){settleRings.t=nw;settleRings(ENV);}}}});
-function up(){if(!ptr.down)return;ptr.down=false;lastPeb=null;if(dragPeb)pebbleDrop();if(pebDirty){pebDirty=false;persist();}
+function up(){if(!ptr.down)return;ptr.down=false;if(ptr.onBall&&BALL){ptr.onBall=false;if(BALL.grab){BALL.grab=false;BALL.vel.clampLength(0,1.6);}else{BALL.vel.set(rnd(-0.15,0.15),0.55,0);}return;}lastPeb=null;if(dragPeb)pebbleDrop();if(pebDirty){pebDirty=false;persist();}
   if(dragItem){const it=dragItem.userData.item;it.x=+(dragItem.position.x/B.x).toFixed(3);it.z=+dragItem.position.z.toFixed(2);it.t=Date.now();dragItem=null;settleRings(ENV);computeObst();persist();}if(ptr.moved<12&&performance.now()-ptr.t0<380)tap();if(tool==='toy')endToy(false);}
 cv.addEventListener('pointerup',up);cv.addEventListener('pointercancel',up);
 // feeding works anywhere over the tank: if a tap lands on something see-through above the canvas (not a button or a menu), it still drops food
@@ -1582,7 +1588,7 @@ function behave(dt){const s=pet().s;S.faceT=null;if(R.cracker){S.vel.set(0,0,0);
   if(S.react)doReact(dt);
   if(toy){if(s.energy>4){chase(dt);return;}tired(dt);return;}
   const f=nearestFood();if(f){if(s.food<99||f.snack){eat(f,dt);return;}if(!f.refused){f.refused=true;react('refuse');toast(fill('{n} is full right now.'),2.4);return;}}
-  if(ptr.down&&tool==='hand'&&ptr.moved>10&&ptr.world&&!ptr.onFriend&&!ptr.onSnail){S.faceT=ptr.world;track('lead',dt);const p=standPoint(ptr.world,R.reach);move(p.x,p.y,p.z,1.8,dt);add('fun',dt*0.6);if(Math.random()<dt*1.5)bubble(mouthWorld());return;}
+  if(ptr.down&&tool==='hand'&&ptr.moved>10&&ptr.world&&!ptr.onFriend&&!ptr.onSnail&&!ptr.onBall){S.faceT=ptr.world;track('lead',dt);const p=standPoint(ptr.world,R.reach);move(p.x,p.y,p.z,1.8,dt);add('fun',dt*0.6);if(Math.random()<dt*1.5)bubble(mouthWorld());return;}
   if(S.hold&&!lightsOff){const d=move(S.hold.x,S.hold.y,S.hold.z,1.3,dt);if(d<0.2){brake(dt);S.faceT=null;if(S.viewH===undefined)S.viewH=Math.cos(S.heading)>=0?0:Math.PI;S.wantH=S.viewH;}return;}
   if(S.call){const d=move(S.call.x,S.call.y,S.call.z,1.6,dt);if(d<0.15){S.call=null;S.think=rnd(2,4);talk();}return;}
   if(IACT&&IACT.k==='boop'&&!IACT.done&&IACT.f.pos.distanceTo(S.pos)<0.9){S.faceT=IACT.f.pos;brake(dt);return;}
@@ -1642,7 +1648,7 @@ function tidy(dt){
     if(Math.random()<0.4)say(pick(['mm','o']),1);}}
 // the play stone wedged where the fish can't get under it: it gives up rather than pressing against the rock, and nudges the stone loose for next time
 function jStuck(d,dt,b){if(!noProgress(d,dt,1.4))return false;S.prog=undefined;S.mode='idle';S.think=rnd(2,4);b.vel.x+=(Math.sign(-b.pos.x)||1)*0.6;b.vel.y+=0.35;b.vel.z+=(Math.sign(0.2-b.pos.z)||1)*0.3;return true;}
-function juggle(dt){const b=BALL;if(!b){S.mode='idle';return;}S.bumpCD-=dt;const bp=b.pos,m=mouthWorld();S.faceT=bp;
+function juggle(dt){const b=BALL;if(!b||b.show||b.grab){S.mode='idle';return;}S.bumpCD-=dt;const bp=b.pos,m=mouthWorld();S.faceT=bp;
   const toward=p=>{const t=S.pos.clone().add(p.clone().sub(m));return move(t.x,t.y,t.z,2.6,dt,B.floor+0.03,B.surf);};
   if(S.jPhase==='balance'){// the stone rests on its nose for a moment, wobbling, then gets tossed
     b.held=true;S.balT-=dt;b.pos.copy(m).add(new V3(Math.sin(T*5)*0.012,b.r*0.92,0));b.vel.set(0,0,0);b.m.rotation.z+=dt*1.5;
@@ -1754,7 +1760,9 @@ function animate(dt){CUR.mouth=damp(CUR.mouth,0,8,dt);CUR.burst=damp(CUR.burst,0
 /* ================= needs & UI ================= */
 function updateRocks(dt){
   if(BALL&&BALL.held&&S.mode!=='juggle')BALL.held=false;
-  if(BALL&&!BALL.held){const b=BALL,p=b.pos,v=b.vel;v.y-=0.6*dt;v.multiplyScalar(Math.exp(-0.7*dt));p.addScaledVector(v,dt);
+  // while the play-stone menu is open the stone floats up into view above the menu and turns slowly, so you can see what you picked
+  if(BALL){const show=!$('#toyMenu').hidden;if(show){const b=BALL;b.held=false;b.show=true;const tg=new V3(0,B.floor+(B.surf-B.floor)*0.6,0.2);b.pos.lerp(tg,1-Math.exp(-dt*4));b.vel.set(0,0,0);b.m.scale.setScalar(damp(b.m.scale.x,b.r/0.1*1.8,4,dt));b.m.rotation.y+=dt*1.2;b.m.rotation.x=damp(b.m.rotation.x,0,4,dt);b.m.rotation.z=damp(b.m.rotation.z,0,4,dt);}else if(BALL.show){BALL.show=false;BALL.vel.set(0,-0.1,0);BALL.m.scale.setScalar(BALL.r/0.1);}}
+  if(BALL&&!BALL.held&&!BALL.show&&!BALL.grab){const b=BALL,p=b.pos,v=b.vel;v.y-=0.6*dt;v.multiplyScalar(Math.exp(-0.7*dt));p.addScaledVector(v,dt);
     if(p.y<b.floor){p.y=b.floor;v.y=Math.abs(v.y)>0.25?-v.y*0.3:0;v.x*=0.92;v.z*=0.92;}
     if(p.y>B.surf-b.r){p.y=B.surf-b.r;v.y=-Math.abs(v.y)*0.3;}
     if(Math.abs(p.x)>B.x){p.x=Math.sign(p.x)*B.x;v.x*=-0.5;}if(p.z<-1.35||p.z>0.65){p.z=clamp(p.z,-1.35,0.65);v.z*=-0.5;}
@@ -2024,7 +2032,7 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden)setTimeout
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)pull();});
 /* the home-screen app keeps an old copy of the page open (and iOS caches it), so check for a newer build when it opens or comes back,
    and reload past the cache if there is one */
-const BUILD='20261123094122';
+const BUILD='20261123094611';
 function checkBuild(){fetch('version.json?t='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{if(!j||!j.b||j.b===BUILD)return;
   try{if(sessionStorage.getItem('gf-build')===j.b)return;sessionStorage.setItem('gf-build',j.b);}catch(e){}
   try{persistLocal();}catch(e){}location.replace(location.pathname+'?v='+encodeURIComponent(j.b));}).catch(()=>{});}
