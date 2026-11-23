@@ -743,6 +743,10 @@ function sunPatch(sh){Object.assign(sh.uniforms,SUNU,NIGHTU,GLOWU,SEAU);
  gl_FragColor.rgb=clamp(mix(c0,t*(L/max(Lt,0.01)),k),0.,1.);}
 #endif
 if(uA>0.001){vec3 n=vSunN;float up=dot(n,n)>0.0001?normalize(n).y:1.;float m=sunMask(vSunP)*uA;
+   #if defined(SEAS) && !defined(SEASPL)
+   m*=0.55;// softer sun on the floor
+   #endif
+   
    float c1=texture2D(uCaus,vSunP.xz*0.55+uCo.xy).a,c2=texture2D(uCaus,vSunP.xz*0.43+uCo.zw).a,cau=sqrt(c1*c2)*1.3;
    float f=(1.-0.06*uA)*(1.+uA*0.05*(up-0.3))+m*(0.17+0.1*max(up,0.))+m*0.8*(cau-0.35)*smoothstep(0.1,0.7,up);
    gl_FragColor.rgb=min(gl_FragColor.rgb*f*mix(vec3(1.),uCol,m*0.6),vec3(1.));}
@@ -772,8 +776,8 @@ const MAT_SAND=flatMat({vertexColors:true}),MAT_STONE=flatMat({vertexColors:true
 const SEASONS={// plants: root, tip, a third colour mixed in here and there · floor (sand, stones): left, right, patches
   spring:{p:['#7f9a7a','#d4a5b0','#c2c58e'],f:['#d9c4c6','#cfd3bd','#d8cdb4']},
   summer:{p:['#3f6f62','#c9c37a','#6e98a8'],f:['#d6c9a0','#b4c7a9','#c9b98f']},
-  autumn:{p:['#7a3f45','#d1a84a','#b8693e'],f:['#cfac84','#b98870','#c9a77a']},
-  winter:{p:['#4f5f7a','#e3dcea','#8fb2b5'],f:['#cdd5df','#dcdde8','#c2cfd3']}};
+  autumn:{p:['#6e4a4c','#bfa36e','#a07458'],f:['#cdbba4','#bba796','#c7b496']},
+  winter:{p:['#465a78','#e6d9ea','#7fb3ad'],f:['#c6d2e2','#ddd5e7','#cbe0db']}};
 const SEAU={uSeaM:{value:new THREE.Matrix4()},uSeaB:{value:new THREE.Vector4(1,0,1,0)},uPA:{value:new THREE.Color()},uPB:{value:new THREE.Color()},uPC:{value:new THREE.Color()},uFA:{value:new THREE.Color()},uFB:{value:new THREE.Color()},uFC:{value:new THREE.Color()},uSeaKP:{value:0.8},uSeaKF:{value:0.9}};
 function applySeason(){const z=SEASONS[season()];['uPA','uPB','uPC'].forEach((k,i)=>SEAU[k].value.set(z.p[i]));['uFA','uFB','uFC'].forEach((k,i)=>SEAU[k].value.set(z.f[i]));}applySeason();
 function season(){if(window.__season)return window.__season;const m=new Date().getMonth();return m>=2&&m<=4?'spring':m<=7&&m>=5?'summer':m>=8&&m<=10?'autumn':'winter';}
@@ -2017,7 +2021,7 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden)setTimeout
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)pull();});
 /* the home-screen app keeps an old copy of the page open (and iOS caches it), so check for a newer build when it opens or comes back,
    and reload past the cache if there is one */
-const BUILD='20261123085347';
+const BUILD='20261123091511';
 function checkBuild(){fetch('version.json?t='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{if(!j||!j.b||j.b===BUILD)return;
   try{if(sessionStorage.getItem('gf-build')===j.b)return;sessionStorage.setItem('gf-build',j.b);}catch(e){}
   try{persistLocal();}catch(e){}location.replace(location.pathname+'?v='+encodeURIComponent(j.b));}).catch(()=>{});}
