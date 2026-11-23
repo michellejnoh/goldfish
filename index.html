@@ -753,9 +753,9 @@ const MAT_FISH=flatMat({color:FISH_COL});
 const MAT_FIN=flatMat({color:FIN_COL,side:THREE.DoubleSide});
 MAT_FISH.defines={FISHLIT:''};MAT_FIN.defines={FISHLIT:''};
 const MAT_PLANT=flatMat({color:0xb9b9b9,side:THREE.DoubleSide});
-// the scenery (plants, sand, stones) takes a faint colour of the season; decorations, the fish and snails keep their own
+// the whole tank - water, sand, plants, stones and decorations - is washed with a muted colour of the season (the fish keeps its own)
 const MAT_SAND=flatMat({vertexColors:true}),MAT_STONE=flatMat({vertexColors:true});MAT_PLANT.userData.scn='pl';MAT_SAND.userData.scn='sd';MAT_STONE.userData.scn='st';
-const SEASONS={spring:{pl:'#f0f8e8',sd:'#fcf5f7',st:'#f7f7f6'},summer:{pl:'#e4f3e2',sd:'#fcf8ed',st:'#f5f7f3'},autumn:{pl:'#f9ecda',sd:'#faf3eb',st:'#f7f3ed'},winter:{pl:'#f0f4f8',sd:'#f8fafc',st:'#f4f6f8'}};
+const SEASONS={spring:'#ecdfe0',summer:'#dbe5d6',autumn:'#e8dccb',winter:'#d9e0e7'};
 function season(){if(window.__season)return window.__season;const m=new Date().getMonth();return m>=2&&m<=4?'spring':m<=7&&m>=5?'summer':m>=8&&m<=10?'autumn':'winter';}
 const BLACK=new THREE.MeshBasicMaterial({color:0x0b0b0b});
 const EYE_IRIS=(()=>{const c=document.createElement('canvas');c.width=c.height=256;const x=c.getContext('2d');
@@ -1196,12 +1196,12 @@ const WATER={clear:'#f1f2f3',blue:'#e2eaee',green:'#e5ebe0'};
 const WTINT=new THREE.Color(1,1,1);
 /* the water color tints everything in the tank (floor, stones, plants, decorations) the same way it tints the background,
    so the floor sits in the water instead of standing out as a white strip. The fish keeps its own color. */
-function applyWater(){const c=WATER[(save.tank&&save.tank.water)||'clear']||WATER.clear;document.body.style.background=c;document.documentElement.style.background=c;syncTheme();if(scene.fog)scene.fog.color.set(c);
+function waterCol(){const w=new THREE.Color(WATER[(save.tank&&save.tank.water)||'clear']||WATER.clear).multiply(new THREE.Color(SEASONS[season()]));return '#'+w.getHexString();}
+function applyWater(){const c=waterCol();document.body.style.background=c;document.documentElement.style.background=c;syncTheme();if(scene.fog)scene.fog.color.set(c);
   WTINT.set(c);if(ENV)ENV.traverse(o=>{const ms=o.material?(Array.isArray(o.material)?o.material:[o.material]):[];
-    const SZ=SEASONS[season()],tc=new THREE.Color();
-    for(const m of ms){if(!m.color)continue;if(!m.userData.base)m.userData.base=m.color.clone();m.color.copy(m.userData.base).multiply(WTINT);if(m.userData.scn)m.color.multiply(tc.set(SZ[m.userData.scn]));}});}
+    for(const m of ms){if(!m.color)continue;if(!m.userData.base)m.userData.base=m.color.clone();m.color.copy(m.userData.base).multiply(WTINT);}});}
 // the browser's top bar (and the iPhone status bar area) takes this colour, so keep it matching the water, or dark at night
-function syncTheme(){let night=false;try{night=lightsOff;}catch(e){}const c=night?'#0f0f12':syncTheme.over||(WATER[(save.tank&&save.tank.water)||'clear']||WATER.clear);if(syncTheme.c===c)return;syncTheme.c=c;
+function syncTheme(){let night=false;try{night=lightsOff;}catch(e){}const c=night?'#0f0f12':syncTheme.over||waterCol();if(syncTheme.c===c)return;syncTheme.c=c;
   document.querySelectorAll('meta[name="theme-color"]').forEach(m=>m.setAttribute('content',c));}
 function freeTree(o){o.traverse(m=>{if(m.geometry)m.geometry.dispose();if(m.material)[].concat(m.material).forEach(x=>x.dispose());});}
 // things in the tank rest on whatever is under them - the sand, a rock, another decoration or a ring - like real objects:
@@ -1381,7 +1381,7 @@ function peck(dt){const cyc=1.7,ph0=((S.peckT||0)%cyc)/cyc;S.peckT=(S.peckT||0)+
   S.peckDip=ph<0.55?Math.pow(Math.sin(ph/0.55*Math.PI),2):0;
   if(ph0<0.27&&ph>=0.27)sandPuff();}
 const SANDM=flatMat({color:0xbdbdbd});
-function sandPuff(){const m=mouthWorld();world.worldToLocal(m);m.y=B.floor+0.01;SANDM.color.setHex(0xbdbdbd).multiply(WTINT).multiply(new THREE.Color(SEASONS[season()].sd));
+function sandPuff(){const m=mouthWorld();world.worldToLocal(m);m.y=B.floor+0.01;SANDM.color.setHex(0xbdbdbd).multiply(WTINT);
   for(let i=0;i<7;i++){const a=rnd(0,Math.PI*2),sp=rnd(0.05,0.14);
     spawn({mesh:new THREE.Mesh(BUB,SANDM),vel:new V3(Math.cos(a)*sp,rnd(0.08,0.2),Math.sin(a)*sp*0.6),life:rnd(1.2,1.9),s0:rnd(0.008,0.018),grav:0.35,drag:2.2}).mesh.position.copy(m);}
   // nudge the little stones nearby so the gravel looks stirred up
@@ -1997,7 +1997,7 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden)setTimeout
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)pull();});
 /* the home-screen app keeps an old copy of the page open (and iOS caches it), so check for a newer build when it opens or comes back,
    and reload past the cache if there is one */
-const BUILD='20261123082227';
+const BUILD='20261123084126';
 function checkBuild(){fetch('version.json?t='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{if(!j||!j.b||j.b===BUILD)return;
   try{if(sessionStorage.getItem('gf-build')===j.b)return;sessionStorage.setItem('gf-build',j.b);}catch(e){}
   try{persistLocal();}catch(e){}location.replace(location.pathname+'?v='+encodeURIComponent(j.b));}).catch(()=>{});}
@@ -2489,7 +2489,7 @@ function hitItem(){const list=GPLACE?ITEMS_ON.filter(o=>o.userData.item===GPLACE
 /* ---- capture just the tank as a picture ---- */
 function captureTank(){const w=innerWidth,h=innerHeight,pr=Math.min(2,(devicePixelRatio||1));renderer.setPixelRatio(pr);renderer.setSize(w,h,false);renderer.render(scene,camera);
   const c=document.createElement('canvas');c.width=renderer.domElement.width;c.height=renderer.domElement.height;const x=c.getContext('2d');
-  x.fillStyle=WATER[save.tank.water]||'#fff';x.fillRect(0,0,c.width,c.height);x.drawImage(renderer.domElement,0,0);if(lightsOff){x.fillStyle='rgba(12,12,15,0.55)';x.fillRect(0,0,c.width,c.height);}
+  x.fillStyle=waterCol();x.fillRect(0,0,c.width,c.height);x.drawImage(renderer.domElement,0,0);if(lightsOff){x.fillStyle='rgba(12,12,15,0.55)';x.fillRect(0,0,c.width,c.height);}
   renderer.setPixelRatio(resFor());renderer.setSize(w,h,false);
   c.toBlob(blob=>{if(!blob)return;const file=new File([blob],'goldfish-tank.png',{type:'image/png'});
     if(navigator.canShare&&navigator.canShare({files:[file]})){navigator.share({files:[file],title:'my goldfish tank'}).catch(()=>showShot(blob));}else showShot(blob);},'image/png');}
@@ -3467,10 +3467,10 @@ function nightTick(dt){const lampW=TV.t>0.02?0:!$('#lampMenu').hidden?1:lightsOf
   // the lamp in the room is only on at night (9 pm to 5 am); by day its shade is a plain pale grey
   if(TV.lamp&&TV.lamp.c){const on=nightAmt(),[r,g,b]=TV.lamp.c;TV.lamp.shade.color.setRGB(lerp(0.86,r/255,on),lerp(0.86,g/255,on),lerp(0.86,b/255,on));TV.lamp.glow.color.setRGB(r/255,g/255,b/255);TV.lamp.glow.opacity=0.55*on;}
   const on=N>0.02;document.body.classList.toggle('evening',on);
-  {const w0=WATER[(save.tank&&save.tank.water)||'clear']||WATER.clear;if(scene.fog)scene.fog.color.set(w0).multiplyScalar(1-0.3*N);}// haze matches the dimmer night water, so fish don't fade into a pale glow
-  if(on){const w=WATER[(save.tank&&save.tank.water)||'clear']||WATER.clear,k=1-0.3*N;if(nightTick.w!==w+k.toFixed(2)){nightTick.w=w+k.toFixed(2);const r=document.documentElement.style;
+  {const w0=waterCol();if(scene.fog)scene.fog.color.set(w0).multiplyScalar(1-0.3*N);}// haze matches the dimmer night water, so fish don't fade into a pale glow
+  if(on){const w=waterCol(),k=1-0.3*N;if(nightTick.w!==w+k.toFixed(2)){nightTick.w=w+k.toFixed(2);const r=document.documentElement.style;
     r.setProperty('--nTop',shade(w,k*0.985));r.setProperty('--nMid',shade(w,k));r.setProperty('--nBot',shade(w,k*0.95));}}
-  {const w=WATER[(save.tank&&save.tank.water)||'clear']||WATER.clear,top=on?shade(w,1-0.3*N):null;if(syncTheme.over!==top){syncTheme.over=top;syncTheme();document.documentElement.style.background=top||w;}}// one flat colour for the page, Safari's top bar and its bottom bar, so nothing shows a seam// Safari's top bar follows the night water
+  {const w=waterCol(),top=on?shade(w,1-0.3*N):null;if(syncTheme.over!==top){syncTheme.over=top;syncTheme();document.documentElement.style.background=top||w;}}// one flat colour for the page, Safari's top bar and its bottom bar, so nothing shows a seam// Safari's top bar follows the night water
   if(on)NIGHTU.uNL.value.set(B.x*1.2,B.floor+((B.top||B.surf)-B.floor)*0.42,0.5,2.9);
   lampShadows(NIGHTU.uLm.value,NIGHTU.uLm.value>0.02);ffTick(dt);}
 /* the lamp throws soft, faint shadows across the sand, away from it: under the rocks, decorations and the fish */
