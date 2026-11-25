@@ -1167,36 +1167,64 @@ function blobLathe(parts,k,phiS,phiL){const lo=Math.min(...parts.map(p=>p[0]-p[1
   return new THREE.LatheGeometry(pts,28,phiS||0,phiL||Math.PI*2);}
 function grp(...a){const g=new THREE.Group();a.forEach(x=>g.add(x));return g;}
 const mulberry=a=>()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};
-// many small parts baked into one mesh (one draw call), coloured per part and lit from above like the rest of the tank
-class PartMerge{constructor(){this.p=[];this.c=[];this.sph=new THREE.SphereGeometry(1,10,7).toNonIndexed();this.cyl=new THREE.CylinderGeometry(1,1,1,6,1).toNonIndexed();}
-  add(geo,col,x,y,z,sx,sy,sz,ry,rx,rz){const m=new THREE.Matrix4().compose(new V3(x,y,z),new THREE.Quaternion().setFromEuler(new THREE.Euler(rx||0,ry||0,rz||0,'YXZ')),new V3(sx,sy,sz)),
-    q=geo.attributes.position,n=geo.attributes.normal,c=new THREE.Color(col),v=new V3();for(let i=0;i<q.count;i++){v.fromBufferAttribute(q,i).applyMatrix4(m);this.p.push(v.x,v.y,v.z);
-      const k=0.72+0.34*Math.max(-0.4,n.getY(i));this.c.push(Math.min(1,c.r*k),Math.min(1,c.g*k),Math.min(1,c.b*k));}}
-  mesh(){const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(this.p,3));g.setAttribute('color',new THREE.Float32BufferAttribute(this.c,3));this.sph.dispose();this.cyl.dispose();return new THREE.Mesh(g,MAT);}}
+// soft, hand-made plant parts baked into one mesh: lumpy leaves that dome and droop with a paler middle, wavy hanging roots,
+// stalks that swell into a float - all in vertex colour, lit softly from above
+const MAT_SOFT=flatMat({vertexColors:true,side:THREE.DoubleSide});
+class SoftMerge{constructor(){this.p=[];this.c=[];}
+  tri(a,b,c,ca,cb,cc){this.p.push(...a,...b,...c);this.c.push(...ca,...cb,...cc);}
+  // a leaf: wobbly round outline, domed in the middle, the rim drooping; tint goes from pale middle to deeper edge
+  leaf(x,y,z,rx,rz,rot,seed,dome,droop,col,tilt){const N=22,K=3,cs=Math.cos(rot),sn=Math.sin(rot),out=[],
+      w=t=>1+0.13*Math.sin(3*t+seed)+0.07*Math.sin(5*t+seed*1.7)+0.04*Math.sin(9*t+seed*0.3),
+      P=(f,t)=>{const rr=f*w(t),lx=Math.cos(t)*rx*rr,lz=Math.sin(t)*rz*rr,ly=(dome*(1-f*f)-droop*f*f*f)*Math.min(rx,rz)+(tilt||0)*lx*0.6;return [x+lx*cs-lz*sn,y+ly,z+lx*sn+lz*cs];},
+      C=f=>{const k=1.12-0.3*f;return [Math.min(1,col[0]*k),Math.min(1,col[1]*k),Math.min(1,col[2]*k)];};
+    const c0=P(0,0),cc=C(0);for(let k=1;k<=K;k++)for(let i=0;i<N;i++){const t0=i/N*Math.PI*2,t1=(i+1)/N*Math.PI*2,f0=(k-1)/K,f1=k/K;
+      if(k===1)this.tri(c0,P(f1,t0),P(f1,t1),cc,C(f1),C(f1));else{const a=P(f0,t0),b=P(f0,t1),c=P(f1,t1),d=P(f1,t0);this.tri(a,d,c,C(f0),C(f1),C(f1));this.tri(a,c,b,C(f0),C(f1),C(f0));}}}
+  // a hanging root: a thin tube that wanders down
+  root(x,y,z,len,rad,seed,col,fringe){const n=10,pts=[];for(let i=0;i<=n;i++){const t=i/n;pts.push(new V3(x+Math.sin(seed+t*5)*0.012*t,y-len*t,z+Math.cos(seed*1.3+t*4)*0.012*t));}
+    this.tube(pts,i=>rad*(1-0.6*i),col);if(fringe)for(let i=3;i<n;i+=2){const p=pts[i],a=seed+i;this.tube([p,p.clone().add(new V3(Math.cos(a)*0.012,-0.008,Math.sin(a)*0.012))],()=>rad*0.35,col);}}
+  // a stalk from (x,y,z) out to (ox, h): bulges into a float near the bottom, then curves up
+  stalk(x,y,z,ox,h,r0,bulge,col){const n=12,pts=[];for(let i=0;i<=n;i++){const t=i/n;pts.push(new V3(x+ox*Math.pow(t,0.7),y+h*Math.sin(t*Math.PI*0.5),z));}
+    this.tube(pts,t=>r0+bulge*Math.exp(-Math.pow((t-0.2)/0.15,2)),col);}
+  tube(pts,radAt,col){const seg=6,n=pts.length-1,ring=[];for(let i=0;i<=n;i++){const p=pts[i],q=pts[Math.min(n,i+1)],o=pts[Math.max(0,i-1)],T=q.clone().sub(o).normalize(),
+      A=Math.abs(T.y)>0.9?new V3(1,0,0):new V3(0,1,0),N1=new V3().crossVectors(T,A).normalize(),N2=new V3().crossVectors(T,N1),r=radAt(i/n),R=[];
+      for(let k=0;k<seg;k++){const a=k/seg*Math.PI*2;R.push(p.clone().addScaledVector(N1,Math.cos(a)*r).addScaledVector(N2,Math.sin(a)*r));}ring.push(R);}
+    const sh=(v,k)=>{const f=0.8+0.25*Math.sin(k/seg*Math.PI*2);return [Math.min(1,col[0]*f),Math.min(1,col[1]*f),Math.min(1,col[2]*f)];};
+    for(let i=0;i<n;i++)for(let k=0;k<seg;k++){const k1=(k+1)%seg,a=ring[i][k],b=ring[i][k1],c=ring[i+1][k1],d=ring[i+1][k];
+      this.tri(a.toArray(),d.toArray(),c.toArray(),sh(a,k),sh(d,k),sh(c,k1));this.tri(a.toArray(),c.toArray(),b.toArray(),sh(a,k),sh(c,k1),sh(b,k1));}}
+  mesh(){const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(this.p,3));g.setAttribute('color',new THREE.Float32BufferAttribute(this.c,3));return new THREE.Mesh(g,MAT_SOFT);}}
 // a floating plant's shadow on the sand: soft dappled spots where its leaves are
 function floatShadow(sh){let R=0.05;for(const [x,z,r] of sh)R=Math.max(R,Math.hypot(x,z)+r);R*=1.15;const N=128,cv=document.createElement('canvas');cv.width=cv.height=N;const x=cv.getContext('2d');x.filter='blur(2px)';x.fillStyle='rgba(0,0,0,0.55)';
   for(const [px,pz,pr] of sh){x.beginPath();x.arc((px/R*0.5+0.5)*N,(pz/R*0.5+0.5)*N,Math.max(1.5,pr/R*0.5*N),0,Math.PI*2);x.fill();}
   const m=new THREE.Mesh(new THREE.PlaneGeometry(R*2,R*2),new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(cv),transparent:true,opacity:0.32,depthWrite:false,color:0x3a4a3a}));m.rotation.x=-Math.PI/2;m.renderOrder=1;return m;}
 const SHOP=[
  // floating plants: they sit on the water surface (anywhere you drag them), bob a little, and their roots hang down into the water
- {id:'duckweed',name:'duckweed',price:80,float:true,make:()=>{const r=mulberry(11),P=new PartMerge(),sh=[],LC=[0x8cbf5f,0x79b057,0x9ccb6c,0x6ea24f,0xa6d277];
-   // a wide raft of little plump lentil leaves in twos and threes, packed denser in the middle, with fine white roots hanging under
-   for(let i=0;i<120;i++){const a=r()*Math.PI*2,d=Math.pow(r(),0.7)*0.27,x=Math.cos(a)*d,z=Math.sin(a)*d*0.85,n=1+Math.floor(r()*3);
-     for(let k=0;k<n;k++){const sz=0.014+r()*0.011,b=k*2.1+r()*0.8,lx=x+Math.cos(b)*sz*0.95,lz=z+Math.sin(b)*sz*0.95;P.add(P.sph,LC[Math.floor(r()*LC.length)],lx,0.004,lz,sz*1.25,sz*0.4,sz,b);sh.push([lx,lz,sz*1.15]);}
-     if(r()<0.7){const l=0.06+r()*0.08;P.add(P.cyl,0xdbe3d2,x,-l/2,z,0.0016,l,0.0016,0);}}
-   const g=new THREE.Group();g.add(P.mesh());g.userData.sh=sh;return g;}},
- {id:'hyacinth',name:'water hyacinth',price:180,float:true,make:()=>{const r=mulberry(5),P=new PartMerge(),sh=[],S=1.45;
-   // two rings of round glossy leaves on swollen floats, a lavender flower spike in the middle, and long feathery dark roots
-   for(let ring=0;ring<2;ring++){const n=ring?4:7;for(let i=0;i<n;i++){const a=i/n*Math.PI*2+ring*0.4+r()*0.3,d=(ring?0.03:0.05)*S,up=ring?0.03:0;
-     P.add(P.sph,0x78a85c,Math.cos(a)*d,0.014*S+up,Math.sin(a)*d,0.03*S,0.022*S,0.025*S,-a);
-     const tilt=ring?0.25:0.5,lx=Math.cos(a)*(d+0.042*S),lz=Math.sin(a)*(d+0.042*S),ly=(0.085+r()*0.025)*S+up;
-     P.add(P.cyl,0x6c9b54,Math.cos(a)*(d+0.016*S),ly*0.55,Math.sin(a)*(d+0.016*S),0.007*S,ly*0.75,0.007*S,0,Math.sin(a)*tilt,-Math.cos(a)*tilt);
-     P.add(P.sph,[0x5e9a4a,0x69a754,0x73b05c][i%3],lx,ly,lz,0.05*S,0.009*S,0.043*S,-a,Math.sin(a)*0.5,-Math.cos(a)*0.5);sh.push([lx,lz,0.048*S]);}}
-   P.add(P.cyl,0x6c9b54,0,0.12*S,0,0.006*S,0.16*S,0.006*S,0);
-   for(let i=0;i<13;i++){const a=i*2.4,h=(0.15+i*0.011)*S,rr=0.02*S*(1-i/18);P.add(P.sph,i%4===1?0x9d7fbf:0xc8b3e0,Math.cos(a)*rr,h,Math.sin(a)*rr,0.019*S*(1-i/30),0.012*S,0.014*S,-a);
-     if(i%3===0)P.add(P.sph,0xe8c75a,Math.cos(a)*rr*1.3,h+0.004,Math.sin(a)*rr*1.3,0.004*S,0.003*S,0.004*S,0);}
-   for(let i=0;i<28;i++){const a=r()*Math.PI*2,d=r()*0.045*S,l=(0.1+r()*0.12)*S;P.add(P.cyl,i%3?0x4b3f45:0x5d4c52,Math.cos(a)*d,-l/2,Math.sin(a)*d,0.0028*S,l,0.0028*S,0,(r()-0.5)*0.5,(r()-0.5)*0.5);}
-   const g=new THREE.Group();g.add(P.mesh());g.userData.sh=sh;return g;}},
+ {id:'duckweed',name:'duckweed',price:80,float:true,make:()=>{const r=mulberry(11),M=new SoftMerge(),sh=[],g=new THREE.Group();
+   // a loose raft of soft, slightly lumpy little leaves of different sizes, overlapping, each a touch domed with a paler middle
+   const LC=[[0.55,0.75,0.36],[0.47,0.69,0.32],[0.62,0.8,0.42],[0.42,0.62,0.3]];
+   for(let i=0;i<150;i++){const a=r()*Math.PI*2,d=Math.pow(r(),0.75)*0.26,x=Math.cos(a)*d,z=Math.sin(a)*d*0.85,sz=0.012+r()*0.016;
+     M.leaf(x,0.003+r()*0.002,z,sz*1.2,sz,r()*6.28,r()*100,0.25,0.1,LC[Math.floor(r()*4)]);sh.push([x,z,sz*1.1]);}
+   g.add(M.mesh());
+   // fine pale roots in a few bunches that drift with the water
+   const sway=[];for(let b=0;b<4;b++){const R=new SoftMerge();for(let i=0;i<14;i++){const a=r()*Math.PI*2,d=Math.pow(r(),0.6)*0.22,x=Math.cos(a)*d,z=Math.sin(a)*d*0.85;
+       R.root(x,0,z,0.05+r()*0.08,0.0014,r()*100,[0.86,0.89,0.82]);}const m=R.mesh();g.add(m);sway.push(m);}
+   g.userData.sway=sway;g.userData.sh=sh;return g;}},
+ {id:'hyacinth',name:'water hyacinth',price:180,float:true,make:()=>{const r=mulberry(5),g=new THREE.Group(),sh=[],S=1.45,flap=[];
+   // round, wavy-edged leaves that cup and droop on soft swollen stalks; each one sways a little on its own
+   for(let ring=0;ring<2;ring++){const n=ring?4:7;for(let i=0;i<n;i++){const a=i/n*Math.PI*2+ring*0.4+r()*0.3,d=(ring?0.026:0.045)*S,L=new SoftMerge(),h=(0.06+r()*0.025+(ring?0.025:0))*S;
+     // the stalk bulges into a float near the water, then thins and curves up and out to the leaf
+     L.stalk(0,0,0,d+0.04*S,h,0.008*S,0.022*S,[0.47,0.66,0.36]);
+     L.leaf(d+0.05*S,h,0,0.05*S,0.045*S,r()*6.28,r()*100,0.55,0.35,[[0.4,0.62,0.3],[0.45,0.68,0.33],[0.5,0.72,0.37]][i%3],0.35);
+     const m=L.mesh();m.rotation.y=-a;g.add(m);flap.push({m,ph:r()*6.28,a});sh.push([Math.cos(a)*(d+0.05*S),Math.sin(a)*(d+0.05*S),0.05*S]);}}
+   // a soft spike of pale lavender flowers, each a few floppy petals
+   {const F=new SoftMerge();F.stalk(0,0,0,0.004,0.14*S,0.005*S,0.006*S,[0.45,0.64,0.35]);
+     for(let i=0;i<10;i++){const a=i*2.4,h=(0.13+i*0.012)*S,rr=0.016*S*(1-i/16),cx=Math.cos(a)*rr,cz=Math.sin(a)*rr;
+       for(let k=0;k<5;k++){const b=a+k*1.257,c=k===0?[0.62,0.5,0.78]:[0.8,0.72,0.9];F.leaf(cx+Math.cos(b)*0.008*S,h,cz+Math.sin(b)*0.008*S,0.011*S,0.008*S,b,i*7+k,0.2,0.25,c,0.9);}
+       F.leaf(cx,h+0.003,cz,0.003*S,0.003*S,0,i,0,0,[0.93,0.8,0.36]);}
+     const fm2=F.mesh();g.add(fm2);flap.push({m:fm2,ph:1.3,a:0,k:0.5});}
+   // long dark feathery roots that drift
+   const sway=[];for(let b=0;b<4;b++){const R=new SoftMerge();for(let i=0;i<9;i++){const a=r()*Math.PI*2,d=r()*0.045*S;R.root(Math.cos(a)*d,0,Math.sin(a)*d,(0.1+r()*0.13)*S,0.0032*S,r()*100,[0.3,0.25,0.28],true);}
+     const m=R.mesh();g.add(m);sway.push(m);}
+   g.userData.sway=sway;g.userData.flap=flap;g.userData.sh=sh;return g;}},
  {id:'cane',name:'candy cane',price:60,make:()=>{const g=new THREE.Group();for(let i=0;i<6;i++)g.add(part(CYL,i%2?WC.snow:WC.red,0,0.03+i*0.05,0,0.018,0.05,0.018));
    const hook=new THREE.Mesh(new THREE.TorusGeometry(0.05,0.018,8,20,Math.PI),fm(WC.red));hook.position.set(0.05,0.3,0);g.add(hook);return g;}},
  {id:'gift',name:'gift box',price:80,make:()=>grp(part(BOX,WC.red,0,0.07,0,0.15,0.14,0.15),part(BOX,WC.green,0,0.07,0,0.035,0.145,0.155),part(BOX,WC.green,0,0.07,0,0.155,0.145,0.035),
@@ -2066,7 +2094,7 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden)setTimeout
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)pull();});
 /* the home-screen app keeps an old copy of the page open (and iOS caches it), so check for a newer build when it opens or comes back,
    and reload past the cache if there is one */
-const BUILD='20261125052853';
+const BUILD='20261125053552';
 function checkBuild(){fetch('version.json?t='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{if(!j||!j.b||j.b===BUILD)return;
   try{if(sessionStorage.getItem('gf-build')===j.b)return;sessionStorage.setItem('gf-build',j.b);}catch(e){}
   try{persistLocal();}catch(e){}location.replace(location.pathname+'?v='+encodeURIComponent(j.b));}).catch(()=>{});}
@@ -3622,6 +3650,8 @@ function frame(){requestAnimationFrame(frame);
   if(S.toastT>0)S.toastT-=dt;
   if((saveT+=dt)>5){saveT=0;persistLocal();}
   for(const o of ITEMS_ON||[])if(o.userData.float&&o!==dragItem){o.position.y=B.surf-0.004+Math.sin(T*0.8+o.position.x*3)*0.004;o.rotation.z=Math.sin(T*0.6+o.position.z*4)*0.035;}
+  for(const o of ITEMS_ON||[]){const u=o.userData;if(u.sway)u.sway.forEach((m,i)=>{m.rotation.x=Math.sin(T*0.7+i*1.7)*0.09;m.rotation.z=Math.sin(T*0.55+i*2.3)*0.09;});
+    if(u.flap)u.flap.forEach(f=>{const k=f.k||1;f.m.rotation.z=Math.sin(T*0.9+f.ph)*0.06*k;f.m.rotation.x=Math.sin(T*0.7+f.ph*1.3)*0.05*k;});}
   for(const o of ITEMS_ON||[]){const sd=o.userData.shadow;if(sd){sd.position.set(o.position.x+0.04,sandAt(o.position.x,o.position.z)+0.006,o.position.z+0.03);sd.rotation.z=-o.rotation.y;}}
   renderer.render(scene,camera);perfWatch();}
 // if the device can't keep up (frames over ~28 ms for a couple of seconds), render at a lower resolution; never below 60% of normal
