@@ -1930,12 +1930,13 @@ function mergeRec(a,b){if(!a)return b;if(!b)return a;const ua=a.changed||a.updat
   if(sv&&l.save){const A=sv,Bs=l.save,pl=Object.assign({},Bs.pals||{},A.pals||{});for(const k in Bs.pals||{})if(pl[k]&&!pl[k].e&&Bs.pals[k].e)pl[k]=Object.assign({},pl[k],{e:Bs.pals[k].e});
     const pin=Object.assign({},Bs.preqIn||{},A.preqIn||{}),pout=Object.assign({},Bs.preqOut||{},A.preqOut||{});for(const k in pl){delete pin[k];delete pout[k];}
     sv=Object.assign({},sv,{pals:pl,preqIn:pin,preqOut:pout,idh:A.idh||Bs.idh,palMig:A.palMig||Bs.palMig});}
+  {const fa=sv&&sv.pets&&sv.pets.fish,fb=l.save&&l.save.pets&&l.save.pets.fish;if(fa&&fb&&fb.look&&(fb.look.t||0)>((fa.look&&fa.look.t)||0))sv=Object.assign({},sv,{pets:Object.assign({},sv.pets,{fish:Object.assign({},fa,{look:fb.look})})});}
   return {updated:Math.max(ua,ub),save:sv,prog:mergeProg(a.prog,b.prog)};}
 // my own save as it should go online: while visiting, the tank on screen is the friend's, so put mine back in
 const homeSave=()=>VISIT?Object.assign({},save,{tank:VISIT.mine}):save;
 const curRec=()=>({updated:lastChange,save:homeSave(),prog:PROG});
 // bring a merged copy into the running game only if it actually adds something
-function saveAdds(m){const a=(m&&m.save)||{},t=a.tank||{},h=homeSave(),ht=h.tank||{};
+function saveAdds(m){const a=(m&&m.save)||{},t=a.tank||{},h=homeSave(),ht=h.tank||{};{const x=a.pets&&a.pets.fish&&a.pets.fish.look,y=h.pets&&h.pets.fish&&h.pets.fish.look;if(x&&(x.t||0)>((y&&y.t)||0))return true;}
   for(const k in t.owned||{})if(!(ht.owned||{})[k])return true;for(const it of t.items||[])if(!(ht.items||[]).some(i=>i.id===it.id))return true;
   if(a.idh&&!h.idh)return true;for(const k in a.pals||{})if(!(h.pals||{})[k])return true;for(const k in a.preqIn||{})if(!(h.preqIn||{})[k])return true;
   const fk=new Set(friendKeys(h.friends));return friendKeys(a.friends).some(k=>k&&!fk.has(k));}
@@ -1946,7 +1947,10 @@ const BKEY=n=>'goldfish-best-'+n;
 function rememberBest(){if(!USER||!PROG||(VISIT&&save.tank!==VISIT.mine))return;try{const b=JSON.parse(localStorage.getItem(BKEY(USER))||'null');
   if(!b||(PROG.total||0)>((b.prog&&b.prog.total)||0)||((PROG.total||0)===((b.prog&&b.prog.total)||0)&&(PROG.spent||0)>=((b.prog&&b.prog.spent)||0)))localStorage.setItem(BKEY(USER),JSON.stringify({updated:lastChange,save,prog:PROG}));}catch(e){}}
 function readBest(n){try{return JSON.parse(localStorage.getItem(BKEY(n))||'null');}catch(e){return null;}}
-function persist(){if(!USER)return;lastChange=Date.now();persistLocal();cloudDirty=true;if(VISIT)return;clearTimeout(pushT);pushT=setTimeout(()=>cloudPut(),4000);}
+// the fish's look carries its own time of last change, so a save from another device (or an old open tab) that merely fed or petted
+// the fish can never put back an older colour, pattern or skin
+function stampLook(){const lk=save.pets&&save.pets.fish&&save.pets.fish.look;if(!lk)return;const js=JSON.stringify(Object.assign({},lk,{t:0}));if(stampLook.js!==undefined&&js!==stampLook.js)lk.t=Date.now();stampLook.js=js;}
+function persist(){if(!USER)return;lastChange=Date.now();if(!VISIT)stampLook();persistLocal();cloudDirty=true;if(VISIT)return;clearTimeout(pushT);pushT=setTimeout(()=>cloudPut(),4000);}
 const docURL=n=>'https://firestore.googleapis.com/v1/projects/'+DB.projectId+'/databases/(default)/documents/players/'+n+'?key='+DB.apiKey;
 const UTS={},APP_V=5;
 // an open copy of an older version of the game reloads itself as soon as it sees that a newer version has saved this keeper
@@ -1974,7 +1978,7 @@ function cloudWrite(keep,who){if(!cloudDirty||who!==USER||UTS[who]===undefined)r
     .catch(()=>{if(who===USER)cloudDirty=true;SYNC={ok:false,msg:'offline: will save online when connected',t:Date.now()};});}
 // take the online copy when another device changed things more recently than this one
 function pull(){if(!DB||!USER||cloudDirty||VISIT)return;pull.t=Date.now();const who=USER;cloudGet(who).then(c=>{if(!c||USER!==who)return;takeMerged(c);if((PROG.total||0)>((c.prog&&c.prog.total)||0)||(PROG.spent||0)>((c.prog&&c.prog.spent)||0)){cloudDirty=true;cloudPut();}},()=>{});}
-function adopt(rec){save=normalizeSave(rec&&rec.save);setTimeout(spawnFriends,0);if(save.lang&&save.lang!==LANG&&!langPicked)setLang(save.lang);PROG=normProg(rec&&rec.prog);ensureDaily();
+function adopt(rec){save=normalizeSave(rec&&rec.save);stampLook.js=undefined;stampLook();setTimeout(spawnFriends,0);if(save.lang&&save.lang!==LANG&&!langPicked)setLang(save.lang);PROG=normProg(rec&&rec.prog);ensureDaily();
   if(typeof lightsOff!=='undefined'&&S){rebuildTank();lightsOff=!!save.night;document.body.classList.toggle('night',lightsOff);S.asleep=lightsOff;renderUI();}}
 function signIn(n,rec){USER=n;cloudReady=true;setTimeout(checkGifts,3000);adopt(rec);if(langPicked||!save.lang)save.lang=LANG;langPicked=false;lastChange=(rec&&rec.updated)||Date.now();persist();cloudPut();$('#who').textContent='@'+n;$('#login').hidden=true;
   if(PROG.total)toast(fill('welcome back. {n} missed you.'));else setTimeout(()=>openNaming(true),300);}
@@ -2022,7 +2026,7 @@ $('#misBtn').onclick=()=>{renderMissions();$('#missions').hidden=false;};$('#lvB
 $('#misClose').onclick=()=>{$('#missions').hidden=true;};
 /* ---- start-up: last keeper on this device loads instantly, then the online copy if it's newer ---- */
 {const last=(()=>{try{return localStorage.getItem('goldfish-user')}catch(e){return null}})();
-  if(last&&NAME_RE.test(last)){USER=last;const local=mergeRec(readLocal(last),readBest(last));save=normalizeSave(local&&local.save);PROG=normProg(local&&local.prog);lastChange=(local&&(local.changed||local.updated))||0;
+  if(last&&NAME_RE.test(last)){USER=last;const local=mergeRec(readLocal(last),readBest(last));save=normalizeSave(local&&local.save);PROG=normProg(local&&local.prog);lastChange=(local&&(local.changed||local.updated))||0;stampLook.js=undefined;stampLook();
     cloudGet(last).then(c=>{cloudReady=true;setTimeout(checkGifts,2500);if(c)takeMerged(c);setTimeout(()=>{needReal();palMigrate();},800);setTimeout(seenNow,6000);if(!c||(PROG.total||0)>((c.prog&&c.prog.total)||0)||(PROG.spent||0)>((c.prog&&c.prog.spent)||0)||lastChange>(c.updated||0)+500){cloudDirty=true;cloudPut();}},()=>{setTimeout(()=>{cloudReady=true;needReal();},20000);});}
   else{PROG=null;}}
 setInterval(()=>{if(cloudDirty)cloudPut();else if(!document.hidden&&Date.now()-(pull.t||0)>240000)pull();},30000);
@@ -2032,7 +2036,7 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden)setTimeout
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)pull();});
 /* the home-screen app keeps an old copy of the page open (and iOS caches it), so check for a newer build when it opens or comes back,
    and reload past the cache if there is one */
-const BUILD='20261123094611';
+const BUILD='20261125050810';
 function checkBuild(){fetch('version.json?t='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{if(!j||!j.b||j.b===BUILD)return;
   try{if(sessionStorage.getItem('gf-build')===j.b)return;sessionStorage.setItem('gf-build',j.b);}catch(e){}
   try{persistLocal();}catch(e){}location.replace(location.pathname+'?v='+encodeURIComponent(j.b));}).catch(()=>{});}
