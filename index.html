@@ -608,6 +608,7 @@ const KO={'your fish is a cracker right now · crackers can\u2019t duel':'내 �
 'camera · take a picture of your tank':'카메라 · 어항 사진을 찍어요','your keeper name · tap to switch keepers':'키퍼 이름 · 탭하면 다른 키퍼로 바꿔요','growth':'성장','drag it where you like · twist or use the arrows to turn it':'원하는 곳으로 끌어 놓고, 비틀거나 화살표로 돌려요','send':'보내기','cancel':'취소','turn your fish':'물고기 돌리기','language':'언어','growth · by level':'성장 · 레벨별','Take picture':'사진 찍기','Sound on':'소리 켜짐','Sound off':'소리 꺼짐','Tank view':'어항 보기','drag to turn · pinch to zoom':'끌어서 돌리기 · 두 손가락으로 확대','Zoom in':'확대','Zoom out':'축소','Goldfish tank. Tap, drag and feed to interact.':'금붕어 수조. 탭하고 끌고 먹이를 주며 놀아 주세요.',
 ': check the Firestore rules':': Firestore 규칙을 확인해 주세요',': is the Firestore database created?':': Firestore 데이터베이스가 만들어졌는지 확인해 주세요'};
 const KO_RX=[
+[/^add one more \((\d+)\)$/,'하나 더 띄우기 ($1)'],
 [/^@(.+)’s fish is a cracker right now · crackers can’t duel$/,'@$1의 물고기는 지금 크래커예요 · 크래커는 결투할 수 없어요'],
 [/^@(.+) decorated the cracker you sent$/,'@$1님이 보낸 크래커를 꾸몄어요'],[/^@(.+) can come and see it$/,'@$1에게 알렸어요 · 놀러 와서 볼 수 있어요'],
 [/^decorate @(.+)’s cracker$/,'@$1의 크래커 꾸미기'],
@@ -1170,6 +1171,8 @@ const mulberry=a=>()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+M
 // soft, hand-made plant parts baked into one mesh: lumpy leaves that dome and droop with a paler middle, wavy hanging roots,
 // stalks that swell into a float - all in vertex colour, lit softly from above
 const MAT_SOFT=flatMat({vertexColors:true,side:THREE.DoubleSide});
+// several of the same floating plant can float at once: extra ones are saved as 'duckweed#123'; each looks a little different
+const baseId=id=>String(id||'').split('#')[0],idSeed=it=>{const t=it&&String(it.id||'').split('#')[1];return t?(+t%997)*13:0;};
 class SoftMerge{constructor(){this.p=[];this.c=[];}
   tri(a,b,c,ca,cb,cc){this.p.push(...a,...b,...c);this.c.push(...ca,...cb,...cc);}
   // a leaf: wobbly round outline, domed in the middle, the rim drooping; tint goes from pale middle to deeper edge
@@ -1198,31 +1201,34 @@ function floatShadow(sh){let R=0.05;for(const [x,z,r] of sh)R=Math.max(R,Math.hy
   const m=new THREE.Mesh(new THREE.PlaneGeometry(R*2,R*2),new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(cv),transparent:true,opacity:0.32,depthWrite:false,color:0x3a4a3a}));m.rotation.x=-Math.PI/2;m.renderOrder=1;return m;}
 const SHOP=[
  // floating plants: they sit on the water surface (anywhere you drag them), bob a little, and their roots hang down into the water
- {id:'duckweed',name:'duckweed',price:80,float:true,make:()=>{const r=mulberry(11),M=new SoftMerge(),sh=[],g=new THREE.Group();
+ {id:'duckweed',name:'duckweed',price:80,float:true,make:it=>{const r=mulberry(11+idSeed(it)),M=new SoftMerge(),sh=[],g=new THREE.Group();
    // a loose raft of soft, slightly lumpy little leaves of different sizes, overlapping, each a touch domed with a paler middle
-   const LC=[[0.55,0.75,0.36],[0.47,0.69,0.32],[0.62,0.8,0.42],[0.42,0.62,0.3]];
-   for(let i=0;i<150;i++){const a=r()*Math.PI*2,d=Math.pow(r(),0.75)*0.26,x=Math.cos(a)*d,z=Math.sin(a)*d*0.85,sz=0.012+r()*0.016;
+   const LC=[[0.52,0.66,0.4],[0.46,0.6,0.36],[0.58,0.7,0.46],[0.42,0.55,0.34]];
+   // leaves gather in a few loose clumps of different sizes, with gaps between and a few strays, so the raft looks uneven
+   const CL=[];for(let k=0,n=4+Math.floor(r()*4);k<n;k++){const a=r()*Math.PI*2,d=Math.sqrt(r())*0.2;CL.push([Math.cos(a)*d,Math.sin(a)*d*0.85,0.03+r()*0.06]);}
+   for(let i=0;i<150;i++){let x,z;if(r()<0.12){const a=r()*Math.PI*2,d=Math.sqrt(r())*0.3;x=Math.cos(a)*d;z=Math.sin(a)*d*0.85;}else{const c=CL[Math.floor(r()*CL.length)],g1=(r()+r()+r()-1.5)*c[2],g2=(r()+r()+r()-1.5)*c[2];x=c[0]+g1;z=c[1]+g2;}
+     const sz=0.01+r()*r()*0.022;
      M.leaf(x,0.003+r()*0.002,z,sz*1.2,sz,r()*6.28,r()*100,0.25,0.1,LC[Math.floor(r()*4)]);sh.push([x,z,sz*1.1]);}
    g.add(M.mesh());
    // fine pale roots in a few bunches that drift with the water
    const sway=[];for(let b=0;b<4;b++){const R=new SoftMerge();for(let i=0;i<14;i++){const a=r()*Math.PI*2,d=Math.pow(r(),0.6)*0.22,x=Math.cos(a)*d,z=Math.sin(a)*d*0.85;
-       R.root(x,0,z,0.05+r()*0.08,0.0014,r()*100,[0.86,0.89,0.82]);}const m=R.mesh();g.add(m);sway.push(m);}
+       R.root(x,0,z,0.05+r()*0.08,0.0014,r()*100,[0.82,0.84,0.79]);}const m=R.mesh();g.add(m);sway.push(m);}
    g.userData.sway=sway;g.userData.sh=sh;return g;}},
- {id:'hyacinth',name:'water hyacinth',price:180,float:true,make:()=>{const r=mulberry(5),g=new THREE.Group(),sh=[],S=1.45,flap=[];
+ {id:'hyacinth',name:'water hyacinth',price:180,float:true,make:it=>{const r=mulberry(5+idSeed(it)),g=new THREE.Group(),sh=[],S=1.3+r()*0.3,flap=[];
    // round, wavy-edged leaves that cup and droop on soft swollen stalks; each one sways a little on its own
    for(let ring=0;ring<2;ring++){const n=ring?4:7;for(let i=0;i<n;i++){const a=i/n*Math.PI*2+ring*0.4+r()*0.3,d=(ring?0.026:0.045)*S,L=new SoftMerge(),h=(0.06+r()*0.025+(ring?0.025:0))*S;
      // the stalk bulges into a float near the water, then thins and curves up and out to the leaf
-     L.stalk(0,0,0,d+0.04*S,h,0.008*S,0.022*S,[0.47,0.66,0.36]);
-     L.leaf(d+0.05*S,h,0,0.05*S,0.045*S,r()*6.28,r()*100,0.55,0.35,[[0.4,0.62,0.3],[0.45,0.68,0.33],[0.5,0.72,0.37]][i%3],0.35);
+     L.stalk(0,0,0,d+0.04*S,h,0.008*S,0.022*S,[0.47,0.6,0.38]);
+     L.leaf(d+0.05*S,h,0,0.05*S,0.045*S,r()*6.28,r()*100,0.55,0.35,[[0.4,0.55,0.33],[0.45,0.6,0.37],[0.49,0.63,0.4]][i%3],0.35);
      const m=L.mesh();m.rotation.y=-a;g.add(m);flap.push({m,ph:r()*6.28,a});sh.push([Math.cos(a)*(d+0.05*S),Math.sin(a)*(d+0.05*S),0.05*S]);}}
    // a soft spike of pale lavender flowers, each a few floppy petals
-   {const F=new SoftMerge();F.stalk(0,0,0,0.004,0.14*S,0.005*S,0.006*S,[0.45,0.64,0.35]);
+   {const F=new SoftMerge();F.stalk(0,0,0,0.004,0.14*S,0.005*S,0.006*S,[0.45,0.58,0.37]);
      for(let i=0;i<10;i++){const a=i*2.4,h=(0.13+i*0.012)*S,rr=0.016*S*(1-i/16),cx=Math.cos(a)*rr,cz=Math.sin(a)*rr;
-       for(let k=0;k<5;k++){const b=a+k*1.257,c=k===0?[0.62,0.5,0.78]:[0.8,0.72,0.9];F.leaf(cx+Math.cos(b)*0.008*S,h,cz+Math.sin(b)*0.008*S,0.011*S,0.008*S,b,i*7+k,0.2,0.25,c,0.9);}
-       F.leaf(cx,h+0.003,cz,0.003*S,0.003*S,0,i,0,0,[0.93,0.8,0.36]);}
+       for(let k=0;k<5;k++){const b=a+k*1.257,c=k===0?[0.62,0.55,0.7]:[0.78,0.73,0.84];F.leaf(cx+Math.cos(b)*0.008*S,h,cz+Math.sin(b)*0.008*S,0.011*S,0.008*S,b,i*7+k,0.2,0.25,c,0.9);}
+       F.leaf(cx,h+0.003,cz,0.003*S,0.003*S,0,i,0,0,[0.84,0.77,0.5]);}
      const fm2=F.mesh();g.add(fm2);flap.push({m:fm2,ph:1.3,a:0,k:0.5});}
    // long dark feathery roots that drift
-   const sway=[];for(let b=0;b<4;b++){const R=new SoftMerge();for(let i=0;i<9;i++){const a=r()*Math.PI*2,d=r()*0.045*S;R.root(Math.cos(a)*d,0,Math.sin(a)*d,(0.1+r()*0.13)*S,0.0032*S,r()*100,[0.3,0.25,0.28],true);}
+   const sway=[];for(let b=0;b<4;b++){const R=new SoftMerge();for(let i=0;i<9;i++){const a=r()*Math.PI*2,d=r()*0.045*S;R.root(Math.cos(a)*d,0,Math.sin(a)*d,(0.1+r()*0.13)*S,0.0032*S,r()*100,[0.32,0.28,0.3],true);}
      const m=R.mesh();g.add(m);sway.push(m);}
    g.userData.sway=sway;g.userData.flap=flap;g.userData.sh=sh;return g;}},
  {id:'cane',name:'candy cane',price:60,make:()=>{const g=new THREE.Group();for(let i=0;i<6;i++)g.add(part(CYL,i%2?WC.snow:WC.red,0,0.03+i*0.05,0,0.018,0.05,0.018));
@@ -1377,7 +1383,7 @@ function buildEnv(){
   // the heap sits in the open toward the front, where it can be seen
   PILE=new V3((save.tank.pileSide||(save.tank.pileSide=Math.random()<0.5?-1:1))*B.x*0.4,F,0.45);if(save.tank.pile){PILE.x=save.tank.pile[0]*B.x;PILE.z=save.tank.pile[1];}PILE.n=PEBBLES.filter(p=>p.inPile).length;
   if(PILE.n){let sx=0,sz=0;for(const p of PEBBLES)if(p.inPile){sx+=p.m.position.x;sz+=p.m.position.z;}PILE.x=sx/PILE.n;PILE.z=sz/PILE.n;}// keep growing an existing heap where it is
-  ITEMS_ON=[];for(const it of save.tank.items){const def=ALLDECO().find(d=>d.id===it.id);if(!def)continue;const g=def.make(it);g.userData.float=!!def.float;if(def.float&&g.userData.sh){const sd=floatShadow(g.userData.sh);sd.scale.setScalar(1.8);e.add(sd);g.userData.shadow=sd;}g.userData.isRing=!!def.prize;g.userData.ringId=def.prize?def.id:null;if(def.glow)g.userData.glow=def.glow;if(g.userData.isRing){const rg=g.children[0];rg.rotation.set(Math.PI/2-0.18,0,0);rg.position.y=0.031;}g.scale.setScalar(1.8);g.position.set(it.x*B.x,F,it.z);g.rotation.y=it.r||0;g.userData.item=it;e.add(g);ITEMS_ON.push(g);}
+  ITEMS_ON=[];for(const it of save.tank.items){const def=ALLDECO().find(d=>d.id===baseId(it.id));if(!def)continue;const g=def.make(it);g.userData.float=!!def.float;if(def.float&&g.userData.sh){const sd=floatShadow(g.userData.sh);sd.scale.setScalar(1.8);e.add(sd);g.userData.shadow=sd;}g.userData.isRing=!!def.prize;g.userData.ringId=def.prize?def.id:null;if(def.glow)g.userData.glow=def.glow;if(g.userData.isRing){const rg=g.children[0];rg.rotation.set(Math.PI/2-0.18,0,0);rg.position.y=0.031;}g.scale.setScalar(1.8);g.position.set(it.x*B.x,F,it.z);g.rotation.y=it.r||0;g.userData.item=it;e.add(g);ITEMS_ON.push(g);}
   {const bm=toyMesh(toyKind());bm.position.set(B.x*0.25,F+0.1,-0.1);e.add(bm);BALL={m:bm,pos:bm.position,vel:new V3(),r:0.1,floor:F+0.1};}
   BIGROCKS=[];[[-B.x*0.75,-1.0,0.42],[B.x*0.6,-1.2,0.55],[B.x*0.95,-0.7,0.26]].forEach(([x,z,r])=>{const s=new THREE.Mesh(stoneGeo(r,rnd(0,9),false,0.72),MAT);s.position.set(x,F+r*0.3,z);s.rotation.y=rnd(0,6);e.add(s);BIGROCKS.push(s);});e.updateMatrixWorld(true);settleRings(e);
   // ribbon grass (vallisneria) in clusters
@@ -2094,7 +2100,7 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden)setTimeout
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)pull();});
 /* the home-screen app keeps an old copy of the page open (and iOS caches it), so check for a newer build when it opens or comes back,
    and reload past the cache if there is one */
-const BUILD='20261125053552';
+const BUILD='20261125054031';
 function checkBuild(){fetch('version.json?t='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{if(!j||!j.b||j.b===BUILD)return;
   try{if(sessionStorage.getItem('gf-build')===j.b)return;sessionStorage.setItem('gf-build',j.b);}catch(e){}
   try{persistLocal();}catch(e){}location.replace(location.pathname+'?v='+encodeURIComponent(j.b));}).catch(()=>{});}
@@ -2496,9 +2502,9 @@ function thumbsOf(list){const out={};const tr=new THREE.WebGLRenderer({antialias
 let SHOPPG=0;
 function renderShop(){const t=save.tank,th=makeThumbs();document.querySelectorAll('.shoptabs [data-pg]').forEach(b=>b.setAttribute('aria-selected',+b.dataset.pg===SHOPPG));
   $('#wallet').textContent=PROG?'level '+PROG.level+' \u00b7 '+wallet()+' xp to spend \u00b7 buying uses up xp, so your level can go down':'sign in to collect decorations';
-  $('#shopList').innerHTML=(SHOPPG===2?[]:SHOPPG===3?SHOP.filter(d=>d.float):SHOPPG?CRYSTALS:SHOP.filter(d=>!d.float)).map(d=>{const own=t.owned[d.id],on=t.items.some(i=>i.id===d.id),can=PROG&&wallet()>=d.price;
+  $('#shopList').innerHTML=(SHOPPG===2?[]:SHOPPG===3?SHOP.filter(d=>d.float):SHOPPG?CRYSTALS:SHOP.filter(d=>!d.float)).map(d=>{const own=t.owned[d.id],cnt=t.items.filter(i=>baseId(i.id)===d.id).length,on=cnt>0,can=PROG&&wallet()>=d.price;
     const after=can?(()=>{let L=PROG.level,e=PROG.exp-d.price;while(e<0&&L>1){L--;e+=need(L);}return L;})():0;
-    const act=!own?(can?'<button data-buy="'+d.id+'">buy \u00b7 '+d.price+' xp'+(after<PROG.level?' (to lv '+after+')':'')+'</button>':'<em>'+d.price+' xp</em>'+(PROG?'<small class="need">'+(d.price-wallet())+' xp more</small>':'')):on?'<button data-off="'+d.id+'">put away</button>':'<button data-on="'+d.id+'">place in tank</button>';
+    const act=!own?(can?'<button data-buy="'+d.id+'">buy \u00b7 '+d.price+' xp'+(after<PROG.level?' (to lv '+after+')':'')+'</button>':'<em>'+d.price+' xp</em>'+(PROG?'<small class="need">'+(d.price-wallet())+' xp more</small>':'')):on?(d.float?(cnt<8?'<button data-more="'+d.id+'">add one more ('+cnt+')</button>':'')+'<button data-off="'+d.id+'">put away</button>':'<button data-off="'+d.id+'">put away</button>'):'<button data-on="'+d.id+'">place in tank</button>';
     return '<div class="item'+(!own&&!can?' locked':'')+'" data-id="'+d.id+'"><img src="'+th[d.id]+'" alt="'+d.name+'"><b>'+d.name+'</b>'+act+'</div>';}).join('')
     +(SHOPPG!==2?'':'<p class="small shophead">won in duels · a new ring each win</p>'+RINGS.map((r,i)=>{const own=t.owned[r.id],on=t.items.some(x=>x.id===r.id),k=RINGS.filter(x=>t.owned[x.id]).length;
       return '<div class="item'+(own?'':' locked')+'" data-id="'+r.id+'"><img src="'+th[r.id]+'" alt="'+r.name+'"><b>'+r.name+'</b>'+(!own?'<small class="need">'+(i===k?'win your next duel':'win '+(i-k+1)+' more duels')+'</small>':on?'<button data-off="'+r.id+'">put away</button>':'<button data-on="'+r.id+'">place in tank</button>')+'</div>';}).join(''));}
@@ -2535,7 +2541,7 @@ $('#arrangeBtn').onclick=()=>setEdit('arrange');
 document.querySelectorAll('[data-e]').forEach(b=>b.onclick=()=>setEdit(b.dataset.e));
 $('#pebTab').onclick=()=>setEdit(S.pebMode&&tool==='peb'?S.pebMode:'add');
 // decorations you own that aren't in the tank: pick one and it appears in the tank, selected, ready to move
-function openOwned(){const t=save.tank,list=ALLDECO().filter(d=>t.owned[d.id]&&!t.items.some(i=>i.id===d.id)),th=makeThumbs(),g=$('#ownGrid');g.textContent='';
+function openOwned(){const t=save.tank,list=ALLDECO().filter(d=>t.owned[d.id]&&!t.items.some(i=>baseId(i.id)===d.id)),th=makeThumbs(),g=$('#ownGrid');g.textContent='';
   $('#ownNote').textContent=list.length?'tap one to put it in the tank':'everything you own is already in the tank';
   for(const d of list){const b=document.createElement('button');b.type='button';b.innerHTML='<img alt="" src="'+(th[d.id]||'')+'">';const sp=document.createElement('span');sp.textContent=d.name;b.appendChild(sp);b.onclick=()=>{$('#ownSheet').hidden=true;placeItem(d.id);};g.appendChild(b);}
   $('#ownSheet').hidden=false;}
@@ -2558,7 +2564,8 @@ function placeItem(id){const it={id,x:0,z:0.25,r:+rnd(-0.6,0.6).toFixed(2),t:Dat
 $('#shopList').addEventListener('click',e=>{const d=e.target.dataset||{};
   if(d.buy){const it=ALLDECO().find(x=>x.id===d.buy&&!x.prize);if(!it)return;const lv0=PROG?PROG.level:1;if(!spendXP(it.price))return;save.tank.owned[it.id]=true;placeItem(it.id);toast(it.name+' added to the tank'+(PROG.level<lv0?' \u00b7 now level '+PROG.level:''));}
   else if(d.on)placeItem(d.on);
-  else if(d.off){save.tank.items=save.tank.items.filter(i=>i.id!==d.off);save.tank.gone=Object.assign({},save.tank.gone,{[d.off]:Date.now()});rebuildTank();persist();}
+  else if(d.more){const id=d.more+'#'+(Date.now()%1000000),it={id,x:+rnd(-0.8,0.8).toFixed(3),z:+rnd(-0.9,0.5).toFixed(2),r:+rnd(-3,3).toFixed(2),t:Date.now()};save.tank.items.push(it);rebuildTank();persist();$('#shop').hidden=true;setEdit('arrange');selItem=ITEMS_ON.find(o=>o.userData.item===it)||null;growIn(selItem);}
+  else if(d.off){const gone=Object.assign({},save.tank.gone);save.tank.items.filter(i=>baseId(i.id)===d.off).forEach(i=>gone[i.id]=Date.now());gone[d.off]=Date.now();save.tank.items=save.tank.items.filter(i=>baseId(i.id)!==d.off);save.tank.gone=gone;rebuildTank();persist();}
   renderShop();});
 const FLOOR=new THREE.Plane(new V3(0,1,0),0);
 function floorPoint(){FLOOR.constant=-B.floor;const p=new V3();return ray.ray.intersectPlane(FLOOR,p)?p:null;}
