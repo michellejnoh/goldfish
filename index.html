@@ -508,7 +508,7 @@ body.lookdock #viewArrows{display:flex}
   <div class="card">
     <h2>shop</h2>
     <p class="small" id="wallet"></p>
-    <div class="shoptabs" role="tablist"><button type="button" role="tab" data-pg="0">winter</button><button type="button" role="tab" data-pg="3">plants</button><button type="button" role="tab" data-pg="1">crystals</button><button type="button" role="tab" data-pg="2">rings</button></div>
+    <div class="shoptabs" role="tablist"><button type="button" role="tab" data-pg="0">winter</button><button type="button" role="tab" data-pg="1">crystals</button><button type="button" role="tab" data-pg="2">rings</button></div>
     <div class="shopgrid" id="shopList"></div>
     <div class="row2 topclose"><span></span><button type="button" class="go" id="shopClose">back</button></div>
   </div>
@@ -561,7 +561,7 @@ const KO={'your fish is a cracker right now · crackers can\u2019t duel':'내 �
 'clear':'투명','green':'초록','warm':'따뜻한','blue':'파랑','purple':'보라','night lamp':'무드등','play stone':'놀이 돌','what your fish bumps around':'물고기가 가지고 노는 것','stone':'돌','heart gem':'하트 보석','the color of the light at night':'밤에 켜지는 빛의 색',
 'a mood lamp beside the tank, on from 9 pm to 5 am':'어항 옆 무드등 · 밤 9시부터 새벽 5시까지 켜져요',
 'candy cane':'지팡이 사탕','gift box':'선물 상자','ice crystals':'얼음 결정','snowman':'눈사람','little sled':'작은 썰매','pine tree':'소나무',
-'penguin':'펭귄','cracker':'크래커','porcelain':'도자기','go see':'보러 가기','thin':'얇게','medium':'보통','thick':'두껍게','undo':'되돌리기','igloo':'이글루','duckweed':'개구리밥','plants':'수초','water hyacinth':'부레옥잠','polar bear':'북극곰','snow globe':'스노볼',
+'penguin':'펭귄','cracker':'크래커','porcelain':'도자기','go see':'보러 가기','thin':'얇게','medium':'보통','thick':'두껍게','undo':'되돌리기','igloo':'이글루','polar bear':'북극곰','snow globe':'스노볼',
 'first meal':'첫 식사','100 flakes eaten':'먹이 100개 먹기','caught the lure 100 times':'미끼 100번 잡기','50 tricks':'재주 50번',
 'a heap of 20 pebbles':'자갈 20개 더미','100 smudges wiped':'얼룩 100개 닦기','7 days in a row':'7일 연속','30 days in a row':'30일 연속',
 'get every need above 60 at once':'모든 상태를 한꺼번에 60 넘기기',
@@ -1166,37 +1166,7 @@ function blobLathe(parts,k,phiS,phiL){const lo=Math.min(...parts.map(p=>p[0]-p[1
     pts.push(new THREE.Vector2(Math.max(0,i===0||i===N?0:r),y));}
   return new THREE.LatheGeometry(pts,28,phiS||0,phiL||Math.PI*2);}
 function grp(...a){const g=new THREE.Group();a.forEach(x=>g.add(x));return g;}
-const mulberry=a=>()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};
-// many small parts baked into one mesh (one draw call), coloured per part and lit from above like the rest of the tank
-class PartMerge{constructor(){this.p=[];this.c=[];this.sph=new THREE.SphereGeometry(1,10,7).toNonIndexed();this.cyl=new THREE.CylinderGeometry(1,1,1,6,1).toNonIndexed();}
-  add(geo,col,x,y,z,sx,sy,sz,ry,rx,rz){const m=new THREE.Matrix4().compose(new V3(x,y,z),new THREE.Quaternion().setFromEuler(new THREE.Euler(rx||0,ry||0,rz||0,'YXZ')),new V3(sx,sy,sz)),
-    q=geo.attributes.position,n=geo.attributes.normal,c=new THREE.Color(col),v=new V3();for(let i=0;i<q.count;i++){v.fromBufferAttribute(q,i).applyMatrix4(m);this.p.push(v.x,v.y,v.z);
-      const k=0.72+0.34*Math.max(-0.4,n.getY(i));this.c.push(Math.min(1,c.r*k),Math.min(1,c.g*k),Math.min(1,c.b*k));}}
-  mesh(){const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(this.p,3));g.setAttribute('color',new THREE.Float32BufferAttribute(this.c,3));this.sph.dispose();this.cyl.dispose();return new THREE.Mesh(g,MAT);}}
-// a floating plant's shadow on the sand: soft dappled spots where its leaves are
-function floatShadow(sh){let R=0.05;for(const [x,z,r] of sh)R=Math.max(R,Math.hypot(x,z)+r);R*=1.15;const N=128,cv=document.createElement('canvas');cv.width=cv.height=N;const x=cv.getContext('2d');x.filter='blur(2px)';x.fillStyle='rgba(0,0,0,0.55)';
-  for(const [px,pz,pr] of sh){x.beginPath();x.arc((px/R*0.5+0.5)*N,(pz/R*0.5+0.5)*N,Math.max(1.5,pr/R*0.5*N),0,Math.PI*2);x.fill();}
-  const m=new THREE.Mesh(new THREE.PlaneGeometry(R*2,R*2),new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(cv),transparent:true,opacity:0.32,depthWrite:false,color:0x3a4a3a}));m.rotation.x=-Math.PI/2;m.renderOrder=1;return m;}
 const SHOP=[
- // floating plants: they sit on the water surface (anywhere you drag them), bob a little, and their roots hang down into the water
- {id:'duckweed',name:'duckweed',price:80,float:true,make:()=>{const r=mulberry(11),P=new PartMerge(),sh=[],LC=[0x8cbf5f,0x79b057,0x9ccb6c,0x6ea24f,0xa6d277];
-   // a wide raft of little plump lentil leaves in twos and threes, packed denser in the middle, with fine white roots hanging under
-   for(let i=0;i<120;i++){const a=r()*Math.PI*2,d=Math.pow(r(),0.7)*0.27,x=Math.cos(a)*d,z=Math.sin(a)*d*0.85,n=1+Math.floor(r()*3);
-     for(let k=0;k<n;k++){const sz=0.014+r()*0.011,b=k*2.1+r()*0.8,lx=x+Math.cos(b)*sz*0.95,lz=z+Math.sin(b)*sz*0.95;P.add(P.sph,LC[Math.floor(r()*LC.length)],lx,0.004,lz,sz*1.25,sz*0.4,sz,b);sh.push([lx,lz,sz*1.15]);}
-     if(r()<0.7){const l=0.06+r()*0.08;P.add(P.cyl,0xdbe3d2,x,-l/2,z,0.0016,l,0.0016,0);}}
-   const g=new THREE.Group();g.add(P.mesh());g.userData.sh=sh;return g;}},
- {id:'hyacinth',name:'water hyacinth',price:180,float:true,make:()=>{const r=mulberry(5),P=new PartMerge(),sh=[],S=1.45;
-   // two rings of round glossy leaves on swollen floats, a lavender flower spike in the middle, and long feathery dark roots
-   for(let ring=0;ring<2;ring++){const n=ring?4:7;for(let i=0;i<n;i++){const a=i/n*Math.PI*2+ring*0.4+r()*0.3,d=(ring?0.03:0.05)*S,up=ring?0.03:0;
-     P.add(P.sph,0x78a85c,Math.cos(a)*d,0.014*S+up,Math.sin(a)*d,0.03*S,0.022*S,0.025*S,-a);
-     const tilt=ring?0.25:0.5,lx=Math.cos(a)*(d+0.042*S),lz=Math.sin(a)*(d+0.042*S),ly=(0.085+r()*0.025)*S+up;
-     P.add(P.cyl,0x6c9b54,Math.cos(a)*(d+0.016*S),ly*0.55,Math.sin(a)*(d+0.016*S),0.007*S,ly*0.75,0.007*S,0,Math.sin(a)*tilt,-Math.cos(a)*tilt);
-     P.add(P.sph,[0x5e9a4a,0x69a754,0x73b05c][i%3],lx,ly,lz,0.05*S,0.009*S,0.043*S,-a,Math.sin(a)*0.5,-Math.cos(a)*0.5);sh.push([lx,lz,0.048*S]);}}
-   P.add(P.cyl,0x6c9b54,0,0.12*S,0,0.006*S,0.16*S,0.006*S,0);
-   for(let i=0;i<13;i++){const a=i*2.4,h=(0.15+i*0.011)*S,rr=0.02*S*(1-i/18);P.add(P.sph,i%4===1?0x9d7fbf:0xc8b3e0,Math.cos(a)*rr,h,Math.sin(a)*rr,0.019*S*(1-i/30),0.012*S,0.014*S,-a);
-     if(i%3===0)P.add(P.sph,0xe8c75a,Math.cos(a)*rr*1.3,h+0.004,Math.sin(a)*rr*1.3,0.004*S,0.003*S,0.004*S,0);}
-   for(let i=0;i<28;i++){const a=r()*Math.PI*2,d=r()*0.045*S,l=(0.1+r()*0.12)*S;P.add(P.cyl,i%3?0x4b3f45:0x5d4c52,Math.cos(a)*d,-l/2,Math.sin(a)*d,0.0028*S,l,0.0028*S,0,(r()-0.5)*0.5,(r()-0.5)*0.5);}
-   const g=new THREE.Group();g.add(P.mesh());g.userData.sh=sh;return g;}},
  {id:'cane',name:'candy cane',price:60,make:()=>{const g=new THREE.Group();for(let i=0;i<6;i++)g.add(part(CYL,i%2?WC.snow:WC.red,0,0.03+i*0.05,0,0.018,0.05,0.018));
    const hook=new THREE.Mesh(new THREE.TorusGeometry(0.05,0.018,8,20,Math.PI),fm(WC.red));hook.position.set(0.05,0.3,0);g.add(hook);return g;}},
  {id:'gift',name:'gift box',price:80,make:()=>grp(part(BOX,WC.red,0,0.07,0,0.15,0.14,0.15),part(BOX,WC.green,0,0.07,0,0.035,0.145,0.155),part(BOX,WC.green,0,0.07,0,0.155,0.145,0.035),
@@ -1278,7 +1248,7 @@ function restPlane(P,H){// lowest plane (height at the middle a, slopes bx,bz) l
   return best;}
 function settleRings(e){const rc=new THREE.Raycaster(),down=new V3(0,-1,0),F=B.floor,done=[...BIGROCKS],o=new V3(),q=new THREE.Quaternion();e.updateMatrixWorld(true);
   const key=g=>g===dragItem?1e15:(g.userData.item.t||0),list=ITEMS_ON.slice().sort((a,b)=>key(a)-key(b));
-  for(const g of list){g.rotation.order='YXZ';g.rotation.x=g.rotation.z=0;if(g.userData.float){g.position.y=B.surf-0.004;continue;}g.position.y=F;g.updateMatrixWorld(true);const lb=itemBox(g);if(!lb){done.push(g);continue;}
+  for(const g of list){g.rotation.order='YXZ';g.rotation.x=g.rotation.z=0;g.position.y=F;g.updateMatrixWorld(true);const lb=itemBox(g);if(!lb){done.push(g);continue;}
     const sc=g.scale.x,yaw=g.rotation.y,cy=Math.cos(yaw),sy=Math.sin(yaw),cx=(lb.min.x+lb.max.x)/2,cz=(lb.min.z+lb.max.z)/2,
       toE=(lx,lz)=>[g.position.x+(lx*cy+lz*sy)*sc,g.position.z+(-lx*sy+lz*cy)*sc],C=toE(cx,cz),P=[],H=[];
     for(let a=0;a<4;a++)for(let b=0;b<4;b++){const lx=lerp(lb.min.x,lb.max.x,0.08+0.84*a/3),lz=lerp(lb.min.z,lb.max.z,0.08+0.84*b/3),[x,z]=toE(lx,lz);
@@ -1349,7 +1319,7 @@ function buildEnv(){
   // the heap sits in the open toward the front, where it can be seen
   PILE=new V3((save.tank.pileSide||(save.tank.pileSide=Math.random()<0.5?-1:1))*B.x*0.4,F,0.45);if(save.tank.pile){PILE.x=save.tank.pile[0]*B.x;PILE.z=save.tank.pile[1];}PILE.n=PEBBLES.filter(p=>p.inPile).length;
   if(PILE.n){let sx=0,sz=0;for(const p of PEBBLES)if(p.inPile){sx+=p.m.position.x;sz+=p.m.position.z;}PILE.x=sx/PILE.n;PILE.z=sz/PILE.n;}// keep growing an existing heap where it is
-  ITEMS_ON=[];for(const it of save.tank.items){const def=ALLDECO().find(d=>d.id===it.id);if(!def)continue;const g=def.make(it);g.userData.float=!!def.float;if(def.float&&g.userData.sh){const sd=floatShadow(g.userData.sh);sd.scale.setScalar(1.8);e.add(sd);g.userData.shadow=sd;}g.userData.isRing=!!def.prize;g.userData.ringId=def.prize?def.id:null;if(def.glow)g.userData.glow=def.glow;if(g.userData.isRing){const rg=g.children[0];rg.rotation.set(Math.PI/2-0.18,0,0);rg.position.y=0.031;}g.scale.setScalar(1.8);g.position.set(it.x*B.x,F,it.z);g.rotation.y=it.r||0;g.userData.item=it;e.add(g);ITEMS_ON.push(g);}
+  ITEMS_ON=[];for(const it of save.tank.items){const def=ALLDECO().find(d=>d.id===it.id);if(!def)continue;const g=def.make(it);g.userData.isRing=!!def.prize;g.userData.ringId=def.prize?def.id:null;if(def.glow)g.userData.glow=def.glow;if(g.userData.isRing){const rg=g.children[0];rg.rotation.set(Math.PI/2-0.18,0,0);rg.position.y=0.031;}g.scale.setScalar(1.8);g.position.set(it.x*B.x,F,it.z);g.rotation.y=it.r||0;g.userData.item=it;e.add(g);ITEMS_ON.push(g);}
   {const bm=toyMesh(toyKind());bm.position.set(B.x*0.25,F+0.1,-0.1);e.add(bm);BALL={m:bm,pos:bm.position,vel:new V3(),r:0.1,floor:F+0.1};}
   BIGROCKS=[];[[-B.x*0.75,-1.0,0.42],[B.x*0.6,-1.2,0.55],[B.x*0.95,-0.7,0.26]].forEach(([x,z,r])=>{const s=new THREE.Mesh(stoneGeo(r,rnd(0,9),false,0.72),MAT);s.position.set(x,F+r*0.3,z);s.rotation.y=rnd(0,6);e.add(s);BIGROCKS.push(s);});e.updateMatrixWorld(true);settleRings(e);
   // ribbon grass (vallisneria) in clusters
@@ -2066,7 +2036,7 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden)setTimeout
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)pull();});
 /* the home-screen app keeps an old copy of the page open (and iOS caches it), so check for a newer build when it opens or comes back,
    and reload past the cache if there is one */
-const BUILD='20261125052853';
+const BUILD='20261125054716';
 function checkBuild(){fetch('version.json?t='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{if(!j||!j.b||j.b===BUILD)return;
   try{if(sessionStorage.getItem('gf-build')===j.b)return;sessionStorage.setItem('gf-build',j.b);}catch(e){}
   try{persistLocal();}catch(e){}location.replace(location.pathname+'?v='+encodeURIComponent(j.b));}).catch(()=>{});}
@@ -2357,7 +2327,7 @@ function toysTick(dt){for(const o of ITEMS_ON||[]){const U=o.userData;
 function snailBlocked(x,z,r=0.07){for(const o of OBST){if(o.c.y-o.h.y/0.85>B.floor+0.2)continue;const dx=(x-o.c.x)/(o.h.x/0.85+r),dz=(z-o.c.z)/(o.h.z/0.85+r);if(dx*dx+dz*dz<1)return o;}return null;}
 const _grc=new THREE.Raycaster(),_gdn=new V3(0,-1,0),_go=new V3();
 function groundAt(x,z){const sy=sandAt(x,z);if(!ENV||!snailBlocked(x,z,0.02))return sy;_go.set(x,B.surf,z);ENV.localToWorld(_go);_grc.set(_go,_gdn);
-  const h=_grc.intersectObjects([...BIGROCKS,...(ITEMS_ON||[]).filter(o=>!o.userData.float)],true)[0];return h?Math.max(sy,ENV.worldToLocal(h.point.clone()).y):sy;}
+  const h=_grc.intersectObjects([...BIGROCKS,...(ITEMS_ON||[])],true)[0];return h?Math.max(sy,ENV.worldToLocal(h.point.clone()).y):sy;}
 function snailTick(dt){toysTick(dt);const night=lightsOff||nightAmt()>0.5;
   const order=SNAILS.length>1?[...SNAILS].sort((a,b)=>snDepth(a)-snDepth(b)):SNAILS;if(!SNI&&!VISIT&&(sniT-=dt)<=0){sniPick();if(!SNI)sniT=6;}
   for(const sn of order){const g=sn.g,u=g.userData;sn.stT-=dt;sn.ph+=dt;if(sn.rider&&(sn.rider.on!==sn||!SNAILS.includes(sn.rider)))sn.rider=null;
@@ -2468,14 +2438,14 @@ function thumbsOf(list){const out={};const tr=new THREE.WebGLRenderer({antialias
 let SHOPPG=0;
 function renderShop(){const t=save.tank,th=makeThumbs();document.querySelectorAll('.shoptabs [data-pg]').forEach(b=>b.setAttribute('aria-selected',+b.dataset.pg===SHOPPG));
   $('#wallet').textContent=PROG?'level '+PROG.level+' \u00b7 '+wallet()+' xp to spend \u00b7 buying uses up xp, so your level can go down':'sign in to collect decorations';
-  $('#shopList').innerHTML=(SHOPPG===2?[]:SHOPPG===3?SHOP.filter(d=>d.float):SHOPPG?CRYSTALS:SHOP.filter(d=>!d.float)).map(d=>{const own=t.owned[d.id],on=t.items.some(i=>i.id===d.id),can=PROG&&wallet()>=d.price;
+  $('#shopList').innerHTML=(SHOPPG===2?[]:SHOPPG?CRYSTALS:SHOP).map(d=>{const own=t.owned[d.id],on=t.items.some(i=>i.id===d.id),can=PROG&&wallet()>=d.price;
     const after=can?(()=>{let L=PROG.level,e=PROG.exp-d.price;while(e<0&&L>1){L--;e+=need(L);}return L;})():0;
     const act=!own?(can?'<button data-buy="'+d.id+'">buy \u00b7 '+d.price+' xp'+(after<PROG.level?' (to lv '+after+')':'')+'</button>':'<em>'+d.price+' xp</em>'+(PROG?'<small class="need">'+(d.price-wallet())+' xp more</small>':'')):on?'<button data-off="'+d.id+'">put away</button>':'<button data-on="'+d.id+'">place in tank</button>';
     return '<div class="item'+(!own&&!can?' locked':'')+'" data-id="'+d.id+'"><img src="'+th[d.id]+'" alt="'+d.name+'"><b>'+d.name+'</b>'+act+'</div>';}).join('')
     +(SHOPPG!==2?'':'<p class="small shophead">won in duels · a new ring each win</p>'+RINGS.map((r,i)=>{const own=t.owned[r.id],on=t.items.some(x=>x.id===r.id),k=RINGS.filter(x=>t.owned[x.id]).length;
       return '<div class="item'+(own?'':' locked')+'" data-id="'+r.id+'"><img src="'+th[r.id]+'" alt="'+r.name+'"><b>'+r.name+'</b>'+(!own?'<small class="need">'+(i===k?'win your next duel':'win '+(i-k+1)+' more duels')+'</small>':on?'<button data-off="'+r.id+'">put away</button>':'<button data-on="'+r.id+'">place in tank</button>')+'</div>';}).join(''));}
 document.querySelectorAll('.shoptabs [data-pg]').forEach(b=>b.onclick=()=>{SHOPPG=+b.dataset.pg;renderShop();});
-{let sx=null;const el=$('#shopList');el.addEventListener('touchstart',e=>{sx=e.touches[0].clientX;},{passive:true});el.addEventListener('touchend',e=>{if(sx===null)return;const dx=e.changedTouches[0].clientX-sx;sx=null;if(Math.abs(dx)>50){const ord=[0,3,1,2],i=ord.indexOf(SHOPPG),p=ord[clamp(i+(dx<0?1:-1),0,3)];if(p!==SHOPPG){SHOPPG=p;renderShop();}}},{passive:true});}
+{let sx=null;const el=$('#shopList');el.addEventListener('touchstart',e=>{sx=e.touches[0].clientX;},{passive:true});el.addEventListener('touchend',e=>{if(sx===null)return;const dx=e.changedTouches[0].clientX-sx;sx=null;if(Math.abs(dx)>50){const ord=[0,1,2],i=ord.indexOf(SHOPPG),p=ord[clamp(i+(dx<0?1:-1),0,2)];if(p!==SHOPPG){SHOPPG=p;renderShop();}}},{passive:true});}
 function openShop(){if(VISIT)return;renderShop();$('#tank').hidden=true;$('#decorMenu').hidden=true;$('#shop').hidden=false;}
 $('#bagBtn').onclick=openShop;
 $('#editBtn').onclick=()=>openTank();
@@ -3621,8 +3591,6 @@ function frame(){requestAnimationFrame(frame);
     const look=['#colors','#patterns','#skins'].some(k=>!$(k).hidden);document.body.classList.toggle('lookdock',look);}updateStats();updateCap();if(PROG){ensureDaily();const n=pet().s,ok=n.food>60&&n.clean>60&&n.energy>60&&n.fun>60;if(ok&&!S.happyNow)track('needs');S.happyNow=ok;}}
   if(S.toastT>0)S.toastT-=dt;
   if((saveT+=dt)>5){saveT=0;persistLocal();}
-  for(const o of ITEMS_ON||[])if(o.userData.float&&o!==dragItem){o.position.y=B.surf-0.004+Math.sin(T*0.8+o.position.x*3)*0.004;o.rotation.z=Math.sin(T*0.6+o.position.z*4)*0.035;}
-  for(const o of ITEMS_ON||[]){const sd=o.userData.shadow;if(sd){sd.position.set(o.position.x+0.04,sandAt(o.position.x,o.position.z)+0.006,o.position.z+0.03);sd.rotation.z=-o.rotation.y;}}
   renderer.render(scene,camera);perfWatch();}
 // if the device can't keep up (frames over ~28 ms for a couple of seconds), render at a lower resolution; never below 60% of normal
 function perfWatch(){const now=performance.now(),P=perfWatch;if(frame.cap){P.t=0;return;}if(P.t){const d=now-P.t;if(d<250){P.sum=(P.sum||0)+d;P.n=(P.n||0)+1;}}P.t=now;
