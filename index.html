@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="referrer" content="no-referrer">
 <meta name="description" content="A tiny goldfish to feed, lead around, play with and put to sleep.">
 <meta name="theme-color" content="#f1f2f3">
@@ -40,7 +40,7 @@ html[lang="ko"] .mrow{padding:11px 0}
 html[lang="ko"] .small,html[lang="ko"] p{line-height:1.45}
 html[lang="ko"] .item b,html[lang="ko"] .lookgrid span{line-height:1.3}
 html{background:var(--bg)}
-html,body{height:100%;margin:0;overflow:hidden;overscroll-behavior:none}
+html,body{height:100%;margin:0;overflow:hidden;overscroll-behavior:none;touch-action:manipulation}
 body{position:fixed;inset:0;width:100%}
 body{background:var(--bg);color:var(--ink);font-family:var(--font);-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
 #c{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none;z-index:0}
@@ -2036,7 +2036,7 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden)setTimeout
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)pull();});
 /* the home-screen app keeps an old copy of the page open (and iOS caches it), so check for a newer build when it opens or comes back,
    and reload past the cache if there is one */
-const BUILD='20261125054716';
+const BUILD='20261126175815';
 function checkBuild(){fetch('version.json?t='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{if(!j||!j.b||j.b===BUILD)return;
   try{if(sessionStorage.getItem('gf-build')===j.b)return;sessionStorage.setItem('gf-build',j.b);}catch(e){}
   try{persistLocal();}catch(e){}location.replace(location.pathname+'?v='+encodeURIComponent(j.b));}).catch(()=>{});}
@@ -2727,7 +2727,12 @@ $('#visitBtn').onclick=openVisit;
    screen creeps upward over time. Put it back whenever the keyboard closes, the viewport changes, or the app comes back. */
 function unshift(){if(window.scrollY||document.documentElement.scrollTop||document.body.scrollTop){window.scrollTo(0,0);document.documentElement.scrollTop=0;document.body.scrollTop=0;}}
 document.addEventListener('focusout',()=>setTimeout(unshift,60));if(window.visualViewport){visualViewport.addEventListener('resize',()=>setTimeout(unshift,60));visualViewport.addEventListener('scroll',()=>{if(!document.activeElement||!/INPUT|TEXTAREA/.test(document.activeElement.tagName))unshift();});}
-window.addEventListener('scroll',()=>{if(!document.activeElement||!/INPUT|TEXTAREA/.test(document.activeElement.tagName))unshift();});document.addEventListener('visibilitychange',()=>{if(!document.hidden)setTimeout(unshift,100);});setInterval(()=>{if(!document.activeElement||!/INPUT|TEXTAREA/.test(document.activeElement.tagName))unshift();},2000);
+window.addEventListener('scroll',()=>{if(!document.activeElement||!/INPUT|TEXTAREA/.test(document.activeElement.tagName))unshift();});
+// the page itself must never move or zoom: catch the body/html being scrolled (that doesn't reach window) and block pinch and double-tap zoom,
+// which on iPhone shifts the whole view so the top or bottom bar slides off screen
+document.addEventListener('scroll',e=>{const t=e.target;if(t===document||t===document.body||t===document.documentElement){if(!document.activeElement||!/INPUT|TEXTAREA/.test(document.activeElement.tagName))unshift();}},true);
+['gesturestart','gesturechange'].forEach(k=>document.addEventListener(k,e=>e.preventDefault(),{passive:false}));
+document.addEventListener('touchmove',e=>{if(e.touches.length>1&&e.target!==cv)e.preventDefault();},{passive:false});document.addEventListener('visibilitychange',()=>{if(!document.hidden)setTimeout(unshift,100);});setInterval(()=>{if(!document.activeElement||!/INPUT|TEXTAREA/.test(document.activeElement.tagName))unshift();},2000);
 function openMore(){$('#mSoundTxt').textContent=save.sound?'on':'off';$('#more').hidden=false;}
 $('#moreBtn').onclick=openMore;$('#moreClose').onclick=()=>{$('#more').hidden=true;};
 $('#mTank').onclick=()=>{$('#more').hidden=true;$('#tvBtn').click();};$('#mPhoto').onclick=()=>{$('#more').hidden=true;$('#captureBtn').click();};
